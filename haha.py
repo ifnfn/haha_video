@@ -1,3 +1,4 @@
+#! env /usr/bin/python
 # -*- coding: utf-8 -*-
 
 import sys, os
@@ -17,8 +18,7 @@ import threading
 import traceback
 import json
 import random
-#from utils.BeautifulSoup import BeautifulSoup as bs
-import BeautifulSoup as bs
+from utils.BeautifulSoup import BeautifulSoup as bs
 import urllib
 from utils.fetchTools import fetch_httplib2 as fetch
 import base64, zlib
@@ -55,66 +55,6 @@ TUDOU_HOST = 'www.tudou.com'
 def zip_data(data):
     return base64.b64encode(zlib.compress(data, zlib.Z_BEST_SPEED))
 
-def GetListData(listurl, times=0):
-    res = []
-    if times > MAX_TRY:
-        return res
-    try:
-        _, _, _, response = fetch(listurl)
-        jdata = json.loads(response)
-        videos = jdata['videoshow']['videos']
-        for video in videos:
-            rating = video['rating']
-            title = video['title']
-            url = video['url']
-            source = video['source']
-            area = ' '.join([d['name'] for d in video['area']])
-            actor = ' '.join([d['name'] for d in video['actor']])
-            cid = video['id']
-            duration = video['duration']
-            intro = video['intro']
-            s_intro = video['s_intro']
-            date = video['date']
-            ctype = ' '.join([t['name']for t in video['type']])
-            imgh_url = video['imgh_url']
-            imgv_url = video['imgv_url']
-            res.append([rating, title, url, source, area, actor, cid, duration, intro, s_intro, date, ctype, imgh_url, imgv_url])
-            return res
-    except:
-        t, v, tb = sys.exc_info()
-        log.error("GetListData listurl:  %s %s,%s,%s" % (listurl, t, v, traceback.format_tb(tb)))
-        return GetListData(listurl, times + 1)
-
-def GetItemData(itemurl, parsetype, times=0):
-    res = []
-    if times > MAX_TRY:
-        return res
-    try:
-        _, _, _, response = fetch(itemurl)
-        if parsetype == PARSE_TYPE:
-            jdata = json.loads(response)
-            videos = jdata['video']
-            for video in videos:
-                playlink = video['playlink']
-                njdata = json.loads(playlink)
-                playurl = njdata['links']['0']['url']
-                anchor = njdata['links']['0']['anchor']
-                res.append([playurl, anchor, ''])
-        else:
-            response = response.decode('gb18030')
-            response = re.sub('tag: \[.*.\]', '', response)
-            playtimes = re.findall('(?<=duration_hour\: \")\d+\:\d+(?=\"\,)', response)
-            playurls = re.findall('(?<=url\: \").*.(?=\"\,)', response)
-            ti = re.findall('(?<=ti\:\").*.(?=\"\,)', response)
-            datas = zip(playurls, ti, playtimes)
-            res.extend(datas)
-            return res
-
-    except:
-        t, v, tb = sys.exc_info()
-        log.error("GetItemData itemurl:  %s, %s,%s,%s" % (itemurl, t, v, traceback.format_tb(tb)))
-        return GetItemData(itemurl, parsetype, times + 1)
-
 def GetBaiyRealUrl(playurl, times=0):
     res = []
     if times > MAX_TRY:
@@ -132,7 +72,7 @@ def GetBaiyRealUrl(playurl, times=0):
                 info = urllib.unquote(uri)
                 for s in info.split('$$$'):
                     res.extend([s.split('$')])
-                    return res
+        return res
     except:
         t, v, tb = sys.exc_info()
         log.error("GetBaiyRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
@@ -148,7 +88,7 @@ def GetAiPaiRealUrl(playurl, times=0):
         if assetpurl:
             realurl = assetpurl[0].replace('iphone.aipai.com/', '').replace('card.m3u8', 'card.flv')
             res.append(['', realurl])
-            return res
+        return res
     except:
         t, v, tb = sys.exc_info()
         log.error("GetAiPaiRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
@@ -166,9 +106,9 @@ def GetWlRealUrl(playurl, times=0):
 
         jdata = json.loads(oflvo[0])
         pid = jdata['id']
-        #         pid = re.findall('(?<=var _oFlv_o \= \{\"id\"\:\")\d+(?=\",\")', response)
+#         pid = re.findall('(?<=var _oFlv_o \= \{\"id\"\:\")\d+(?=\",\")', response)
         if pid:
-            #             pid = pid[0]
+#             pid = pid[0]
             url = 'http://vxml.56.com/json/%d/?src=site' % (int(pid))
             _, _, _, response = fetch(url)
             jdata = json.loads(response)
@@ -177,7 +117,7 @@ def GetWlRealUrl(playurl, times=0):
                 realurl = rf['url']
                 playtype = rf['type']  # 可能是清晰度
                 res.append(['', realurl])
-                return res
+        return res
     except:
         t, v, tb = sys.exc_info()
         log.error("GetWlRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
@@ -191,8 +131,8 @@ def FindUKVideo(info, stream_type=None, times=0):
             if x in types:
                 stream_type = x
                 break
-            else:
-                raise NotImplementedError()
+        else:
+            raise NotImplementedError()
     file_type = {'hd2':'flv', 'mp4':'mp4', 'flv':'flv'}[stream_type]
 
     seed = info['data'][0]['seed']
@@ -214,7 +154,7 @@ def FindUKVideo(info, stream_type=None, times=0):
         no = '%02x' % int(s['no'])
         url = 'http://f.youku.com/player/getFlvPath/sid/%s_%s/st/%s/fileid/%s%s%s?K=%s&ts=%s' % (sid, no, file_type, vid[:8], no.upper(), vid[10:], s['k'], s['seconds'])
         urls.append((url, int(s['size'])))
-        return urls
+    return urls
 
 def GetUKInfo(videoId2, times=0):
     if times > MAX_TRY:
@@ -244,7 +184,7 @@ def GetUKouRealUrl(playurl, times=0):
                 _, _, location, response = fetch(url)
                 res.append(['', location])
                 time.sleep(2)
-                return res
+        return res
     except:
         t, v, tb = sys.exc_info()
         log.error("GetUKouRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
@@ -263,6 +203,34 @@ def GetSoHuInfo(host, prot, tfile, new, times=0):
         log.error("GetSoHuInfo %s,%s,%s" % (t, v, traceback.format_tb(tb)))
         return GetSoHuInfo(host, prot, tfile, new, times + 1)
 
+def GetSoHuTvList(playurl, times=0):
+    res = []
+    if times > MAX_TRY:
+        return res
+    try:
+        _, _, _, response = fetch(playurl)
+        playlist_id = re.search('var PLAYLIST_ID="(\d+)', response).group(1)
+        newurl = 'http://hot.vrs.sohu.com/vrs_videolist.action?playlist_id=%s' % playlist_id
+        print newurl
+        _, _, _, response = fetch(newurl)
+        #data = re.findall('data: {.*.} }\,', response)
+        #print re.findall('var vrsvideolist = (\S+)', response)
+        oflvo = re.search('var vrsvideolist \= (\{.*.\})', response.decode('gb18030')).group(1)
+
+        if not oflvo:
+            return res
+
+        jdata = json.loads(oflvo)
+        videolist = jdata['videolist']
+        for a in videolist:
+            print a['videoImage'], a['videoName'], a['videoOrder'], a['videoId']
+            res.append(a)
+
+    except:
+        t, v, tb = sys.exc_info()
+        log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
+    return res
+
 def GetSoHuRealUrl(playurl, times=0):
     res = []
     if times > MAX_TRY:
@@ -271,6 +239,7 @@ def GetSoHuRealUrl(playurl, times=0):
         _, _, _, response = fetch(playurl)
         vid = re.search('vid="(\d+)', response).group(1)
         newurl = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
+        print newurl
         _, _, _, response = fetch(newurl)
         jdata = json.loads(response)
         host = jdata['allot']
@@ -281,13 +250,13 @@ def GetSoHuRealUrl(playurl, times=0):
         size = sum(data['clipsBytes'])
         for tfile, new in zip(data['clipsURL'], data['su']):
             urls.append(GetSoHuInfo(host, prot, tfile, new))
-            if len(urls) == 1:
-                url = urls[0]
+        if len(urls) == 1:
+            url = urls[0]
+            res.append(['', url])
+        else:
+            for url in urls:
                 res.append(['', url])
-            else:
-                for url in urls:
-                    res.append(['', url])
-                    return res
+        return res
     except:
         t, v, tb = sys.exc_info()
         log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
@@ -307,7 +276,7 @@ def GetKuSixRealUrl(playurl, times=0):
             f = jdata['data']['f']
             size = jdata['data']['videosize']
             res.append(['', f])
-            return res
+        return res
     except:
         t, v, tb = sys.exc_info()
         log.error("GetKuSixRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
@@ -333,7 +302,7 @@ def GetTuDouRealUrl(playurl, times=0):
         else:
             for url in urls:
                 res.append(['', url[1]])
-                return res
+        return res
     except:
         t, v, tb = sys.exc_info()
         log.error("GetTuDouRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
@@ -370,161 +339,19 @@ def GetRealPlayUrl(playurl, times=0):
 
     return res
 
-
-class Job(object):
-
-    mainurl = None
-    purl = None
-    supporturl = None
-
-    rating = None
-    title = None
-    url = None
-    source = None
-    area = None
-    actor = None
-    cid = None
-    duration = None
-    intro = None
-    s_intro = None
-    date = None
-    ctype = None
-    imgh_url = None
-    imgv_url = None
-    real_url = None
-    url_type = None
-
-    anchor = None
-    playtimes = None
-    reallinks = []
-
-
-    def __init__(self, **kwargs):
-        self.__dict__ = kwargs
-
-class Worker(threading.Thread):
-
-    def __init__(self, job_queue):
-        threading.Thread.__init__(self)
-        self.job_queue = job_queue
-        self.ods = DataSaver()
-        self.sfs = DataSaver()
-
-    def run(self):
-        tname = threading.current_thread().getName()
-        ods_policy = {'roll_policy':'time:hour', 'namefmt':'data%/%t/%t/res_%t.dat', 'timefmt':['%Y', '%Y%m%d', '%Y%m%d_%H%M%S']}
-        self.ods.set_filename_format(ods_policy)
-        while True:
-            try:
-                job = self.job_queue.get()
-                log.info('From: %s, fetch %s , %s, start.' % (tname, job.url_type, job.url))
-                if job.url_type == LIST_URL_TYPE:
-                    result = GetListData(job.url)
-                    for rating, title, url, source, area, actor, cid, duration, intro, s_intro, date, ctype, imgh_url, imgv_url in result:
-                        purl = BASE_URL % int(cid)
-                        supporturl = SUPPORT_URL % (urllib.quote(title.encode('gb18030')))
-                        newjob = Job(rating=rating, title=title, url=purl, supporturl=supporturl, mainurl=url, source=source, area=area, actor=actor, cid=cid, \
-                                     duration=duration, intro=intro, s_intro=s_intro, date=date, ctype=ctype, imgh_url=imgh_url, imgv_url=imgv_url, url_type=ITEM_URL_TYPE)
-                        self.job_queue.put(newjob)
-                elif job.url_type == ITEM_URL_TYPE:
-                    result = GetItemData(job.url, 1)
-                    if not result :
-                        result = GetItemData(job.supporturl, 2)
-                        for playurl, anchor, playtimes in result:
-                            newjob = Job(rating=job.rating, title=job.title, purl=job.purl, supporturl=job.supporturl, mainurl=job.mainurl, source=job.source, area=job.area, actor=job.actor, cid=job.cid, \
-                                         duration=job.duration, intro=job.intro, s_intro=job.s_intro, date=job.date, ctype=job.ctype, imgh_url=job.imgh_url, imgv_url=job.imgv_url, url_type=REAL_URL_TYPE, \
-                                         url=playurl, anchor=anchor, playtimes=playtimes)
-                            self.job_queue.put(newjob)
-                    elif job.url_type == REAL_URL_TYPE:
-                        result = GetRealPlayUrl(job.url)
-                        job.reallinks = json.dumps(result, ensure_ascii=False, encoding='utf-8')
-                        log.error(job.reallinks)
-                        self.process_job(job)
-
-                sleep(random.uniform(10, 11.8))
-            except:
-                t, v, tb = sys.exc_info()
-                log.error("url:  %s %s,%s,%s" % (job.url, t, v, traceback.format_tb(tb)))
-
-    def process_job(self, job):
-        newtaskdata = json.dumps(job.__dict__, ensure_ascii=False, encoding='utf-8')
-        self.ods.save_data("%s\n" % newtaskdata, no_head=True)
-
-
-class Crawler(object):
-
-    def __init__(self, limit):
-        self.workers = []
-        self.limit = limit
-        self.job_queue = PriorityQueue()
-
-
-    def start(self, seed_path):
-        count = 0
-        checkfile = open('count', 'r')
-        lines = checkfile.readlines()
-        if len(lines) > 0 and len(lines[-1].strip()) > 1:
-            count = int(lines[-1].strip())
-            count = count - self.limit * 2
-            checkfile.close()
-
-        log.info('init_count: %d' % count)
-
-        seed_file = open(seed_path, 'r')
-        checkfile = open('count', 'w')
-
-        for _ in range(count):
-            seed_file.readline()
-
-        runnable_threshold = 10
-        for _ in range(self.limit):
-            worker = Worker(self.job_queue)
-            worker.daemon = True
-            worker.start()
-            self.workers.append(worker)
-
-        while True and runnable_threshold > 0:
-            log.info('current queue size: %s' % str(self.job_queue.qsize()))
-            if self.job_queue.qsize() < self.limit:
-                for _ in range(self.limit):
-                    count += 1
-                    url = seed_file.readline().strip('\r\n')
-
-                    if not url:
-                        log.info("no shop url left")
-                        runnable_threshold -= 1
-                        break
-                    job = Job(url=url, url_type=LIST_URL_TYPE)
-                    self.job_queue.put(job)
-                    checkfile.write(str(count) + '\n')
-                    checkfile.flush()
-                    log.info('new_count: %d.' % count)
-                    time.sleep(5)
-
-
 def main():
-    #Crawler(10).start('ct')
-    if len(sys.argv) == 3:
-        Crawler(int(sys.argv[1])).start(sys.argv[2])
-    else:
-        print "example: %s 5 c1" % sys.argv[0]
-
-def test():
-    url='http://store.tv.sohu.com/content/5766714/1284128/2439/777777.html'
-    url='http://tv.sohu.com/20130331/n371216691.shtml'
-    #     print GetUKouRealUrl('http://v.youku.com/v_show/id_XNTg1OTI5NTQ0.html')
-    #     print GetUKouRealUrl('http://v.youku.com/v_show/id_XNTgzNTE2OTcy.html')
-    #    print GetSoHuRealUrl('http://tv.sohu.com/20120111/n331899511.shtml')
-    print GetSoHuRealUrl('http://tv.sohu.com/20130331/n371216691.shtml')
-    #     print GetKuSixRealUrl('http://v.ku6.com/show/c3UTb-y6XRScUY5UsxOLlQ...html')
-    #     print GetWlRealUrl('http://www.56.com/u73/v_OTI2NzQ1MzQ.html')
-    #     print GetWlRealUrl('http://www.56.com/w28/play_album-aid-11265281_vid-OTEwMDA2Nzc.html')
-    #     print GetRealPlayUrl('http://www.baiy.net/player_2009/55432/55432-0-0.html')
-    #print GetTuDouRealUrl('http://www.tudou.com/programs/view/it884YETOlM/')
+#     print GetUKouRealUrl('http://v.youku.com/v_show/id_XNTg1OTI5NTQ0.html')
+#     print GetUKouRealUrl('http://v.youku.com/v_show/id_XNTgzNTE2OTcy.html')
+#    print GetSoHuRealUrl('http://tv.sohu.com/20120111/n331899511.shtml')
+#    print GetSoHuRealUrl('http://tv.sohu.com/20130828/n385287096.shtml')
+    print GetSoHuTvList('http://tv.sohu.com/s2013/hfhwfw')
+#    print GetSoHuRealUrl('http://tv.sohu.com/20130828/n385212889.shtml')
+#     print GetKuSixRealUrl('http://v.ku6.com/show/c3UTb-y6XRScUY5UsxOLlQ...html')
+#     print GetWlRealUrl('http://www.56.com/u73/v_OTI2NzQ1MzQ.html')
+#     print GetWlRealUrl('http://www.56.com/w28/play_album-aid-11265281_vid-OTEwMDA2Nzc.html')
+#     print GetRealPlayUrl('http://www.baiy.net/player_2009/55432/55432-0-0.html')
+#    print GetTuDouRealUrl('http://www.tudou.com/programs/view/it884YETOlM/')
 
 if __name__ == "__main__":
-    #main()
-    test()
-
-
+    main()
 

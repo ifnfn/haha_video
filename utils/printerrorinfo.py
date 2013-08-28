@@ -27,4 +27,3 @@ def printErrorInfo():
             print file, "line:", lineno, "in", function
             print text
         print "%s: %s" % info[:2]
-    

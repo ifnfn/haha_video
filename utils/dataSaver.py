@@ -16,7 +16,7 @@ class DataSaver(object):
 			self.close_file()
 
 	def set_filename_format(self, params):
-		''' roll_policy: 
+		''' roll_policy:
 				time:	minute, hour, day, week, month
 				size:  KB, MB, GB
 			namefmt:	format for filename, can include %t %[n]d other than normal chars

@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+import sys, os
+
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -8,9 +11,7 @@ from tornado import gen
 from tornado import httpclient
 from tornado.options import define, options
 from tornado.escape import json_encode
-
-import database
-from mmseg import seg_txt
+import haha
 
 import redis
 import json
@@ -67,7 +68,8 @@ def getlist(page, size, setname, flag, type):
     ids = c.lrange(setname, m, n)
     items = []
     for id in ids:
-        print id
+        # c.expire(id, 10)
+        # print "TTL: ", c.ttl(id)
         if not c.exists(id):
             continue
         item = c.hgetall(id)
@@ -103,6 +105,11 @@ class TvhotHandler(JSONPHandler):
 
 class CateHandler(JSONPHandler):
     def get(self):
+        t_cate = [
+            ("电影", "100"、电视剧101、动漫115、综艺1270()
+            m_cate006、纪录片107、音乐121、教育119、新闻122、娱乐112、星尚130、
+            旅游131、网友上传99900onPopupPost()
+            m_cate0
         m_cate = [
                     { "title":"传记片", "id":"m_zhuanji"},
                     { "title":"伦理片", "id":"m_lunli"},

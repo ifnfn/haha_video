@@ -19,10 +19,12 @@ import traceback
 import json
 import random
 from utils.BeautifulSoup import BeautifulSoup as bs
+#import BeautifulSoup as bs
 import urllib
 from utils.fetchTools import fetch_httplib2 as fetch
 import base64, zlib
 import re
+import redis
 from random import randint
 from urllib2 import HTTPError
 from urlparse import urlparse
@@ -203,34 +205,6 @@ def GetSoHuInfo(host, prot, tfile, new, times=0):
         log.error("GetSoHuInfo %s,%s,%s" % (t, v, traceback.format_tb(tb)))
         return GetSoHuInfo(host, prot, tfile, new, times + 1)
 
-def GetSoHuTvList(playurl, times=0):
-    res = []
-    if times > MAX_TRY:
-        return res
-    try:
-        _, _, _, response = fetch(playurl)
-        playlist_id = re.search('var PLAYLIST_ID="(\d+)', response).group(1)
-        newurl = 'http://hot.vrs.sohu.com/vrs_videolist.action?playlist_id=%s' % playlist_id
-        print newurl
-        _, _, _, response = fetch(newurl)
-        #data = re.findall('data: {.*.} }\,', response)
-        #print re.findall('var vrsvideolist = (\S+)', response)
-        oflvo = re.search('var vrsvideolist \= (\{.*.\})', response.decode('gb18030')).group(1)
-
-        if not oflvo:
-            return res
-
-        jdata = json.loads(oflvo)
-        videolist = jdata['videolist']
-        for a in videolist:
-            print a['videoImage'], a['videoName'], a['videoOrder'], a['videoId']
-            res.append(a)
-
-    except:
-        t, v, tb = sys.exc_info()
-        log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
-    return res
-
 def GetSoHuRealUrl(playurl, times=0):
     res = []
     if times > MAX_TRY:
@@ -239,7 +213,7 @@ def GetSoHuRealUrl(playurl, times=0):
         _, _, _, response = fetch(playurl)
         vid = re.search('vid="(\d+)', response).group(1)
         newurl = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
-        print newurl
+        #print newurl
         _, _, _, response = fetch(newurl)
         jdata = json.loads(response)
         host = jdata['allot']
@@ -339,18 +313,163 @@ def GetRealPlayUrl(playurl, times=0):
 
     return res
 
+class Film:
+    def __init__(self):
+        pass
+
+class Teleplay:
+    def __init__(self):
+        self.title= ""
+        self.href = ""
+        self.playlist_id = ""
+        self.db = None
+        self.item = {}
+        self.videolist = []
+
+    def update(self):
+        pass
+
+    def show(self):
+        print json.dumps(self.item)
+
+    def update_videolist(self, times = 0):
+        # print "Update VideoList: ", self.playlist_id, "href=", self.href
+        if times > MAX_TRY or self.href == "":
+            return
+
+        try:
+            if self.playlist_id == "" :
+                _, _, _, response = fetch(self.href)
+                if response == None:
+                    print "error url: ", self.href
+                    return
+                id = re.findall('(var PLAYLIST_ID|playlistId)\s*="(\d+)', response)
+                if id:
+                    self.playlist_id = id[0][1]
+                else:
+                    # 多部电视情况
+                    return
+            newurl = 'http://hot.vrs.sohu.com/vrs_videolist.action?playlist_id=%s' % self.playlist_id
+            #print newurl
+            _, _, _, response = fetch(newurl)
+            oflvo = re.search('var vrsvideolist \= (\{.*.\})', response.decode('gb18030')).group(1)
+
+            if not oflvo:
+                return
+
+            jdata = json.loads(oflvo.decode('utf-8'))
+            self.videolist = jdata['videolist']
+            #for a in self.videolist:
+            #    print a['videoImage'], a['videoName'], a['videoOrder'], a['videoId']
+            self.item['videolist'] = json.dumps(self.videolist, ensure_ascii = False)
+
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuGetVideoList:  %s, %s,%s,%s" % (self.href, t, v, traceback.format_tb(tb)))
+            self.update_videolist(times + 1)
+
+    def post(self, segname, db = None):
+        if db == None:
+            db = self.db
+        if db == None:
+            return
+        title = "title:%s" % self.playlist_id
+        db.rpush(segname, title)
+        for x in self.item:
+            db.hset(title, x, self.item[x])
+
+    def parser(self, tag):
+        x = tag.findNext("a", {'class' : 'pic'})
+        if x:
+            href, pic = re.findall('(href|img src)="(\S+)"', x.prettify())
+            if href:
+                self.href = href[1]
+                self.item['href'] = href[1]
+            if pic:
+                self.item['pic'] = pic[1]
+                newid = re.findall('(vrsab_ver|vrsab)([0-9]+)', pic[1])
+                if len(newid) > 0:
+                    self.playlist_id = newid[0][1]
+                    self.item['playlist_id'] = self.playlist_id
+
+        x = tag.findNext('em', {'class' : 'super'})
+        if x:
+            self.item['super'] = x.contents[0]
+
+        x = tag.findNext('i')
+        if x:
+            self.item['update'] = x.contents[0]
+
+        x = tag.findNext('p', {'class' : 'tit tit-p'}).contents[0]
+        if x:
+            self.title = x.contents[0].decode('utf-8')
+            self.item['title'] = x.contents[0].decode('utf-8')
+
+        x = tag.findNext('p', {'class' : 'desc'})
+        if x:
+            self.item['desc'] = x.contents[0].decode('utf-8')
+
+        x = tag.findNext("span", {'class' : 'pmt2'})
+        if x:
+            self.item['publish'] = x.contents[0]
+        self.update_videolist()
+
+class SohuVideo:
+    def __init__(self):
+        self.base_url = ""
+        self.teleplay_list = []
+        self.db = redis.Redis(host='127.0.0.1', port=6379, db=4)
+        self.title = "title:tv"
+
+    def StartUpdate(self):
+        self.db.flushdb()
+
+    def EndUpdate(self):
+        self.db.save()
+
+    def GetTeleplay(self, playurl):
+        protocol, host, _, _, _, _ = urlparse(playurl)
+        self.base_url = protocol + "://" + host
+
+        try:
+            _, _, _, response = fetch(playurl)
+            soup = bs(response)
+            playlist = soup.findAll('li', {'class' : 'clear'})
+
+            for a in playlist:
+                tv = Teleplay()
+                tv.parser(a)
+                tv.post(self.title, self.db)
+
+                print "title:%s" % tv.playlist_id, ": ", self.db.hgetall("title:%s" % tv.playlist_id)['title']
+            nextPage = soup.findAll('a', {'class' : 'next'})
+            if nextPage:
+                next_url = re.findall('href="(\S+)"', nextPage[0].prettify())
+                if next_url:
+                    next_url = self.base_url + next_url[0]
+                    self.GetTeleplay(next_url)
+
+
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
+
 def main():
-#     print GetUKouRealUrl('http://v.youku.com/v_show/id_XNTg1OTI5NTQ0.html')
-#     print GetUKouRealUrl('http://v.youku.com/v_show/id_XNTgzNTE2OTcy.html')
-#    print GetSoHuRealUrl('http://tv.sohu.com/20120111/n331899511.shtml')
-#    print GetSoHuRealUrl('http://tv.sohu.com/20130828/n385287096.shtml')
-    print GetSoHuTvList('http://tv.sohu.com/s2013/hfhwfw')
-#    print GetSoHuRealUrl('http://tv.sohu.com/20130828/n385212889.shtml')
-#     print GetKuSixRealUrl('http://v.ku6.com/show/c3UTb-y6XRScUY5UsxOLlQ...html')
-#     print GetWlRealUrl('http://www.56.com/u73/v_OTI2NzQ1MzQ.html')
-#     print GetWlRealUrl('http://www.56.com/w28/play_album-aid-11265281_vid-OTEwMDA2Nzc.html')
-#     print GetRealPlayUrl('http://www.baiy.net/player_2009/55432/55432-0-0.html')
-#    print GetTuDouRealUrl('http://www.tudou.com/programs/view/it884YETOlM/')
+    sohu = SohuVideo()
+    sohu.StartUpdate()
+
+    # 电影
+    home_url = 'http://so.tv.sohu.com/list_p11_p2_p3_p4-1_p5_p6_p70_p80_p9_2d2_p101_p11.html'
+    sohu.GetTeleplay(home_url)
+
+    # 电视剧
+    home_url = 'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html'
+    sohu.GetTeleplay(home_url)
+
+    # 动漫
+    home_url = 'http://so.tv.sohu.com/list_p1115_p2_p3_p4_p5_p6_p7_p8_p9.html'
+    sohu.GetTeleplay(home_url)
+    sohu.EndUpdate()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,84 @@
+server {
+    listen 80;
+    server_name video.wandoujia.com video.tg01.wandoujia.com;
+    access_log /home/work/nginx/logs/video.access.log main;
+    error_log /home/work/nginx/logs/video.error.log;
+    root /home/work/video;
+
+    location /weibo {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_http_version 1.1;
+	proxy_set_header Connection "";
+        proxy_set_header X-Real_IP $remote_addr;
+        proxy_set_header X-Scheme $scheme;
+        proxy_pass http://127.0.0.1:6060;
+    }
+
+    location /v2/mobile {
+        root /home/work/video/;
+        break;
+    }
+
+    location /mobile {
+        root /home/work/video;
+    }
+
+
+    location /api {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_http_version 1.1;
+	    proxy_set_header Connection "";
+        proxy_redirect off;
+        proxy_set_header X-Real_IP $remote_addr;
+        proxy_set_header X-Scheme $scheme;
+        proxy_pass http://videos;
+	    lingering_close off;
+    }
+
+    location /down {
+        #add_header Access-Control-Allow-Origin *;
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_http_version 1.1;
+	proxy_set_header Connection "";
+        proxy_redirect off;
+        proxy_set_header X-Real_IP $remote_addr;
+        proxy_set_header X-Scheme $scheme;
+        proxy_pass http://127.0.0.1:8888;
+    }
+
+    location /set {
+        #add_header Access-Control-Allow-Origin *;
+        proxy_pass_header Server;
+        proxy_http_version 1.1;
+	proxy_set_header Connection "";
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Real_IP $remote_addr;
+	proxy_set_header X-Scheme $scheme;
+        proxy_pass http://127.0.0.1:8889;
+    }
+
+    location /singer {
+        #add_header Access-Control-Allow-Origin *;
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Real_IP $remote_addr;
+        proxy_http_version 1.1;
+	proxy_set_header Connection "";
+        proxy_set_header X-Scheme $scheme;
+        #proxy_pass http://videos;
+        proxy_pass http://127.0.0.1:9888;
+    }
+
+    location ^~ /static/ {
+        root /home/work/video/;
+        if ($query_string) {
+            expires max;
+        }
+    }
+}

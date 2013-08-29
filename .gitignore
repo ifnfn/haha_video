@@ -1,0 +1,14 @@
+*.xml
+*.1
+*.html
+*.o
+*.d
+*.sw*
+deps
+objects
+*.a
+*.taghl
+cscope.*
+tags
+_build*
+*.pyc

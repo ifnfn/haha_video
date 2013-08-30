@@ -23,82 +23,14 @@ from random import randint
 from urllib2 import HTTPError
 from urlparse import urlparse
 from xml.dom.minidom import parseString
+import engine as eg
 
 log = logging.getLogger("crawler")
+engine = eg.SohuEngine()
 
 MAX_TRY = 1
 
-SOHU_HOST = 'tv.sohu.com'
-
-def AddCommand(source, dest, title):
-    cmd_server = 'http://127.0.0.1:9990/video/addcommand'
-    command = {
-        'source': source,
-        'dest': dest,
-        'menu': title
-    }
-    _, _, _, response = fetch(cmd_server, 'POST', json.dumps(command))
-
-def GetSoHuInfo(host, prot, tfile, new, times=0):
-    if times > MAX_TRY:
-        return
-    try:
-        url = 'http://%s/?prot=%s&file=%s&new=%s' % (host, prot, tfile, new)
-        _, _, _, response = fetch(url)
-        start, _, host, key, _, _, _, _ = response.split('|')
-        return '%s%s?key=%s' % (start[:-1], new, key)
-    except:
-        t, v, tb = sys.exc_info()
-        log.error("GetSoHuInfo %s,%s,%s" % (t, v, traceback.format_tb(tb)))
-        return GetSoHuInfo(host, prot, tfile, new, times + 1)
-
-def GetSoHuRealUrl(playurl, times=0):
-    res = []
-    if times > MAX_TRY:
-        return res
-    try:
-        _, _, _, response = fetch(playurl)
-        vid = re.search('vid="(\d+)', response).group(1)
-        newurl = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
-        #print newurl
-        _, _, _, response = fetch(newurl)
-        jdata = json.loads(response)
-        host = jdata['allot']
-        prot = jdata['prot']
-        urls = []
-        data = jdata['data']
-        title = data['tvName']
-        size = sum(data['clipsBytes'])
-        for tfile, new in zip(data['clipsURL'], data['su']):
-            urls.append(GetSoHuInfo(host, prot, tfile, new))
-        if len(urls) == 1:
-            url = urls[0]
-            res.append(['', url])
-        else:
-            for url in urls:
-                res.append(['', url])
-        return res
-    except:
-        t, v, tb = sys.exc_info()
-        log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
-        return GetSoHuRealUrl(playurl, times + 1)
-
-def GetRealPlayUrl(playurl, times=0):
-    res = []
-    if times > MAX_TRY:
-        return res
-    _, netloc, _, _, _, _ = urlparse(playurl)
-    if netloc == SOHU_HOST:
-        result = GetSoHuRealUrl(playurl)
-        res.extend(result)
-
-    return res
-
-class Video:
-    def __init__(self):
-        pass
-
-class Programme:
+class Programme(eg.ProgrammeBase):
     def __init__(self):
         self.title= ""
         self.href = ""
@@ -199,89 +131,29 @@ class Programme:
             self.item['publish'] = x.contents[0]
 #        self.update_videolist()
 
-class VideoMenuBase:
-    def __init__(self, name, engine, url):
-        self.name = name
-        self.url = url
-        self.hotList = []
-        self.grogramme_list = []
-        self.HomeUrlList = []
-        self.engine = engine
-
-        self.UpdateHotList()
-
-    # 更新所有节目
-    def UpdateAllProgramme(self):
-        for url in self.HomeUrlList:
-            self.engine.GetHtmlList(self.name, url)
-            #engine.GetProgramme(url)
-
-    # 更新热门节目表
-    def UpdateHotList(self):
-        try:
-            _, _, _, response = fetch(self.url)
-            soup = bs(response)
-
-            playlist = soup.findAll('script')
-            for a in playlist:
-                urls = re.search('focslider', a.prettify())
-                if urls:
-                    data = re.findall('data: *([\s\S]*])', a.prettify()\
-                                      .replace('http:', 'httx:')\
-                                      .replace('p:', '"p":')\
-                                      .replace('httx:', 'http:')\
-                                      .replace('p1:', '"p1":')\
-                                      .replace('l:', '"l":')\
-                                      .replace('t:', '"t":')\
-                                      .replace('\'', '"')\
-                                      .replace('\n', '')\
-                                      .replace('\t', '')\
-                                      .replace(' ', '')\
-                                      .replace('#', '0x')\
-                                      .replace('bgcolor', '"bgcolor"'))
-                    if data:
-                        x = json.loads(data[0])
-                        for a in x:
-                            one = {}
-                            one['large_image'] = a['p']
-                            one['small_image'] = a['p1']
-                            one['url']         = a['l']
-                            one['title']       = a['t']
-                            self.hotList.append(one)
-                            print a['t']
-
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (self.url, t, v, traceback.format_tb(tb)))
-
-    def show(self):
-        pass
-
-class Movie(VideoMenuBase):
-    def __init__(self, name, engine, url):
-        VideoMenuBase.__init__(self, name, engine, url)
-        self.HomeUrlList = [
-#            'http://so.tv.sohu.com/list_p1100_p20_p3_p42013_p5_p6_p77_p80_p9_2d0_p101_p11.html',
-#            'http://so.tv.sohu.com/list_p1100_p20_p3_p42012_p5_p6_p77_p80_p9_2d0_p101_p11.html',
-#            'http://so.tv.sohu.com/list_p1100_p20_p3_p42011_p5_p6_p77_p80_p9_2d0_p101_p11.html',
-#            'http://so.tv.sohu.com/list_p1100_p20_p3_p42010_p5_p6_p77_p80_p9_2d0_p101_p11.html'
-#            'http://so.tv.sohu.com/list_p1100_p20_p3_p411_p5_p6_p77_p80_p9_2d0_p101_p11.html',
-#            'http://so.tv.sohu.com/list_p1100_p20_p3_p490_p5_p6_p77_p80_p9_2d0_p101_p11.html',
-#            'http://so.tv.sohu.com/list_p1100_p20_p3_p480_p5_p6_p77_p80_p9_2d0_p101_p11.html',
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p77_p80_p9_2d0_p103_p11.html']
-
-
-class Sohu:
+class Kolatv:
     def __init__(self):
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=4)
+        self.MenuList = []
 
+    def UpdateMainMenu(self):
+        self.MenuList = engine.GetMenu()
+        for m in self.MenuList:
+            m.UpdateHotList()
+            m.UpdateAllProgramme()
+
+    def FindMenu(self, name):
+        for t in self.Menu:
+            if t.name == name:
+                return t
+
+        return None
 
 def main():
-    engine = SohuEngine()
-    engine.GetMenu()
-    engine.SaveMenu()
-
+    tv = Kolatv()
+    tv.UpdateMainMenu() # 更新主菜单
     return
+
     url_all = [
         'http://so.tv.sohu.com/list_p11_p2_p3_p4-1_p5_p6_p70_p80_p9_2d2_p101_p11.html',    # 电影
         'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html',    # 电视剧

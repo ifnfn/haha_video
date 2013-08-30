@@ -127,7 +127,7 @@ class UploadHandler(tornado.web.RequestHandler):
 
     def post(self):
         body = self.request.body
-        sohu = sohu.SohuEngine()
+        sohu = sohu.Kolatv()
         print(self.request.headers['Content-Length'])
         if body and len(body) > 0:
             js = json.loads(body)

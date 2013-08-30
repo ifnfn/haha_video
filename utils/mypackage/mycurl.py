@@ -35,7 +35,7 @@ class CurlResponse:
         curl_instance.setopt(curl_instance.HEADERFUNCTION, self.write_header)
         curl_instance.setopt(pycurl.CONNECTTIMEOUT, self.timeout)
         curl_instance.setopt(pycurl.TIMEOUT, self.timeout)
-        
+
         if proxy:
             ip, port = proxy.split(':', 1)
             curl_instance.setopt(pycurl.PROXY, ip)
@@ -86,13 +86,13 @@ class CurlResponse:
         match_header('content-type', content_type_regexp)
         match_header('charset', charset_header_regexp)
         match_header('content-encoding', content_encoding_header_regexp)
-    
+
     def __match_version_header(self, header):
         match = version_header_regexp.match(header)
         if match:
             key, value = match.groups()
             self.headers[key.lower()] = value.strip()
-    
+
     def __str__(self):
         return "Response[status=%s, redirect=%s]" % (self.status, self.redirect_count)
 
@@ -114,7 +114,7 @@ def get(url, timeout=60, request_headers=[], debug=False, proxy=None, bindip=Non
     if debug:
         crl.setopt(pycurl.VERBOSE, 1)
     crl.setopt(pycurl.TIMEOUT, timeout)
-    
+
     response = CurlResponse(crl, url, request_headers, proxy)
     response.request_url = url
     return response

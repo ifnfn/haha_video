@@ -31,19 +31,19 @@ urllib2.install_opener(opener)
 def fetch_urllib2(url, data=None, ip=None, headers=headers):
     if not data and data == 'none':
         data =None
-    
+
     request = urllib2.Request(url, data, headers)
     request.add_header("Accept-encoding", "gzip")
     usock = urllib2.urlopen(request, source_ip=ip, timeout=socket_timeout, host=None)
     response = usock.read()
     if usock.headers.get('content-encoding', None) == 'gzip':
         response = gzip.GzipFile(fileobj=StringIO.StringIO(response)).read()
-        
+
     return usock.getcode(), usock.headers.get('content-type'), usock.headers.get('content-length'), response
 
 def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, referer=None, acceptencoding=None, proxy=None, ip=None, authority=None):
-    if not data or data != 'none':
-        data = None
+#    if method == 'GET' and (data or data != 'none'):
+#        data = None
     if cookies and cookies != 'none':
         header['Cookie'] = cookies
     if referer:
@@ -52,7 +52,10 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
         header['Accept-Encoding'] = 'gzip, deflate'
     else:
         header['Accept-Encoding'] = acceptencoding
-        
+
+    if method == 'POST':
+        header['Content-Type'] = 'multipart/form-data'
+        header['Content-Type'] = 'application/x-www-form-urlencoded'
     conn = httplib2.Http(timeout=socket_timeout)
     conn.follow_redirects = True
     response, content = conn.request(uri=url, method=str(method).upper(), body=data,  headers=header,\
@@ -80,11 +83,11 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
         location = response['location']
     except:
         location = ''
-        
+
     if headers.has_key('referer'):
         headers.pop('referer')
     if headers.has_key('Cookie'):
         headers.pop('Cookie')
-    
+
     return response['status'], content_type, location, responses
 

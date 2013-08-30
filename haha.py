@@ -53,6 +53,12 @@ SOHU_HOST = 'tv.sohu.com'
 KUSIX_HOST = 'v.ku6.com'
 TUDOU_HOST = 'www.tudou.com'
 
+def AddCommand(source, dest):
+    cmd_server = 'http://127.0.0.1:9990/video/addcommand'
+    command = {
+        'source': source,
+        'dest': dest}
+    _, _, _, response = fetch(cmd_server, 'POST', json.dumps(command))
 
 def zip_data(data):
     return base64.b64encode(zlib.compress(data, zlib.Z_BEST_SPEED))
@@ -454,9 +460,10 @@ class Drama:
 
     def show(self):
         print "aaaaaaaaaa: ", self.url
+
 class SohuVideo:
     def __init__(self):
-        self.base_url = ""
+        self.base_url = "http://so.tv.sohu.com"
         self.teleplay_list = []
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=4)
         self.title = "title:tv"
@@ -489,6 +496,20 @@ class SohuVideo:
             t, v, tb = sys.exc_info()
             log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
 
+    def Parser(self, text):
+        try:
+            soup = bs(text)
+            playlist = soup.findAll('li', {'class' : 'clear'})
+
+            for a in playlist:
+                tv = Teleplay()
+                tv.parser(a)
+                tv.post(self.title, self.db)
+
+                print ("title:%s" % tv.playlist_id, ": ", self.db.hgetall("title:%s" % tv.playlist_id)['title'])
+        except:
+            t, v, tb = sys.exc_info()
+
     def GetTeleplay(self, playurl):
         protocol, host, _, _, _, _ = urlparse(playurl)
         self.base_url = protocol + "://" + host
@@ -515,18 +536,20 @@ class SohuVideo:
             log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
 
 def main():
-    sohu = SohuVideo()
-    sohu.GetMenu()
-    return
-    sohu.StartUpdate()
-
-
     url_all = [
-        #'http://so.tv.sohu.com/list_p11_p2_p3_p4-1_p5_p6_p70_p80_p9_2d2_p101_p11.html',    # 电影
-        #'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html',    # 电视剧
-        #'http://so.tv.sohu.com/list_p1115_p2_p3_p4_p5_p6_p7_p8_p9.html'    # 动漫
+        'http://so.tv.sohu.com/list_p11_p2_p3_p4-1_p5_p6_p70_p80_p9_2d2_p101_p11.html',    # 电影
+        'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html',    # 电视剧
+        'http://so.tv.sohu.com/list_p1115_p2_p3_p4_p5_p6_p7_p8_p9.html'    # 动漫
         'http://so.tv.sohu.com/list_p1115_p20_p3_p40_p50_p6-1_p77_p8_p9_d20_p109_p110.html'
       ]
+    for url in url_all:
+        AddCommand(url, 'http://127.0.0.1:9991/video/upload')
+
+    return
+    sohu = SohuVideo()
+    sohu.GetMenu()
+    sohu.StartUpdate()
+
 
     for url in url_all:
         sohu.GetTeleplay(url)

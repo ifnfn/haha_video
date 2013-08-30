@@ -7,4 +7,4 @@ Created on 2012-8-7
 import logging.config
 import os
 
-logging.config.fileConfig(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../conf/logging.conf"))
+#logging.config.fileConfig(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../conf/logging.conf"))

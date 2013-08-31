@@ -56,13 +56,17 @@ class HahaClient:
                 for cmd in data['command']:
                     print cmd['dest']
                     _, _, _, response = fetch(cmd['source'])
-                    base = base64.encodestring(response)
-                    js = {}
-                    js['menu'] = cmd['menu']
-                    js['data'] = base
-                    body = json.dumps(js) #, ensure_ascii = False)
-                    print cmd['source']
-                    _, _, _, response = fetch(cmd['dest'], 'POST', body)
+                    if cmd.has_key('regular'):
+                        response = re.findall(cmd['regular'], response)
+
+                    if response:
+                        base = base64.encodestring(str(response))
+                        js = {}
+                        js['menu'] = cmd['menu']
+                        js['data'] = base
+                        body = json.dumps(js) #, ensure_ascii = False)
+                        print cmd['source']
+                        _, _, _, response = fetch(cmd['dest'], 'POST', body)
 
                     return True
 
@@ -77,6 +81,7 @@ def main():
     while True:
         if haha.Login() == False:
             break
+        #break
 
 if __name__ == "__main__":
     main()

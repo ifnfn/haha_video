@@ -22,12 +22,7 @@ PARSER_HOST  = 'http://127.0.0.1:9991/video/upload'
 
 MAX_TRY = 1
 
-def AddCommand(source, dest, title):
-    command = {
-        'source': source,
-        'dest': dest,
-        'menu': title
-    }
+def AddCommand(command):
     _, _, _, response = fetch(COMMAND_HOST, 'POST', json.dumps(command))
 
 # 每个 Video 表示一个可以播放视频
@@ -74,6 +69,7 @@ class VideoMenuBase:
         self.HotList = []
         self.HomeUrlList = []
         self.engine = engine
+        self.regular = '(.*)'
 
     def Reset(self):
         self.HotList = []
@@ -87,7 +83,14 @@ class VideoMenuBase:
     def UploadProgrammeList(self):
         for url in self.HomeUrlList:
             for page in self.engine.GetHtmlList(url):
-                AddCommand(page, PARSER_HOST,  self.name)
+                cmd = {
+                    'source': page,
+                    'dest': PARSER_HOST,
+                    'menu': self.name,
+                    'regular': self.regular
+                }
+
+                AddCommand(cmd)
 
 class VideoEngine:
     def __init__(self):
@@ -141,9 +144,9 @@ class SohuProgramme(ProgrammeBase):
 
                 data = json.loads(response)
                 if data and data.has_key('attachment'):
-#                    album = data['attachment']['album']
-#                    if album:
-#                        self.albumName = album['albumName']
+                    album = data['attachment']['album']
+                    if album:
+                        self.albumName = album['albumName']
 
                     index = data['attachment']['index']
                     if index:
@@ -161,7 +164,7 @@ class SohuProgramme(ProgrammeBase):
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name, engine, url):
         VideoMenuBase.__init__(self, name, engine, url)
-        pass
+        self.regular = '(<a class="pic" target="_blank" title=".+/></a>)'
 
 class SohuMovie(SohuVideoMenu):
     def __init__(self, name, engine, url):
@@ -226,7 +229,7 @@ class SohuEngine(VideoEngine):
     def ParserHtml(self, text):
         ret = []
         soup = bs(text)
-        playlist = soup.findAll('li', {'class' : 'clear'})
+        playlist = soup.findAll('a')
 
         for tag in playlist:
             tv = self.programme_class()
@@ -396,15 +399,11 @@ class SohuEngine(VideoEngine):
                         elif r[0] == 'playlistId':
                             programme.playlist_id = r[1]
                     ret = True
-            x = tag.findNext('p', {'class' : 'tit tit-p'}).contents[0]
-            if x:
-                programme.albumName = x.contents[0]
 
         return ret
 
     # 获取节目的播放列表
     def GetProgrammePlayList(self, programme, times = 0):
-        # print "Update VideoList: ", programme.playlist_id, "href=", programme.href
         if times > MAX_TRY or programme.url == "":
             return
 
@@ -437,6 +436,20 @@ class SohuEngine(VideoEngine):
             self.GetProgrammePlayList(programme, times + 1)
 
 def test():
+    url = 'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html'
+    _, _, _, response = fetch(url)
+    soup = bs(response)
+    playlist = soup.findAll('a', {'class' : 'pic'}) # <a class="pic"
+    for a in playlist:
+        print a
+
+    print "\n\n\n\n"
+    playlist = re.findall('(<a class="pic" target="_blank" title=".+/></a>)', response)
+    playlist = re.findall('(.*)', response)
+    for a in playlist:
+        print a
+    return
+
     url= 'http://index.tv.sohu.com/index/switch-aid/5497903'
     url= 'http://index.tv.sohu.com/index/switch-aid/243'
     _, _, _, response = fetch(url)

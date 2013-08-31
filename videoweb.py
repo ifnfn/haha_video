@@ -11,15 +11,18 @@ from tornado import gen
 from tornado import httpclient
 from tornado.options import define, options
 from tornado.escape import json_encode
-import sohu
 
 import redis
 import json
 import random
 import re
 import time
+import base64, zlib
+import threading
+import Queue
 from jsonphandler import JSONPHandler
 from datetime import timedelta, date
+from kolatv import tv
 
 class ImgHandler(tornado.web.RequestHandler):
     def get(self,id):
@@ -127,17 +130,15 @@ class UploadHandler(tornado.web.RequestHandler):
 
     def post(self):
         body = self.request.body
-        sohu = sohu.Kolatv()
-        print(self.request.headers['Content-Length'])
         if body and len(body) > 0:
             js = json.loads(body)
-            if js = None:
+            if js == None:
                 return
 
-            menu = sohu.FindMenu(js['menu'])
-            if menu:
-                data =base64.decodestring(js['data'])
-                sohu.Parser(data)
+            text =base64.decodestring(js['data'])
+            if text:
+                tv.AddTask(js['menu'], text)
+        return
 
 def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)

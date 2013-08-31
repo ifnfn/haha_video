@@ -54,7 +54,7 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
         header['Accept-Encoding'] = acceptencoding
 
     if method == 'POST':
-        header['Content-Type'] = 'multipart/form-data'
+#        header['Content-Type'] = 'multipart/form-data'
         header['Content-Type'] = 'application/x-www-form-urlencoded'
     conn = httplib2.Http(timeout=socket_timeout)
     conn.follow_redirects = True

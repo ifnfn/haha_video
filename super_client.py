@@ -31,7 +31,7 @@ from urlparse import urlparse
 from xml.dom.minidom import parseString
 
 
-log = logging.getLogger("crawler")
+#log = logging.getLogger("crawler")
 
 class HahaClient:
     def __init__(self):
@@ -60,14 +60,15 @@ class HahaClient:
                     js = {}
                     js['menu'] = cmd['menu']
                     js['data'] = base
-                    _, _, _, response = fetch(cmd['dest'], 'POST', \
-                                              json.dumps(js, ensure_ascii = False))
+                    body = json.dumps(js) #, ensure_ascii = False)
+                    print cmd['source']
+                    _, _, _, response = fetch(cmd['dest'], 'POST', body)
 
                     return True
 
         except:
             t, v, tb = sys.exc_info()
-            log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
+            print ("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
 
         return False
 

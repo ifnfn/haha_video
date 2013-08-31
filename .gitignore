@@ -12,3 +12,4 @@ cscope.*
 tags
 _build*
 *.pyc
+*.log

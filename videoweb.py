@@ -1,44 +1,36 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys, os
-
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import tornado.options
-from tornado import gen
-from tornado import httpclient
 from tornado.options import define, options
-from tornado.escape import json_encode
+#from tornado import gen
+#from tornado import httpclient
+#from tornado.escape import json_encode
 
 import redis
 import json
-import random
-import re
-import time
-import base64, zlib
-import threading
-import Queue
+#import re
 from jsonphandler import JSONPHandler
-from datetime import timedelta, date
 from kolatv import tv
 
 class ImgHandler(tornado.web.RequestHandler):
-    def get(self,id):
+    def get(self,pid):
         c = redis.Redis(host='127.0.0.1', port=6379, db=4)
         d = redis.Redis(host='127.0.0.1', port=6379, db=3)
         e = redis.Redis(host='127.0.0.1', port=6379, db=5)
-        if id.startswith("singer") or id.startswith("show"):
-            img = e.hget("id:%s"%id,"img")
+        if pid.startswith("singer") or pid.startswith("show"):
+            img = e.hget("id:%s"%pid,"img")
             self.redirect(img, permanent=True)
             return
-        elif c.exists("id:%s"%id):
-            img = c.hget("id:%s"%id,"img")
+        elif c.exists("id:%s"%pid):
+            img = c.hget("id:%s"%pid,"img")
             self.redirect(img, permanent=True)
             return
-        elif d.exists("id:%s"%id):
-            data = d.hgetall("id:%s"%id)
+        elif d.exists("id:%s"%pid):
+            data = d.hgetall("id:%s"%pid)
             item = json.loads(data.values()[0])
             img = item['img']
             self.redirect(img, permanent=True)
@@ -49,7 +41,7 @@ class ImgHandler(tornado.web.RequestHandler):
             return
 
 
-def getlist(page, size, setname, flag, type):
+def getlist(page, size, setname, flag):
     c = redis.Redis(host='127.0.0.1', port=6379, db=4)
     print c.keys()
 
@@ -70,12 +62,12 @@ def getlist(page, size, setname, flag, type):
 
     ids = c.lrange(setname, m, n)
     items = []
-    for id in ids:
-        # c.expire(id, 10)
-        # print "TTL: ", c.ttl(id)
-        if not c.exists(id):
+    for i in ids:
+        # c.expire(i, 10)
+        # print "TTL: ", c.ttl(i)
+        if not c.exists(i):
             continue
-        item = c.hgetall(id)
+        item = c.hgetall(i)
         items.append(item)
     data = {}
     data['total'] = length
@@ -88,9 +80,8 @@ class TvnewHandler(JSONPHandler):
         page = self.get_argument("page")
         size = self.get_argument("size")
         setname = "new:tv"
-        type = "tv"
         flag = False
-        data = getlist(page,size,setname,flag,type)
+        data = getlist(page,size,setname,flag)
         self.finish(json.dumps(data, indent=4, ensure_ascii=False))
         return
 
@@ -100,9 +91,8 @@ class TvhotHandler(JSONPHandler):
         page = self.get_argument("page")
         size = self.get_argument("size")
         setname = "title:tv"
-        type = "tv"
         flag = False
-        data = getlist(page, size, setname, flag, type)
+        data = getlist(page, size, setname, flag)
         self.finish(json.dumps(data, indent=4, ensure_ascii=False))
         return
 
@@ -112,12 +102,12 @@ class VideoListHandler(tornado.web.RequestHandler):
 #        print c.keys()
         ids = c.lrange('title:tv', 0, -1)
         items = []
-        for id in ids:
-            if not c.exists(id):
+        for i in ids:
+            if not c.exists(i):
                 continue
             item = {}
-            item['title'] = c.hgetall(id)['title']
-#            self.finish(c.hgetall(id)['title']
+            item['title'] = c.hgetall(i)['title']
+#            self.finish(c.hgetall(i)['title']
             items.append(item)
         self.finish(json.dumps(items, sort_keys=True, indent=4, ensure_ascii=False))
 
@@ -132,14 +122,6 @@ class UploadHandler(tornado.web.RequestHandler):
         body = self.request.body
         if body and len(body) > 0:
             tv.AddTask(body)
-#            js = json.loads(body)
-#            if js == None:
-#                return
-#
-#            text =base64.decodestring(js['data'])
-#            if text:
-#                js['data'] = text
-#                tv.AddTask(js)
         return
 
 def main():

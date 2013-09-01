@@ -3,16 +3,12 @@
 
 import logging
 import traceback
-import sys, os
+import sys
 import json
 #import BeautifulSoup as bs
 from utils.BeautifulSoup import BeautifulSoup as bs
-import urllib
 from utils.fetchTools import fetch_httplib2 as fetch
-import base64, zlib
 import re
-from urllib2 import HTTPError
-from urlparse import urlparse
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -37,7 +33,8 @@ class Commands:
             cmd['source'] = url
             cmd['menu']   = menu
             _, _, _, response = fetch(COMMAND_HOST + '?' + name, 'POST', json.dumps(cmd))
-        pass
+            return response == ""
+        return False
 
     # 执行解析器
     def Parser(self, name, text):
@@ -67,13 +64,13 @@ class ProgrammeBase:
         self.vid = ""
         self.playlist_id = ""
         self.filmType = "" # "TV" or ""
-        self.data = {}
         self.tvSets = "" # 最新集数
         self.dailyPlayNum    = 0 # 每日播放次数
         self.weeklyPlayNum   = 0 # 每周播放次数
         self.monthlyPlayNum  = 0 # 每月播放次数
         self.totalPlayNum    = 0 # 总播放资料
         self.dailyIndexScore = 0 # 每日指数
+        self.data = {}
 
     def update_videolist(self, times = 0):
         pass
@@ -120,7 +117,6 @@ class VideoMenuBase:
 class VideoEngine:
     def __init__(self):
         self.engine_name = "EngineBase"
-        self.programme_class = ProgrammeBase
 
     # 获取节目一级菜单, 返回分类列表
     def GetMenu(self, times = 0):
@@ -144,7 +140,7 @@ class VideoEngine:
 
     # 将 BeautifulSoup的节目 tag 转成节目单
     def ParserProgramme(self, tag, programme):
-       return False
+        return False
 
 #================================= 以下是 搜索视频的搜索引擎 =======================================
 SOHU_HOST = 'tv.sohu.com'
@@ -153,80 +149,128 @@ class SohuProgramme(ProgrammeBase):
     def __init__(self, parent):
         ProgrammeBase.__init__(self, parent)
 
+    # 发送节目信息更新命令
+    def UpdateCommand(self):
+        url = 'http://index.tv.sohu.com/index/switch-aid/%s' % self.playlist_id
+        command.SendCommand('programme_score', url)
+
     # 更新该节目信息
-    def UpdateInfo(self, times = 0):
-        if times > MAX_TRY:
-            return
-        if self.playlist_id != '':
-            try:
-                playurl = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlist_id
-                playurl = 'http://index.tv.sohu.com/index/switch-aid/%s' % self.playlist_id
-                _, _, _, response = fetch(playurl)
+    def UpdateInfo(self, text):
+        try:
+            data = json.loads(text)
+            if data and data.has_key('attachment'):
+                album = data['attachment']['album']
+                if album:
+                    self.albumName = album['albumName']
 
-                data = json.loads(response)
-                if data and data.has_key('attachment'):
-                    album = data['attachment']['album']
-                    if album:
-                        self.albumName = album['albumName']
+                index = data['attachment']['index']
+                if index:
+                    self.dailyPlayNum = int(index['dailyPlayNum']) # 每日播放次数
+                    self.dailyIndexScore = float(index['dailyIndexScore']) # 每日指数
 
-                    index = data['attachment']['index']
-                    if index:
-                        self.dailyPlayNum = int(index['dailyPlayNum']) # 每日播放次数
-                        self.dailyIndexScore = float(index['dailyIndexScore']) # 每日指数
-
-                print "UpdateInfo: albumName=", self.albumName, \
-                        "dailyPlayNum=", self.dailyPlayNum, \
-                        "dailyIndexScore=", self.dailyIndexScore
-            except:
-                t, v, tb = sys.exc_info()
-                log.error("GetSoHuRealUrl playurl:  %s, %s,%s, %s" % (playurl, t, v, traceback.format_tb(tb)))
-                self.UpdateInfo(times + 1)
+            print "UpdateInfo: albumName=", self.albumName, \
+                    "dailyPlayNum=", self.dailyPlayNum, \
+                    "dailyIndexScore=", self.dailyIndexScore
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("GetSoHuRealUrl playurl:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name, engine, url):
         VideoMenuBase.__init__(self, name, engine, url)
+        self.cmdlist = {
+                   'videolist'       : self.CmdParserVideoList,
+                   'programme'       : self.CmdParserProgramme,
+                   'programme_score' : self.CmdParserProgrammeScore,
+                   }
+
+    # 根据 ID 从数据库中加载节目
+    def LoadProgramme(self, pid):
+        return SohuProgramme(self)
 
     def ParserHtml(self, name, text):
-        list = []
-        if name == 'videolist':
-            list = self.ParserVideoList(text)
-        elif name == 'programme':
-            list = self.ParserProgram(text)
+        if self.cmdlist.has_key(name):
+            return self.cmdlist[name](text)
 
-        return list
+        return []
 
-    def ParserVideoList(self, text):
+    def CmdParserVideoList(self, text):
         ret = []
         soup = bs(text)
         playlist = soup.findAll('a')
 
         for tag in playlist:
-            tv = self.programme_class(menu)
-            if self.ParserProgramme(tag, tv):
+            tv = SohuProgramme(self)
+            if self.engine.ParserProgramme(tag, tv):
                 tv.UpdateInfo() # 更新节目信息
                 ret.append(tv)
             elif tv.url != "":
                 # 如果无法直接解析出节目信息，则进入详细页面解析, 重新解析
-                print "No Found:", programme.url
-                command.SendCommand('programme', self.name, programme.url)
+                print "No Found:", tv.url
+                command.SendCommand('programme', self.name, tv.url)
 
             #print ("title:%s" % tv.playlist_id, ": ", self.db.hgetall("title:%s" % tv.playlist_id)['title'])
         return ret
 
-    def ParserProgram(self, text):
-        pass
+    def CmdParserProgramme(self, text):
+        #str: [('vid', '580058'), ('pid', '385367871'), ('playlistId', '1008605'), ('tag', '\xca\xae\xb6\xfe\xc5\xad\xba\xba\xa3\xa81957\xa3\xa9')]
+        ret = []
+        try:
+            text = re.findall('\'(vid|pid|playlistId|tag)\',\s*\'(\S+)\'', text)
+        except:
+            return ret
+
+        if text:
+            tv = SohuProgramme(self)
+            for u in text:
+                if u[0] == 'pid':
+                    tv.pid = u[1]
+                elif u[0] == 'vid':
+                    tv.vid = u[1]
+                elif u[0] == 'playlistId':
+                    tv.playlist_id = u[1]
+                elif u[0] == 'tag':
+                    tv.albumName = u[1]
+            tv.UpdateInfo() # 更新节目信息
+            ret.append(tv)
+
+        return ret
+
+    def CmdParserProgrammeScore(self, text):
+        try:
+            data = json.loads(text)
+            if data.has_key('attachment'):
+                pid = data['attachment']['PId']
+                tv = self.LoadProgramme(pid)
+
+                album = data['attachment']['album']
+                if album:
+                    tv.albumName = album['albumName']
+
+
+                index = data['attachment']['index']
+                if index:
+                    tv.dailyPlayNum = int(index['dailyPlayNum']) # 每日播放次数
+                    tv.dailyIndexScore = float(index['dailyIndexScore']) # 每日指数
+
+            print "UpdateInfo: albumName=", tv.albumName, \
+                        "dailyPlayNum=", tv.dailyPlayNum, \
+                        "dailyIndexScore=", tv.dailyIndexScore
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("GetSoHuRealUrl playurl:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
 class SohuMovie(SohuVideoMenu):
     def __init__(self, name, engine, url):
         SohuVideoMenu.__init__(self, name, engine, url)
         self.HomeUrlList = [
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42013_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42012_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42011_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42010_p5_p6_p73_p80_p9_2d0_p101_p11.html'
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p411_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p490_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p480_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p42013_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p42012_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p42011_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p42010_p5_p6_p73_p80_p9_2d0_p101_p11.html'
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p411_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p490_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p480_p5_p6_p73_p80_p9_2d0_p101_p11.html',
             'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html'
         ]
 
@@ -234,7 +278,6 @@ class SohuMovie(SohuVideoMenu):
 class SohuEngine(VideoEngine):
     def __init__(self):
         VideoEngine.__init__(self)
-        self.programme_class = SohuProgramme
 
         self.engine_name = "SohuEngine"
         self.base_url = "http://so.tv.sohu.com"
@@ -252,7 +295,6 @@ class SohuEngine(VideoEngine):
             'source'  : '',
             'menu'    : '',
             'dest'    : PARSER_HOST,
-            'parser'  : None,
             'regular' : [
                 '(<a class="pic" target="_blank" title=".+/></a>)',
                 '(<p class="tit tit-p">.+</a>)'
@@ -263,12 +305,17 @@ class SohuEngine(VideoEngine):
             'source'  : '',
             'menu'    : '',
             'dest'    : PARSER_HOST,
-            'parser'  : None,
             'regular' : [
-                'var (playlistId|pid|vid)\s*="(\d+)',
+                'var (playlistId|pid|vid|tag)\s*=\s*"(.+)";',
                 'h1 class="color3"><a href=.*>(.*)</a>']
         })
 
+        command.AddTemplate({ # 搜狐节目指数
+            'name'    : 'programme_score',
+            'source'  : '',
+            'menu'    : '',
+            'dest'    : PARSER_HOST,
+        })
     def GetMenu(self, times = 0):
         ret = {}
         playurl = "http://tv.sohu.com"
@@ -332,7 +379,7 @@ class SohuEngine(VideoEngine):
 
         return ret;
 
-    def GetSoHuInfo(host, prot, tfile, new, times=0):
+    def GetSoHuInfo(self, host, prot, tfile, new, times=0):
         if times > MAX_TRY:
             return
         try:
@@ -360,8 +407,8 @@ class SohuEngine(VideoEngine):
             prot = jdata['prot']
             urls = []
             data = jdata['data']
-            title = data['tvName']
-            size = sum(data['clipsBytes'])
+            #title = data['tvName']
+            #size = sum(data['clipsBytes'])
             for tfile, new in zip(data['clipsURL'], data['su']):
                 urls.append(self.GetSoHuInfo(host, prot, tfile, new))
             if len(urls) == 1:
@@ -377,6 +424,7 @@ class SohuEngine(VideoEngine):
             return self.GetRealUrl(playurl, times + 1)
 
     def UpdateHotList(self, menu, times = 0):
+        ret = []
         if times > MAX_TRY:
             return ret
         try:
@@ -431,8 +479,8 @@ class SohuEngine(VideoEngine):
                     try:
                         ids = re.search('(\d+)_(\d+)',u)
                         if ids:
-                            pid = ids.group(1)
-                            vid = ids.group(2)
+                            programme.pid = ids.group(1)
+                            programme.vid = ids.group(2)
                             ret = True
                     except:
                         pass
@@ -460,9 +508,9 @@ class SohuEngine(VideoEngine):
                 if response == None:
                     print "error url: ", programme.url
                     return
-                id = re.findall('(var PLAYLIST_ID|playlistId)\s*="(\d+)', response)
-                if id:
-                    programme.playlist_id = id[0][1]
+                pid = re.findall('(var PLAYLIST_ID|playlistId)\s*="(\d+)', response)
+                if pid:
+                    programme.playlist_id = pid[0][1]
                 else:
                     # 多部电视情况
                     return
@@ -483,9 +531,24 @@ class SohuEngine(VideoEngine):
             self.GetProgrammePlayList(programme, times + 1)
 
 def test():
+    url = 'http://tv.sohu.com/20130517/n376295917.shtml'
+    _, _, _, response = fetch(url)
+    a = str(re.findall('var (playlistId|pid|vid|tag)\s*=\s*"(.+)";', response))
+    # [('vid', '627347'), ('pid', '376295378'), ('playlistId', '1011031')]
+    a =re.findall('\'(vid|pid|playlistId|tag)\',\s*\'(\S+)\'', a)
+    for x in a:
+        print x
+    return
+    x = re.findall('var (playlistId|pid|vid|tag)\s*=\s"(.+)";', response)
+    x.extend(re.findall('h1 class="color3"><a href=.*>(.*)</a>', response))
+    print str(x)
+    return
+
     url = 'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html'
     _, _, _, response = fetch(url)
     x = re.findall('(<a class="pic" target="_blank" title=".+/></a>)', response)
+    for a in x:
+        print a
     x = re.findall('(<p class="tit tit-p">.+</a>)', response)
     for a in x:
         print a

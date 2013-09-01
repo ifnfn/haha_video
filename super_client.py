@@ -3,35 +3,21 @@
 
 import sys, os
 reload(sys)
-sys.setdefaultencoding("utf-8")
 f_path = os.path.dirname(__file__)
 if len(f_path) < 1: f_path = "."
 sys.path.append(f_path)
 sys.path.append(f_path + "/..")
 
-from utils.dataSaver import DataSaver
-from Queue import PriorityQueue
-from time import sleep
-from utils.mylogger import logging
-import time
-import threading
 import traceback
 import json
-import random
-from utils.BeautifulSoup import BeautifulSoup as bs
-#import BeautifulSoup as bs
-import urllib
 from utils.fetchTools import fetch_httplib2 as fetch
-import base64, zlib
+import base64
 import re
 import redis
-from random import randint
-from urllib2 import HTTPError
-from urlparse import urlparse
-from xml.dom.minidom import parseString
-
 
 #log = logging.getLogger("crawler")
+MAINSERVER_HOST = 'http://127.0.0.1:9990'
+#MAINSERVER_HOST = 'http://121.199.20.175:9990'
 
 class HahaClient:
     def __init__(self):
@@ -44,8 +30,7 @@ class HahaClient:
         self.db.save()
 
     def Login(self):
-        #playurl = 'http://121.199.20.175:9990/video/login'
-        playurl = 'http://127.0.0.1:9990/video/login'
+        playurl = MAINSERVER_HOST + '/video/login'
 
         try:
             _, _, _, response = fetch(playurl)
@@ -55,6 +40,9 @@ class HahaClient:
             if data:
                 for cmd in data['command']:
                     print cmd['dest']
+#                    cmd['source'] = 'http://index.tv.sohu.com/index/switch-aid/5161139'
+#                    cmd['name'] = 'programme_score'
+#                    del cmd['regular']
                     _, _, _, response = fetch(cmd['source'])
                     if cmd.has_key('regular'):
                         x = []

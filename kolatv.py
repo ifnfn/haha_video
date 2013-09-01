@@ -1,28 +1,16 @@
 #! env /usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys, os
-from time import sleep
+import sys
 
-from utils.dataSaver import DataSaver
-from Queue import PriorityQueue
 from utils.mylogger import logging
-from utils.BeautifulSoup import BeautifulSoup as bs
 from utils.ThreadPool import ThreadPool
-from utils.fetchTools import fetch_httplib2 as fetch
-import time
-import traceback
+#from utils.BeautifulSoup import BeautifulSoup as bs
+#from utils.fetchTools import fetch_httplib2 as fetch
 import json
-import random
-#import BeautifulSoup as bs
-import urllib
-import base64, zlib
-import re
+import base64
+#import re
 import redis
-from random import randint
-from urllib2 import HTTPError
-from urlparse import urlparse
-from xml.dom.minidom import parseString
 
 import engine as eg
 
@@ -69,9 +57,9 @@ class Kolatv:
             if menu:
                 text = js['data']
                 name = js['name']
-                list = menu.ParserHtml(name, text)
-                if list:
-                    for p in list:
+                plist = menu.ParserHtml(name, text)
+                if plist:
+                    for p in plist:
                         try:
                             self.db.zadd(menuName, p.albumName, p.dailyPlayNum) # 节目名
                             print "ZADD: ", menuName, p.dailyPlayNum, p.albumName

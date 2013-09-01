@@ -1,24 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys, os
-
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import tornado.options
-from tornado import gen
-from tornado import httpclient
 from tornado.options import define, options
-from tornado.escape import json_encode
+#from tornado import gen
+#from tornado import httpclient
+#from tornado.escape import json_encode
 
 import redis
 import json
-import random
-import re
-import time
 from jsonphandler import JSONPHandler
-from datetime import timedelta, date
 
 cmd_1 ={
     "source": "http://so.tv.sohu.com/list_p11_p2_p3_p4-1_p5_p6_p70_p80_p9_2d2_p101_p11.html",

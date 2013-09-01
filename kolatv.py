@@ -56,19 +56,31 @@ class Kolatv:
                 self.db.rpush('hot:%s' % n, text)
             menu.UploadProgrammeList()
 
-    def ParserHtml(self, menuName, text):
-        menu = self.FindMenu(menuName)
-        if menu:
-            list = engine.ParserHtml(text)
-            if list:
-                for p in list:
-                    try:
-                        self.db.zadd(menuName, p.albumName, p.dailyPlayNum) # 节目名
-                        print "ZADD: ", menuName, p.dailyPlayNum, p.albumName
-                    except:
-                        print "ZADD ERROR: ", menuName, p.dailyPlayNum, p.albumName
-                        print sys.exc_info()[0],sys.exc_info()[1]
-            self.db.save()
+    def ParserHtml(self, data):
+        js = json.loads(data)
+        if js == None:
+            return False
+
+        text =base64.decodestring(js['data'])
+        if text:
+            js['data'] = text
+            menuName = js['menu']
+            menu = self.FindMenu(menuName)
+            if menu:
+                text = js['data']
+                name = js['name']
+                list = menu.ParserHtml(name, text)
+                if list:
+                    for p in list:
+                        try:
+                            self.db.zadd(menuName, p.albumName, p.dailyPlayNum) # 节目名
+                            print "ZADD: ", menuName, p.dailyPlayNum, p.albumName
+                        except:
+                            print "ZADD ERROR: ", menuName, p.dailyPlayNum, p.albumName
+                            print sys.exc_info()[0],sys.exc_info()[1]
+                self.db.save()
+
+        return True
 
     def FindMenu(self, name):
         if self.MenuList.has_key(name):
@@ -76,9 +88,8 @@ class Kolatv:
         else:
             return None
 
-    def AddTask(self, menuName, text):
-        print "Add: ", menuName
-        self.thread_pool.add_job(self.ParserHtml, [menuName, text])
+    def AddTask(self, data):
+        self.thread_pool.add_job(self.ParserHtml, [data])
 
 tv = Kolatv()
 

@@ -22,8 +22,31 @@ PARSER_HOST  = 'http://127.0.0.1:9991/video/upload'
 
 MAX_TRY = 1
 
-def AddCommand(command):
-    _, _, _, response = fetch(COMMAND_HOST, 'POST', json.dumps(command))
+class Commands:
+    def __init__(self):
+        self.cmdlist = {}
+        pass
+
+    # 注册解析器
+    def AddTemplate(self, m):
+        self.cmdlist[m['name']] = m
+
+    def SendCommand(self, name, menu, url):
+        if self.cmdlist.has_key(name):
+            cmd = self.cmdlist[name]
+            cmd['source'] = url
+            cmd['menu']   = menu
+            _, _, _, response = fetch(COMMAND_HOST + '?' + name, 'POST', json.dumps(cmd))
+        pass
+
+    # 执行解析器
+    def Parser(self, name, text):
+        if self.cmdlist.has_key(name):
+            cmd = self.cmdlist[name]
+            return cmd['parser'](text)
+        return None
+
+command = Commands()
 
 # 每个 Video 表示一个可以播放视频
 class VideoBase:
@@ -36,7 +59,8 @@ class VideoBase:
 
 # 一个节目，表示一部电影、电视剧集
 class ProgrammeBase:
-    def __init__(self):
+    def __init__(self, parent):
+        self.parent = parent
         self.albumName = ""
         self.url = ""
         self.pid = ""
@@ -69,7 +93,6 @@ class VideoMenuBase:
         self.HotList = []
         self.HomeUrlList = []
         self.engine = engine
-        self.regular = '(.*)'
 
     def Reset(self):
         self.HotList = []
@@ -83,14 +106,16 @@ class VideoMenuBase:
     def UploadProgrammeList(self):
         for url in self.HomeUrlList:
             for page in self.engine.GetHtmlList(url):
-                cmd = {
-                    'source': page,
-                    'dest': PARSER_HOST,
-                    'menu': self.name,
-                    'regular': self.regular
-                }
+                command.SendCommand('videolist', self.name, page)
+        return
 
-                AddCommand(cmd)
+    # 解析节目信息
+    def ParserHtml(self, name, text):
+        pass
+
+    # 更新所有节目信息
+    def UpdateAllProgrammeInfo(self):
+        pass
 
 class VideoEngine:
     def __init__(self):
@@ -121,16 +146,12 @@ class VideoEngine:
     def ParserProgramme(self, tag, programme):
        return False
 
-    # 解析一页节目单, 返回该页上节目列表
-    def ParserHtml(self, text):
-        return []
-
 #================================= 以下是 搜索视频的搜索引擎 =======================================
 SOHU_HOST = 'tv.sohu.com'
 
 class SohuProgramme(ProgrammeBase):
-    def __init__(self):
-        ProgrammeBase.__init__(self)
+    def __init__(self, parent):
+        ProgrammeBase.__init__(self, parent)
 
     # 更新该节目信息
     def UpdateInfo(self, times = 0):
@@ -164,19 +185,48 @@ class SohuProgramme(ProgrammeBase):
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name, engine, url):
         VideoMenuBase.__init__(self, name, engine, url)
-        self.regular = '(<a class="pic" target="_blank" title=".+/></a>)'
+
+    def ParserHtml(self, name, text):
+        list = []
+        if name == 'videolist':
+            list = self.ParserVideoList(text)
+        elif name == 'programme':
+            list = self.ParserProgram(text)
+
+        return list
+
+    def ParserVideoList(self, text):
+        ret = []
+        soup = bs(text)
+        playlist = soup.findAll('a')
+
+        for tag in playlist:
+            tv = self.programme_class(menu)
+            if self.ParserProgramme(tag, tv):
+                tv.UpdateInfo() # 更新节目信息
+                ret.append(tv)
+            elif tv.url != "":
+                # 如果无法直接解析出节目信息，则进入详细页面解析, 重新解析
+                print "No Found:", programme.url
+                command.SendCommand('programme', self.name, programme.url)
+
+            #print ("title:%s" % tv.playlist_id, ": ", self.db.hgetall("title:%s" % tv.playlist_id)['title'])
+        return ret
+
+    def ParserProgram(self, text):
+        pass
 
 class SohuMovie(SohuVideoMenu):
     def __init__(self, name, engine, url):
         SohuVideoMenu.__init__(self, name, engine, url)
         self.HomeUrlList = [
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p42013_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p42012_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p42011_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p42010_p5_p6_p73_p80_p9_2d0_p101_p11.html'
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p411_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p490_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p480_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42013_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42012_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42011_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42010_p5_p6_p73_p80_p9_2d0_p101_p11.html'
+            #'http://so.tv.sohu.com/list_p1100_p20_p3_p411_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            #'http://so.tv.sohu.com/list_p1100_p20_p3_p490_p5_p6_p73_p80_p9_2d0_p101_p11.html',
+            #'http://so.tv.sohu.com/list_p1100_p20_p3_p480_p5_p6_p73_p80_p9_2d0_p101_p11.html',
             'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html'
         ]
 
@@ -197,6 +247,27 @@ class SohuEngine(VideoEngine):
             "动漫"   : None,
             "纪录片" : None,
         }
+        command.AddTemplate({ # 搜狐节目列表
+            'name'    : 'videolist',
+            'source'  : '',
+            'menu'    : '',
+            'dest'    : PARSER_HOST,
+            'parser'  : None,
+            'regular' : [
+                '(<a class="pic" target="_blank" title=".+/></a>)',
+                '(<p class="tit tit-p">.+</a>)'
+            ],
+        })
+        command.AddTemplate({ # 搜狐节目
+            'name'    : 'programme',
+            'source'  : '',
+            'menu'    : '',
+            'dest'    : PARSER_HOST,
+            'parser'  : None,
+            'regular' : [
+                'var (playlistId|pid|vid)\s*="(\d+)',
+                'h1 class="color3"><a href=.*>(.*)</a>']
+        })
 
     def GetMenu(self, times = 0):
         ret = {}
@@ -224,20 +295,6 @@ class SohuEngine(VideoEngine):
             log.error("GetSoHuRealUrl playurl:  %s, %s,%s, %s" % (playurl, t, v, traceback.format_tb(tb)))
             return self.GetMenu(times + 1)
 
-        return ret
-
-    def ParserHtml(self, text):
-        ret = []
-        soup = bs(text)
-        playlist = soup.findAll('a')
-
-        for tag in playlist:
-            tv = self.programme_class()
-            if self.ParserProgramme(tag, tv):
-                tv.UpdateInfo() # 更新节目信息
-                ret.append(tv)
-
-            #print ("title:%s" % tv.playlist_id, ": ", self.db.hgetall("title:%s" % tv.playlist_id)['title'])
         return ret
 
     def GetHtmlList(self, playurl, times = 0):
@@ -268,10 +325,6 @@ class SohuEngine(VideoEngine):
                     newurl = re.sub(link, 'p10%d' % i, playurl)
                     print newurl
                     ret.append(newurl)
-
-                    # 将需要解析的地址提交至解析服务器
-                    #AddCommand(newurl, 'http://127.0.0.1:9991/video/upload', "")
-
         except:
             t, v, tb = sys.exc_info()
             log.error("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
@@ -370,6 +423,7 @@ class SohuEngine(VideoEngine):
 
         x = tag.findNext("a", {'class' : 'pic'})
         if x:
+            # 取节目的 playlist_id, pid, vid
             urls = re.findall('(href|img src)="(\S+)"', x.prettify())
             for u in urls:
                 if u[0] == 'href':
@@ -387,18 +441,11 @@ class SohuEngine(VideoEngine):
                     if len(newid) > 0:
                         programme.playlist_id = newid[0][1]
                         ret = True
-            if ret == False and programme.url != "":
-                _, _, _, response = fetch(programme.url)
-                rlist = re.findall('var (playlistId|pid|vid)\s*="(\d+)', response)
-                if rlist:
-                    for r in rlist:
-                        if r[0] == 'vid':
-                            programme.vid = r[1]
-                        elif r[0] == 'pid':
-                            programme.pid = r[1]
-                        elif r[0] == 'playlistId':
-                            programme.playlist_id = r[1]
-                    ret = True
+
+            # 取节目的标题
+            x = tag.findNext('p', {'class' : 'tit tit-p'}).contents[0]
+            if x:
+                programme.albumName = x.contents[0]
 
         return ret
 
@@ -436,18 +483,24 @@ class SohuEngine(VideoEngine):
             self.GetProgrammePlayList(programme, times + 1)
 
 def test():
-    url = 'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html'
+    url = 'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html'
     _, _, _, response = fetch(url)
-    soup = bs(response)
-    playlist = soup.findAll('a', {'class' : 'pic'}) # <a class="pic"
-    for a in playlist:
+    x = re.findall('(<a class="pic" target="_blank" title=".+/></a>)', response)
+    x = re.findall('(<p class="tit tit-p">.+</a>)', response)
+    for a in x:
         print a
+    return
+    x.extend(re.findall('<p class="tit tit-p">', response))
+    print str(x)
+    return
 
-    print "\n\n\n\n"
-    playlist = re.findall('(<a class="pic" target="_blank" title=".+/></a>)', response)
-    playlist = re.findall('(.*)', response)
-    for a in playlist:
-        print a
+    _, _, _, response = fetch(url)
+    url = 'http://tv.sohu.com/s2012/xxdyxmmw/'
+    _, _, _, response = fetch(url)
+    x = re.findall('var (playlistId|pid|vid)s*="(\d+)', response)
+    x.extend(re.findall('h1 class="color3"><a href=.*>(.*)</a>', response))
+    print str(x)
+
     return
 
     url= 'http://index.tv.sohu.com/index/switch-aid/5497903'
@@ -488,31 +541,13 @@ def test():
     print json.dumps(a, ensure_ascii = False, indent = 4)
     print len(a['r'])
     return
+
     url = 'http://so.tv.sohu.com/jsl?c=100&cate=100100_100107&o=1&pageSize=1'
     _, _, _, response = fetch(url)
     a = json.loads(response)
     print json.dumps(a, ensure_ascii = False, indent = 4)
     return
 
-    engine = SohuEngine()
-    engine.GetMenu()
-    #engine.GetHtmlList('http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html')
-    return engine
-
-def test_addcommand():
-    url_all = [
-        'http://so.tv.sohu.com/list_p11_p2_p3_p4-1_p5_p6_p70_p80_p9_2d2_p101_p11.html',    # 电影
-        'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html',    # 电视剧
-        'http://so.tv.sohu.com/list_p1115_p2_p3_p4_p5_p6_p7_p8_p9.html'    # 动漫
-        'http://so.tv.sohu.com/list_p1115_p20_p3_p40_p50_p6-1_p73_p8_p9_d20_p109_p110.html'
-      ]
-    for url in url_all:
-        AddCommand(url, 'http://127.0.0.1:9991/video/upload', "test")
 
 if __name__ == "__main__":
-    #u = 'http://store.tv.sohu.com/view_html/5800313_1298146.html'
-    #print re.search('(\d+)_(\d+)',u)
-    #print re.search('(\d+)_(\d+)',u).group(1)
-    #print re.search('(\d+)_(\d+)',u).group(2)
-    #re.search('(\d+)_(\d+)',u)
     test()

@@ -131,13 +131,15 @@ class UploadHandler(tornado.web.RequestHandler):
     def post(self):
         body = self.request.body
         if body and len(body) > 0:
-            js = json.loads(body)
-            if js == None:
-                return
-
-            text =base64.decodestring(js['data'])
-            if text:
-                tv.AddTask(js['menu'], text)
+            tv.AddTask(body)
+#            js = json.loads(body)
+#            if js == None:
+#                return
+#
+#            text =base64.decodestring(js['data'])
+#            if text:
+#                js['data'] = text
+#                tv.AddTask(js)
         return
 
 def main():

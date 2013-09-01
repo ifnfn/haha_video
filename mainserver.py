@@ -35,8 +35,8 @@ class LoginHandler(JSONPHandler):
         print self.request.remote_ip
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
-#        db.lpush('command', json.dumps(cmd_1));
-#        db.lpush('command', json.dumps(cmd_2));
+#        db.rpush('command', json.dumps(cmd_1));
+#        db.rpush('command', json.dumps(cmd_2));
         ret = {
             'key': "None",
             'command': []
@@ -55,7 +55,7 @@ class AddCommandHandler(tornado.web.RequestHandler):
         body = self.request.body
         if body:
             db = redis.Redis(host='127.0.0.1', port=6379, db=1)
-            db.lpush("command", body)
+            db.rpush("command", body)
             data =json.loads(body)
             print "add: ", data['source']
 

@@ -59,6 +59,13 @@ cmd_test4 = {
     'dest'    : PARSER_HOST,
 }
 
+cmd_test5 = {
+    'name'    : 'programme_full',
+    'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241',
+    'menu'    : '电影',
+    'dest'    : PARSER_HOST,
+}
+
 class KolaClient:
     def __init__(self):
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=4)
@@ -119,7 +126,7 @@ def test():
 #    haha.ProcessCommand(cmd_test1)
 #    haha.ProcessCommand(cmd_test2)
 #    haha.ProcessCommand(cmd_test3)
-    haha.ProcessCommand(cmd_test4)
+    haha.ProcessCommand(cmd_test5)
 
 def main():
     haha = KolaClient()

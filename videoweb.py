@@ -16,31 +16,6 @@ import json
 from jsonphandler import JSONPHandler
 from kolatv import tv
 
-class ImgHandler(tornado.web.RequestHandler):
-    def get(self,pid):
-        c = redis.Redis(host='127.0.0.1', port=6379, db=4)
-        d = redis.Redis(host='127.0.0.1', port=6379, db=3)
-        e = redis.Redis(host='127.0.0.1', port=6379, db=5)
-        if pid.startswith("singer") or pid.startswith("show"):
-            img = e.hget("id:%s"%pid,"img")
-            self.redirect(img, permanent=True)
-            return
-        elif c.exists("id:%s"%pid):
-            img = c.hget("id:%s"%pid,"img")
-            self.redirect(img, permanent=True)
-            return
-        elif d.exists("id:%s"%pid):
-            data = d.hgetall("id:%s"%pid)
-            item = json.loads(data.values()[0])
-            img = item['img']
-            self.redirect(img, permanent=True)
-            return
-        else:
-            raise tornado.web.HTTPError(404)
-            self.finish()
-            return
-
-
 def getlist(page, size, setname, flag):
     c = redis.Redis(host='127.0.0.1', port=6379, db=4)
     print c.keys()
@@ -48,7 +23,7 @@ def getlist(page, size, setname, flag):
     m = (int(page) - 1) * int(size)
     n = int(page) * int(size)
     length = c.llen(setname)
-    print "length: ", length
+    print 'length: ', length
     nexts = length - n
     if n > length:
         n = length - 1
@@ -64,7 +39,7 @@ def getlist(page, size, setname, flag):
     items = []
     for i in ids:
         # c.expire(i, 10)
-        # print "TTL: ", c.ttl(i)
+        # print 'TTL: ', c.ttl(i)
         if not c.exists(i):
             continue
         item = c.hgetall(i)
@@ -77,9 +52,9 @@ def getlist(page, size, setname, flag):
 
 class TvnewHandler(JSONPHandler):
     def get(self):
-        page = self.get_argument("page")
-        size = self.get_argument("size")
-        setname = "new:tv"
+        page = self.get_argument('page')
+        size = self.get_argument('size')
+        setname = 'new:tv'
         flag = False
         data = getlist(page,size,setname,flag)
         self.finish(json.dumps(data, indent=4, ensure_ascii=False))
@@ -88,9 +63,9 @@ class TvnewHandler(JSONPHandler):
 
 class TvhotHandler(JSONPHandler):
     def get(self):
-        page = self.get_argument("page")
-        size = self.get_argument("size")
-        setname = "title:tv"
+        page = self.get_argument('page')
+        size = self.get_argument('size')
+        setname = 'title:tv'
         flag = False
         data = getlist(page, size, setname, flag)
         self.finish(json.dumps(data, indent=4, ensure_ascii=False))
@@ -115,7 +90,7 @@ class VideoListHandler(tornado.web.RequestHandler):
 
 class UploadHandler(tornado.web.RequestHandler):
     def get(self):
-        print("Upload get")
+        print('Upload get')
         pass
 
     def post(self):
@@ -128,20 +103,19 @@ def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)
     db.flushdb()
 
-    define("port", default=9991, help="run on the given port", type=int)
-    settings = {"debug": False, "template_path": "templates",
-           "cookie_secret": "z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To="}
+    define('port', default=9991, help='run on the given port', type=int)
+    settings = {'debug': False, 'template_path': 'templates',
+           'cookie_secret': 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To='}
     tornado.options.parse_command_line()
     application = tornado.web.Application([
-        (r"/video/tv/new",            TvnewHandler),
-        (r"/video/tv/hot",            TvhotHandler),
-        (r"/video/list",              VideoListHandler),
-        (r"/video/img/(.*)",          ImgHandler),
-        (r"/video/upload",            UploadHandler),
+        (r'/video/tv/new',            TvnewHandler),
+        (r'/video/tv/hot',            TvhotHandler),
+        (r'/video/list',              VideoListHandler),
+        (r'/video/upload',            UploadHandler),          # 接受客户端上网的需要解析的网页文本
     ], **settings)
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

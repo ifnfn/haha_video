@@ -17,7 +17,7 @@ import engine as eg
 
 POOLSIZE = 10
 
-log = logging.getLogger("crawler")
+log = logging.getLogger('crawler')
 engine = eg.SohuEngine()
 
 class Kolatv:
@@ -32,17 +32,17 @@ class Kolatv:
         self.db.delete('menu')
 
         for n in self.MenuList:
-            print "save menu: ", n
+            print 'save menu: ', n
             self.db.rpush('menu', n)
             menu = self.MenuList[n]
-            menu.UpdateHotList()
+#            menu.UpdateHotList()
 
             # 将最热节目存入数据库
             self.db.delete('hot:%s' % n)
             for v in menu.HotList:
                 text = json.dumps(v, ensure_ascii = False)
                 self.db.rpush('hot:%s' % n, text)
-            menu.UploadProgrammeList()
+#            menu.UploadProgrammeList()
 
     def ParserHtml(self, data):
         js = json.loads(data)
@@ -62,13 +62,24 @@ class Kolatv:
                     for p in plist:
                         try:
                             self.db.zadd(menuName, p.albumName, p.dailyPlayNum) # 节目名
-                            print "ZADD: ", menuName, p.dailyPlayNum, p.albumName
+                            print 'ZADD: ', menuName, p.dailyPlayNum, p.albumName
                         except:
-                            print "ZADD ERROR: ", menuName, p.dailyPlayNum, p.albumName
+                            print 'ZADD ERROR: ', menuName, p.dailyPlayNum, p.albumName
                             print sys.exc_info()[0],sys.exc_info()[1]
                 self.db.save()
 
         return True
+
+    # 发起全网更新
+    def FullUpdate(self):
+        # 更新所有菜单最增节目
+        #
+        # 更新所有节目的最新数据
+        #    0. 更新最新节目10/20部每小时一次
+        #    1. 更新各菜单下最热50部节目最新数据(每4小时一次）
+        #    2. 更新前200部节目最新数据(每12小时一次）
+        #    3. 更新所有节目的最新数据(每天一次）
+        pass
 
     def FindMenu(self, name):
         if self.MenuList.has_key(name):
@@ -84,6 +95,6 @@ tv = Kolatv()
 def main():
     return
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
 

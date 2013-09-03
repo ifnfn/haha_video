@@ -1,0 +1,66 @@
+http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241
+{
+    "updateTime": 1377684448497, 
+    "vid": 871321, 
+    "smallPicUrl": "http://photocdn.sohu.com/20121119/vrsas_ver5112241.jpg", 
+    "pid": 385284897, 
+    "largeHorPicUrl": "http://photocdn.sohu.com/20121119/vrsab_hor5112241.jpg", 
+    "isdl": 1, 
+    "size": 1, 
+    "fee": 0, 
+    "updateSet": 1, 
+    "videos": [
+        {
+            "smallPicUrl": "http://photocdn.sohu.com/20121119/vrss671283.jpg", 
+            "name": "十诫", 
+            "vid": 871321, 
+            "singerName": "", 
+            "playLength": 5749.6, 
+            "largePicUrl": "http://photocdn.sohu.com/20121119/vrsb671283.jpg", 
+            "publishTime": "2013-08-28", 
+            "pageUrl": "http://tv.sohu.com/20130828/n385287051.shtml", 
+            "subName": "", 
+            "singerIds": "", 
+            "order": "1", 
+            "showName": "十诫", 
+            "showDate": ""
+        }
+    ], 
+    "copyright": "", 
+    "area": "美国", 
+    "mainActors": [
+        "尤·伯连纳", 
+        "查尔顿·赫斯顿", 
+        "爱德华·罗宾逊", 
+        "安妮·巴克斯特"
+    ], 
+    "actors": [
+        "尤·伯连纳", 
+        "查尔顿·赫斯顿", 
+        "爱德华·罗宾逊", 
+        "安妮·巴克斯特"
+    ], 
+    "albumDesc": "摩西出生在埃及法老下令杀尽希伯来男婴的“白色恐怖”时期，他的父母不敢收藏，便把他放在篮子里顺流而下，盼有人收养。法老的女儿发现摩西，收为自己的儿子。摩西长大后对埃及人奴役希伯来人越来越看不惯，一次他失手打死一个欺负希伯来人的埃及人。法老王知道此事后要惩罚摩西，于是失去母亲保护的他逃往米甸地居住，开始他四十年的牧羊生涯，并在米甸地结婚生子。其间耶和华将十诫授与摩西，并赐予摩西力量让其带领苦难的希伯来人从埃及人的奴役下走出来。在经过一番苦难之后希伯来人在摩西的带领下终于渡过红海，在旷野上重建新生活。", 
+    "currentPage": 1, 
+    "publishYear": 1956, 
+    "totalSet": 1, 
+    "largePicUrl": "http://photocdn.sohu.com/20121119/vrsab_ver5112241.jpg", 
+    "updateNotification": "", 
+    "albumPageUrl": "http://tv.sohu.com/s2013/ttc/", 
+    "largeVerPicUrl": "http://photocdn.sohu.com/20121119/vrsab_ver5112241.jpg", 
+    "smallVerPicUrl": "http://photocdn.sohu.com/20121119/vrsas_ver5112241.jpg", 
+    "categories": [
+        "剧情片", 
+        "历史片"
+    ], 
+    "cid": 1, 
+    "playlistid": 5112241, 
+    "albumName": "十诫（1956）", 
+    "directors": [
+        "塞西尔·B·戴米尔"
+    ], 
+    "hosts": [], 
+    "smallHorPicUrl": "http://photocdn.sohu.com/20121119/vrsas_hor5112241.jpg", 
+    "defaultPageUrl": "http://tv.sohu.com/20130828/n385287051.shtml", 
+    "order": 0
+}

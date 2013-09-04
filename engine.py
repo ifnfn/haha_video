@@ -57,61 +57,54 @@ class ProgrammeBase:
         self.albumPageUrl = ""
         self.pid = ""
         self.vid = ""
-        self.playlist_id = ""
-        self.filmType = "" # "TV" or ""
-        self.tvSets = "" # 最新集数
-        self.dailyPlayNum    = 0 # 每日播放次数
-        self.weeklyPlayNum   = 0 # 每周播放次数
-        self.monthlyPlayNum  = 0 # 每月播放次数
-        self.totalPlayNum    = 0 # 总播放资料
-        self.dailyIndexScore = 0 # 每日指数
+        self.cid             = 0  # 菜单ID
+        self.playlist_id     = ""
+        self.filmType        = "" # "TV" or ""
+        self.tvSets          = "" # 最新集数
+        self.dailyPlayNum    = 0  # 每日播放次数
+        self.weeklyPlayNum   = 0  # 每周播放次数
+        self.monthlyPlayNum  = 0  # 每月播放次数
+        self.totalPlayNum    = 0  # 总播放资料
+        self.dailyIndexScore = 0  # 每日指数
 
         self.data = {
-            "playlistid": 5112241,
-            "vid": 871321,
-            "pid": 385284897,
-            "updateTime": 1377684448497,
+            "playlistid": "",
+            "vid": "",
+            "pid": "",
+            "albumPageUrl": "",
+            "cid": 1,
+            "albumName": "",
+            "updateTime": 0,
             "isdl": 1,
             "size": 1,
             "fee": 0,
             "updateSet": 1,
-            "cid": 1,
-            "albumName": "十诫（1956）",
-            "smallPicUrl": "http://photocdn.sohu.com/20121119/vrsas_ver5112241.jpg",
-            "largeHorPicUrl": "http://photocdn.sohu.com/20121119/vrsab_hor5112241.jpg",
-            "smallHorPicUrl": "http://photocdn.sohu.com/20121119/vrsas_hor5112241.jpg",
-            "largePicUrl": "http://photocdn.sohu.com/20121119/vrsab_ver5112241.jpg",
-            "largeVerPicUrl": "http://photocdn.sohu.com/20121119/vrsab_ver5112241.jpg",
-            "smallVerPicUrl": "http://photocdn.sohu.com/20121119/vrsas_ver5112241.jpg",
-            "defaultPageUrl": "http://tv.sohu.com/20130828/n385287051.shtml",
+            "smallPicUrl": "",
+            "largeHorPicUrl": "",
+            "smallHorPicUrl": "",
+            "largePicUrl": "",
+            "largeVerPicUrl": "",
+            "smallVerPicUrl": "",
+            "defaultPageUrl": "",
             "order": 0,
-            "albumDesc": "摩西出生在埃及法老下令杀尽希伯来男婴的“白色恐怖”时期，他的父母不敢收藏，便把他放在篮子里顺流而下，盼有人收养。法老的女儿发现摩西，收为自己的儿子。摩西长大后对埃及人奴役希伯来人越来越看不惯，一次他失手打死一个欺负希伯来人的埃及人。法老王知道此事后要惩罚摩西，于是失去母亲保护的他逃往米甸地居住，开始他四十年的牧羊生涯，并在米甸地结婚生子。其间耶和华将十诫授与摩西，并赐予摩西力量让其带领苦难的希伯来人从埃及人的奴役下走出来。在经过一番苦难之后希伯来人在摩西的带领下终于渡过红海，在旷野上重建新生活。",
-            "publishYear": 1956,
-            "totalSet": 1,
+            "albumDesc": "",
+            "publishYear": 0,
+            "totalSet": 0,
             "updateNotification": "",
-            "albumPageUrl": "http://tv.sohu.com/s2013/ttc/",
             "copyright": "",
-            "area": "美国",
+            "area": "",
             "mainActors": [
-                "尤·伯连纳",
-                "查尔顿·赫斯顿",
-                "爱德华·罗宾逊",
-                "安妮·巴克斯特"
             ],
             "actors": [
-                "尤·伯连纳",
-                "查尔顿·赫斯顿",
-                "爱德华·罗宾逊",
-                "安妮·巴克斯特"
             ],
             "categories": [
-                "剧情片",
-                "历史片"
+#                "剧情片",
             ],
             "directors": [
-                "塞西尔·B·戴米尔"
+#                "塞西尔·B·戴米尔"
             ],
             "videos": [
+					'''
                 {
                     "smallPicUrl": "http://photocdn.sohu.com/20121119/vrss671283.jpg",
                     "name": "十诫",
@@ -127,36 +120,37 @@ class ProgrammeBase:
                     "showName": "十诫",
                     "showDate": ""
                 }
+					'''
             ],
            "index": {
-                "monthlyIndexRatio": -0.1409969925880432,
-                "monthlySearchNum": 768,
-                "monthlyPlayRatio": 5,
+                "monthlyIndexRatio": 0.0,
+                "monthlySearchNum": 0,
+                "monthlyPlayRatio": 0,
                 "totalIndexAveScore": 0,
                 "totalIndexAveDays": 0,
-                "monthlySearchRatio": 5,
-                "totalSearchNum": 768,
-                "monthlyIndexAveScore": 85.23919677734375,
-                "dailySearchNum": 768,
-                "dailyPlayNum": 6590515,
-                "weeklyIndexAveScore": 89.90390014648438,
-                "dailyIndexScore": 99.23040008544922,
-                "dailyIndexRatio": 0.0024739799555391073,
-                "createTime": 1378080990971,
-                "totalPlayNum": 252004494,
-                "dailySearchRatio": 5,
-                "weeklyPlayRatio": -0.03727699816226959,
-                "dailyPlayRatio": -0.14339999854564667,
-                "weeklyIndexRatio": -0.0010303499875590205,
-                "weeklySearchRatio": -1.1154799461364746,
-                "weeklyPlayNum": 77036707,
-                "weeklySearchNum": -2301,
+                "monthlySearchRatio": 0,
+                "totalSearchNum": 0,
+                "monthlyIndexAveScore": 0,
+                "dailySearchNum": 0,
+                "dailyPlayNum": 0,
+                "weeklyIndexAveScore": 0.0,
+                "dailyIndexScore": 0.0,
+                "dailyIndexRatio": 0.0,
+                "createTime": 0,
+                "totalPlayNum": 0,
+                "dailySearchRatio": 0,
+                "weeklyPlayRatio": 0.0,
+                "dailyPlayRatio": 0.0,
+                "weeklyIndexRatio": 0.0,
+                "weeklySearchRatio": -0.0,
+                "weeklyPlayNum": 0,
+                "weeklySearchNum": 0,
                 "albumChannelType": 0,
-                "monthlyPlayNum": 252004494
+                "monthlyPlayNum": 0
             },
         }
-                
-    def LoadFromJson(self, parent, json):
+
+    def LoadFromJson(self, json):
         self.data = json
 
         self.albumName = json['albumName']
@@ -173,17 +167,31 @@ class ProgrammeBase:
             self.monthlyPlayNum  = index['monthlyPlayNum'] # 每月播放次数
             self.totalPlayNum    = index['totalPlayNum'] # 总播放资料
             self.dailyIndexScore = index['dailyIndexScore'] # 每日指数
-        
 
-    def update_videolist(self, times = 0):
-        pass
+        # 如果有视频数据
+        if json.has_key('videos'):
+            self.videos = []
+            for v in json['videos']:
+                video = SohuVideo(v)
+                self.videos.append(video)
+            del json['videos']
+        self.data.update(json)
 
     # 发送节目信息更新命令
     def UpdateCommand(self):
         pass
-    
+
     def SaveToDB(self, db):
-        db.update({'album.playlist_id': self.playlist_id}, self.data, True)
+        self.data['albumName'] = self.albumName
+        self.data['albumPageUrl'] = self.albumPageUrl
+        self.data['PId'] = self.pid
+        self.data['vid'] = self.vid
+        self.data['playlistid'] = self.playlist_id
+
+        if self.playlist_id != "":
+            db.update({'playlist_id': self.playlist_id}, {"$set":self.data}, upsert=True, multi=True)
+        elif self.albumName != "" and self.albumPageUrl != "":
+            db.update({'albumName': self.albumName}, {"$set":self.data}, upsert=True, multi=True)
 
 # 一级分类菜单
 class VideoMenuBase:
@@ -210,7 +218,7 @@ class VideoMenuBase:
         elif auto:
             tv = self.programmeClass(self)
             tv.playlist_id = playlist_id
-            
+
         return tv
 
     def GetProgrammeByUrl(self, url, auto = False):
@@ -222,8 +230,28 @@ class VideoMenuBase:
         elif auto:
             tv = self.programmeClass(self)
             tv.albumPageUrl = url
-            
+
         return tv
+
+    def GetProgrammeByAlbumName(self, albumName, auto = False):
+        tv = None
+        json = self.engine.programme_table.find_one({'albumName': albumName})
+        if json:
+            tv = self.programmeClass(self)
+            tv.LoadFromJson(json)
+        elif auto:
+            tv = self.programmeClass(self)
+            tv.albumName = albumName
+
+        return tv
+
+    # 更新该菜单下所有节目完全信息
+    def UpdateAllProgrammeFullInfo(self):
+        pgs = self.engine.programme_table.find({'cid': self.cid})
+        for p in pgs:
+            programme = self.programmeClass(self)
+            programme.LoadFromJson(p)
+            programme.UpdateCommand()
 
     # 更新热门节目表
     def UpdateHotList(self):
@@ -236,10 +264,13 @@ class VideoMenuBase:
 
     # 解析菜单网页解析
     def ParserHtml(self, name, text):
+        ret = []
         if self.parserList.has_key(name):
-            return self.parserList[name](text)
+            ret = self.parserList[name](text)
+            for p in ret:
+                p.SaveToDB(self.engine.programme_table)
 
-        return []
+        return ret
 
     # 更新所有节目信息
     def UpdateAllProgrammeInfo(self):
@@ -251,7 +282,7 @@ class VideoEngine:
         self.command = Commands()
         self.con = Connection('localhost',27017)
         self.db = self.con.kola
-        self.programme_table = self.db.programme        
+        self.programme_table = self.db.programme
 
     # 获取节目一级菜单, 返回分类列表
     def GetMenu(self, times = 0):
@@ -283,7 +314,7 @@ SOHU_HOST = 'tv.sohu.com'
 class SohuVideo(VideoBase):
     def __init__(self, v):
         pass
-    
+
 class SohuProgramme(ProgrammeBase):
     def __init__(self, parent):
         ProgrammeBase.__init__(self, parent)
@@ -293,7 +324,7 @@ class SohuProgramme(ProgrammeBase):
         # 更新节目完整信息
         url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlist_id
         self.command.SendCommand('programme_fullinfo', self.parent.name, url)
-        
+
         # 更新节目指数信息
         url = 'http://index.tv.sohu.com/index/switch-aid/%s' % self.playlist_id
         self.command.SendCommand('programme_score', self.parent.name, url)
@@ -338,7 +369,7 @@ class SohuVideoMenu(VideoMenuBase):
     # 更新该菜单下所有节目列表
     def UpdateProgrammeList(self):
         if self.homePage != "":
-            self.command.SendCommand('videoall', self.homePage)
+            self.command.SendCommand('videoall', self.name, self.homePage)
 
     # 获取所有节目列表的别一种方法，该方法备用
     def UpdateProgrameList2(self):
@@ -357,7 +388,7 @@ class SohuVideoMenu(VideoMenuBase):
             for (_, v) in self.filter['类型'].items():
                 sc = sc + v + '_'
         url = fmt % (v, self.number, sc)
-                
+
         self.command.SendCommand('programmelist_hot', self.name, url)
 
     def UpdateHotInfo2(self):
@@ -368,7 +399,7 @@ class SohuVideoMenu(VideoMenuBase):
             for (_, v) in self.filter['类型'].items():
                 sc += v + '_'
         url = fmt % (v, self.number, sc)
-                
+
         self.command.SendCommand('programmelist_hot', self.name, url)
 
     # 解析热门节目
@@ -399,20 +430,15 @@ class SohuVideoMenu(VideoMenuBase):
         try:
             js = json.loads(text)
             p = self.GetProgrammeById(js['playlistid'], True)
-            videos = js['videos']
-            del js['videos']
-            p.data.update(js)
-            p.videos = []
-            for v in videos:
-                video = SohuVideo(v)
-                p.videos.append(video)
+
+            p.LoadFromJson(js)
             p.SaveToDB(self.engine.programme_table)
         except:
             t, v, tb = sys.exc_info()
             log.error("GetSoHuRealUrl playurl:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
         return ret
-    
+
     # 解析所有节目列表
     def CmdParserTVAll(self, text):
         ret = []
@@ -422,10 +448,14 @@ class SohuVideoMenu(VideoMenuBase):
             for a in playlist:
                 text = re.findall('<a href="(\S*)\s+target="_blank">\s*(\S*)\s*</a>', a.prettify())
                 if text:
-                    tv = self.GetProgrammeByUrl(text[0][1], True)
+                    (url, album) = text[0]
+
+#                    tv = self.GetProgrammeByAlbumName(album, True)
+#                    tv = self.GetProgrammeByUrl(url, True)
+                    tv = self.programmeClass(self)
                     if tv.albumName == "":
-                        tv.albumName = text[0][0]
-                    tv.albumPageUrl = text[0][1]
+                        tv.albumName = album
+                    tv.albumPageUrl = url
                     ret.append(tv)
         except:
             t, v, tb = sys.exc_info()
@@ -522,6 +552,7 @@ class SohuMovie(SohuVideoMenu):
             'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html'
         ]
         self.number = 100
+        self.cid = 1
         self.homePage = 'http://tv.sohu.com/movieall'
         self.filter = {
             '年份' : self.filter_year,
@@ -579,6 +610,7 @@ class SohuTV(SohuVideoMenu):
     def __init__(self, name, engine, url):
         SohuVideoMenu.__init__(self, name, engine, url)
         self.number = 101
+        self.cid = 2
         self.homePage = 'http://tv.sohu.com/tvall'
         self.filter = {
             '年份' : self.filter_year,
@@ -865,13 +897,13 @@ class SohuEngine(VideoEngine):
         self.menu = {
             '电影'   : SohuMovie,
             '电视剧' : SohuTV,
-            '综艺'   : SohuShow,
-            '娱乐'   : SohuYule,
-            '动漫'   : SohuComic,
-            '纪录片' : SohuDocumentary,
-            '教育'   : SohuEdu,
-            '旅游'   : SohuTour,
-            '新闻'   : SohuNew
+            '综艺'   : None, #SohuShow,
+            '娱乐'   : None, #SohuYule,
+            '动漫'   : None, #SohuComic,
+            '纪录片' : None, #SohuDocumentary,
+            '教育'   : None, #SohuEdu,
+            '旅游'   : None, #SohuTour,
+            '新闻'   : None, #SohuNew
         }
 
         # 搜狐节目列表
@@ -1151,6 +1183,13 @@ class SohuEngine(VideoEngine):
             self.GetProgrammePlayList(programme, times + 1)
 
 def test():
+    url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5211206'
+    url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5497903'
+    _, _, _, response = fetch(url)
+    a = json.loads(response)
+    print json.dumps(a, ensure_ascii = False, indent = 4)
+    return
+
     #url ='http://search.vrs.sohu.com/v?id=1268036&pageSize=200000&pageNum=1'
     url ='http://search.vrs.sohu.com/v?id=1268037&pid=5497903&pageNum=1&pageSize=50&isgbk=true&var=video_similar_search_result'
     _, _, _, response = fetch(url)
@@ -1246,12 +1285,6 @@ def test():
 
     url= 'http://index.tv.sohu.com/index/switch-aid/5497903'
     url= 'http://index.tv.sohu.com/index/switch-aid/243'
-    _, _, _, response = fetch(url)
-    a = json.loads(response)
-    print json.dumps(a, ensure_ascii = False, indent = 4)
-    return
-
-    url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241'
     _, _, _, response = fetch(url)
     a = json.loads(response)
     print json.dumps(a, ensure_ascii = False, indent = 4)

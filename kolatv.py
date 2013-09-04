@@ -23,18 +23,17 @@ engine = eg.SohuEngine()
 class Kolatv:
     def __init__(self):
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=2)
-        self.UpdateMainMenu()
         self.thread_pool = ThreadPool(POOLSIZE)
+        self.MenuList = engine.GetMenu()
 
     def UpdateMainMenu(self):
-        self.MenuList = engine.GetMenu()
+        #self.MenuList = engine.GetMenu()
         #self.db.flushdb()
         self.db.delete('menu')
 
-        for n in self.MenuList:
+        for (n, menu) in self.MenuList.items():
             print 'save menu: ', n
             self.db.rpush('menu', n)
-            menu = self.MenuList[n]
 #            menu.UpdateHotList()
 
             # 将最热节目存入数据库
@@ -42,7 +41,7 @@ class Kolatv:
             for v in menu.HotList:
                 text = json.dumps(v, ensure_ascii = False)
                 self.db.rpush('hot:%s' % n, text)
-#            menu.UploadProgrammeList()
+            menu.UpdateProgrammeList()
 
     def ParserHtml(self, data):
         js = json.loads(data)
@@ -90,10 +89,11 @@ class Kolatv:
     def AddTask(self, data):
         self.thread_pool.add_job(self.ParserHtml, [data])
 
-tv = Kolatv()
-
 def main():
-    return
+    tv = Kolatv()
+    tv.UpdateMainMenu()
+#    for m in tv.MenuList:
+#        m.UpdateAllProgrammeFullInfo()
 
 if __name__ == '__main__':
     main()

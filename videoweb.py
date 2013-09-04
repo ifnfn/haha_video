@@ -14,7 +14,9 @@ import redis
 import json
 #import re
 from jsonphandler import JSONPHandler
-from kolatv import tv
+from kolatv import Kolatv
+
+tv = Kolatv()
 
 def getlist(page, size, setname, flag):
     c = redis.Redis(host='127.0.0.1', port=6379, db=4)
@@ -102,6 +104,7 @@ class UploadHandler(tornado.web.RequestHandler):
 def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)
     db.flushdb()
+    tv.UpdateMainMenu()
 
     define('port', default=9991, help='run on the given port', type=int)
     settings = {'debug': False, 'template_path': 'templates',

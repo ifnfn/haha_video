@@ -14,6 +14,7 @@ from utils.fetchTools import fetch_httplib2 as fetch
 import base64
 import re
 import redis
+from utils.ThreadPool import ThreadPool
 
 #log = logging.getLogger("crawler")
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
@@ -32,18 +33,17 @@ cmd_test1 = {
 }
 
 cmd_test2 = {
-    'name'    : 'programme',
+    'name'    : 'album',
     'source'  : 'http://tv.sohu.com/20120517/n343417005.shtml',
     'menu'    : '电影',
     'dest'    : PARSER_HOST,
     'regular' : [
-        'var (playlistId|pid|vid|tag)\s*=\s*"(.+)";',
-        'h1 class="color3"><a href=.*>(.*)</a>'
+        'var (playlistId|pid|vid|tag)\s*=\s*"(.+)";'
     ]
 }
 
 cmd_test3 = {
-    'name'    : 'programme_score',
+    'name'    : 'album_score',
     'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
     'menu'    : '电影',
     'dest'    : PARSER_HOST,
@@ -53,14 +53,14 @@ cmd_test3 = {
 }
 
 cmd_test4 = {
-    'name'    : 'programmelist_hot',
+    'name'    : 'albumlist_hot',
     'source'  : 'http://so.tv.sohu.com/iapi?v=2&c=100&o=3',
     'menu'    : '电影',
     'dest'    : PARSER_HOST,
 }
 
 cmd_test5 = {
-    'name'    : 'programme_full',
+    'name'    : 'album_full',
     'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241',
     'menu'    : '电影',
     'dest'    : PARSER_HOST,
@@ -68,16 +68,9 @@ cmd_test5 = {
 
 class KolaClient:
     def __init__(self):
-        self.db = redis.Redis(host='127.0.0.1', port=6379, db=4)
-
-    def StartUpdate(self):
-        self.db.flushdb()
-
-    def EndUpdate(self):
-        self.db.save()
+        pass
 
     def ProcessCommand(self, cmd):
-        print cmd['source']
         try:
             _, _, _, response = fetch(cmd['source'])
             if cmd.has_key('regular'):
@@ -86,7 +79,7 @@ class KolaClient:
                     res = re.findall(regular, response)
                     if (res):
                         for i in res:
-                            x = x + str(i)
+                            x += str(i)
                 response = x
 
             if response:
@@ -101,6 +94,7 @@ class KolaClient:
             t, v, tb = sys.exc_info()
             print ("GetSoHuRealUrl playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
 
+        print "ERROR: ", cmd['source']
         return False
 
     def Login(self):
@@ -114,6 +108,7 @@ class KolaClient:
             if data:
                 for cmd in data['command']:
                     self.ProcessCommand(cmd)
+            return True
 
         except:
             t, v, tb = sys.exc_info()
@@ -133,9 +128,15 @@ def main():
     while True:
         if haha.Login() == False:
             break
-        break
+        #break
+
+def main_thread():
+    thread_pool = ThreadPool(10)
+    for _ in range(10):
+        thread_pool.add_job(main)
+    thread_pool.shutdown()
 
 if __name__ == "__main__":
     #test()
-    main()
+    main_thread()
 

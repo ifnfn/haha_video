@@ -17,44 +17,11 @@ from jsonphandler import JSONPHandler
 
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
 
-cmd_1 ={
-    'source'  : 'http://so.tv.sohu.com/list_p11_p2_p3_p4-1_p5_p6_p70_p80_p9_2d2_p101_p11.html',
-    'dest'    : MAINSERVER_HOST + '/video/upload',
-    'name'    : 'videolist',
-    'menu'    : '电影',
-    'regular' : [
-        '(<a class="pic" target="_blank" title=".+/></a>)',
-        '(<p class="tit tit-p">.+</a>)'
-    ],
-}
-
-cmd_2 = {
-    'source'  : 'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html',
-    'dest'    : MAINSERVER_HOST + '/video/upload',
-    'name'    : 'programme',
-    'menu'    : '电影',
-    'regular' : [
-        'var (playlistId|pid|vid|tag)\s*=\s*"(.+)";',
-        'h1 class="color3"><a href=.*>(.*)</a>'
-    ],
-}
-
-cmd_3 = { # 搜狐节目指数
-    'source'  : 'http://index.tv.sohu.com/index/switch-aid/5161139',
-    'dest'    : MAINSERVER_HOST + '/video/upload',
-    'name'    : 'programme_score',
-    'menu'    : '电影',
-    'dest'    : 'http://git.nationalchip.com:9990/video/upload',
-}
-
 class LoginHandler(JSONPHandler):
     def get(self):
         print self.request.remote_ip
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
-#        db.rpush('command', json.dumps(cmd_1));
-#        db.rpush('command', json.dumps(cmd_2));
-#        db.rpush('command', json.dumps(cmd_3));
         ret = {
             'key': 'None',
             'command': []
@@ -83,7 +50,7 @@ class GetMainMenuHandler(JSONPHandler):
     def get(self):
         pass
 
-class GetProgrammeListHandler(JSONPHandler):
+class GetAlbumListHandler(JSONPHandler):
     def get(self):
         pass
 
@@ -96,7 +63,7 @@ def main():
         (r'/video/login',             LoginHandler),            # 登录认证
         (r'/video/addcommand',        AddCommandHandler),       # 增加命令
         (r'/video/getmenu',           GetMainMenuHandler),      # 得到一级菜单
-        (r'/video/programemlist',     GetProgrammeListHandler), # 得到节目列表
+        (r'/video/programemlist',     GetAlbumListHandler),     # 得到节目列表
     ], **settings)
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)

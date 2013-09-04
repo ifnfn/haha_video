@@ -32,16 +32,15 @@ class Kolatv:
         self.db.delete('menu')
 
         for (n, menu) in self.MenuList.items():
+            menu.UpdateAlbumList()
             print 'save menu: ', n
             self.db.rpush('menu', n)
-#            menu.UpdateHotList()
 
             # 将最热节目存入数据库
             self.db.delete('hot:%s' % n)
             for v in menu.HotList:
                 text = json.dumps(v, ensure_ascii = False)
                 self.db.rpush('hot:%s' % n, text)
-            menu.UpdateProgrammeList()
 
     def ParserHtml(self, data):
         js = json.loads(data)
@@ -90,10 +89,19 @@ class Kolatv:
         self.thread_pool.add_job(self.ParserHtml, [data])
 
 def main():
+    # 第一步：通过 engine.GetMenu 列表所有 menu
+    # 第二步：得到节目的基本信息, menu.UpdateAlbumList，分三小步：
+    #       １、获得菜单下所有节目部分信息（得到所有节目的 albumPageUrl, albumName) (解析器：CmdParserTVAll)
+    #       ２、通过节目的 albumPageUrl 得到节目的部分信息：vid, pid, playlistid (解析器:CmdParserAlbum)
+    # 　　　　　　　　　　　　　得到的信息可能并不完整，有时无法得到playlistid数据
+    #       ３、当 playlistid 的数据没有得到的话通过命令xxx得到节目信息
+    # 第三步：获得节目的最完整数据
+    # 第四步：获得节目的指数数据
+
     tv = Kolatv()
-    tv.UpdateMainMenu()
-#    for m in tv.MenuList:
-#        m.UpdateAllProgrammeFullInfo()
+    tv.UpdateMainMenu() # 更所有菜单的节目列表
+    for (_, m) in tv.MenuList.items():
+        m.UpdateAllAlbumFullInfo()
 
 if __name__ == '__main__':
     main()

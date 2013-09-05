@@ -21,47 +21,93 @@ MAINSERVER_HOST = 'http://127.0.0.1:9990'
 #MAINSERVER_HOST = 'http://121.199.20.175:9990'
 PARSER_HOST  = 'http://127.0.0.1:9991/video/upload'
 
+cmd_list = [
+    {
+        'name'    : 'videoall',
+        'source'  : 'http://tv.sohu.com/movieall',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+    },
+    {
+        'name'    : 'album',
+        'source'  : 'http://tv.sohu.com/s2011/ajyh/',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+        'regular' : [
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+        ]
+    },
+    {
+        'name'    : 'album',
+        'source'  : 'http://tv.sohu.com/s2012/zlyeye/',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+        'regular' : [
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+        ]
+    },
+    {
+        'name'    : 'album',
+        'source'  : 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+        'regular' : [
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+        ]
+    },
+    {
+        'name'    : 'album',
+        'source'  : 'http://tv.sohu.com/20120517/n343417005.shtml',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+        'regular' : [
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+        ]
+    },
+    {
+        'name'    : 'album_mvinfo',
+        'source'  : 'http://search.vrs.sohu.com/mv_i4746.json', # http://tv.sohu.com/s2011/ajyh/
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+    },
+    {
+        'name'    : 'album_mvinfo',
+        'source'  : 'http://search.vrs.sohu.com/mv_i704321.json', # http://store.tv.sohu.com/view_content/movie/5008825_704321.html
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+    },
+    {
+        'name'    : 'album_mvinfo',
+        'source'  : 'http://search.vrs.sohu.com/mv_i662182.json', # http://tv.sohu.com/20120517/n343417005.shtml
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+    },
+    {
+        'name'    : 'album_full',
+        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=1012657', # http://tv.sohu.com/20120517/n343417005.shtml
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+    },
+    {
+        'name'    : 'album_full',
+        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=228', # http://tv.sohu.com/s2011/ajyh/
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+    },
+    {
+        'name'    : 'album_score',
+        'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+        'regular' : [
+            '({"index":\S+?),"asudIncomes'
+        ]
+    },
+]
+
 cmd_test1 = {
-    'name'    : 'videolist',
-    'source'  : 'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html',
-    'menu'    : '电影',
-    'dest'    : PARSER_HOST,
-    'regular' : [
-        '(<a class="pic" target="_blank" title=".+/></a>)',
-        '(<p class="tit tit-p">.+</a>)'
-    ]
-}
-
-cmd_test2 = {
-    'name'    : 'album',
-    'source'  : 'http://tv.sohu.com/20120517/n343417005.shtml',
-    'menu'    : '电影',
-    'dest'    : PARSER_HOST,
-    'regular' : [
-        'var (playlistId|pid|vid|tag)\s*=\s*"(.+)";'
-    ]
-}
-
-cmd_test3 = {
-    'name'    : 'album_score',
-    'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
-    'menu'    : '电影',
-    'dest'    : PARSER_HOST,
-    'regular' : [
-        '({"index":\S+?),"asudIncomes'
-    ]
-}
-
-cmd_test4 = {
     'name'    : 'albumlist_hot',
     'source'  : 'http://so.tv.sohu.com/iapi?v=2&c=100&o=3',
-    'menu'    : '电影',
-    'dest'    : PARSER_HOST,
-}
-
-cmd_test5 = {
-    'name'    : 'album_full',
-    'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241',
     'menu'    : '电影',
     'dest'    : PARSER_HOST,
 }
@@ -98,6 +144,7 @@ class KolaClient:
         return False
 
     def Login(self):
+        ret = False
         playurl = MAINSERVER_HOST + '/video/login'
 
         try:
@@ -106,27 +153,27 @@ class KolaClient:
             data = json.loads(response)
 
             if data:
-                for cmd in data['command']:
-                    self.ProcessCommand(cmd)
-            return True
-
+                if len(data['command']) > 0:
+                    for cmd in data['command']:
+                        self.ProcessCommand(cmd)
+                    ret = True
         except:
             t, v, tb = sys.exc_info()
             print ("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
 
-        return False
+        return ret
 
 def test():
     haha = KolaClient()
-#    haha.ProcessCommand(cmd_test1)
-#    haha.ProcessCommand(cmd_test2)
-#    haha.ProcessCommand(cmd_test3)
-    haha.ProcessCommand(cmd_test5)
+    for cmd in cmd_list:
+        haha.ProcessCommand(cmd)
+#    haha.ProcessCommand(cmd_test4)
 
 def main():
     haha = KolaClient()
     while True:
         if haha.Login() == False:
+            print "exit"
             break
         #break
 
@@ -134,9 +181,8 @@ def main_thread():
     thread_pool = ThreadPool(10)
     for _ in range(10):
         thread_pool.add_job(main)
-    thread_pool.shutdown()
 
 if __name__ == "__main__":
-    #test()
-    main_thread()
+    test()
+    #main_thread()
 

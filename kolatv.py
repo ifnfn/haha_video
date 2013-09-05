@@ -5,11 +5,11 @@ import sys
 
 from utils.mylogger import logging
 from utils.ThreadPool import ThreadPool
-#from utils.BeautifulSoup import BeautifulSoup as bs
-#from utils.fetchTools import fetch_httplib2 as fetch
+# from utils.BeautifulSoup import BeautifulSoup as bs
+# from utils.fetchTools import fetch_httplib2 as fetch
 import json
 import base64
-#import re
+# import re
 import redis
 
 import engine as eg
@@ -27,8 +27,8 @@ class Kolatv:
         self.MenuList = engine.GetMenu()
 
     def UpdateMainMenu(self):
-        #self.MenuList = engine.GetMenu()
-        #self.db.flushdb()
+        # self.MenuList = engine.GetMenu()
+        # self.db.flushdb()
         self.db.delete('menu')
 
         for (n, menu) in self.MenuList.items():
@@ -39,7 +39,7 @@ class Kolatv:
             # 将最热节目存入数据库
             self.db.delete('hot:%s' % n)
             for v in menu.HotList:
-                text = json.dumps(v, ensure_ascii = False)
+                text = json.dumps(v, ensure_ascii=False)
                 self.db.rpush('hot:%s' % n, text)
 
     def ParserHtml(self, data):
@@ -47,24 +47,14 @@ class Kolatv:
         if js == None:
             return False
 
-        text =base64.decodestring(js['data'])
+        text = base64.decodestring(js['data'])
         if text:
             js['data'] = text
             menuName = js['menu']
             menu = self.FindMenu(menuName)
             if menu:
-                text = js['data']
                 name = js['name']
-                plist = menu.ParserHtml(name, text)
-                if plist:
-                    for p in plist:
-                        try:
-                            self.db.zadd(menuName, p.albumName, p.dailyPlayNum) # 节目名
-                            print 'ZADD: ', menuName, p.dailyPlayNum, p.albumName
-                        except:
-                            print 'ZADD ERROR: ', menuName, p.dailyPlayNum, p.albumName
-                            print sys.exc_info()[0],sys.exc_info()[1]
-                self.db.save()
+                menu.ParserHtml(name, js)
 
         return True
 
@@ -99,7 +89,7 @@ def main():
     # 第四步：获得节目的指数数据
 
     tv = Kolatv()
-    tv.UpdateMainMenu() # 更所有菜单的节目列表
+    tv.UpdateMainMenu()  # 更所有菜单的节目列表
     for (_, m) in tv.MenuList.items():
         m.UpdateAllAlbumFullInfo()
 

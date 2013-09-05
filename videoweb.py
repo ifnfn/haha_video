@@ -6,13 +6,13 @@ import tornado.ioloop
 import tornado.web
 import tornado.options
 from tornado.options import define, options
-#from tornado import gen
-#from tornado import httpclient
-#from tornado.escape import json_encode
+# from tornado import gen
+# from tornado import httpclient
+# from tornado.escape import json_encode
 
 import redis
 import json
-#import re
+# import re
 from jsonphandler import JSONPHandler
 from kolatv import Kolatv
 
@@ -30,10 +30,10 @@ def getlist(page, size, setname, flag):
     if n > length:
         n = length - 1
         if m > length:
-            m = n - int(size) +1
+            m = n - int(size) + 1
         nexts = 0
     else:
-        n = n -1
+        n = n - 1
     if m < 0:
         m = 0
 
@@ -48,7 +48,7 @@ def getlist(page, size, setname, flag):
         items.append(item)
     data = {}
     data['total'] = length
-    data['next']  = nexts
+    data['next'] = nexts
     data['items'] = items
     return data
 
@@ -58,7 +58,7 @@ class TvnewHandler(JSONPHandler):
         size = self.get_argument('size')
         setname = 'new:tv'
         flag = False
-        data = getlist(page,size,setname,flag)
+        data = getlist(page, size, setname, flag)
         self.finish(json.dumps(data, indent=4, ensure_ascii=False))
         return
 

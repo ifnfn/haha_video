@@ -183,6 +183,6 @@ def main_thread():
         thread_pool.add_job(main)
 
 if __name__ == "__main__":
-    test()
-    #main_thread()
+    #test()
+    main_thread()
 

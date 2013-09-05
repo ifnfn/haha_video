@@ -1,19 +1,15 @@
 #! env /usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys
-
 from utils.mylogger import logging
 from utils.ThreadPool import ThreadPool
 # from utils.BeautifulSoup import BeautifulSoup as bs
 # from utils.fetchTools import fetch_httplib2 as fetch
+# import re
 import json
 import base64
-# import re
 import redis
-
 import engine as eg
-
 
 POOLSIZE = 10
 

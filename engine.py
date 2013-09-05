@@ -215,18 +215,18 @@ class AlbumBase:
         if self.largeVerPicUrl != '' : ret['largeVerPicUrl'] = self.largeVerPicUrl
         if self.smallVerPicUrl != '' : ret['smallVerPicUrl'] = self.smallVerPicUrl
 
-
-        if self.mainActors != []     : set['mainActors'] = self.mainActors
-        if self.actors != []         : set['actors'] = self.actors
-        if self.directors != []      : set['directors'] = self.directors
+        if self.mainActors != []     : ret['mainActors'] = self.mainActors
+        if self.actors != []         : ret['actors'] = self.actors
+        if self.directors != []      : ret['directors'] = self.directors
 
         ret['index'] = {
-            'dailyPlayNum': self.dailyPlayNum,  # 每日播放次数
-            'weeklyPlayNum': self.weeklyPlayNum,  # 每周播放次数
-            'monthlyPlayNum': self.monthlyPlayNum,  # 每月播放次数
-            'totalPlayNum': self.totalPlayNum,  # 总播放资料
-            'totalPlayNum': self.dailyIndexScore,  # 每日指数
+            'dailyPlayNum'  : self.dailyPlayNum,     # 每日播放次数
+            'weeklyPlayNum' : self.weeklyPlayNum,    # 每周播放次数
+            'monthlyPlayNum': self.monthlyPlayNum,   # 每月播放次数
+            'totalPlayNum'  : self.totalPlayNum,     # 总播放资料
+            'totalPlayNum'  : self.dailyIndexScore,  # 每日指数
         }
+
         return ret
 
     def LoadFromJson(self, json):
@@ -429,7 +429,7 @@ class VideoEngine:
     def ParserAlbum(self, tag, album):
         return False
 
-#================================= 以下是 搜索视频的搜索引擎 =======================================
+#================================= 以下是搜狐视频的搜索引擎 =======================================
 SOHU_HOST = 'tv.sohu.com'
 
 class SohuVideo(VideoBase):
@@ -618,12 +618,14 @@ class SohuVideoMenu(VideoMenuBase):
     # videoall
     def CmdParserTVAll(self, js):
         ret = []
+        '''
         test = [
                 'http://tv.sohu.com/s2011/ajyh/',
                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
                 'http://tv.sohu.com/20120517/n343417005.shtml',
                 'http://tv.sohu.com/s2012/zlyeye/'
                 ]
+        '''
         try:
             text = js['data']
             soup = bs(text)
@@ -634,12 +636,12 @@ class SohuVideoMenu(VideoMenuBase):
                     (url, album) = text[0]
 
                     if url != "" and album != "":
+                        '''
                         if url in test:
                             pass
                         else:
                             continue
-                        # tv = self.GetAlbumByAlbumName(album, True)
-                        # tv = self.GetAlbumByUrl(url, True)
+                        '''
                         tv = self.albumClass(self)
                         if tv.albumName == "":
                             tv.albumName = album

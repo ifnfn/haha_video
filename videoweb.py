@@ -96,9 +96,20 @@ class UploadHandler(tornado.web.RequestHandler):
         pass
 
     def post(self):
+#         user_id = self.get_argument('user_id')
+#         user_key = self.get_argument('user_key')
+#         print self.request.remote_ip, user_id, user_key
+#
+#         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
+#         if not db.exists(user_id):
+#             raise tornado.web.HTTPError(400, "Timeout user_key %s" % user_key)
+#         elif db.get(user_id) != user_key:
+#             raise tornado.web.HTTPError(400, "Missing user_key %s" % user_key)
+
         body = self.request.body
         if body and len(body) > 0:
             tv.AddTask(body)
+
         return
 
 def main():

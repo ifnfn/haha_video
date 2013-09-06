@@ -12,6 +12,7 @@ from tornado.options import define, options
 
 import redis
 import json
+import hashlib
 from jsonphandler import JSONPHandler
 
 
@@ -19,13 +20,22 @@ MAINSERVER_HOST = 'http://127.0.0.1:9990'
 
 class LoginHandler(JSONPHandler):
     def get(self):
-        print self.request.remote_ip
+        user_id = self.get_argument('user_id')
+        print self.request.remote_ip, user_id
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
         ret = {
             'key': 'None',
-            'command': []
+            'command': [],
+            'next': 100   # 下次登录时间
         }
+        if not db.exists(user_id):
+            key = hashlib.md5(user_id + self.request.remote_ip).hexdigest().upper()
+            db.set(user_id, key)
+        else:
+            key = db.get(user_id)
+
+        ret['key'] = key
         cmd = db.lpop('command')
         if cmd:
             data =json.loads(cmd)

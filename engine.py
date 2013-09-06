@@ -766,7 +766,7 @@ class SohuMovie(SohuVideoMenu):
         ]
         self.number = 100
         self.cid = 1
-        self.homePage = 'http://tv.sohu.com/movieall'
+        self.homePage = 'http://tv.sohu.com/movieall/'
         self.filter = {
             '年份' : self.filter_year,
             '类型' : [
@@ -824,7 +824,7 @@ class SohuTV(SohuVideoMenu):
         SohuVideoMenu.__init__(self, name, engine, url)
         self.number = 101
         self.cid = 2
-        self.homePage = 'http://tv.sohu.com/tvall'
+        self.homePage = 'http://tv.sohu.com/tvall/'
         self.filter = {
             '年份' : self.filter_year,
             '类型' : [
@@ -876,7 +876,7 @@ class SohuComic(SohuVideoMenu):
     def __init__(self, name, engine, url):
         SohuVideoMenu.__init__(self, name, engine, url)
         self.number = 115
-        self.homePage = 'http://tv.sohu.com/comicall'
+        self.homePage = 'http://tv.sohu.com/comicall/'
         self.filter = {
             '年份' : self.filter_year,
             '篇幅' : [

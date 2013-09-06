@@ -2,17 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <jansson.h>
+#include <pcre.h>
 
 #include "httplib.h"
 #include "json.h"
 #include "base64.h"
 #include "kola.hpp"
 
-char *KolaClient::Run(const char *cmd)
+static char *ReadStringFile(FILE *fp)
 {
-	FILE *fp = popen(cmd, "r");
-	char *s = NULL;
 #define LEN 2048
+	char *s = NULL;
 
 	if (fp) {
 		long size = 0;
@@ -25,9 +25,67 @@ char *KolaClient::Run(const char *cmd)
 			else
 				break;
 		}
-
-		fclose(fp);
 	}
+
+	return s;
+}
+
+
+//	FILE *fp = fopen("a.txt", "r");
+//	char *x = ReadStringFile(fp);
+//	char *line = x;
+
+#define OFFSET_SIZE 200
+int regular (const char *pattern, const char *content) {
+	pcre *re;
+	int rc;
+	int erroffset;
+	int ovector[OFFSET_SIZE];
+	const char *error;
+
+	pattern = "(var) (playlistId|pid|vid|tag|PLAYLIST_ID)\\s*=\\s*\"(.+?)\";";
+	re = pcre_compile(
+			pattern,    /* the pattern                  */
+			0,          /* default options              */
+			&error,     /* for error message            */
+			&erroffset, /* for error offset             */
+			NULL);      /* use default character tables */
+
+	if (re == NULL) {
+		perror("pcre_compile failed");
+		return -1;
+	}
+
+	int offset = 0;
+	int flags = 0;
+	int length = strlen(content);
+
+	while (offset < length && (rc = pcre_exec(re, 0, content, length, offset, flags, ovector, OFFSET_SIZE)) > 0) {
+		int i;
+		for (i = 0; i < rc; i++) {
+			const char *substring_start = content + ovector[2*i];
+			int substring_length = ovector[2*i+1] - ovector[2*i];
+			printf("$%2d: %.*s\n", i, substring_length, substring_start);
+			// strncpy(buf, content+ovector[2*j], ovector[2*j+1]-ovector[2*j]);
+			// pcre_copy_substring(content, ovector, rc, 0, buffer, size);
+		}
+		offset = ovector[2 * (rc - 1)];
+		//offset = ovector[1];
+		flags |= PCRE_NOTBOL;
+	}
+
+	pcre_free(re); // finished matching
+
+	return 0;
+}
+
+
+char *KolaClient::Run(const char *cmd)
+{
+	FILE *fp = popen(cmd, "r");
+	char *s = ReadStringFile(fp);
+
+	fclose(fp);
 
 	return s;
 }

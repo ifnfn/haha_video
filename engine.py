@@ -1403,15 +1403,9 @@ class SohuEngine(VideoEngine):
             self.GetAlbumPlayList(album, times + 1)
 
 def test():
-    url = 'http://search.vrs.sohu.com/mv_i101040.json'
-    _, _, _, response = fetch(url)
-    oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
-    a = json.loads(oflvo)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
     url = 'http://tv.sohu.com/20130517/n376295917.shtml'
     url = 'http://tv.sohu.com/20110222/n279464056.shtml'
-    url = 'http://v.tv.sohu.com/20100618/n272893884.shtml'
+#    url = 'http://v.tv.sohu.com/20100618/n272893884.shtml'
 #    url = 'http://tv.sohu.com/20101124/n277876671.shtml'
 #    url = 'http://tv.sohu.com/s2010/72jzk/'
 #    url = 'http://tv.sohu.com/s2011/7film/'
@@ -1419,6 +1413,7 @@ def test():
 #    a = str(re.findall('var (playlistId|pid|vid|tag)\s*=\s*"(.+)";', response))
     a = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";', response)
     print a
+    return
     a = re.findall('(<p class="tit tit-p">.+</a>)', response)
     print a
     #print str(a)
@@ -1427,6 +1422,12 @@ def test():
     #    print str(i)
         x += str(i)
     print x
+    return
+    url = 'http://search.vrs.sohu.com/mv_i101040.json'
+    _, _, _, response = fetch(url)
+    oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
+    a = json.loads(oflvo)
+    print json.dumps(a, ensure_ascii=False, indent=4)
     return
     print re.findall('\(\'(vid|pid|playlistId|tag|PLAYLIST_ID)\',\s*\'(\S+?)\'\)', x)
     return

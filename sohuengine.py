@@ -40,26 +40,26 @@ class SohuAlbum(AlbumBase):
             self.UpdateScoreCommand()
         else: #　如果没有 playlist_id
             self.UpdateAlbumPageCommand()
-        
+
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
         ret = self.playlist_id != ""
-        
-        if ret:            
+
+        if ret:
             url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlist_id
             self.command.SendCommand('album_fullinfo', self.parent.name, url)
-            
+
         return ret
-        
+
 
     # 更新节目指数信息
-    def UpdateScoreCommand(self):            
+    def UpdateScoreCommand(self):
         ret = self.playlist_id != ""
-        if ret:            
+        if ret:
             url = 'http://index.tv.sohu.com/index/switch-aid/%s' % self.playlist_id
             self.command.SendCommand('album_score', self.parent.name, url)
         return ret
-    
+
     # 访问网页
     def UpdateAlbumPageCommand(self):
         if self.albumPageUrl != '':
@@ -142,13 +142,13 @@ class SohuVideoMenu(VideoMenuBase):
     # 解析热门节目
     # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3
     # albumlist_hot
-    
+
     def _save_update_append(self, sets, tv):
         if tv:
             tv.SaveToDB(self.engine.album_table)
             tv.UpdateAllCommand()
-            sets.append(tv)                
-    
+            sets.append(tv)
+
     def CmdParserHotInfoByIapi(self, js):
         ret = []
         try:
@@ -204,7 +204,7 @@ class SohuVideoMenu(VideoMenuBase):
 
                     if video.has_key('videoAlbumContCategory'):
                         tv.categories = video['videoAlbumContCategory'].split(';')
-                    
+
                     self._save_update_append(ret, tv)
         except:
             t, v, tb = sys.exc_info()
@@ -281,7 +281,7 @@ class SohuVideoMenu(VideoMenuBase):
             if tv == None:
                 return []
 
-            t = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;', text)            
+            t = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;', text)
             if t:
                 for u in t:
                     if u[0] == 'pid':
@@ -312,7 +312,11 @@ class SohuVideoMenu(VideoMenuBase):
     def CmdParserAlbumScore(self, js):
         ret = []
         try:
-            text = js['data'] + '}'
+            x = re.search('(.*?),"asudIncomes', js['data'])
+            if x and x.lastindex > 0:
+                text = x.group(1) + '}'
+            else:
+                return []
 
             data = json.loads(text)
             if data.has_key('album'):
@@ -895,7 +899,7 @@ class SohuEngine(VideoEngine):
         except:
             t, v, tb = sys.exc_info()
             log.error('SohuEngine.ParserRealUrl playurl: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
-            
+
         return res;
 
     def RealUrl(self, playurl, times=0):

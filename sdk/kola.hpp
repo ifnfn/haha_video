@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <jansson.h>
+#include <string>
+
+#if ENABLE_SSL
+#include <openssl/rsa.h>
+#endif
 
 #include "httplib.h"
 #include "json.h"
@@ -36,11 +41,28 @@ class KolaMenu {
 
 class KolaClient {
 	public:
-		KolaClient(void) {}
-		~KolaClient(void) {}
+		KolaClient(void) {
+#if ENABLE_SSL
+			rsa = NULL;
+#endif
+		}
+		~KolaClient(void) {
+#if ENABLE_SSL
+			if (rsa)
+				RSA_free(rsa);
+#endif
+		}
 		bool Login(void);
 		KolaMenu *GetMenuByName(const char *name);
+		void GetKey(void);
 	private:
+		std::string publicKey;
+		std::string baseUrl;
+#if ENABLE_SSL
+		RSA *rsa;
+		int Decrypt(int flen, const unsigned char *from, unsigned char *to);
+		int Encrypt(int flen, const unsigned char *from, unsigned char *to);
+#endif
 		char *Run(const char *cmd);
 		bool ProcessCommand(json_t *cmd);
 		void GetMenu();

@@ -71,6 +71,7 @@ int http_build_header(char *buffer, uint32_t maxlen, uint32_t *at,
 int http_get_response(http_client_t *handle, http_resp_t **resp);
 
 void http_resp_clear(http_resp_t *rptr);
+
 #ifndef MIN
 #define	MIN(a,b) (((a)<(b))?(a):(b))
 #endif
@@ -86,7 +87,7 @@ void http_debug(int loglevel, const char *fmt, ...)
 
 #endif
 
-static char *convert_url (const char *to_convert)
+static char *convert_url(const char *to_convert)
 {
 	char *ret, *p;
 	const char *q;
@@ -141,12 +142,12 @@ http_client_t *http_init_connection (const char *name)
 		/* Tell the user that we couldn't find a usable */
 		/* WinSock DLL.*/
 		http_debug(LOG_ERR, "Can't initialize http_debug");
-		return (NULL);
+		return NULL;
 	}
 #endif
 	ptr = (http_client_t *)malloc(sizeof(http_client_t));
 	if (ptr == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	memset(ptr, 0, sizeof(http_client_t));
@@ -156,10 +157,10 @@ http_client_t *http_init_connection (const char *name)
 	if (http_decode_and_connect_url(url, ptr) < 0) {
 		free(url);
 		http_free_connection(ptr);
-		return (NULL);
+		return NULL;
 	}
 	free(url);
-	return (ptr);
+	return ptr;
 }
 
 /*
@@ -187,7 +188,7 @@ void http_free_connection (http_client_t *ptr)
 /*
  * http_get - get from url after client already set up
  */
-int http_get (http_client_t *cptr, const char *url, http_resp_t **resp)
+int http_get(http_client_t *cptr, const char *url, http_resp_t **resp)
 {
 	char header_buffer[4096];
 	uint32_t buffer_len;
@@ -195,7 +196,7 @@ int http_get (http_client_t *cptr, const char *url, http_resp_t **resp)
 	int more;
 
 	if (cptr == NULL)
-		return (-1);
+		return -1;
 
 	http_debug(LOG_DEBUG, "url is %s\n", url);
 	if (url != NULL) {
@@ -222,7 +223,7 @@ int http_get (http_client_t *cptr, const char *url, http_resp_t **resp)
 				buffer_len,
 				0) < 0) {
 		http_debug(LOG_CRIT,"Http send failure");
-		return (-1);
+		return -1;
 	}
 	cptr->m_redirect_count = 0;
 	more = 0;
@@ -233,22 +234,22 @@ int http_get (http_client_t *cptr, const char *url, http_resp_t **resp)
 		ret = http_get_response(cptr, resp);
 		http_debug(LOG_INFO, "Response %d", (*resp)->ret_code);
 		http_debug(LOG_DEBUG, "%s", (*resp)->body);
-		if (ret < 0) return (ret);
+		if (ret < 0) return ret;
 		switch ((*resp)->ret_code / 100) {
 			default:
 			case 1:
 				more = 0;
 				break;
 			case 2:
-				return (1);
+				return 1;
 			case 3:
 				cptr->m_redirect_count++;
 				if (cptr->m_redirect_count > 5) {
-					return (-1);
+					return -1;
 				}
 				if (http_decode_and_connect_url(cptr->m_redir_location, cptr) < 0) {
 					http_debug(LOG_CRIT, "Couldn't reup location %s", cptr->m_redir_location);
-					return (-1);
+					return -1;
 				}
 				buffer_len = 0;
 				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET",
@@ -256,27 +257,28 @@ int http_get (http_client_t *cptr, const char *url, http_resp_t **resp)
 				http_debug(LOG_DEBUG, "%s", header_buffer);
 				if (send(cptr->m_server_socket, header_buffer, buffer_len, 0) < 0) {
 					http_debug(LOG_CRIT,"Send failure");
-					return (-1);
+					return -1;
 				}
 
 				break;
 			case 4:
 			case 5:
-				return (0);
+				return 0;
 		}
 	} while (more == 0);
-	return (ret);
+	return ret;
 }
 
 int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *body)
 {
-	char header_buffer[4096];
-	uint32_t buffer_len;
-	int ret;
+//	char header_buffer[4096];
+	char *header_buffer;
+	uint32_t buffer_len, max_len;
+	int ret = -1;
 	int more;
 
 	if (cptr == NULL)
-		return (-1);
+		return -1;
 
 	if (*resp != NULL) {
 		http_resp_clear(*resp);
@@ -286,14 +288,18 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 		CHECK_AND_FREE(cptr->m_resource);
 		cptr->m_resource = strdup(url);
 	}
+
+	max_len = strlen(body) + 2048;
+
+	header_buffer = (char*)malloc(max_len);
 	/*
 	 * build header and send message
 	 */
-	ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "POST",
+	ret = http_build_header(header_buffer, max_len - 1, &buffer_len, cptr, "POST",
 			"Content-Type: application/x-www-form-urlencoded", body);
 	if (ret == -1) {
 		http_debug(LOG_ERR, "Could not build header");
-		return -1;
+		goto out;
 	}
 	http_debug(LOG_DEBUG, "%s", header_buffer);
 	if (send(cptr->m_server_socket,
@@ -301,10 +307,11 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 				buffer_len,
 				0) < 0) {
 		http_debug(LOG_CRIT,"Http send failure");
-		return (-1);
+		goto out;
 	}
 	cptr->m_redirect_count = 0;
 	more = 0;
+
 	/*
 	 * get response - handle redirection here
 	 */
@@ -312,22 +319,24 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 		ret = http_get_response(cptr, resp);
 		http_debug(LOG_INFO, "Response %d", (*resp)->ret_code);
 		http_debug(LOG_DEBUG, "%s", (*resp)->body);
-		if (ret < 0) return (ret);
+		if (ret < 0)
+			goto out;
 		switch ((*resp)->ret_code / 100) {
 			default:
 			case 1:
 				more = 0;
 				break;
 			case 2:
-				return (1);
+				ret = 1;
+				goto out;
 			case 3:
 				cptr->m_redirect_count++;
 				if (cptr->m_redirect_count > 5) {
-					return (-1);
+					goto out;
 				}
 				if (http_decode_and_connect_url(cptr->m_redir_location, cptr) < 0) {
 					http_debug(LOG_CRIT, "Couldn't reup location %s", cptr->m_redir_location);
-					return (-1);
+					goto out;
 				}
 				buffer_len = 0;
 				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "POST",
@@ -338,16 +347,20 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 							buffer_len,
 							0) < 0) {
 					http_debug(LOG_CRIT,"Send failure");
-					return (-1);
+					goto out;
 				}
 
 				break;
 			case 4:
 			case 5:
-				return (0);
+				ret = 0;
+				goto out;
 		}
 	} while (more == 0);
-	return (ret);
+
+out:
+	free(header_buffer);
+	return ret;
 }
 
 /*
@@ -399,7 +412,7 @@ static int http_dissect_url (const char *name, http_client_t *cptr)
 				nextcolon++;
 			}
 			if (cptr->m_port == 0 || (*nextcolon != '/' && *nextcolon != '\0')) {
-				return (-1);
+				return -1;
 			}
 		} else {
 			// no port number
@@ -407,20 +420,20 @@ static int http_dissect_url (const char *name, http_client_t *cptr)
 
 		}
 		if (hostlen == 0) {
-			return (-1);
+			return -1;
 		}
 		FREE_CHECK(cptr, m_host);
 		if (rightbracket != NULL) hostlen--;
 		host = (char*)malloc(hostlen + 1);
 		if (host == NULL) {
-			return (-1);
+			return -1;
 		}
 		memcpy(host, uptr, hostlen);
 		host[hostlen] = '\0';
 		cptr->m_host = host;
 	} else {
 		if (*uptr == '\0') {
-			return (EINVAL);
+			return EINVAL;
 		}
 		FREE_CHECK(cptr, m_host);
 		host = strdup(uptr);
@@ -437,7 +450,7 @@ static int http_dissect_url (const char *name, http_client_t *cptr)
 		cptr->m_content_location = strdup("/");
 	}
 	http_debug(LOG_DEBUG, "content location is %s", cptr->m_content_location);
-	return (0);
+	return 0;
 }
 
 /*
@@ -455,7 +468,7 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 	int result;
 
 	if (strncasecmp(name, "http://", strlen("http://")) != 0) {
-		return (-1);
+		return -1;
 	}
 	name += strlen("http://");
 
@@ -471,7 +484,7 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 
 	if (http_dissect_url(name, cptr) < 0) {
 		// If there's an error - nothing's changed
-		return (-1);
+		return -1;
 	}
 
 	if (check_open) {
@@ -491,7 +504,7 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 				return -1;
 #else
 				if (h_errno > 0) h_errno = 0 - h_errno;
-				return (h_errno);
+				return h_errno;
 #endif
 			}
 			if (memcmp(host->h_addr,
@@ -521,7 +534,7 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 			return -1;
 #else
 			if (h_errno > 0) h_errno = 0 - h_errno;
-			return (h_errno);
+			return h_errno;
 #endif
 		}
 		cptr->m_server_addr = *(struct in_addr *)host->h_addr;
@@ -530,7 +543,7 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 	// Create and connect the socket
 	cptr->m_server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (cptr->m_server_socket == -1) {
-		return (-1);
+		return -1;
 	}
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_port = htons(cptr->m_port);
@@ -541,10 +554,10 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 			sizeof(sockaddr));
 
 	if (result == -1) {
-		return (-1);
+		return -1;
 	}
 	cptr->m_state = HTTP_STATE_CONNECTED;
-	return (0);
+	return 0;
 }
 
 static const char *user_agent = "Mpeg4ip http library 0.1";
@@ -566,7 +579,7 @@ int http_build_header (char *buffer,
 #define SNPRINTF_CHECK(fmt, value) \
 	ret = snprintf(buffer + *at, maxlen - *at, (fmt), value); \
 	if (ret == -1) { \
-		return (-1); \
+		return -1; \
 	}\
 	*at += ret;
 
@@ -593,7 +606,7 @@ int http_build_header (char *buffer,
 		SNPRINTF_CHECK("%s", "\r\n");
 	}
 #undef SNPRINTF_CHECK
-	return (ret);
+	return ret;
 }
 
 static int http_recv (int server_socket,
@@ -640,7 +653,7 @@ static int http_read_into_buffer (http_client_t *cptr,
 			cptr->m_resp_buffer + buffer_offset,
 			RESP_BUF_SIZE - buffer_offset);
 
-	if (ret <= 0) return (ret);
+	if (ret <= 0) return ret;
 
 	cptr->m_buffer_len = buffer_offset + ret;
 
@@ -667,7 +680,7 @@ static const char *http_get_next_line (http_client_t *cptr)
 		cptr->m_offset_on = 0;
 		ret = http_read_into_buffer(cptr, 0);
 		if (ret <= 0) {
-			return (NULL);
+			return NULL;
 		}
 	}
 
@@ -683,12 +696,12 @@ static const char *http_get_next_line (http_client_t *cptr)
 			const char *retval = &cptr->m_resp_buffer[cptr->m_offset_on];
 			cptr->m_offset_on = ix + 1;
 			cptr->m_resp_buffer[ix - 1] = '\0'; // make it easy
-			return (retval);
+			return retval;
 		}
 	}
 
 	if (cptr->m_offset_on == 0) {
-		return (NULL);
+		return NULL;
 	}
 
 	/*
@@ -708,7 +721,7 @@ static const char *http_get_next_line (http_client_t *cptr)
 
 	ret = http_read_into_buffer(cptr, cptr->m_buffer_len);
 	if (ret <= 0) {
-		return (NULL);
+		return NULL;
 	}
 
 	/*
@@ -723,10 +736,10 @@ static const char *http_get_next_line (http_client_t *cptr)
 			const char *retval = &cptr->m_resp_buffer[cptr->m_offset_on];
 			cptr->m_offset_on = ix + 1;
 			cptr->m_resp_buffer[ix - 1] = '\0'; // make it easy
-			return (retval);
+			return retval;
 		}
 	}
-	return (NULL);
+	return NULL;
 }
 
 /****************************************************************************
@@ -858,7 +871,7 @@ static uint32_t to_hex (const char **hex_string)
 		p++;
 	}
 	*hex_string = p;
-	return (ret);
+	return ret;
 }
 
 /*
@@ -902,7 +915,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 	p = http_get_next_line(cptr);
 	if (p == NULL) {
 		http_debug(LOG_INFO, "did not get first line");
-		return (-1);
+		return -1;
 	}
 
 	/*
@@ -911,14 +924,14 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 	ADV_SPACE(p);
 	if (*p == '\0' || strncasecmp(p, "http/", strlen("http/")) != 0) {
 		http_debug(LOG_INFO, "first line did not start with HTTP/");
-		return (-1);
+		return -1;
 	}
 	p += strlen("http/");
 	ADV_SPACE(p);
 	while (*p != '\0' && isdigit(*p)) p++;
-	if (*p++ != '.') return (-1);
+	if (*p++ != '.') return -1;
 	while (*p != '\0' && isdigit(*p)) p++;
-	if (*p++ == '\0') return (-1);
+	if (*p++ == '\0') return -1;
 	ADV_SPACE(p);
 
 	/*
@@ -931,7 +944,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 			resp_code += *p++ - '0';
 		} else {
 			http_debug(LOG_ERR, "did not get 3-digit response code");
-			return (-1);
+			return -1;
 		}
 	}
 	(*resp)->ret_code = resp_code;
@@ -947,7 +960,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 	do {
 		p = http_get_next_line(cptr);
 		if (p == NULL) {
-			return (-1);
+			return -1;
 		}
 		if (*p == '\0') {
 			done = 1;
@@ -973,7 +986,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 			while (len < cptr->m_content_len) {
 				ret = http_read_into_buffer(cptr, 0);
 				if (ret <= 0) {
-					return (-1);
+					return -1;
 				}
 				memcpy(cptr->m_resp->body + len,
 						cptr->m_resp_buffer,
@@ -992,7 +1005,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 		p = http_get_next_line(cptr);
 		if (p == NULL) {
 			http_debug(LOG_ALERT, "no chunk size reading chunk transitions");
-			return (-1);
+			return -1;
 		}
 		te_size = to_hex(&p);
 		cptr->m_resp->body = NULL;
@@ -1018,7 +1031,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 				ret = http_recv(cptr->m_server_socket,
 						cptr->m_resp->body + cptr->m_resp->body_len,
 						te_size - len);
-				if (ret <= 0) return (-1);
+				if (ret <= 0) return -1;
 				len += ret;
 				cptr->m_resp->body_len += ret;
 				http_debug(LOG_DEBUG, "chunk - recved %d bytes (%d)",
@@ -1027,12 +1040,12 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 			p = http_get_next_line(cptr); // should read CRLF at end
 			if (p == NULL || *p != '\0') {
 				http_debug(LOG_ALERT, "Http chunk reader - should be CRLF at end of chunk, is %s", p);
-				return (-1);
+				return -1;
 			}
 			p = http_get_next_line(cptr); // read next size
 			if (p == NULL) {
 				http_debug(LOG_ALERT,"No chunk size after first");
-				return (-1);
+				return -1;
 			}
 			te_size = to_hex(&p);
 		}
@@ -1064,7 +1077,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 		cptr->m_resp->body[cptr->m_resp->body_len] = '\0';
 
 	}
-	return (0);
+	return 0;
 }
 
 /*

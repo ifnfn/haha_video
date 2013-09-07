@@ -34,7 +34,7 @@ cmd_list = [
         'menu'    : '电影',
         'dest'    : PARSER_HOST,
         'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
         ]
     },
     {
@@ -43,7 +43,7 @@ cmd_list = [
         'menu'    : '电影',
         'dest'    : PARSER_HOST,
         'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
         ]
     },
     {
@@ -52,7 +52,7 @@ cmd_list = [
         'menu'    : '电影',
         'dest'    : PARSER_HOST,
         'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
         ]
     },
     {
@@ -61,7 +61,16 @@ cmd_list = [
         'menu'    : '电影',
         'dest'    : PARSER_HOST,
         'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
+        ]
+    },
+    {
+        'name'    : 'album',
+        'source'  : 'http://store.tv.sohu.com/5009508/706684_1772.html',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+        'regular' : [
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
         ]
     },
     {

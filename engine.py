@@ -623,7 +623,8 @@ class SohuVideoMenu(VideoMenuBase):
                 'http://tv.sohu.com/s2011/ajyh/',
                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
                 'http://tv.sohu.com/20120517/n343417005.shtml',
-                'http://tv.sohu.com/s2012/zlyeye/'
+                'http://tv.sohu.com/s2012/zlyeye/',
+                'http://store.tv.sohu.com/5009508/706684_1772.html'
                 ]
         '''
         try:
@@ -1146,7 +1147,7 @@ class SohuEngine(VideoEngine):
             'menu'    : '电影',
             'dest'    : self.parser_host,
             'regular' : [
-                'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";'
+                'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
             ],
         })
 

@@ -3,11 +3,20 @@
 #include <string.h>
 #include <jansson.h>
 #include <pcre.h>
+#include <iostream>
+
+#if ENABLE_SSL
+#include <openssl/pem.h>
+#include <openssl/bio.h>
+#endif
 
 #include "httplib.h"
 #include "json.h"
 #include "base64.h"
 #include "kola.hpp"
+#include "pcre.hpp"
+
+#define SERVER_HOST "http://127.0.0.1:9990"
 
 static char *ReadStringFile(FILE *fp)
 {
@@ -30,20 +39,15 @@ static char *ReadStringFile(FILE *fp)
 	return s;
 }
 
-
-//	FILE *fp = fopen("a.txt", "r");
-//	char *x = ReadStringFile(fp);
-//	char *line = x;
-
 #define OFFSET_SIZE 200
-int regular (const char *pattern, const char *content) {
+static int regular(const char *pattern, const char *content, char **out, int *len)
+{
 	pcre *re;
 	int rc;
 	int erroffset;
 	int ovector[OFFSET_SIZE];
 	const char *error;
 
-	pattern = "(var) (playlistId|pid|vid|tag|PLAYLIST_ID)\\s*=\\s*\"(.+?)\";";
 	re = pcre_compile(
 			pattern,    /* the pattern                  */
 			0,          /* default options              */
@@ -59,26 +63,88 @@ int regular (const char *pattern, const char *content) {
 	int offset = 0;
 	int flags = 0;
 	int length = strlen(content);
+	int outlen = 0;
+
+	*out = NULL;
 
 	while (offset < length && (rc = pcre_exec(re, 0, content, length, offset, flags, ovector, OFFSET_SIZE)) > 0) {
-		int i;
-		for (i = 0; i < rc; i++) {
-			const char *substring_start = content + ovector[2*i];
-			int substring_length = ovector[2*i+1] - ovector[2*i];
-			printf("$%2d: %.*s\n", i, substring_length, substring_start);
-			// strncpy(buf, content+ovector[2*j], ovector[2*j+1]-ovector[2*j]);
-			// pcre_copy_substring(content, ovector, rc, 0, buffer, size);
-		}
+		const char *substring_start = content + ovector[0];
+		int substring_length = ovector[1] - ovector[0];
+
+		*out = (char *)realloc(*out, outlen + substring_length + 1);
+		memcpy(*out + outlen, substring_start, substring_length);
+		outlen += substring_length + 1;
+		(*out)[outlen - 1] = '\n';
+
 		offset = ovector[2 * (rc - 1)];
 		//offset = ovector[1];
 		flags |= PCRE_NOTBOL;
 	}
+	if (*len)
+		*len =outlen;
 
 	pcre_free(re); // finished matching
 
 	return 0;
 }
 
+void test() {
+	FILE *fp = fopen("a.txt", "r");
+	char *x = ReadStringFile(fp);
+	char *out = NULL;
+	int len;
+	const char *pattern = "(var) (playlistId|pid|vid|tag|PLAYLIST_ID)\\s*=\\s*\"(.+?)\";";
+	fclose(fp);
+	regular(pattern, x, &out, &len);
+	printf("[%d]: \n%s\n", len, out);
+	free(x);
+	free(out);
+}
+
+static char *http_get_str(const char *url)
+{
+	char *ret = NULL;
+	http_client_t *http_client;
+	http_resp_t *http_resp = NULL;
+	http_client = http_init_connection(url);
+	if (http_client == NULL) {
+		printf("no client\n");
+		return NULL;
+	}
+	int rc = http_get(http_client, "", &http_resp);
+	if (rc && http_resp && http_resp->body)
+		ret = strdup(http_resp->body);
+
+	http_resp_free(http_resp);
+	http_free_connection(http_client);
+
+	return ret;
+}
+
+#if ENABLE_SSL
+int KolaClient::Decrypt(int flen, const unsigned char *from, unsigned char *to)
+{
+	return RSA_public_decrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
+}
+
+int KolaClient::Encrypt(int flen, const unsigned char *from, unsigned char *to)
+{
+	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
+}
+#endif
+void KolaClient::GetKey(void)
+{
+	const char *t = http_get_str(SERVER_HOST"/video/key");
+	if (t) {
+		publicKey = t;
+		std::cout << publicKey << std::endl;
+#if ENABLE_SSL
+		BIO *key= BIO_new_mem_buf((void*)t, strlen(t));
+		rsa = PEM_read_bio_RSA_PUBKEY(key, NULL, NULL, NULL);
+		BIO_free_all(key);
+#endif
+	}
+}
 
 char *KolaClient::Run(const char *cmd)
 {
@@ -96,32 +162,57 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 	const char *name = json_gets(cmd, "name", "");
 	const char *source = json_gets(cmd, "source", "");
 	const char *dest = json_gets(cmd, "dest", "");
+	char *html;
+	string regular_result;
+	Pcre pcre;
 
-	http_client_t *http_client;
-	http_resp_t *http_resp = NULL;
+	html = http_get_str(source);
 
-	printf("%s:%s:%s\n", name, source, dest);
+	if (html == NULL)
+		return false;
+
 	json_t *regular = json_object_get(cmd, "regular");
-	if (cmd && json_is_array(regular)) {
-		int i;
+	if (json_is_array(regular)) {
 		int count = json_array_size(regular);
-		for (i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			json_t *p = json_array_get(regular, i);
 			const char *r = json_string_value(p);
 			printf("regular[%d] = %s\n", i, r);
+			pcre.AddRule(r);
 		}
+		regular_result = pcre.MatchAll(html);
 	}
+	else
+		regular_result = html;
 
-	http_client = http_init_connection(source);
+	free(html);
+
+	int in_size = regular_result.size();
+	int out_size = BASE64_SIZE(in_size);
+
+	char *out_buffer = (char *)malloc(out_size);
+	base64encode((unsigned char *)regular_result.c_str(), in_size, (unsigned char*)out_buffer, out_size);
+	json_sets(cmd, "data", out_buffer);
+	char *body = json_dumps(cmd, 2);
+//	printf("body: %s\n", body);
+	http_client_t *http_client;
+	http_resp_t *http_resp = NULL;
+	http_client = http_init_connection(dest);
 	if (http_client == NULL) {
 		printf("no client\n");
-		return (1);
+		goto out;
 	}
-	ret = http_get(http_client, "", &http_resp);
-	printf("ret= %d, http_resp=%p\n", ret, http_resp);
-	if (ret && http_resp) {
+	ret = http_post(http_client, "", &http_resp, body);
+	if (ret && http_resp && http_resp->body) {
 		printf("%s\n", http_resp->body);
 	}
+
+	http_resp_free(http_resp);
+	http_free_connection(http_client);
+
+out:
+	free(body);
+	free(out_buffer);
 
 	return 0;
 }
@@ -129,15 +220,14 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 bool KolaClient::Login(void)
 {
 	json_error_t error;
-	char *data = NULL, *filename = NULL;//http_get("127.0.0.1", 9990, "video/login?user_id=123123");
+	char *data = NULL, *filename = NULL;
 	char typebuf[70];
 	int len;
 	int ret;
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
-	const char *url = "http://127.0.0.1:9990";
 
-	http_client = http_init_connection(url);
+	http_client = http_init_connection(SERVER_HOST);
 	if (http_client == NULL) {
 		printf("no client\n");
 		return (1);
@@ -148,6 +238,7 @@ bool KolaClient::Login(void)
 		json_t *js = json_loads(http_resp->body, JSON_REJECT_DUPLICATES, &error);
 		if (js) {
 			const char *v = json_gets(js, "key", "");
+			baseUrl = json_gets(js, "server", SERVER_HOST);
 			printf("===================================================\n");
 			printf("key= %s\n", v);
 			json_t *cmd = json_geto(js, "command");
@@ -171,8 +262,11 @@ bool KolaClient::Login(void)
 
 int main(int argc, char **argv)
 {
+//	test();
+//	return 0;
 	KolaClient kola;
 
+	kola.GetKey();
 	kola.Login();
 	return 0;
 }

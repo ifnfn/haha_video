@@ -14,9 +14,74 @@ import redis
 import json
 import hashlib
 from jsonphandler import JSONPHandler
-
+from Crypto.PublicKey import RSA
 
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
+
+privatekey_text = '''-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEA8uLLcUH6pVt4qyiUgU+KN/dFVIZOZinZ2YnsydbEMhwAUW6g
+Q1wUGPr4B9eAeEKBWCB6PKEJkzQC7Fmmu2WPcs67bqvcoRmFMbiMN2n+faczL2Pd
+7Je8iUO9nUWU4hfn4HyG2fUdVXf3J/cz7OZ1OCFHPS0JI7UnN4a8WE41tYbMuAJA
+9uaVs4WqPtZ/GBvNub/kkf9Ltf0sDGa4quTdu+cRkLMQBnRTDGalmI3Wx6C9WGPO
+iNUYK1+KS9UMyyGP9hwBvcWAvgy7WmarxR8gTxrIguRPcnciPi9aIoE8Xe3vxQ7S
+ddFQdee8ua2IsgRy4g4+o7LMK2b2hn2lIXJOUwIDAQABAoIBAQDStLk0+b4NMXtP
+UJb0TyJjRtoYZ6MfsfLRa3vF5dCyf+QuwL+7b+fne+EsPGGw8lDvOM2SR0ndL+PR
+Ujz4mTSGrp2fduyhvVf1OFo7wHIMY75dwE9H7qKame+mvjRYp9B6yMzbzG60NKxv
+OV8MhyjtlsEMa0NgfMkWvIYsPT0Oyb+rXZpgwLM+a1caLx/qVTDN6TO4+y1BWIRu
+XrdAO2yHwqJP77zpFgtQ7ZkRTAkG7Rt69PNrHWHD40TA5zhnM+IyS1Js3Xr7u4hc
+8ZoAcXde+qjj32ASFRyGjUZUKp1d4nU1IUKnrwgtNLyjl6XtOYWmL/HbFpZOhQV3
+HXTM+kSxAoGBAPsh53PvNOuQWocourUa7+8nqMDfoz+GgQd4Ki+X1YqT/1oDKSYy
+xbMBhFzkKRypprqb8QzKRVPf6awLtmmuzqSLUE/TUh3wllU4Nn+uVRWuakEJp2tT
+a4X+3jtjMomYKwLMScrDfvYua8GpVL1W1HE6mF4NK794aCHoESyfWbevAoGBAPeX
++Nw4hGA3CoMflyDSmOc2BJSpQor7HB41STwlHzUG7kEzIc5EKnME/8uNBn3kkNek
++Au+EloWQEqaqUxeFwbNWrMPBcfI+bVDT4ZzQqTxv4YjbEvipiRyyMpgh29q/tyM
+K4E/tbYSSydJ2tYWPBaDIk5MMacoLaZ7oZg939idAoGBALQDFIZs4/Eq80lI77Sb
+z3sNYZCHfdwuTNUO1KZy3rXL6lEaTOe9oyryHm/7eGC8VvASkdIKN3Gs4jHZ33KX
+xDX8SqA9qPIfH5OMjLwvOXwmHrHp+qEbFcrh62iEbZhlhAcoaoi2Y46RrdoOx9hE
+ollbmBZquH4yD+qmD5F90/CvAoGBAMQV4KqQPA5zKOkl2KvO/feHKWOPFTs6mk82
+RlTS1X9KiOCsHSbdh3zmRasweia0IR4X8bZjBue/3ZT4HgJ0NepWMnHDAQHzogez
+UkUZ/XriVptmbHtA+fG90lWs0zYjV8rVXBMVoNScclagQCbzHw15N28pGt3WjSjf
+muAWiLRlAoGAQtYOFx/sxMPZGLLl5AYJVYu7ygSjDcSepkFjXbHX2QbABhmkcI5r
+SqeJ/rm7yOdi4f66W40yjflLA1tZtuaefvjFF3QVhQEXTD7G01b5Ul6zXpOLjwNZ
+ZBB65WO1zc7h8xq6nssyaR1vruGt41dhV+CLSnTxU3g3eDWNOtYBios=
+-----END RSA PRIVATE KEY-----'''
+
+class R:
+    def __init__(self):
+        #self.privateRSAKey = RSA.generate(4096)
+        #self.publicRSAKey = self.privateRSAKey.publickey()
+        self.privateRSAKey = RSA.importKey(privatekey_text)
+        self.publicRSAKey = self.privateRSAKey.publickey()
+        #print self.privateRSAKey.publickey().exportKey()
+        #print "private:"
+        #self.printf(self.privateRSAKey)
+        #print "public:"
+        #self.printf(self.publicRSAKey)
+
+    def exportKey(self):
+        return self.publicRSAKey.exportKey()
+
+    def printf(self, key):
+        print "Can Encrypt:", key.can_encrypt()
+        print "Can sign:", key.can_sign()
+        print "Has private:", key.has_private()
+
+    def RSAEncrypt(self, text):
+        return self.publicRSAKey.encrypt(text, len(text))
+
+    def RSADecrypt(self, text):
+        return self.privateRSAKey.decrypt(text)
+        #return rsa.decrypt(text)
+
+
+def test():
+    a = R()
+    t = a.RSAEncrypt('text')
+    print a.RSADecrypt(t)
+
+class KeyHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.finish(R().exportKey())
 
 class LoginHandler(JSONPHandler):
     def get(self):
@@ -27,6 +92,7 @@ class LoginHandler(JSONPHandler):
         ret = {
             'key': 'None',
             'command': [],
+            'server' : MAINSERVER_HOST,
             'next': 100   # 下次登录时间
         }
         if not db.exists(user_id):
@@ -70,6 +136,7 @@ def main():
            'cookie_secret': 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To='}
     tornado.options.parse_command_line()
     application = tornado.web.Application([
+        (r'/video/key',               KeyHandler),              # 取得public key
         (r'/video/login',             LoginHandler),            # 登录认证
         (r'/video/addcommand',        AddCommandHandler),       # 增加命令
         (r'/video/getmenu',           GetMainMenuHandler),      # 得到一级菜单
@@ -81,3 +148,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    test()

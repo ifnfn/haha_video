@@ -93,7 +93,7 @@ class LoginHandler(JSONPHandler):
             'key': 'None',
             'command': [],
             'server' : MAINSERVER_HOST,
-            'next': 100   # 下次登录时间
+            'next': 10   # 下次登录时间
         }
         if not db.exists(user_id):
             key = hashlib.md5(user_id + self.request.remote_ip).hexdigest().upper()

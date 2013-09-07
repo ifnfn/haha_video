@@ -1,15 +1,14 @@
 #! env /usr/bin/python
 # -*- coding: utf-8 -*-
 
-from utils.mylogger import logging
-from utils.ThreadPool import ThreadPool
-# from utils.BeautifulSoup import BeautifulSoup as bs
-# from utils.fetchTools import fetch_httplib2 as fetch
-# import re
 import json
 import base64
 import redis
-import engine as eg
+import sohuengine as eg
+
+from utils.mylogger import logging
+from utils.ThreadPool import ThreadPool
+from apscheduler.scheduler import Scheduler
 
 POOLSIZE = 10
 
@@ -21,22 +20,17 @@ class Kolatv:
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=2)
         self.thread_pool = ThreadPool(POOLSIZE)
         self.MenuList = engine.GetMenu()
+        self.sched = Scheduler()
+        self.sched.start()
+        self.sched.add_interval_job(self.UpdateNewest, hours=1)
+        self.sched.add_interval_job(self.UpdateHottest, hours=4)
+        self.sched.add_interval_job(self.UpdateTop200, hours=12)
+        self.sched.add_interval_job(self.UpdateAll, hours=2, seconds= 10)
 
-    def UpdateMainMenu(self):
-        # self.MenuList = engine.GetMenu()
-        # self.db.flushdb()
-        self.db.delete('menu')
 
-        for (n, menu) in self.MenuList.items():
+    def UpdateAlbumList(self):
+        for (_, menu) in self.MenuList.items():
             menu.UpdateAlbumList()
-            print 'save menu: ', n
-            self.db.rpush('menu', n)
-
-            # 将最热节目存入数据库
-            self.db.delete('hot:%s' % n)
-            for v in menu.HotList:
-                text = json.dumps(v, ensure_ascii=False)
-                self.db.rpush('hot:%s' % n, text)
 
     def ParserHtml(self, data):
         js = json.loads(data)
@@ -54,8 +48,19 @@ class Kolatv:
 
         return True
 
+    def UpdateNewest(self): # 更新最新节目
+        print "UpdateNewest"
+        pass
+
+    def UpdateHottest(self): #　更新最热门的节目
+        print "UpdateHottest"
+        pass
+
+    def UpdateTop200(self):
+        print "UpdateTop200"
+        pass
     # 发起全网更新
-    def FullUpdate(self):
+    def UpdateAll(self):
         # 更新所有菜单最增节目
         #
         # 更新所有节目的最新数据
@@ -63,8 +68,15 @@ class Kolatv:
         #    1. 更新各菜单下最热50部节目最新数据(每4小时一次）
         #    2. 更新前200部节目最新数据(每12小时一次）
         #    3. 更新所有节目的最新数据(每天一次）
-        pass
+        print "UpdateAll"
+        #for (_, menu) in self.MenuList.items():
+        #    menu.UpdateAlbumList()         # 重新获得所有节目列表
+        #    menu.UpdateAllAlbumFullInfo()  # 更新节目详细信息
 
+    def GetRealPlayer(self, text):
+        text = base64.decodestring(text)
+        return engine.ParserRealUrl(text)
+        
     def FindMenu(self, name):
         if self.MenuList.has_key(name):
             return self.MenuList[name]
@@ -81,11 +93,11 @@ def main():
     #       ２、通过节目的 albumPageUrl 得到节目的部分信息：vid, pid, playlistid (解析器:CmdParserAlbum)
     # 　　　　　　　　　　　　　得到的信息可能并不完整，有时无法得到playlistid数据
     #       ３、当 playlistid 的数据没有得到的话通过命令xxx得到节目信息
-    # 第三步：获得节目的最完整数据
-    # 第四步：获得节目的指数数据
+    #       ４、获得节目的最完整数据
+    # 　　　 ５、获得节目的指数数据
 
     tv = Kolatv()
-    tv.UpdateMainMenu()  # 更所有菜单的节目列表
+    tv.UpdateAlbumList()  # 更所有菜单的节目列表
     for (_, m) in tv.MenuList.items():
         m.UpdateAllAlbumFullInfo()
 

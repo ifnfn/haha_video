@@ -10,23 +10,19 @@ Pcre::Pcre()
 Pcre::~Pcre()
 {
 	for(int i=0; i<re_arr.size(); i++)
-	{
 		pcre_free(re_arr[i]);
-	}
 }
 
 //Add a regrex patten and compile it.
 int Pcre::AddRule(const string &patten)
 {
-	pcre *re = pcre_compile(patten.c_str(), 0, &error, &erroffset, NULL);
-#if 0
-	re = pcre_compile(
-			pattern,    /* the pattern                  */
-			0,          /* default options              */
-			&error,     /* for error message            */
-			&erroffset, /* for error offset             */
-			NULL);      /* use default character tables */
-#endif
+	pcre *re = pcre_compile(
+			patten.c_str(), /* the pattern                  */
+			0,              /* default options              */
+			&error,         /* for error message            */
+			&erroffset,     /* for error offset             */
+			NULL);          /* use default character tables */
+
 	if(re == NULL) {
 		printf("pcre compile failed, offset %d: %s\n", erroffset, error);
 		return -1;

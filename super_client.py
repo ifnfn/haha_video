@@ -13,55 +13,55 @@ import json
 from utils.fetchTools import fetch_httplib2 as fetch
 import base64
 import re
-import redis
 from utils.ThreadPool import ThreadPool
 
 #log = logging.getLogger("crawler")
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
 #MAINSERVER_HOST = 'http://121.199.20.175:9990'
-PARSER_HOST  = 'http://127.0.0.1:9991/video/upload'
+HOST = 'http://127.0.0.1:9991'
+PARSER_HOST  = HOST + '/video/upload'
 
 cmd_list = [
-    {
-        'name'    : 'videoall',
-        'source'  : 'http://tv.sohu.com/movieall',
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-    },
-    {
-        'name'    : 'album',
-        'source'  : 'http://tv.sohu.com/s2011/ajyh/',
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-        'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
-        ]
-    },
-    {
-        'name'    : 'album',
-        'source'  : 'http://tv.sohu.com/s2012/zlyeye/',
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-        'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
-        ]
-    },
-    {
-        'name'    : 'album',
-        'source'  : 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-        'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
-        ]
-    },
+#    {
+#        'name'    : 'videoall',
+#        'source'  : 'http://tv.sohu.com/movieall/',
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#    },
+#    {
+#        'name'    : 'album',
+#        'source'  : 'http://tv.sohu.com/s2011/ajyh/',
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#        'regular' : [
+#            ''var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+#        ]
+#    },
+#    {
+#        'name'    : 'album',
+#        'source'  : 'http://tv.sohu.com/s2012/zlyeye/',
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#        'regular' : [
+#            ''var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+#        ]
+#    },
+#    {
+#        'name'    : 'album',
+#        'source'  : 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#        'regular' : [
+#            ''var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+#        ]
+#    },
     {
         'name'    : 'album',
         'source'  : 'http://tv.sohu.com/20120517/n343417005.shtml',
         'menu'    : '电影',
         'dest'    : PARSER_HOST,
         'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
         ]
     },
     {
@@ -73,45 +73,45 @@ cmd_list = [
             'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
         ]
     },
-    {
-        'name'    : 'album_mvinfo',
-        'source'  : 'http://search.vrs.sohu.com/mv_i4746.json', # http://tv.sohu.com/s2011/ajyh/
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-    },
-    {
-        'name'    : 'album_mvinfo',
-        'source'  : 'http://search.vrs.sohu.com/mv_i704321.json', # http://store.tv.sohu.com/view_content/movie/5008825_704321.html
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-    },
-    {
-        'name'    : 'album_mvinfo',
-        'source'  : 'http://search.vrs.sohu.com/mv_i662182.json', # http://tv.sohu.com/20120517/n343417005.shtml
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-    },
-    {
-        'name'    : 'album_full',
-        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=1012657', # http://tv.sohu.com/20120517/n343417005.shtml
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-    },
-    {
-        'name'    : 'album_full',
-        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=228', # http://tv.sohu.com/s2011/ajyh/
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-    },
-    {
-        'name'    : 'album_score',
-        'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-        'regular' : [
-            '({"index":\S+?),"asudIncomes'
-        ]
-    },
+#    {
+#        'name'    : 'album_mvinfo',
+#        'source'  : 'http://search.vrs.sohu.com/mv_i4746.json', # http://tv.sohu.com/s2011/ajyh/
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#    },
+#    {
+#        'name'    : 'album_mvinfo',
+#        'source'  : 'http://search.vrs.sohu.com/mv_i704321.json', # http://store.tv.sohu.com/view_content/movie/5008825_704321.html
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#    },
+#    {
+#        'name'    : 'album_mvinfo',
+#        'source'  : 'http://search.vrs.sohu.com/mv_i662182.json', # http://tv.sohu.com/20120517/n343417005.shtml
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#    },
+#    {
+#        'name'    : 'album_full',
+#        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=1012657', # http://tv.sohu.com/20120517/n343417005.shtml
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#    },
+#    {
+#        'name'    : 'album_full',
+#        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=228', # http://tv.sohu.com/s2011/ajyh/
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#    },
+#    {
+#        'name'    : 'album_score',
+#        'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#        'regular' : [
+#            '({"index":\S+?),"asudIncomes'
+#        ]
+#    },
 ]
 
 cmd_test1 = {
@@ -125,16 +125,31 @@ class KolaClient:
     def __init__(self):
         pass
 
+    def PostUrl(self, url, body):
+        print url
+        _, _, _, response = fetch(url, 'POST', body)
+        return response
+
+    def GetRealPlayer(self, url):
+        try:
+            _, _, _, response = fetch(url)
+            return self.PostUrl(HOST + '/video/getplayer', response)
+        except:
+            t, v, tb = sys.exc_info()
+            print ("GetSoHuRealUrl playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ''
+
     def ProcessCommand(self, cmd):
         try:
             _, _, _, response = fetch(cmd['source'])
             if cmd.has_key('regular'):
                 x = ""
                 for regular in cmd['regular']:
-                    res = re.findall(regular, response)
+                    res = re.finditer(regular, response)
                     if (res):
                         for i in res:
-                            x += str(i)
+                            x += i.group(0) + '\n'
                 response = x
 
             if response:
@@ -142,19 +157,19 @@ class KolaClient:
                 cmd['data'] = base
                 body = json.dumps(cmd) #, ensure_ascii = False)
                 print "OK: ", cmd['source']
-                _, _, _, response = fetch(cmd['dest'], 'POST', body)
+                self.PostUrl(cmd['dest'], body)
 
                 return True
         except:
             t, v, tb = sys.exc_info()
-            print ("GetSoHuRealUrl playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+            print ("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
 
         print "ERROR: ", cmd['source']
         return False
 
     def Login(self):
         ret = False
-        playurl = MAINSERVER_HOST + '/video/login'
+        playurl = MAINSERVER_HOST + '/video/login?user_id=000000'
 
         try:
             _, _, _, response = fetch(playurl)
@@ -174,6 +189,7 @@ class KolaClient:
 
 def test():
     haha = KolaClient()
+    haha.GetRealPlayer('')
     for cmd in cmd_list:
         haha.ProcessCommand(cmd)
 #    haha.ProcessCommand(cmd_test4)

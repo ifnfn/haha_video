@@ -88,17 +88,15 @@ static int regular(const char *pattern, const char *content, char **out, int *le
 	return 0;
 }
 
-void test() {
+void test(void) {
+	Pcre pcre;
 	FILE *fp = fopen("a.txt", "r");
 	char *x = ReadStringFile(fp);
-	char *out = NULL;
-	int len;
-	const char *pattern = "(var) (playlistId|pid|vid|tag|PLAYLIST_ID)\\s*=\\s*\"(.+?)\";";
 	fclose(fp);
-	regular(pattern, x, &out, &len);
-	printf("[%d]: \n%s\n", len, out);
+	pcre.AddRule("(var) (playlistId|pid|vid|tag|PLAYLIST_ID)\\s*=\\s*\"(.+?)\";");
+	string xout = pcre.MatchAll(x);
+	std::cout << xout << std::endl;
 	free(x);
-	free(out);
 }
 
 static char *http_get_str(const char *url)
@@ -177,7 +175,6 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 		for (int i = 0; i < count; i++) {
 			json_t *p = json_array_get(regular, i);
 			const char *r = json_string_value(p);
-			printf("regular[%d] = %s\n", i, r);
 			pcre.AddRule(r);
 		}
 		regular_result = pcre.MatchAll(html);
@@ -194,6 +191,7 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 	base64encode((unsigned char *)regular_result.c_str(), in_size, (unsigned char*)out_buffer, out_size);
 	json_sets(cmd, "data", out_buffer);
 	char *body = json_dumps(cmd, 2);
+
 //	printf("body: %s\n", body);
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
@@ -250,8 +248,9 @@ bool KolaClient::Login(void)
 					if (p)
 						ProcessCommand(p);
 				}
-
 			}
+
+			nextLoginSec = json_geti(js, "next", nextLoginSec);
 		}
 	}
 	http_resp_free(http_resp);

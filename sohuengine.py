@@ -244,13 +244,6 @@ class SohuVideoMenu(VideoMenuBase):
     # videoall
     def CmdParserTVAll(self, js):
         ret = []
-        test = [
-                'http://tv.sohu.com/s2011/ajyh/',
-#                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
-#                 'http://tv.sohu.com/20120517/n343417005.shtml',
-#                 'http://tv.sohu.com/s2012/zlyeye/',
-#                 'http://store.tv.sohu.com/5009508/706684_1772.html',
-                ]
 
         try:
             text = js['data']
@@ -262,7 +255,14 @@ class SohuVideoMenu(VideoMenuBase):
                     (url, album) = text[0]
 
                     if url != "" and album != "":
-
+#                         test = [
+#                                 'http://tv.sohu.com/s2011/ajyh/',
+#                                 'http://tv.sohu.com/20110426/n306486856.shtml',
+#                                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
+#                                 'http://tv.sohu.com/20120517/n343417005.shtml',
+#                                 'http://tv.sohu.com/s2012/zlyeye/',
+#                                 'http://store.tv.sohu.com/5009508/706684_1772.html',
+#                                 ]
 #                         if url in test:
 #                             pass
 #                         else:
@@ -302,10 +302,14 @@ class SohuVideoMenu(VideoMenuBase):
                     elif u[0] == 'tag' and tv.albumName == "":
                         tv.albumName = u[1]
 
+                if tv.vid == '-1':
+                    return ret
                 # 如果得不到 playlistId 的话
                 if tv.playlistid == "" and tv.vid != "":
                     url = 'http://search.vrs.sohu.com/mv_i%s.json' % tv.vid
                     if 'pid.json' in url:
+                        print text
+                    elif 'PLAYLIST_ID.json' in url:
                         print text
                     self.command.SendCommand("album_mvinfo", self.name, url)
                 self._save_update_append(ret, tv)
@@ -1056,153 +1060,115 @@ class SohuEngine(VideoEngine):
             log.error('SohuEngine.GetAlbumPlayList:  %s, %s,%s,%s' % (album.albumPageUrl, t, v, traceback.format_tb(tb)))
             self.GetAlbumPlayList(album, times + 1)
 
+class test_case:
+    def __init__(self):
+        self.vid = ''
+        self.pid = ''
+        self.playlistid = ''
+
+    def test_avs_i(self):
+        url = 'http://search.vrs.sohu.com/avs_i%s_pr%s_o2_n_p1000_chltv.sohu.com.json' % (self.vid, self.pid)
+        _, _, _, response = fetch(url)
+        oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
+        a = json.loads(oflvo)
+        print json.dumps(a, ensure_ascii=False, indent=4)
+
+    def test_v(self):
+        # url ='http://search.vrs.sohu.com/v?id=1268036&pageSize=200000&pageNum=1'
+        url = 'http://search.vrs.sohu.com/v?id=1268037&pid=5497903&pageNum=1&pageSize=50&isgbk=true&var=video_similar_search_result'
+        _, _, _, response = fetch(url)
+        oflvo = re.search('var video_similar_search_result=(\{.*.\})', response).group(1)
+        a = json.loads(oflvo)
+        print json.dumps(a, ensure_ascii=False, indent=4)
+
+    def test_videopage(self):
+        url = 'http://tv.sohu.com/20130517/n376295917.shtml'
+        url = 'http://tv.sohu.com/20110222/n279464056.shtml'
+    #    url = 'http://v.tv.sohu.com/20100618/n272893884.shtml'
+    #    url = 'http://tv.sohu.com/20101124/n277876671.shtml'
+    #    url = 'http://tv.sohu.com/s2010/72jzk/'
+    #    url = 'http://tv.sohu.com/s2011/7film/'
+        _, _, _, response = fetch(url)
+        a = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";', response)
+        print a
+
+    def test_mvi(self):
+        url = 'http://search.vrs.sohu.com/mv_i%s.json' % self.vid
+        _, _, _, response = fetch(url)
+        oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
+        a = json.loads(oflvo)
+        print json.dumps(a, ensure_ascii=False, indent=4)
+
+    def test_allvideo(self):
+        url = 'http://tv.sohu.com/tvall'
+        _, _, _, response = fetch(url)
+        soup = bs(response)
+        playlist = soup.findAll('li')
+        for a in playlist:
+            xx = re.findall('<a href="(\S*)"\s+target="_blank">\s*(\S*)\s*</a>', a.prettify())
+            if xx:
+                print xx[0][0], xx[0][1]
+
+    def test_videolist(self):
+        url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlistid
+        _, _, _, response = fetch(url)
+        a = json.loads(response)
+        print json.dumps(a, ensure_ascii=False, indent=4)
+
+    def test_iapi(self):
+        url = 'http://so.tv.sohu.com/iapi?v=2&c=100'
+        _, _, _, response = fetch(url)
+        a = json.loads(response)
+        print json.dumps(a, ensure_ascii=False, indent=4)
+
+    def test_switch_aid(self):
+        url = 'http://index.tv.sohu.com/index/switch-aid/' + self.playlistid
+        _, _, _, response = fetch(url)
+        a = json.loads(response)
+        print json.dumps(a, ensure_ascii=False, indent=4)
+
+    def test_list(self):
+        url = 'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html'
+        _, _, _, response = fetch(url)
+        x = re.findall('(<a class="pic" target="_blank" title=".+/></a>)', response)
+        for a in x:
+            print a
+        x = re.findall('(<p class="tit tit-p">.+</a>)', response)
+        for a in x:
+            print a
+        return
+        x.extend(re.findall('<p class="tit tit-p">', response))
+        print str(x)
+
+    def test_jsl(self):
+        url = 'http://so.tv.sohu.com/jsl?c=100&cate=100100_100107&o=1&pageSize=1'
+        _, _, _, response = fetch(url)
+        a = json.loads(response)
+        print json.dumps(a, ensure_ascii=False, indent=4)
+
+    def test_all(self):
+        self.test_videolist()
+        return
+
+        self.test_all()
+        self.test_avs_i()
+        self.test_v()
+        self.test_videopage()
+        self.test_iapi()
+        self.test_switch_aid()
+        self.test_jsl()
+        self.test_list()
+
 def test():
-    url = 'http://tv.sohu.com/20130517/n376295917.shtml'
-    url = 'http://tv.sohu.com/20110222/n279464056.shtml'
-#    url = 'http://v.tv.sohu.com/20100618/n272893884.shtml'
-#    url = 'http://tv.sohu.com/20101124/n277876671.shtml'
-#    url = 'http://tv.sohu.com/s2010/72jzk/'
-#    url = 'http://tv.sohu.com/s2011/7film/'
-    _, _, _, response = fetch(url)
-#    a = str(re.findall('var (playlistId|pid|vid|tag)\s*=\s*"(.+)";', response))
-    a = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";', response)
-    print a
-    return
-    a = re.findall('(<p class="tit tit-p">.+</a>)', response)
-    print a
-    #print str(a)
-    x = ""
-    for i in a:
-    #    print str(i)
-        x += str(i)
-    print x
-    return
-    url = 'http://search.vrs.sohu.com/mv_i101040.json'
-    _, _, _, response = fetch(url)
-    oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
-    a = json.loads(oflvo)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-    print re.findall('\(\'(vid|pid|playlistId|tag|PLAYLIST_ID)\',\s*\'(\S+?)\'\)', x)
-    return
+    t = test_case()
+    t.playlistid = '1005485'
+    t.vid = '460464'
+    t.pid = '322963713'
 
-    url = 'http://tv.sohu.com/tvall'
-    _, _, _, response = fetch(url)
-    soup = bs(response)
-    playlist = soup.findAll('li')
-    for a in playlist:
-        xx = re.findall('<a href="(\S*)"\s+target="_blank">\s*(\S*)\s*</a>', a.prettify())
-        if xx:
-            print xx[0][0], xx[0][1]
-
-    return
-    url = 'http://search.vrs.sohu.com/mv_i1268037,1268084,1268132.json'
-    _, _, _, response = fetch(url)
-    oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
-    a = json.loads(oflvo)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5211206'
-    url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5497903'
-    _, _, _, response = fetch(url)
-    a = json.loads(response)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    # url ='http://search.vrs.sohu.com/v?id=1268036&pageSize=200000&pageNum=1'
-    url = 'http://search.vrs.sohu.com/v?id=1268037&pid=5497903&pageNum=1&pageSize=50&isgbk=true&var=video_similar_search_result'
-    _, _, _, response = fetch(url)
-    oflvo = re.search('var video_similar_search_result=(\{.*.\})', response).group(1)
-    a = json.loads(oflvo)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    url = 'http://search.vrs.sohu.com/avs_i1268037_pr380470620_o2_n_p1000_chltv.sohu.com.json'
-    _, _, _, response = fetch(url)
-    oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
-    a = json.loads(oflvo)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    url = 'http://so.tv.sohu.com/iapi?v=2&c=100'
-    _, _, _, response = fetch(url)
-    a = json.loads(response)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    url = 'http://so.tv.sohu.com/iapi?v=4&c=101&t=1&area=%u5185%u5730&o=3&pagenum=1&pagesize=3'
-    _, _, _, response = fetch(url)
-    a = json.loads(response)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    url = 'http://index.tv.sohu.com/index/switch-aid/1012657'
-    _, _, _, response = fetch(url)
-    a = json.loads(response)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    x = str(re.findall('({"index":\S+?),"asudIncomes', response))
-    print x
-    return
-    x = str(re.findall('({"index":{\S+?),"asudIncomes', response)[0]) + '}'
-    print x
-    a = json.loads(x)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-
-    return
-    print re.findall('("album":\S+?)}\,', response)
-    return
-    print re.findall('"PId":(\d+)\,', response)
-    print re.findall('"albumName":"(.*?),', response)
-    return
-
-    x = re.findall('var (playlistId|pid|vid|tag)\s*=\s"(.+)";', response)
-    x.extend(re.findall('h1 class="color3"><a href=.*>(.*)</a>', response))
-    print str(x)
-    return
-
-    url = 'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html'
-    _, _, _, response = fetch(url)
-    x = re.findall('(<a class="pic" target="_blank" title=".+/></a>)', response)
-    for a in x:
-        print a
-    x = re.findall('(<p class="tit tit-p">.+</a>)', response)
-    for a in x:
-        print a
-    return
-    x.extend(re.findall('<p class="tit tit-p">', response))
-    print str(x)
-    return
-
-    _, _, _, response = fetch(url)
-    url = 'http://tv.sohu.com/s2012/xxdyxmmw/'
-    _, _, _, response = fetch(url)
-    x = re.findall('var (playlistId|pid|vid)s*="(\d+)', response)
-    x.extend(re.findall('h1 class="color3"><a href=.*>(.*)</a>', response))
-    print str(x)
-
-    return
-
-    url = 'http://index.tv.sohu.com/index/switch-aid/5497903'
-    url = 'http://index.tv.sohu.com/index/switch-aid/243'
-    _, _, _, response = fetch(url)
-    a = json.loads(response)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    url = 'http://so.tv.sohu.com/iapi?v=4&c=101&t=1&area=%u5185%u5730&o=3&pagenum=1&pagesize=3'
-    _, _, _, response = fetch(url)
-    a = json.loads(response)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
-
-    url = 'http://so.tv.sohu.com/jsl?c=100&cate=100100_100107&o=1&pageSize=1'
-    _, _, _, response = fetch(url)
-    a = json.loads(response)
-    print json.dumps(a, ensure_ascii=False, indent=4)
-    return
+    t.playlistid = '1002050'
+    t.vid = '460464'
+    t.pid = '322963713'
+    t.test_videolist()
 
 
 if __name__ == '__main__':

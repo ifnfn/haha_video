@@ -22,16 +22,32 @@ def getlist(menuName, page, size):
     data = {}
     m = tv.FindMenu(menuName)
     if m:
-        return data
+        data = m.GetAlbumList(page, size)
+    return data
 
 class VideoListHandler(JSONPHandler):
     # list?page=2&size=10&menu="电影"
     def get(self):
-        page = self.get_argument('page')
-        size = self.get_argument('size')
-        menu = self.get_argument('menu')
-        data = getlist(menu, page, size)
-        self.finish(json.dumps(data, indent=4, ensure_ascii=False))
+        js = {}
+        page = self.get_argument('page', 0)
+        size = self.get_argument('size', 20)
+        menu = self.get_argument('menu', u'电影')
+
+        js['result'] = getlist(menu, int(page), int(size))
+        self.finish(json.dumps(js, indent=4, ensure_ascii=False))
+
+class UrlMapHandler(tornado.web.RequestHandler):
+    def post(self):
+        body = self.request.body
+        if body and len(body) > 0:
+            try:
+                umap = json.loads(body)
+                tv.engine.command.AddUrlMap(umap['source'], umap['dest'])
+            except:
+                raise tornado.web.HTTPError(400)
+            self.finish('OK')
+        else:
+            raise tornado.web.HTTPError(404)
 
 class GetPlayerHandler(tornado.web.RequestHandler):
     def post(self):
@@ -61,8 +77,6 @@ class UploadHandler(tornado.web.RequestHandler):
         if body and len(body) > 0:
             tv.AddTask(body)
 
-        return
-
 def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)
     db.flushdb()
@@ -76,6 +90,7 @@ def main():
         (r'/video/list',              VideoListHandler),
         (r'/video/upload',            UploadHandler),          # 接受客户端上网的需要解析的网页文本
         (r'/video/getplayer',         GetPlayerHandler),       # 得到下载地位
+        (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
 
     ], **settings)
     http_server = tornado.httpserver.HTTPServer(application)

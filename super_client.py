@@ -58,22 +58,31 @@ cmd_list = [
 #    },
     {
         'name'    : 'album',
-        'source'  : 'http://tv.sohu.com/20120517/n343417005.shtml',
+        'source'  : 'http://tv.sohu.com/s2011/nrb/',
         'menu'    : '电影',
         'dest'    : PARSER_HOST,
         'regular' : [
             'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
         ]
     },
-    {
-        'name'    : 'album',
-        'source'  : 'http://store.tv.sohu.com/5009508/706684_1772.html',
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-        'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
-        ]
-    },
+#    {
+#        'name'    : 'album',
+#        'source'  : 'http://tv.sohu.com/20120517/n343417005.shtml',
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#        'regular' : [
+#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+#        ]
+#    },
+#    {
+#        'name'    : 'album',
+#        'source'  : 'http://store.tv.sohu.com/5009508/706684_1772.html',
+#        'menu'    : '电影',
+#        'dest'    : PARSER_HOST,
+#        'regular' : [
+#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
+#        ]
+#    },
 #    {
 #        'name'    : 'album_mvinfo',
 #        'source'  : 'http://search.vrs.sohu.com/mv_i4746.json', # http://tv.sohu.com/s2011/ajyh/
@@ -149,7 +158,7 @@ class KolaClient:
         try:
             _, _, _, response = fetch(cmd['source'])
             if cmd.has_key('regular'):
-                x = ""
+                x = ''
                 for regular in cmd['regular']:
                     res = re.finditer(regular, response)
                     if (res):
@@ -157,14 +166,16 @@ class KolaClient:
                             x += i.group(0) + '\n'
                 response = x
 
-            if response:
+            if response != '':
                 base = base64.encodestring(str(response))
                 cmd['data'] = base
-                body = json.dumps(cmd) #, ensure_ascii = False)
                 print "OK: ", cmd['source'], "--->", cmd['dest']
-                self.PostUrl(cmd['dest'], body)
+            else:
+                print "ERROR: Data is empty: ", cmd['source']
+            body = json.dumps(cmd) #, ensure_ascii = False)
+            self.PostUrl(cmd['dest'], body)
 
-                return True
+            return True
         except:
             t, v, tb = sys.exc_info()
             print ("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
@@ -195,7 +206,7 @@ class KolaClient:
 
 def test():
     haha = KolaClient()
-    haha.GetRealPlayer('')
+#    haha.GetRealPlayer('')
     for cmd in cmd_list:
         haha.ProcessCommand(cmd)
 #    haha.ProcessCommand(cmd_test4)

@@ -13,13 +13,13 @@ from apscheduler.scheduler import Scheduler
 POOLSIZE = 10
 
 log = logging.getLogger('crawler')
-engine = eg.SohuEngine()
 
 class Kolatv:
     def __init__(self):
+        self.engine = eg.SohuEngine()
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=2)
         self.thread_pool = ThreadPool(POOLSIZE)
-        self.MenuList = engine.GetMenu()
+        self.MenuList = self.engine.GetMenu()
         self.sched = Scheduler()
         self.sched.start()
         self.sched.add_interval_job(self.UpdateNewest, hours=1)
@@ -75,7 +75,7 @@ class Kolatv:
 
     def GetRealPlayer(self, text):
         text = base64.decodestring(text)
-        return engine.ParserRealUrl(text)
+        return self.engine.ParserRealUrl(text)
 
     def FindMenu(self, name):
         if self.MenuList.has_key(name):

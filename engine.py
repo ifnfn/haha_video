@@ -19,7 +19,30 @@ PARSER_HOST = 'http://127.0.0.1:9991/video/upload'
 class Commands:
     def __init__(self, host):
         self.cmdlist = {}
+        self.urlmap = {}
         self.commandHost = host
+
+        self.con = Connection('localhost', 27017)
+        self.db = self.con.kola
+        self.map_table = self.db.urlmap
+
+        maps = self.map_table.find()
+        for url in maps:
+            self.AddUrlMap(url['source'], url['dest'])
+
+        self.AddUrlMap('http://tv.sohu.com/s2011/fengsheng/', 'http://tv.sohu.com/20121109/n268282527.shtml')
+        self.AddUrlMap('http://tv.sohu.com/s2011/nrb/', 'http://tv.sohu.com/20111023/n323122692.shtml')
+
+    def AddUrlMap(self, oldurl, newurl):
+        self.urlmap[oldurl] = newurl
+        self.map_table.update({'source': oldurl}, {"$set" : {'dest': newurl}}, upsert=True, multi=True)
+
+    def GetUrl(self, url):
+        if self.urlmap.has_key(url):
+            print "Map: %s --> %s" % (url, self.urlmap[url])
+            return self.urlmap[url]
+        else:
+            return url
 
     # 注册解析器
     def AddTemplate(self, m):
@@ -29,7 +52,7 @@ class Commands:
         if self.cmdlist.has_key(name):
             print "Add Command: ", url
             cmd = self.cmdlist[name]
-            cmd['source'] = url
+            cmd['source'] = self.GetUrl(url)
             cmd['menu'] = menu
             _, _, _, response = fetch(self.commandHost + '?' + name, 'POST', json.dumps(cmd))
             return response == ""
@@ -154,9 +177,12 @@ class AlbumBase:
 
     def LoadFromJson(self, json):
         # From DataBase
-        if json.has_key('albumName')      : self.albumName = json['albumName']
-        if json.has_key('albumPageUrl')   : self.albumPageUrl = json['albumPageUrl']
         if json.has_key('vid')            : self.vid = autostr(json['vid'])
+        if json.has_key('cid')            : self.cid = json['cid']
+        if json.has_key('albumName')      : self.albumName = json['albumName']
+
+        if json.has_key('albumPageUrl') and json['albumPageUrl'] != '':
+            self.albumPageUrl = json['albumPageUrl']
 
         if json.has_key('pid'):
                 self.pid = autostr(json['pid'])
@@ -168,7 +194,6 @@ class AlbumBase:
         elif json.has_key('playlistid'):
             self.playlistid = autostr(json['playlistid'])
 
-        if json.has_key('cid')            : self.cid = json['cid']
         if json.has_key('isHigh')         : self.isHigh = json['isHigh']
 
         if json.has_key('area')           : self.area = json['area']
@@ -215,7 +240,10 @@ class AlbumBase:
 
     def SaveToDB(self, db):
         if self.albumName != "" and self.albumPageUrl != "":
-            db.update({'albumName': self.albumName}, {"$set" : self.SaveToJson()}, upsert=True, multi=True)
+            js = self.SaveToJson()
+            print "SaveToDB:", db.update({'albumName': self.albumName},
+                                         {"$set" : js},
+                                         upsert=True, multi=True)
 
 # 一级分类菜单
 class VideoMenuBase:
@@ -237,9 +265,17 @@ class VideoMenuBase:
     # page:页号，size：每页个数
     # filters：过滤条件
     # 输出字段
-    def GetAlbumList(self, page, size, filters, order, fields):
-        filters['cid'] = self.cid
-        return self.engine.album_table.find(filters, fields = fields)
+    def GetAlbumList(self, page = 0, size = 0, filters = None, fields = None, order = 0):
+        ret = []
+        _filter = {}
+        _filter['cid'] = self.cid
+        if filters:
+            _filter.update(filters)
+        for x in self.engine.album_table.find(_filter, fields = fields).skip( page * size).limit(size):
+            del x['_id']
+            ret.append(x)
+
+        return ret
 
     # 更新该菜单下所有节目完全信息
     def UpdateAllAlbumFullInfo(self):

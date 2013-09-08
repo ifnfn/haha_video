@@ -35,6 +35,13 @@ class Commands:
             return response == ""
         return False
 
+def autostr(i):
+    if type(i) == int:
+        return str(i)
+    else:
+        return i
+
+
 # 每个 Video 表示一个可以播放视频
 class VideoBase:
     def __init__(self):
@@ -65,13 +72,13 @@ class AlbumBase:
         self.parent = parent
         self.command = parent.command
         self.VideoClass = VideoBase
+        self.cid = parent.cid
 
         self.albumName = ""
         self.albumPageUrl = ""
         self.pid = ""
         self.vid = ""
-        self.cid = 0              # 菜单ID
-        self.playlist_id  = ""
+        self.playlistid  = ""
         self.area = ""            # 地区
         self.categories = []      # 类型
         self.publishYear = ""     # 发布年份
@@ -112,7 +119,7 @@ class AlbumBase:
         if self.albumPageUrl != '': ret['albumPageUrl'] = self.albumPageUrl
         if self.pid != ''         : ret['pid'] = self.pid
         if self.vid != ''         : ret['vid'] = self.vid
-        if self.playlist_id != '' : ret['playlistid'] = self.playlist_id
+        if self.playlistid != ''  : ret['playlistid'] = self.playlistid
         if self.isHigh != ''      : ret['isHigh'] = self.isHigh
 
         if self.area != ''        : ret['area'] = self.area
@@ -146,17 +153,22 @@ class AlbumBase:
         return ret
 
     def LoadFromJson(self, json):
-        self.data = json
-
         # From DataBase
         if json.has_key('albumName')      : self.albumName = json['albumName']
         if json.has_key('albumPageUrl')   : self.albumPageUrl = json['albumPageUrl']
-        if json.has_key('pid')            : self.pid = json['pid']
-        if json.has_key('PId')            : self.pid = json['PId']
-        if json.has_key('vid')            : self.vid = json['vid']
-        if json.has_key('playlist_id')    : self.playlistid = json['playlist_id']
-        if json.has_key('playlistid')     : self.playlistid = json['playlistid']
-        #if json.has_key('cid')            : self.playlistid = json['cid']
+        if json.has_key('vid')            : self.vid = autostr(json['vid'])
+
+        if json.has_key('pid'):
+                self.pid = autostr(json['pid'])
+        elif json.has_key('PId'):
+                self.pid = autostr(json['PId'])
+
+        if json.has_key('playlist_id'):
+            self.playlistid = autostr(json['playlist_id'])
+        elif json.has_key('playlistid'):
+            self.playlistid = autostr(json['playlistid'])
+
+        if json.has_key('cid')            : self.cid = json['cid']
         if json.has_key('isHigh')         : self.isHigh = json['isHigh']
 
         if json.has_key('area')           : self.area = json['area']
@@ -216,6 +228,7 @@ class VideoMenuBase:
         self.engine = engine
         self.parserList = {}
         self.albumClass = AlbumBase
+        self.cid = 0
 
     def Reset(self):
         self.HotList = []
@@ -256,21 +269,21 @@ class VideoMenuBase:
         ret = []
         if self.parserList.has_key(name):
             ret = self.parserList[name](js)
-            for p in ret:
-                p.SaveToDB(self.engine.album_table)
 
         return ret
 
     # 根据 ID 从数据库中加载节目
-    def GetAlbumById(self, playlist_id, auto = False):
+    def GetAlbumById(self, playlistid, auto = False):
         tv = None
-        json = self.engine.album_table.find_one({'playlist_id': playlist_id})
+        if type(playlistid) == int:
+            playlistid = str(playlistid)
+        json = self.engine.album_table.find_one({'playlistid': playlistid})
         if json:
             tv = self.albumClass(self)
             tv.LoadFromJson(json)
         elif auto:
             tv = self.albumClass(self)
-            tv.playlist_id = playlist_id
+            tv.playlistid = playlistid
 
         return tv
 
@@ -286,7 +299,7 @@ class VideoMenuBase:
 
         return tv
 
-    def GetAlbumByAlbumName(self, albumName, auto = False):
+    def GetAlbumByName(self, albumName, auto = False):
         tv = None
         json = self.engine.album_table.find_one({'albumName': albumName})
         if json:

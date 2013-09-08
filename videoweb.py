@@ -76,7 +76,7 @@ def main():
         (r'/video/list',              VideoListHandler),
         (r'/video/upload',            UploadHandler),          # 接受客户端上网的需要解析的网页文本
         (r'/video/getplayer',         GetPlayerHandler),       # 得到下载地位
-        
+
     ], **settings)
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)

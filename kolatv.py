@@ -76,7 +76,7 @@ class Kolatv:
     def GetRealPlayer(self, text):
         text = base64.decodestring(text)
         return engine.ParserRealUrl(text)
-        
+
     def FindMenu(self, name):
         if self.MenuList.has_key(name):
             return self.MenuList[name]

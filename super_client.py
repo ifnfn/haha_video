@@ -20,6 +20,7 @@ MAINSERVER_HOST = 'http://127.0.0.1:9990'
 #MAINSERVER_HOST = 'http://121.199.20.175:9990'
 HOST = 'http://127.0.0.1:9991'
 PARSER_HOST  = HOST + '/video/upload'
+MAX_TRY = 3
 
 cmd_list = [
 #    {
@@ -92,13 +93,13 @@ cmd_list = [
 #        'dest'    : PARSER_HOST,
 #    },
 #    {
-#        'name'    : 'album_full',
+#        'name'    : 'album_fullinfo',
 #        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=1012657', # http://tv.sohu.com/20120517/n343417005.shtml
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #    },
 #    {
-#        'name'    : 'album_full',
+#        'name'    : 'album_fullinfo',
 #        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=228', # http://tv.sohu.com/s2011/ajyh/
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
@@ -126,21 +127,25 @@ class KolaClient:
         pass
 
     def PostUrl(self, url, body):
-        print url
         _, _, _, response = fetch(url, 'POST', body)
         return response
 
-    def GetRealPlayer(self, url):
+    def GetRealPlayer(self, url, times = 0):
+        if times > MAX_TRY:
+            return ''
         try:
             _, _, _, response = fetch(url)
             return self.PostUrl(HOST + '/video/getplayer', response)
         except:
             t, v, tb = sys.exc_info()
             print ("GetSoHuRealUrl playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+            return self.GetRealPlayer(url, times + 1)
 
         return ''
 
-    def ProcessCommand(self, cmd):
+    def ProcessCommand(self, cmd, times = 0):
+        if times > MAX_TRY:
+            return False
         try:
             _, _, _, response = fetch(cmd['source'])
             if cmd.has_key('regular'):
@@ -156,13 +161,14 @@ class KolaClient:
                 base = base64.encodestring(str(response))
                 cmd['data'] = base
                 body = json.dumps(cmd) #, ensure_ascii = False)
-                print "OK: ", cmd['source']
+                print "OK: ", cmd['source'], "--->", cmd['dest']
                 self.PostUrl(cmd['dest'], body)
 
                 return True
         except:
             t, v, tb = sys.exc_info()
             print ("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+            return self.ProcessCommand(cmd, times + 1)
 
         print "ERROR: ", cmd['source']
         return False
@@ -194,13 +200,15 @@ def test():
         haha.ProcessCommand(cmd)
 #    haha.ProcessCommand(cmd_test4)
 
+def main_one():
+    haha = KolaClient()
+    haha.Login()
+
 def main():
     haha = KolaClient()
     while True:
         if haha.Login() == False:
-            print "exit"
             break
-        #break
 
 def main_thread():
     thread_pool = ThreadPool(10)
@@ -210,4 +218,6 @@ def main_thread():
 if __name__ == "__main__":
     #test()
     main_thread()
+    #main_one()
+    #main()
 

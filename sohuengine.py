@@ -352,9 +352,9 @@ class SohuVideoMenu(VideoMenuBase):
                     tv.SaveToDB(self.engine.album_table)
                     ret.append(tv)
 
-            print "AlbumInfo: albumName=", tv.albumName, \
-                        "dailyPlayNum=", tv.dailyPlayNum, \
-                        "dailyIndexScore=", tv.dailyIndexScore
+            # print "AlbumInfo: albumName=", tv.albumName, \
+            #             "dailyPlayNum=", tv.dailyPlayNum, \
+            #             "dailyIndexScore=", tv.dailyIndexScore
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
@@ -985,7 +985,6 @@ class SohuEngine(VideoEngine):
                             one['url'] = a['l']
                             one['title'] = a['t']
                             menu.HotList.append(one)
-                            print a['t']
 
         except:
             t, v, tb = sys.exc_info()

@@ -241,9 +241,9 @@ class AlbumBase:
     def SaveToDB(self, db):
         if self.albumName != "" and self.albumPageUrl != "":
             js = self.SaveToJson()
-            print "SaveToDB:", db.update({'albumName': self.albumName},
-                                         {"$set" : js},
-                                         upsert=True, multi=True)
+            db.update({'albumName': self.albumName},
+                      {"$set" : js},
+                      upsert=True, multi=True)
 
 # 一级分类菜单
 class VideoMenuBase:

@@ -354,15 +354,15 @@ class VideoEngine:
         self.cmd_host = COMMAND_HOST
         self.parser_host = PARSER_HOST
         try:
-            self.config.read("conf/engine.conf")
+            self.config.read("/etc/engine.conf")
             if self.config.has_section('global'):
                 if self.config.has_option('global', 'command_host'):
-                    host = self.confg.get('global', 'command_host')
+                    host = self.config.get('global', 'command_host')
                     if host != '':
                         self.cmd_host = host
 
                 if self.config.has_option('global', 'parser_host'):
-                    host = self.confg.get('global', 'parser_host')
+                    host = self.config.get('global', 'parser_host')
                     if host == '':
                         self.parser_host = host
         except:

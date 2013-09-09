@@ -1,13 +1,22 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-from tornado.web import RequestHandler
-import tornado
-import htmlentitydefs
-import re
-import sys
-import urllib
+# coding=utf-8
 
-class JSONPHandler(RequestHandler):
+'''
+Created on 2013-9-9
+
+@author: zhuzhg
+'''
+
+import tornado.web
+import tornado.escape
+
+class BaseHandler(tornado.web.RequestHandler):
+    def get_current_user(self):
+        user = self.get_secure_cookie('user')
+        if not user:
+            return
+        return tornado.escape.json_decode(user)
+
+class JSONPHandler(BaseHandler):
     CALLBACK = 'jsonp' # define callback argument name
     def finish(self, chunk=None):
         """Finishes this response, ending the HTTP request."""

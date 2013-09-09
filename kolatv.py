@@ -35,6 +35,7 @@ class Kolatv:
     def ParserHtml(self, data):
         js = json.loads(data)
         if (js == None) or (not js.has_key('data')):
+            print "Error: ", js['source']
             return False
 
         text = base64.decodestring(js['data'])

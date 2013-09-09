@@ -15,6 +15,7 @@ from utils.fetchTools import fetch_httplib2 as fetch
 import base64
 import re
 from utils.ThreadPool import ThreadPool
+from Crypto.PublicKey import RSA
 
 #log = logging.getLogger("crawler")
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
@@ -132,19 +133,43 @@ cmd_test1 = {
     'dest'    : PARSER_HOST,
 }
 
+class R:
+    def __init__(self, key):
+        self.key = RSA.importKey(key)
+
+    def Encrypt(self, text):
+        return self.key.encrypt(text, len(text))
+
+    def Decrypt(self, text):
+        return self.key.decrypt(text)
+
 class KolaClient:
     def __init__(self):
-        pass
+        self.rsa_public_key = ''
+        self.rsa = None
+
+    def GetUrl(self, url):
+        status, _, _, response = fetch(url)
+        #if self.rsa:
+        #    response = self.rsa.Decrypt(response)
+        if status != '200':
+            pass
+        return response
 
     def PostUrl(self, url, body):
-        _, _, _, response = fetch(url, 'POST', body)
-        return response
+        #if self.rsa:
+        #    body = self.rsa.Encrypt(body)
+        try:
+            _, _, _, response = fetch(url, 'POST', body)
+            return response
+        except:
+            return None
 
     def GetRealPlayer(self, url, times = 0):
         if times > MAX_TRY:
             return ''
         try:
-            _, _, _, response = fetch(url)
+            response = self.GetUrl(url)
             return self.PostUrl(HOST + '/video/getplayer', response)
         except:
             t, v, tb = sys.exc_info()
@@ -154,7 +179,7 @@ class KolaClient:
         return ''
 
     def RegularMatchUrl(self, url, regular):
-        _, _, _, response = fetch(url)
+        response = self.GetUrl(url)
         return self.RegularMatch([regular], response)
 
     def RegularMatch(self, regular, text):
@@ -167,37 +192,51 @@ class KolaClient:
         return x
 
     def ProcessCommand(self, cmd, times = 0):
+        ret = False
         if times > MAX_TRY:
             return False
         try:
-            _, _, _, response = fetch(cmd['source'])
+            response = self.GetUrl(cmd['source'])
             if cmd.has_key('regular'):
                 response = self.RegularMatch(cmd['regular'], response)
 
             if response != '':
                 base = base64.encodestring(str(response))
                 cmd['data'] = base
-                print "OK: ", cmd['source'], "--->", cmd['dest']
             else:
-                print "ERROR: Data is empty: ", cmd['source']
+                print "[WARNING] Data is empty: ", cmd['source']
             body = json.dumps(cmd) #, ensure_ascii = False)
-            self.PostUrl(cmd['dest'], body)
-
-            return True
+            ret = self.PostUrl(cmd['dest'], body) != None
         except:
             t, v, tb = sys.exc_info()
             print ("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
             return self.ProcessCommand(cmd, times + 1)
 
-        print "ERROR: ", cmd['source']
-        return False
+        print (ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', cmd['dest']
+        return ret
+
+    def GetKey(self):
+        playurl = MAINSERVER_HOST + '/video/key'
+        try:
+            _, _, _, response = fetch(playurl)
+            self.rsa = R(response)
+
+        except:
+            t, v, tb = sys.exc_info()
+            print ("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
+
+        return ''
 
     def Login(self):
         ret = False
+
+        #if self.rsa == None:
+        #    self.GetKey()
+
         playurl = MAINSERVER_HOST + '/video/login?user_id=000000'
 
         try:
-            _, _, _, response = fetch(playurl)
+            response = self.GetUrl(playurl)
 
             data = json.loads(response)
 
@@ -273,7 +312,7 @@ def main_thread():
 if __name__ == "__main__":
     #test()
     #main_thread()
-    test_album()
-    #main_one()
+    #test_album()
+    main_one()
     #main()
 

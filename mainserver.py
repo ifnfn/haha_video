@@ -1,20 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import tornado.options
 from tornado.options import define, options
-#from tornado import gen
-#from tornado import httpclient
-#from tornado.escape import json_encode
 
 import redis
 import json
 import hashlib
-from jsonphandler import JSONPHandler
 from Crypto.PublicKey import RSA
+from basehandle import BaseHandler, JSONPHandler
 
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
 
@@ -83,10 +79,10 @@ class KeyHandler(tornado.web.RequestHandler):
     def get(self):
         self.finish(R().exportKey())
 
-class LoginHandler(JSONPHandler):
+class LoginHandler(BaseHandler):
     def get(self):
         user_id = self.get_argument('user_id')
-        print self.request.remote_ip, user_id
+        #print self.request.remote_ip, user_id
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
         ret = {
@@ -108,6 +104,9 @@ class LoginHandler(JSONPHandler):
             ret['command'].append(data)
         self.finish(json.dumps(ret))
 
+    def post(self):
+        self.finish('OK')
+
 class AddCommandHandler(tornado.web.RequestHandler):
     def get(self):
         pass
@@ -122,27 +121,55 @@ class AddCommandHandler(tornado.web.RequestHandler):
 
         return
 
-class GetMainMenuHandler(JSONPHandler):
+class GetMainMenuHandler(BaseHandler):
     def get(self):
         pass
 
-class GetAlbumListHandler(JSONPHandler):
+class GetAlbumListHandler(BaseHandler):
     def get(self):
         pass
+
+class Login2Handler(BaseHandler):
+    def get(self):
+        #self.add_header('_xsrf', self.xsrf_form_html())
+        #self.set_cookie("checkflag", "true")
+        s = self.xsrf_form_html()
+        print s
+        self.write('<html><body><form action="/video/login2" method="post">'
+                   'Name: <input type="text" name="name">'
+                   '<input type="submit" value="Sign in">' + s +
+                   '</form></body></html>')
+
+    def post(self):
+        self.set_secure_cookie("user", self.get_argument("name"))
+        self.redirect("/")
+
+define('port', default=9990, help='run on the given port', type=int)
+
+class Application(tornado.web.Application):
+    def __init__(self):
+        settings = dict(
+            debug = False,
+            login_url = "/login",
+            cookie_secret = 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To=',
+            #xsrf_cookies = True,
+            autoescape = None,
+        )
+
+        handlers = [
+            (r'/video/key',               KeyHandler),              # 取得public key
+            (r'/video/login',             LoginHandler),            # 登录认证
+            (r'/video/login2',            Login2Handler),            # 登录认证
+            (r'/video/addcommand',        AddCommandHandler),       # 增加命令
+            (r'/video/getmenu',           GetMainMenuHandler),      # 得到一级菜单
+            (r'/video/programemlist',     GetAlbumListHandler),     # 得到节目列表
+        ]
+
+        tornado.web.Application.__init__(self, handlers, **settings)
 
 def main():
-    define('port', default=9990, help='run on the given port', type=int)
-    settings = {'debug': False, 'template_path': 'templates',
-           'cookie_secret': 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To='}
     tornado.options.parse_command_line()
-    application = tornado.web.Application([
-        (r'/video/key',               KeyHandler),              # 取得public key
-        (r'/video/login',             LoginHandler),            # 登录认证
-        (r'/video/addcommand',        AddCommandHandler),       # 增加命令
-        (r'/video/getmenu',           GetMainMenuHandler),      # 得到一级菜单
-        (r'/video/programemlist',     GetAlbumListHandler),     # 得到节目列表
-    ], **settings)
-    http_server = tornado.httpserver.HTTPServer(application)
+    http_server = Application()
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
 

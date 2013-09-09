@@ -283,7 +283,6 @@ class SohuVideoMenu(VideoMenuBase):
     # http://tv.sohu.com/20120517/n343417005.shtml
     # album
     def CmdParserAlbum(self, js):
-        # str: [('vid', '580058'), ('pid', '385367871'), ('playlistId', '1008605'), ('tag', '\xca\xae\xb6\xfe\xc5\xad\xba\xba\xa3\xa81957\xa3\xa9')]
         ret = []
         try:
             text = js['data']

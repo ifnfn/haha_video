@@ -50,7 +50,7 @@ class Commands:
 
     def SendCommand(self, name, menu, url):
         if self.cmdlist.has_key(name):
-            print "Add Command: ", url
+            #print "Add Command: ", url
             cmd = self.cmdlist[name]
             cmd['source'] = self.GetUrl(url)
             cmd['menu'] = menu

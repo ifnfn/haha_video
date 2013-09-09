@@ -10,7 +10,7 @@ import redis
 import json
 import hashlib
 from Crypto.PublicKey import RSA
-from basehandle import BaseHandler, JSONPHandler
+from basehandle import BaseHandler#, JSONPHandler
 
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
 
@@ -75,7 +75,7 @@ def test():
     t = a.RSAEncrypt('text')
     print a.RSADecrypt(t)
 
-class KeyHandler(tornado.web.RequestHandler):
+class KeyHandler(BaseHandler):
     def get(self):
         self.finish(R().exportKey())
 
@@ -107,7 +107,7 @@ class LoginHandler(BaseHandler):
     def post(self):
         self.finish('OK')
 
-class AddCommandHandler(tornado.web.RequestHandler):
+class AddCommandHandler(BaseHandler):
     def get(self):
         pass
 

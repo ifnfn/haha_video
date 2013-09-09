@@ -12,7 +12,7 @@ from tornado.options import define, options
 import redis
 import json
 # import re
-from basehandle import BaseHandler, JSONPHandler
+from basehandle import BaseHandler#, JSONPHandler
 from kolatv import Kolatv
 
 tv = Kolatv()
@@ -53,7 +53,7 @@ class VideoListHandler(BaseHandler):
         argument['result'] = getlist(menu, argument)
         self.finish(json.dumps(argument, indent=4, ensure_ascii=False))
 
-class UrlMapHandler(tornado.web.RequestHandler):
+class UrlMapHandler(BaseHandler):
     def post(self):
         body = self.request.body
         if body and len(body) > 0:
@@ -66,7 +66,7 @@ class UrlMapHandler(tornado.web.RequestHandler):
         else:
             raise tornado.web.HTTPError(404)
 
-class GetPlayerHandler(tornado.web.RequestHandler):
+class GetPlayerHandler(BaseHandler):
     def post(self):
         body = self.request.body
         if body and len(body) > 0:
@@ -74,7 +74,7 @@ class GetPlayerHandler(tornado.web.RequestHandler):
         else:
             raise tornado.web.HTTPError(404)
 
-class UploadHandler(tornado.web.RequestHandler):
+class UploadHandler(BaseHandler):
     def get(self):
         print('Upload get')
         pass

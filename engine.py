@@ -30,8 +30,8 @@ class Commands:
         for url in maps:
             self.AddUrlMap(url['source'], url['dest'])
 
-        self.AddUrlMap('http://tv.sohu.com/s2011/fengsheng/', 'http://tv.sohu.com/20121109/n268282527.shtml')
-        self.AddUrlMap('http://tv.sohu.com/s2011/nrb/', 'http://tv.sohu.com/20111023/n323122692.shtml')
+        #self.AddUrlMap('http://tv.sohu.com/s2011/fengsheng/', 'http://tv.sohu.com/20121109/n268282527.shtml')
+        #self.AddUrlMap('http://tv.sohu.com/s2011/nrb/', 'http://tv.sohu.com/20111023/n323122692.shtml')
 
     def AddUrlMap(self, oldurl, newurl):
         self.urlmap[oldurl] = newurl
@@ -262,18 +262,48 @@ class VideoMenuBase:
         self.HotList = []
 
     # 得到节目列表
-    # page:页号，size：每页个数
-    # filters：过滤条件
-    # 输出字段
-    def GetAlbumList(self, page = 0, size = 0, filters = None, fields = None, order = 0):
+    # arg参数：
+    # {
+    #    "page" : 0,
+    #    "size" : 20,
+    #    "filter" : {                 # 过滤字段
+    #        "cid":2,
+    #        "playlistid":"123123",
+    #    },
+    #    "fields" : {                 # 显示字段
+    #        "albumName" : True,
+    #        "playlistid" : True
+    #    },
+    #    "sort" : {                   # 排序字段
+    #        "albumName": 1,
+    #        "vid": -1
+    #    }
+    def GetAlbumList(self, arg):
         ret = []
-        _filter = {}
-        _filter['cid'] = self.cid
-        if filters:
-            _filter.update(filters)
-        for x in self.engine.album_table.find(_filter, fields = fields).skip( page * size).limit(size):
-            del x['_id']
-            ret.append(x)
+        try:
+            page = arg['page']
+            size = arg['size']
+
+            _filter = {}
+            _filter['cid'] = self.cid
+            if arg.has_key('filter'):
+                _filter.update(arg['filter'])
+
+            if arg.has_key('fields'):
+                fields = arg['fields']
+            else:
+                fields = None
+
+            cursor = self.engine.album_table.find(_filter, fields = fields)
+
+            if arg.has_key('sort'):
+                cursor = cursor.sort(arg['sort'])
+
+            for x in cursor.skip( page * size).limit(size):
+                del x['_id']
+                ret.append(x)
+        except:
+            pass
 
         return ret
 

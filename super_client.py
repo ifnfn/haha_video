@@ -8,6 +8,7 @@ if len(f_path) < 1: f_path = "."
 sys.path.append(f_path)
 sys.path.append(f_path + "/..")
 
+from pymongo import Connection
 import traceback
 import json
 from utils.fetchTools import fetch_httplib2 as fetch
@@ -35,7 +36,7 @@ cmd_list = [
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            ''var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
 #    {
@@ -44,7 +45,7 @@ cmd_list = [
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            ''var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
 #    {
@@ -53,7 +54,7 @@ cmd_list = [
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            ''var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
     {
@@ -62,7 +63,7 @@ cmd_list = [
         'menu'    : '电影',
         'dest'    : PARSER_HOST,
         'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
         ]
     },
 #    {
@@ -71,7 +72,7 @@ cmd_list = [
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;'
+#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
 #    {
@@ -80,7 +81,7 @@ cmd_list = [
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
+#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
 #    {
@@ -152,19 +153,26 @@ class KolaClient:
 
         return ''
 
+    def RegularMatchUrl(self, url, regular):
+        _, _, _, response = fetch(url)
+        return self.RegularMatch([regular], response)
+
+    def RegularMatch(self, regular, text):
+        x = ''
+        for r in regular:
+            res = re.finditer(r, text)
+            if (res):
+                for i in res:
+                    x += i.group(0) + '\n'
+        return x
+
     def ProcessCommand(self, cmd, times = 0):
         if times > MAX_TRY:
             return False
         try:
             _, _, _, response = fetch(cmd['source'])
             if cmd.has_key('regular'):
-                x = ''
-                for regular in cmd['regular']:
-                    res = re.finditer(regular, response)
-                    if (res):
-                        for i in res:
-                            x += i.group(0) + '\n'
-                response = x
+                response = self.RegularMatch(cmd['regular'], response)
 
             if response != '':
                 base = base64.encodestring(str(response))
@@ -204,6 +212,42 @@ class KolaClient:
 
         return ret
 
+def test_album():
+    con = Connection('localhost', 27017)
+    db = con.kola
+    album_table = db.album
+    haha = KolaClient()
+    regular = 'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
+
+    url = [
+        'http://tv.sohu.com/s2011/bjdyj/',
+        'http://tv.sohu.com/s2011/1663/s322643386/',
+        'http://tv.sohu.com/s2012/zlyeye/',
+        'http://tv.sohu.com/s2012/zlyeye/',
+        'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
+        'http://tv.sohu.com/20120517/n343417005.shtml',
+        'http://store.tv.sohu.com/5009508/706684_1772.html',
+        'http://tv.sohu.com/20110718/n313760898.shtml',
+        'http://tv.sohu.com/20110328/n304983620.shtml'
+    ]
+    for u in  url:
+        print u
+        x = haha.RegularMatchUrl(u, regular)
+        print x
+        print "======================="
+        print re.findall(regular, x)
+        print "\n"
+
+    return
+
+    url = album_table.find({}, fields = {'albumPageUrl': True})
+    for u in  url:
+        print u['albumPageUrl']
+        x = haha.RegularMatchUrl(u['albumPageUrl'], regular)
+        print x
+
+    return
+
 def test():
     haha = KolaClient()
 #    haha.GetRealPlayer('')
@@ -228,7 +272,8 @@ def main_thread():
 
 if __name__ == "__main__":
     #test()
-    main_thread()
+    #main_thread()
+    test_album()
     #main_one()
     #main()
 

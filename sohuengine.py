@@ -255,18 +255,19 @@ class SohuVideoMenu(VideoMenuBase):
                     (url, album) = text[0]
 
                     if url != "" and album != "":
-#                         test = [
+                        test = [
+                                'http://tv.sohu.com/s2011/1663/s322643386/',
 #                                 'http://tv.sohu.com/s2011/ajyh/',
 #                                 'http://tv.sohu.com/20110426/n306486856.shtml',
 #                                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
 #                                 'http://tv.sohu.com/20120517/n343417005.shtml',
 #                                 'http://tv.sohu.com/s2012/zlyeye/',
 #                                 'http://store.tv.sohu.com/5009508/706684_1772.html',
-#                                 ]
-#                         if url in test:
-#                             pass
-#                         else:
-#                             continue
+                                ]
+#                        if url in test:
+#                            pass
+#                        else:
+#                            continue
 
                         tv = self.albumClass(self)
                         if tv.albumName == "":
@@ -290,7 +291,7 @@ class SohuVideoMenu(VideoMenuBase):
             if tv == None:
                 return []
 
-            t = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)\W*;', text)
+            t = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)', text)
             if t:
                 for u in t:
                     if u[0] == 'pid':
@@ -352,9 +353,6 @@ class SohuVideoMenu(VideoMenuBase):
                     tv.SaveToDB(self.engine.album_table)
                     ret.append(tv)
 
-            # print "AlbumInfo: albumName=", tv.albumName, \
-            #             "dailyPlayNum=", tv.dailyPlayNum, \
-            #             "dailyIndexScore=", tv.dailyIndexScore
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
@@ -778,7 +776,7 @@ class SohuEngine(VideoEngine):
             'menu'    : '电影',
             'dest'    : self.parser_host,
             'regular' : [
-                'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*(.+?);'
+                'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
             ],
         })
 
@@ -1083,12 +1081,13 @@ class test_case:
     def test_videopage(self):
         url = 'http://tv.sohu.com/20130517/n376295917.shtml'
         url = 'http://tv.sohu.com/20110222/n279464056.shtml'
+        url = 'http://tv.sohu.com/s2011/1663/s322643386/'
     #    url = 'http://v.tv.sohu.com/20100618/n272893884.shtml'
     #    url = 'http://tv.sohu.com/20101124/n277876671.shtml'
     #    url = 'http://tv.sohu.com/s2010/72jzk/'
     #    url = 'http://tv.sohu.com/s2011/7film/'
         _, _, _, response = fetch(url)
-        a = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*"(.+?)";', response)
+        a = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)"*', response)
         print a
 
     def test_mvi(self):
@@ -1160,6 +1159,8 @@ class test_case:
 
 def test():
     t = test_case()
+    t.test_videopage()
+    return
     t.playlistid = '1005485'
     t.vid = '460464'
     t.pid = '322963713'

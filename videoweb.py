@@ -18,15 +18,14 @@ from kolatv import Kolatv
 
 tv = Kolatv()
 
-def getlist(menuName, page, size):
+def getlist(menuName, argument):
     data = {}
     m = tv.FindMenu(menuName)
     if m:
-        data = m.GetAlbumList(page, size)
+        data = m.GetAlbumList(argument)
     return data
 
 class VideoListHandler(JSONPHandler):
-    # list?page=2&size=10&menu="电影"
     def get(self):
         js = {}
         page = self.get_argument('page', 0)
@@ -35,6 +34,25 @@ class VideoListHandler(JSONPHandler):
 
         js['result'] = getlist(menu, int(page), int(size))
         self.finish(json.dumps(js, indent=4, ensure_ascii=False))
+
+    def post(self):
+        argument = {}
+        menu = self.get_argument('menu', u'电影')
+
+        argument['page'] = int(self.get_argument('page', 0))
+        argument['size'] = int(self.get_argument('size', 20))
+        if self.request.body:
+            try:
+                umap = json.loads(self.request.body)
+#                 argument['filter'] = {}
+#                 argument['fields'] = {}
+#                 argument['sort'] = {}
+                argument.update(umap)
+            except:
+                raise tornado.web.HTTPError(400)
+
+        argument['result'] = getlist(menu, argument)
+        self.finish(json.dumps(argument, indent=4, ensure_ascii=False))
 
 class UrlMapHandler(tornado.web.RequestHandler):
     def post(self):

@@ -8,7 +8,6 @@ if len(f_path) < 1: f_path = "."
 sys.path.append(f_path)
 sys.path.append(f_path + "/..")
 
-import urllib
 from pymongo import Connection
 import traceback
 import json
@@ -145,10 +144,44 @@ class R:
     def Decrypt(self, text):
         return self.key.decrypt(text)
 
+class KolaMenu:
+    def __init__(self, client, js):
+        self.client = client
+        self.filter = js['filter']
+        self.cid = js['cid']
+        self.name = js['name']
+        self.pageSize = 20
+        self.pageId = 0
+        self.Show()
+
+    def NextPage(self):
+        url = '%s/video/list?page=%d&size=%d&menu=%s' % (HOST, self.pageId, self.pageSize, self.name)
+        body = {
+                #'filter': {},
+                #'fields': {},
+                #'sort': {},
+                }
+        print self.client.PostUrl(url, json.dumps(body))
+
+    def Show(self):
+        print "Name:", self.name, "CID:", self.cid
+
 class KolaClient:
     def __init__(self):
         self.rsa_public_key = ''
         self.rsa = None
+        self.menuList = []
+
+    def GenKolaMenu(self):
+        res = self.GetUrl(HOST + '/video/getmenu')
+        try:
+            js = json.loads(res)
+            for x in js:
+                self.menuList.append(KolaMenu(self, x))
+        except:
+            pass
+
+        return self.menuList
 
     def GetUrl(self, url):
         status, _, _, response = fetch(url)
@@ -331,10 +364,17 @@ def main_thread():
     for _ in range(10):
         thread_pool.add_job(main)
 
+def main_getmenu():
+    haha = KolaClient()
+    haha.GenKolaMenu()
+    for menu in haha.menuList:
+        menu.NextPage()
+
 if __name__ == "__main__":
     #test()
     main_thread()
     #test_album()
     #main_one()
     #main()
+    #main_getmenu()
 

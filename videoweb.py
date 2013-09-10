@@ -74,6 +74,26 @@ class GetPlayerHandler(BaseHandler):
         else:
             raise tornado.web.HTTPError(404)
 
+# http://xxxxx/video/getmenu?cid=1,2
+# http://xxxxx/video/getmenu
+# http://xxxxx/video/getmenu?name=电影,电视剧
+# http://xxxxx/video/getmenu?name=
+class GetMenupHandler(BaseHandler):
+    def get(self):
+        ret = []
+        cid = self.get_argument('cid', '')
+        name  = self.get_argument('name', '')
+        if cid != '':
+            cid = cid.split(',')
+            ret = tv.GetMenuJsonInfoByCid(cid)
+        elif name != '':
+            name = name.split(',')
+            ret =  tv.GetMenuJsonInfoByName(name)
+        else:
+            ret =  tv.GetMenuJsonInfoByName([])
+
+        self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+
 class UploadHandler(BaseHandler):
     def get(self):
         print('Upload get')
@@ -110,6 +130,7 @@ class Application(tornado.web.Application):
             (r'/video/upload',            UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',         GetPlayerHandler),       # 得到下载地位
             (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
+            (r'/video/getmenu',           GetMenupHandler),        # 后台管理，增加网址映射
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

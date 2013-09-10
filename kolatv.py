@@ -27,6 +27,23 @@ class Kolatv:
         self.sched.add_interval_job(self.UpdateTop200, hours=12)
         self.sched.add_interval_job(self.UpdateAll, hours=2, seconds= 10)
 
+    def GetMenuJsonInfoByCid(self, cid_list):
+        ret = []
+        count = len(cid_list)
+        for _, menu in self.MenuList.iteritems():
+            if count == 0 or str(menu.cid) in cid_list:
+                ret.append(menu.GetJsonInfo())
+
+        return ret
+
+    def GetMenuJsonInfoByName(self, name_list):
+        ret = []
+        count = len(name_list)
+        for name, menu in self.MenuList.iteritems():
+            if count == 0 or name in name_list:
+                ret.append(menu.GetJsonInfo())
+
+        return ret
 
     def UpdateAlbumList(self):
         for (_, menu) in self.MenuList.items():
@@ -35,7 +52,9 @@ class Kolatv:
     def ParserHtml(self, data):
         js = json.loads(data)
         if (js == None) or (not js.has_key('data')):
-            print "Error: ", js['source']
+            db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
+            db.rpush('urls', js['source'])
+            print "Error:", js['source']
             return False
 
         text = base64.decodestring(js['data'])

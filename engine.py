@@ -260,6 +260,18 @@ class VideoMenuBase:
         self.albumClass = AlbumBase
         self.cid = 0
 
+    def GetFilterJson(self):
+        pass
+    def GetJsonInfo(self):
+        ret = {}
+
+        ret['name'] = self.name
+        ret['cid'] = self.cid
+        ret['count'] = self.engine.album_table.find({'cid': self.cid}).count()
+        ret['filter'] = self.GetFilterJson()
+
+        return ret
+
     def Reset(self):
         self.HotList = []
 
@@ -341,23 +353,32 @@ class VideoMenuBase:
         return ret
 
     def GetAlbum(self, playlistid = '', albumName = '', albumPageUrl= '', auto = False):
-        tv = None
-        f = {}
-        if playlistid != '':
-            f['playlistid'] = playlistid
-        if albumName != '':
-            f['albumName'] = albumName
-        if albumPageUrl != '':
-            f['albumPageUrl'] = albumPageUrl
+        if playlistid == '' and albumName == '' and albumPageUrl == '':
+            return None
 
-        json = self.engine.album_table.find_one({"#or" : f})
+        tv = None
+        f = []
+        if playlistid != '':
+            f.append({'playlistid' : playlistid})
+        if albumName != '':
+            f.append({'albumName' : albumName})
+        if albumPageUrl != '':
+            f.append({'albumPageUrl' : albumPageUrl})
+
+        json = self.engine.album_table.find_one({"$or" : f})
         if json:
             tv = self.albumClass(self)
             tv.LoadFromJson(json)
         elif auto:
             tv = self.albumClass(self)
+
+        if playlistid != '':
             tv.playlistid = playlistid
+
+        if albumName != '':
             tv.albumName = albumName
+
+        if albumPageUrl != '':
             tv.albumPageUrl = albumPageUrl
 
         return tv

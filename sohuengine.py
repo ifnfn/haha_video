@@ -15,6 +15,7 @@ import re
 from utils.fetchTools import fetch_httplib2 as fetch
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine
 from utils.BeautifulSoup import BeautifulSoup as bs
+import redis
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -81,7 +82,7 @@ class SohuVideoMenu(VideoMenuBase):
         }
         self.albumClass = SohuAlbum
         self.filter_year = [
-                   {'{2013':''},
+                   {'2013':''},
                    {'2012':''},
                    {'2011':''},
                    {'2010':''},
@@ -102,6 +103,13 @@ class SohuVideoMenu(VideoMenuBase):
             '页号' : 'p10',
             '语言' : 'p11',
         }
+
+    def GetFilterJson(self):
+        ret = {}
+        for k,v in self.filter.items():
+            ret[k] = [x.keys()[0] for x in v]
+
+        return ret
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
@@ -181,8 +189,6 @@ class SohuVideoMenu(VideoMenuBase):
                 a = json.loads(g.group(1))
                 if a.has_key('playlistId'):
                     playlistid = str(a['playlistId'])
-                else:
-                    return []
 
                 if a.has_key('videos') and str(a['videos']) > 0:
                     tv = None
@@ -196,10 +202,6 @@ class SohuVideoMenu(VideoMenuBase):
 
                     if tv == None:
                         return []
-
-                    tv.playlistid = playlistid
-						if albumName != "":
-	                    tv.albumName = albumName
 
                     if video.has_key('isHigh')          : tv.isHigh = str(video['isHigh'])
                     if video.has_key('albumDesc')       : tv.albumDesc = video['albumDesc']
@@ -326,6 +328,11 @@ class SohuVideoMenu(VideoMenuBase):
                 tv.SaveToDB(self.engine.album_table)
                 tv.UpdateFullInfoCommand()
                 tv.UpdateScoreCommand()
+            else:
+                db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
+                db.rpush('urls', js['source'])
+
+                print "ERROR: ", js['source']
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserAlbum:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
@@ -348,7 +355,11 @@ class SohuVideoMenu(VideoMenuBase):
             if data.has_key('album'):
                 album = data['album']
                 if album:
-                    tv = self.GetAlbumById(album['id'], False)
+                    playlistid   = album.has_key('id') and album['id'] or ''
+                    albumName    = album.has_key('albumName') and album['albumName'] or ''
+                    albumPageUrl = album.has_key('playUrl') and album['playUrl'] or ''
+
+                    tv = self.GetAlbum(playlistid, albumName, albumPageUrl)
                     if tv == None:
                         return ret
                     tv.albumName = album['albumName']

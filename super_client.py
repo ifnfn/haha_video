@@ -8,6 +8,7 @@ if len(f_path) < 1: f_path = "."
 sys.path.append(f_path)
 sys.path.append(f_path + "/..")
 
+import urllib
 from pymongo import Connection
 import traceback
 import json
@@ -16,6 +17,7 @@ import base64
 import re
 from utils.ThreadPool import ThreadPool
 from Crypto.PublicKey import RSA
+import hashlib
 
 #log = logging.getLogger("crawler")
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
@@ -156,6 +158,26 @@ class KolaClient:
             pass
         return response
 
+    def GetCacheUrl(self, url):
+#         url = MAINSERVER_HOST + '/video/cache?url=' + urllib.quote(url)
+#         print url
+#         return self.GetUrl(url)
+
+        response = ''
+
+        key = hashlib.md5(url).hexdigest().upper()
+        filename = f_path + '/cache/' + key
+        if os.path.exists(filename):
+            f = open(filename, 'r')
+            response = f.read()
+            f.close()
+        else:
+            _, _, _, response = fetch(url)
+            f = open(filename, 'w')
+            f.write(response)
+            f.close()
+        return response
+
     def PostUrl(self, url, body):
         #if self.rsa:
         #    body = self.rsa.Encrypt(body)
@@ -196,7 +218,7 @@ class KolaClient:
         if times > MAX_TRY:
             return False
         try:
-            response = self.GetUrl(cmd['source'])
+            response = self.GetCacheUrl(cmd['source'])
             if cmd.has_key('regular'):
                 response = self.RegularMatch(cmd['regular'], response)
 
@@ -311,8 +333,8 @@ def main_thread():
 
 if __name__ == "__main__":
     #test()
-    #main_thread()
+    main_thread()
     #test_album()
-    main_one()
+    #main_one()
     #main()
 

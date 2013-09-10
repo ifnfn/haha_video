@@ -5,6 +5,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.options
 from tornado.options import define, options
+from utils.fetchTools import fetch_httplib2 as fetch
 
 import redis
 import json
@@ -117,7 +118,6 @@ class AddCommandHandler(BaseHandler):
             db = redis.Redis(host='127.0.0.1', port=6379, db=1)
             db.rpush('command', body)
             data =json.loads(body)
-            print 'add: ', data['source']
 
         return
 
@@ -128,6 +128,19 @@ class GetMainMenuHandler(BaseHandler):
 class GetAlbumListHandler(BaseHandler):
     def get(self):
         pass
+
+class SohuCacheHandler(BaseHandler):
+    def get(self):
+        response = ''
+        db = redis.Redis(host='127.0.0.1', port=6379, db=8)
+        url = self.get_argument('url')
+        if not db.exists(url):
+            _, _, _, response = fetch(url)
+            db.set(url, response)
+        else:
+            response = db.get(url)
+
+        self.finish(response)
 
 class Login2Handler(BaseHandler):
     def get(self):
@@ -163,6 +176,7 @@ class Application(tornado.web.Application):
             (r'/video/addcommand',        AddCommandHandler),       # 增加命令
             (r'/video/getmenu',           GetMainMenuHandler),      # 得到一级菜单
             (r'/video/programemlist',     GetAlbumListHandler),     # 得到节目列表
+            (r'/video/cache',             SohuCacheHandler),     # 得到节目列表
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

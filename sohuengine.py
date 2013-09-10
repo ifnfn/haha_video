@@ -176,6 +176,8 @@ class SohuVideoMenu(VideoMenuBase):
             g = re.search('var video_album_videos_result=(\{.*.\})', text)
             if g:
                 playlistid = ''
+                albumName = ''
+                albumPageUrl = ''
                 a = json.loads(g.group(1))
                 if a.has_key('playlistId'):
                     playlistid = str(a['playlistId'])
@@ -186,11 +188,18 @@ class SohuVideoMenu(VideoMenuBase):
                     tv = None
                     video = a['videos'][0]
                     if video.has_key('videoAlbumName'):
-                        tv = self.GetAlbumByName(video['videoAlbumName'], False)
+                        albumName = video['videoAlbumName']
+                    if tv == None and js.has_key('privdate_data'):
+                        albumPageUrl = js['privdate_data'][0]
+
+                    tv = self.GetAlbum(playlistid, albumName, albumPageUrl)
+
                     if tv == None:
                         return []
 
                     tv.playlistid = playlistid
+						if albumName != "":
+	                    tv.albumName = albumName
 
                     if video.has_key('isHigh')          : tv.isHigh = str(video['isHigh'])
                     if video.has_key('albumDesc')       : tv.albumDesc = video['albumDesc']
@@ -222,17 +231,19 @@ class SohuVideoMenu(VideoMenuBase):
             js = json.loads(text)
 
             playlistid = js['playlistid']
+            albumName = ''
+            albumPageUrl = ''
 
-            p = self.GetAlbumById(playlistid, False) # 根据playlisid找
-            if p == None:
-                p = self.GetAlbumByName(js['albumName'], False) # 找不到，则根据 albumName
-            if p == None:
-                p = self.GetAlbumByUrl(js['albumPageUrl'], False) # 再找不到根据 url
-            if p == None:
-                p = self.GetAlbumById(playlistid, True) # 再找不着，就新一个
+            if js.has_key('albumName'):
+                albumName = js['albumName']
 
-            p.LoadFromJson(js)
-            p.SaveToDB(self.engine.album_table)
+            if js.has_key('albumPageUrl'):
+                albumPageUrl = js['albumPageUrl']
+
+            p = self.GetAlbum(playlistid, albumName, albumPageUrl)
+            if p:
+                p.LoadFromJson(js)
+                p.SaveToDB(self.engine.album_table)
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserAlbumFullInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
@@ -302,7 +313,7 @@ class SohuVideoMenu(VideoMenuBase):
                     elif u[0] == 'tag' and tv.albumName == "":
                         tv.albumName = u[1]
 
-                if tv.vid == '-1':
+                if tv.vid == '-1' or tv.vid == '' or tv.vid == '1':
                     return ret
                 # 如果得不到 playlistId 的话
                 if tv.playlistid == "" and tv.vid != "":
@@ -311,8 +322,10 @@ class SohuVideoMenu(VideoMenuBase):
                         print text
                     elif 'PLAYLIST_ID.json' in url:
                         print text
-                    self.command.SendCommand("album_mvinfo", self.name, url)
-                self._save_update_append(ret, tv)
+                    self.command.SendCommand("album_mvinfo", self.name, url, js['source'])
+                tv.SaveToDB(self.engine.album_table)
+                tv.UpdateFullInfoCommand()
+                tv.UpdateScoreCommand()
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserAlbum:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
@@ -335,7 +348,7 @@ class SohuVideoMenu(VideoMenuBase):
             if data.has_key('album'):
                 album = data['album']
                 if album:
-                    tv = self.GetAlbumById(album['id'])
+                    tv = self.GetAlbumById(album['id'], False)
                     if tv == None:
                         return ret
                     tv.albumName = album['albumName']

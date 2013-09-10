@@ -29,14 +29,14 @@ class VideoListHandler(BaseHandler):
         js = {}
         page = self.get_argument('page', 0)
         size = self.get_argument('size', 20)
-        menu = self.get_argument('menu', u'电影')
+        menu = self.get_argument('menu', '')
 
         js['result'] = getlist(menu, int(page), int(size))
         self.finish(json.dumps(js, indent=4, ensure_ascii=False))
 
     def post(self):
         argument = {}
-        menu = self.get_argument('menu', u'电影')
+        menu = self.get_argument('menu', '')
 
         argument['page'] = int(self.get_argument('page', 0))
         argument['size'] = int(self.get_argument('size', 20))

@@ -48,12 +48,14 @@ class Commands:
     def AddTemplate(self, m):
         self.cmdlist[m['name']] = m
 
-    def SendCommand(self, name, menu, url):
+    def SendCommand(self, name, menu, url, *private_data):
         if self.cmdlist.has_key(name):
             #print "Add Command: ", url
             cmd = self.cmdlist[name]
             cmd['source'] = self.GetUrl(url)
             cmd['menu'] = menu
+            if private_data:
+                cmd['privdate_data'] = private_data
             _, _, _, response = fetch(self.commandHost + '?' + name, 'POST', json.dumps(cmd))
             return response == ""
         return False
@@ -337,6 +339,28 @@ class VideoMenuBase:
             ret = self.parserList[name](js)
 
         return ret
+
+    def GetAlbum(self, playlistid = '', albumName = '', albumPageUrl= '', auto = False):
+        tv = None
+        f = {}
+        if playlistid != '':
+            f['playlistid'] = playlistid
+        if albumName != '':
+            f['albumName'] = albumName
+        if albumPageUrl != '':
+            f['albumPageUrl'] = albumPageUrl
+
+        json = self.engine.album_table.find_one({"#or" : f})
+        if json:
+            tv = self.albumClass(self)
+            tv.LoadFromJson(json)
+        elif auto:
+            tv = self.albumClass(self)
+            tv.playlistid = playlistid
+            tv.albumName = albumName
+            tv.albumPageUrl = albumPageUrl
+
+        return tv
 
     # 根据 ID 从数据库中加载节目
     def GetAlbumById(self, playlistid, auto = False):

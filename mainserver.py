@@ -1,17 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import tornado.ioloop
 import tornado.web
 import tornado.options
 from tornado.options import define, options
-from utils.fetchTools import fetch_httplib2 as fetch
+from .utils.fetchTools import fetch_httplib2 as fetch
 
 import redis
 import json
 import hashlib
 from Crypto.PublicKey import RSA
-from basehandle import BaseHandler#, JSONPHandler
+from .basehandle import BaseHandler#, JSONPHandler
 
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
 
@@ -49,19 +49,19 @@ class R:
         #self.publicRSAKey = self.privateRSAKey.publickey()
         self.privateRSAKey = RSA.importKey(privatekey_text)
         self.publicRSAKey = self.privateRSAKey.publickey()
-        #print self.privateRSAKey.publickey().exportKey()
-        #print "private:"
+        #print(self.privateRSAKey.publickey().exportKey())
+        #print("private:")
         #self.printf(self.privateRSAKey)
-        #print "public:"
+        #print("public:")
         #self.printf(self.publicRSAKey)
 
     def exportKey(self):
         return self.publicRSAKey.exportKey()
 
     def printf(self, key):
-        print "Can Encrypt:", key.can_encrypt()
-        print "Can sign:", key.can_sign()
-        print "Has private:", key.has_private()
+        print("Can Encrypt:", key.can_encrypt())
+        print("Can sign:", key.can_sign())
+        print("Has private:", key.has_private())
 
     def RSAEncrypt(self, text):
         return self.publicRSAKey.encrypt(text, len(text))
@@ -74,7 +74,7 @@ class R:
 def test():
     a = R()
     t = a.RSAEncrypt('text')
-    print a.RSADecrypt(t)
+    print(a.RSADecrypt(t))
 
 class KeyHandler(BaseHandler):
     def get(self):
@@ -83,14 +83,14 @@ class KeyHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     def get(self):
         user_id = self.get_argument('user_id')
-        #print self.request.remote_ip, user_id
+        #print(self.request.remote_ip, user_id)
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
         ret = {
             'key': 'None',
             'command': [],
             'server' : MAINSERVER_HOST,
-            'next': 10   # ÏÂ´ÎµÇÂ¼Ê±¼ä
+            'next': 10   # ä¸‹æ¬¡ç™»å½•æ—¶é—´
         }
         if not db.exists(user_id):
             key = hashlib.md5(user_id + self.request.remote_ip).hexdigest().upper()
@@ -147,7 +147,6 @@ class Login2Handler(BaseHandler):
         #self.add_header('_xsrf', self.xsrf_form_html())
         #self.set_cookie("checkflag", "true")
         s = self.xsrf_form_html()
-        print s
         self.write('<html><body><form action="/video/login2" method="post">'
                    'Name: <input type="text" name="name">'
                    '<input type="submit" value="Sign in">' + s +
@@ -170,13 +169,13 @@ class Application(tornado.web.Application):
         )
 
         handlers = [
-            (r'/video/key',               KeyHandler),              # È¡µÃpublic key
-            (r'/video/login',             LoginHandler),            # µÇÂ¼ÈÏÖ¤
-            (r'/video/login2',            Login2Handler),            # µÇÂ¼ÈÏÖ¤
-            (r'/video/addcommand',        AddCommandHandler),       # Ôö¼ÓÃüÁî
-            (r'/video/getmenu',           GetMainMenuHandler),      # µÃµ½Ò»¼¶²Ëµ¥
-            (r'/video/programemlist',     GetAlbumListHandler),     # µÃµ½½ÚÄ¿ÁĞ±í
-            (r'/video/cache',             SohuCacheHandler),     # µÃµ½½ÚÄ¿ÁĞ±í
+            (r'/video/key',               KeyHandler),              # å–å¾—public key
+            (r'/video/login',             LoginHandler),            # ç™»å½•è®¤è¯
+            (r'/video/login2',            Login2Handler),            # ç™»å½•è®¤è¯
+            (r'/video/addcommand',        AddCommandHandler),       # å¢åŠ å‘½ä»¤
+            (r'/video/getmenu',           GetMainMenuHandler),      # å¾—åˆ°ä¸€çº§èœå•
+            (r'/video/programemlist',     GetAlbumListHandler),     # å¾—åˆ°èŠ‚ç›®åˆ—è¡¨
+            (r'/video/cache',             SohuCacheHandler),     # å¾—åˆ°èŠ‚ç›®åˆ—è¡¨
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

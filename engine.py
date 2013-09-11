@@ -1,13 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import logging
 import traceback
 import sys
 import json
-from utils.fetchTools import fetch_httplib2 as fetch
+from .utils.fetchTools import fetch_httplib2 as fetch
 from pymongo import Connection
-import ConfigParser
+import configparser
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -38,8 +38,8 @@ class Commands:
         self.map_table.update({'source': oldurl}, {"$set" : {'dest': newurl}}, upsert=True, multi=True)
 
     def GetUrl(self, url):
-        if self.urlmap.has_key(url):
-            print "Map: %s --> %s" % (url, self.urlmap[url])
+        if url in self.urlmap:
+            print(("Map: %s --> %s" % (url, self.urlmap[url])))
             return self.urlmap[url]
         else:
             return url
@@ -49,8 +49,8 @@ class Commands:
         self.cmdlist[m['name']] = m
 
     def SendCommand(self, name, menu, url, *private_data):
-        if self.cmdlist.has_key(name):
-            #print "Add Command: ", url
+        if name in self.cmdlist:
+            #print("Add Command: ", url)
             cmd = self.cmdlist[name]
             cmd['source'] = self.GetUrl(url)
             cmd['menu'] = menu
@@ -179,56 +179,56 @@ class AlbumBase:
 
     def LoadFromJson(self, json):
         # From DataBase
-        if json.has_key('vid')            : self.vid = autostr(json['vid'])
-        if json.has_key('cid')            : self.cid = json['cid']
-        if json.has_key('albumName')      : self.albumName = json['albumName']
+        if 'vid' in json            : self.vid = autostr(json['vid'])
+        if 'cid' in json            : self.cid = json['cid']
+        if 'albumName' in json      : self.albumName = json['albumName']
 
-        if json.has_key('albumPageUrl') and json['albumPageUrl'] != '':
+        if 'albumPageUrl' in json and json['albumPageUrl'] != '':
             self.albumPageUrl = json['albumPageUrl']
 
-        if json.has_key('pid'):
+        if 'pid' in json:
                 self.pid = autostr(json['pid'])
-        elif json.has_key('PId'):
+        elif 'PId' in json:
                 self.pid = autostr(json['PId'])
 
-        if json.has_key('playlist_id'):
+        if 'playlist_id' in json:
             self.playlistid = autostr(json['playlist_id'])
-        elif json.has_key('playlistid'):
+        elif 'playlistid' in json:
             self.playlistid = autostr(json['playlistid'])
 
-        if json.has_key('isHigh')         : self.isHigh = json['isHigh']
+        if 'isHigh' in json         : self.isHigh = json['isHigh']
 
-        if json.has_key('area')           : self.area = json['area']
-        if json.has_key('categories')     : self.categories = json['categories']
-        if json.has_key('publishYear')    : self.publishYear = json['publishYear']
+        if 'area' in json           : self.area = json['area']
+        if 'categories' in json     : self.categories = json['categories']
+        if 'publishYear' in json    : self.publishYear = json['publishYear']
 
-        if json.has_key('defaultPageUrl') : self.defaultPageUrl = json['defaultPageUrl']
+        if 'defaultPageUrl' in json : self.defaultPageUrl = json['defaultPageUrl']
 
         # 图片
-        if json.has_key('largeHorPicUrl') : self.largeHorPicUrl = json['largeHorPicUrl']
-        if json.has_key('smallHorPicUrl') : self.smallHorPicUrl = json['smallHorPicUrl']
-        if json.has_key('largeVerPicUrl') : self.largeVerPicUrl = json['largeVerPicUrl']
-        if json.has_key('smallVerPicUrl') : self.smallVerPicUrl = json['smallVerPicUrl']
+        if 'largeHorPicUrl' in json : self.largeHorPicUrl = json['largeHorPicUrl']
+        if 'smallHorPicUrl' in json : self.smallHorPicUrl = json['smallHorPicUrl']
+        if 'largeVerPicUrl' in json : self.largeVerPicUrl = json['largeVerPicUrl']
+        if 'smallVerPicUrl' in json : self.smallVerPicUrl = json['smallVerPicUrl']
 
-        if json.has_key('albumDesc')      : self.albumDesc = json['albumDesc']
-        if json.has_key('videoScore')     : self.videoScore = json['videoScore']
-        if json.has_key('totalSet')       : self.totalSet = json['totalSet']
+        if 'albumDesc' in json      : self.albumDesc = json['albumDesc']
+        if 'videoScore' in json     : self.videoScore = json['videoScore']
+        if 'totalSet' in json       : self.totalSet = json['totalSet']
 
-        if json.has_key('mainActors')     : self.mainActors = json['mainActors']
-        if json.has_key('actors')         : self.actors = json['actors']
-        if json.has_key('directors')      : self.directors = json['directors']
+        if 'mainActors' in json     : self.mainActors = json['mainActors']
+        if 'actors' in json         : self.actors = json['actors']
+        if 'directors' in json      : self.directors = json['directors']
 
-        if json.has_key('index'):
+        if 'index' in json:
             index = json['index']
             if index:
-                if index.has_key('dailyPlayNum')   : self.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
-                if index.has_key('weeklyPlayNum')  : self.weeklyPlayNum   = index['weeklyPlayNum']   # 每周播放次数
-                if index.has_key('monthlyPlayNum') : self.monthlyPlayNum  = index['monthlyPlayNum']  # 每月播放次数
-                if index.has_key('totalPlayNum')   : self.totalPlayNum    = index['totalPlayNum']    # 总播放资料
-                if index.has_key('dailyIndexScore'): self.dailyIndexScore = index['dailyIndexScore'] # 每日指数
+                if 'dailyPlayNum' in index   : self.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
+                if 'weeklyPlayNum' in index  : self.weeklyPlayNum   = index['weeklyPlayNum']   # 每周播放次数
+                if 'monthlyPlayNum' in index : self.monthlyPlayNum  = index['monthlyPlayNum']  # 每月播放次数
+                if 'totalPlayNum' in index   : self.totalPlayNum    = index['totalPlayNum']    # 总播放资料
+                if 'dailyIndexScore' in index: self.dailyIndexScore = index['dailyIndexScore'] # 每日指数
 
         # 如果有视频数据
-        if json.has_key('videos'):
+        if 'videos' in json:
             self.videos = []
             for v in json['videos']:
                 video = self.VideoClass(v)
@@ -300,17 +300,17 @@ class VideoMenuBase:
 
             _filter = {}
             _filter['cid'] = self.cid
-            if arg.has_key('filter'):
+            if 'filter' in arg:
                 _filter.update(arg['filter'])
 
-            if arg.has_key('fields'):
+            if 'fields' in arg:
                 fields = arg['fields']
             else:
                 fields = None
 
             cursor = self.engine.album_table.find(_filter, fields = fields)
 
-            if arg.has_key('sort'):
+            if 'sort' in arg:
                 cursor = cursor.sort(arg['sort'])
 
             for x in cursor.skip( page * size).limit(size):
@@ -347,7 +347,7 @@ class VideoMenuBase:
     # 解析菜单网页解析
     def ParserHtml(self, name, js):
         ret = []
-        if self.parserList.has_key(name):
+        if name in self.parserList:
             ret = self.parserList[name](js)
 
         return ret
@@ -425,7 +425,7 @@ class VideoMenuBase:
 class VideoEngine:
     def __init__(self):
         self.engine_name = 'EngineBase'
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         self.cmd_host = COMMAND_HOST
         self.parser_host = PARSER_HOST
         try:

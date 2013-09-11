@@ -5,11 +5,12 @@ ThreadPool Implementation
 @license: LGPL v3
 '''
 
-from __future__ import with_statement
+
 from threading import Thread, RLock
 from time import sleep
-from Queue import Queue, Empty
+from queue import Queue, Empty
 import logging
+import collections
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -85,7 +86,7 @@ class ThreadPool:
             '''
             try:
                 return_value = self.callable(*self.arguments) #IGNORE:W0142
-            except Exception, excep: #IGNORE:W0703
+            except Exception as excep: #IGNORE:W0703
                 logger = logging.getLogger("threadpool.worker")
                 logger.warning("A job in the ThreadPool raised an exception: " + excep)
                 #else do nothing cause we don't know what to do...
@@ -94,7 +95,7 @@ class ThreadPool:
             try:
                 if (self.return_callback != None):
                     self.return_callback(return_value)
-            except Exception, _: #IGNORE:W0703 everything could go wrong...
+            except Exception as _: #IGNORE:W0703 everything could go wrong...
                 logger = logging.getLogger('threadpool')
                 logger.warning('Error while delivering return value to callback function')
 
@@ -226,11 +227,11 @@ class ThreadPool:
         Put new job into queue
         '''
 
-        if (not callable(function)):
+        if (not isinstance(function, collections.Callable)):
             raise TypeError("function is not a callable")
         if (not ( args == None or isinstance(args, list))):
             raise TypeError("args is not a list")
-        if (not (return_callback == None or callable(return_callback))):
+        if (not (return_callback == None or isinstance(return_callback, collections.Callable))):
             raise TypeError("return_callback is not a callable")
 
         if (args == None):

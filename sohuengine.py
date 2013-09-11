@@ -1,4 +1,4 @@
-#! env /usr/bin/python
+#! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 '''
@@ -12,10 +12,14 @@ import traceback
 import sys
 import json
 import re
-from utils.fetchTools import fetch_httplib2 as fetch
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine
-from utils.BeautifulSoup import BeautifulSoup as bs
+from .utils.fetchTools import fetch_httplib2 as fetch
+from .engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine
+#from .utils.BeautifulSoup import BeautifulSoup as bs
 import redis
+from bs4 import (
+        BeautifulSoup as bs,
+        BeautifulStoneSoup,
+)
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -106,8 +110,8 @@ class SohuVideoMenu(VideoMenuBase):
 
     def GetFilterJson(self):
         ret = {}
-        for k,v in self.filter.items():
-            ret[k] = [x.keys()[0] for x in v]
+        for k,v in list(self.filter.items()):
+            ret[k] = [list(x.keys())[0] for x in v]
 
         return ret
 
@@ -129,8 +133,8 @@ class SohuVideoMenu(VideoMenuBase):
         if self.number == 100:
             v = 2
         sc = ''
-        if self.filter.has_key('类型'):
-            for (_, v) in self.filter['类型'].items():
+        if '类型' in self.filter:
+            for (_, v) in list(self.filter['类型'].items()):
                 sc = sc + v + '_'
         url = fmt % (v, self.number, sc)
 
@@ -140,8 +144,8 @@ class SohuVideoMenu(VideoMenuBase):
         # http://so.tv.sohu.com/jsl?c=100&area=5&cate=100102_100122&o=1&encode=GBK
         fmt = 'http://so.tv.sohu.com/jsl?c=%d&cate=%s&o=1'
         sc = ''
-        if self.filter.has_key('类型'):
-            for (_, v) in self.filter['类型'].items():
+        if '类型' in self.filter:
+            for (_, v) in list(self.filter['类型'].items()):
                 sc += v + '_'
         url = fmt % (v, self.number, sc)
 
@@ -163,11 +167,11 @@ class SohuVideoMenu(VideoMenuBase):
             text = js['data']
             js = json.loads(text)
             tv = None
-            if js.has_key('r'):
+            if 'r' in js:
                 for p in js['r']:
-                    if p.has_key('url'):
+                    if 'url' in p:
                         tv = self.GetAlbumByUrl(p['url'])
-                    elif p.has_key('aurl'):
+                    elif 'aurl' in p:
                         tv = self.GetAlbumByUrl(p['aurl'])
             self._save_update_append(ret, tv)
         except:
@@ -187,15 +191,15 @@ class SohuVideoMenu(VideoMenuBase):
                 albumName = ''
                 albumPageUrl = ''
                 a = json.loads(g.group(1))
-                if a.has_key('playlistId'):
+                if 'playlistId' in a:
                     playlistid = str(a['playlistId'])
 
-                if a.has_key('videos') and str(a['videos']) > 0:
+                if 'videos' in a and str(a['videos']) > 0:
                     tv = None
                     video = a['videos'][0]
-                    if video.has_key('videoAlbumName'):
+                    if 'videoAlbumName' in video:
                         albumName = video['videoAlbumName']
-                    if tv == None and js.has_key('privdate_data'):
+                    if tv == None and 'privdate_data' in js:
                         albumPageUrl = js['privdate_data'][0]
 
                     tv = self.GetAlbum(playlistid, albumName, albumPageUrl)
@@ -203,17 +207,17 @@ class SohuVideoMenu(VideoMenuBase):
                     if tv == None:
                         return []
 
-                    if video.has_key('isHigh')          : tv.isHigh = str(video['isHigh'])
-                    if video.has_key('albumDesc')       : tv.albumDesc = video['albumDesc']
+                    if 'isHigh' in video          : tv.isHigh = str(video['isHigh'])
+                    if 'albumDesc' in video       : tv.albumDesc = video['albumDesc']
 
-                    if video.has_key('AlbumYear')       : tv.publishYear = str(video['AlbumYear'])
-                    if video.has_key('videoScore')      : tv.videoScore = str(video['videoScore'])
-                    if video.has_key('videoArea')       : tv.area = video['videoArea']
-                    if video.has_key('videoMainActor')  : tv.mainActors = video['videoMainActor'].split(';') # 主演
-                    if video.has_key('videoActor')      : tv.actors = video['videoActor'].split(';') # 演员
-                    if video.has_key('videoDirector')   : tv.directors = video['videoDirector'].split(';') # 导演
+                    if 'AlbumYear' in video       : tv.publishYear = str(video['AlbumYear'])
+                    if 'videoScore' in video      : tv.videoScore = str(video['videoScore'])
+                    if 'videoArea' in video       : tv.area = video['videoArea']
+                    if 'videoMainActor' in video  : tv.mainActors = video['videoMainActor'].split(';') # 主演
+                    if 'videoActor' in video      : tv.actors = video['videoActor'].split(';') # 演员
+                    if 'videoDirector' in video   : tv.directors = video['videoDirector'].split(';') # 导演
 
-                    if video.has_key('videoAlbumContCategory'):
+                    if 'videoAlbumContCategory' in video:
                         tv.categories = video['videoAlbumContCategory'].split(';')
 
                     self._save_update_append(ret, tv)
@@ -236,10 +240,10 @@ class SohuVideoMenu(VideoMenuBase):
             albumName = ''
             albumPageUrl = ''
 
-            if js.has_key('albumName'):
+            if 'albumName' in js:
                 albumName = js['albumName']
 
-            if js.has_key('albumPageUrl'):
+            if 'albumPageUrl' in js:
                 albumPageUrl = js['albumPageUrl']
 
             p = self.GetAlbum(playlistid, albumName, albumPageUrl)
@@ -321,9 +325,9 @@ class SohuVideoMenu(VideoMenuBase):
                 if tv.playlistid == "" and tv.vid != "":
                     url = 'http://search.vrs.sohu.com/mv_i%s.json' % tv.vid
                     if 'pid.json' in url:
-                        print text
+                        print(text)
                     elif 'PLAYLIST_ID.json' in url:
-                        print text
+                        print(text)
                     self.command.SendCommand("album_mvinfo", self.name, url, js['source'])
                 tv.SaveToDB(self.engine.album_table)
                 tv.UpdateFullInfoCommand()
@@ -332,7 +336,7 @@ class SohuVideoMenu(VideoMenuBase):
                 db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
                 db.rpush('urls', js['source'])
 
-                print "ERROR: ", js['source']
+                print("ERROR: ", js['source'])
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserAlbum:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
@@ -352,19 +356,19 @@ class SohuVideoMenu(VideoMenuBase):
                 return []
 
             data = json.loads(text)
-            if data.has_key('album'):
+            if 'album' in data:
                 album = data['album']
                 if album:
-                    playlistid   = album.has_key('id') and album['id'] or ''
-                    albumName    = album.has_key('albumName') and album['albumName'] or ''
-                    albumPageUrl = album.has_key('playUrl') and album['playUrl'] or ''
+                    playlistid   = 'id' in album and album['id'] or ''
+                    albumName    = 'albumName' in album and album['albumName'] or ''
+                    albumPageUrl = 'playUrl' in album and album['playUrl'] or ''
 
                     tv = self.GetAlbum(playlistid, albumName, albumPageUrl)
                     if tv == None:
                         return ret
                     tv.albumName = album['albumName']
 
-                    if data.has_key('album'):
+                    if 'album' in data:
                         index = data['index']
                         if index:
                             tv.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
@@ -396,7 +400,7 @@ class SohuVideoMenu(VideoMenuBase):
                     self._save_update_append(ret, tv)
                 elif tv.albumPageUrl != "":
                     # 如果无法直接解析出节目信息，则进入详细页面解析, 重新解析
-                    print "No Found:", tv.albumPageUrl
+                    print("No Found:", tv.albumPageUrl)
                     tv.UpdateAlbumPageCommand()
         except:
             t, v, tb = sys.exc_info()
@@ -872,7 +876,7 @@ class SohuEngine(VideoEngine):
         if times > MAX_TRY:
             return ret
         try:
-            print playurl
+            print(playurl)
             _, _, _, response = fetch(playurl)
 
             soup = bs(response)
@@ -892,7 +896,7 @@ class SohuEngine(VideoEngine):
                 if i != current_page:
                     link = re.compile('p10\d+')
                     newurl = re.sub(link, 'p10%d' % i, playurl)
-                    print newurl
+                    print(newurl)
                     ret.append(newurl)
         except:
             t, v, tb = sys.exc_info()
@@ -947,7 +951,6 @@ class SohuEngine(VideoEngine):
             _, _, _, response = fetch(playurl)
             vid = re.search('vid="(\d+)', response).group(1)
             newurl = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
-            # print newurl
             _, _, _, response = fetch(newurl)
             jdata = json.loads(response)
             host = jdata['allot']
@@ -1055,7 +1058,7 @@ class SohuEngine(VideoEngine):
             if album.playlistid == '' :
                 _, _, _, response = fetch(album.albumPageUrl)
                 if response == None:
-                    print 'error url: ', album.albumPageUrl
+                    print('error url: ', album.albumPageUrl)
                     return
 
                 pid = re.findall('(var PLAYLIST_ID|playlistId)\s*="(\d+)', response)
@@ -1065,7 +1068,6 @@ class SohuEngine(VideoEngine):
                     # 多部电视情况
                     return
             newurl = 'http://hot.vrs.sohu.com/vrs_videolist.action?playlist_id=%s' % album.playlistid
-            # print newurl
             _, _, _, response = fetch(newurl)
             oflvo = re.search('var vrsvideolist \= (\{.*.\})', response.decode('gb18030')).group(1)
 
@@ -1091,7 +1093,7 @@ class test_case:
         _, _, _, response = fetch(url)
         oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
         a = json.loads(oflvo)
-        print json.dumps(a, ensure_ascii=False, indent=4)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_v(self):
         # url ='http://search.vrs.sohu.com/v?id=1268036&pageSize=200000&pageNum=1'
@@ -1099,7 +1101,7 @@ class test_case:
         _, _, _, response = fetch(url)
         oflvo = re.search('var video_similar_search_result=(\{.*.\})', response).group(1)
         a = json.loads(oflvo)
-        print json.dumps(a, ensure_ascii=False, indent=4)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_videopage(self):
         url = 'http://tv.sohu.com/20130517/n376295917.shtml'
@@ -1111,14 +1113,14 @@ class test_case:
     #    url = 'http://tv.sohu.com/s2011/7film/'
         _, _, _, response = fetch(url)
         a = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)"*', response)
-        print a
+        print(a)
 
     def test_mvi(self):
         url = 'http://search.vrs.sohu.com/mv_i%s.json' % self.vid
         _, _, _, response = fetch(url)
         oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
         a = json.loads(oflvo)
-        print json.dumps(a, ensure_ascii=False, indent=4)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_allvideo(self):
         url = 'http://tv.sohu.com/tvall'
@@ -1128,44 +1130,44 @@ class test_case:
         for a in playlist:
             xx = re.findall('<a href="(\S*)"\s+target="_blank">\s*(\S*)\s*</a>', a.prettify())
             if xx:
-                print xx[0][0], xx[0][1]
+                print(xx[0][0], xx[0][1])
 
     def test_videolist(self):
         url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlistid
         _, _, _, response = fetch(url)
         a = json.loads(response)
-        print json.dumps(a, ensure_ascii=False, indent=4)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_iapi(self):
         url = 'http://so.tv.sohu.com/iapi?v=2&c=100'
         _, _, _, response = fetch(url)
         a = json.loads(response)
-        print json.dumps(a, ensure_ascii=False, indent=4)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_switch_aid(self):
         url = 'http://index.tv.sohu.com/index/switch-aid/' + self.playlistid
         _, _, _, response = fetch(url)
         a = json.loads(response)
-        print json.dumps(a, ensure_ascii=False, indent=4)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_list(self):
         url = 'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html'
         _, _, _, response = fetch(url)
         x = re.findall('(<a class="pic" target="_blank" title=".+/></a>)', response)
         for a in x:
-            print a
+            print(a)
         x = re.findall('(<p class="tit tit-p">.+</a>)', response)
         for a in x:
-            print a
+            print(a)
         return
         x.extend(re.findall('<p class="tit tit-p">', response))
-        print str(x)
+        print(str(x))
 
     def test_jsl(self):
         url = 'http://so.tv.sohu.com/jsl?c=100&cate=100100_100107&o=1&pageSize=1'
         _, _, _, response = fetch(url)
         a = json.loads(response)
-        print json.dumps(a, ensure_ascii=False, indent=4)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_all(self):
         self.test_videolist()

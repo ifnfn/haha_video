@@ -1,13 +1,14 @@
-#! env /usr/bin/python
+#! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import json
 import base64
 import redis
-import sohuengine as eg
+from . import sohuengine as eg
 
-from utils.mylogger import logging
-from utils.ThreadPool import ThreadPool
+import logging
+import os
+from .utils.ThreadPool import ThreadPool
 from apscheduler.scheduler import Scheduler
 
 POOLSIZE = 10
@@ -30,7 +31,7 @@ class Kolatv:
     def GetMenuJsonInfoByCid(self, cid_list):
         ret = []
         count = len(cid_list)
-        for _, menu in self.MenuList.iteritems():
+        for _, menu in list(self.MenuList.items()):
             if count == 0 or str(menu.cid) in cid_list:
                 ret.append(menu.GetJsonInfo())
 
@@ -39,22 +40,22 @@ class Kolatv:
     def GetMenuJsonInfoByName(self, name_list):
         ret = []
         count = len(name_list)
-        for name, menu in self.MenuList.iteritems():
+        for name, menu in list(self.MenuList.items()):
             if count == 0 or name in name_list:
                 ret.append(menu.GetJsonInfo())
 
         return ret
 
     def UpdateAlbumList(self):
-        for (_, menu) in self.MenuList.items():
+        for (_, menu) in list(self.MenuList.items()):
             menu.UpdateAlbumList()
 
     def ParserHtml(self, data):
         js = json.loads(data)
-        if (js == None) or (not js.has_key('data')):
+        if (js == None) or ('data' not in js):
             db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
             db.rpush('urls', js['source'])
-            print "Error:", js['source']
+            print("Error:", js['source'])
             return False
 
         text = base64.decodestring(js['data'])
@@ -69,15 +70,15 @@ class Kolatv:
         return True
 
     def UpdateNewest(self): # 更新最新节目
-        print "UpdateNewest"
+        print("UpdateNewest")
         pass
 
     def UpdateHottest(self): #　更新最热门的节目
-        print "UpdateHottest"
+        print("UpdateHottest")
         pass
 
     def UpdateTop200(self):
-        print "UpdateTop200"
+        print("UpdateTop200")
         pass
     # 发起全网更新
     def UpdateAll(self):
@@ -88,7 +89,7 @@ class Kolatv:
         #    1. 更新各菜单下最热50部节目最新数据(每4小时一次）
         #    2. 更新前200部节目最新数据(每12小时一次）
         #    3. 更新所有节目的最新数据(每天一次）
-        print "UpdateAll"
+        print("UpdateAll")
         #for (_, menu) in self.MenuList.items():
         #    menu.UpdateAlbumList()         # 重新获得所有节目列表
         #    menu.UpdateAllAlbumFullInfo()  # 更新节目详细信息
@@ -98,7 +99,7 @@ class Kolatv:
         return self.engine.ParserRealUrl(text)
 
     def FindMenu(self, name):
-        if self.MenuList.has_key(name):
+        if name in self.MenuList:
             return self.MenuList[name]
         else:
             return None
@@ -118,7 +119,7 @@ def main():
 
     tv = Kolatv()
     tv.UpdateAlbumList()  # 更所有菜单的节目列表
-    for (_, m) in tv.MenuList.items():
+    for (_, m) in list(tv.MenuList.items()):
         m.UpdateAllAlbumFullInfo()
 
 if __name__ == '__main__':

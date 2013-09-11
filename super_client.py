@@ -1,4 +1,4 @@
-#! env /usr/bin/python
+#! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import sys, os
@@ -11,10 +11,10 @@ sys.path.append(f_path + "/..")
 from pymongo import Connection
 import traceback
 import json
-from utils.fetchTools import fetch_httplib2 as fetch
+from .utils.fetchTools import fetch_httplib2 as fetch
 import base64
 import re
-from utils.ThreadPool import ThreadPool
+from .utils.ThreadPool import ThreadPool
 from Crypto.PublicKey import RSA
 import hashlib
 
@@ -161,10 +161,10 @@ class KolaMenu:
                 #'fields': {},
                 #'sort': {},
                 }
-        print self.client.PostUrl(url, json.dumps(body))
+        print(self.client.PostUrl(url, json.dumps(body)))
 
     def Show(self):
-        print "Name:", self.name, "CID:", self.cid
+        print("Name:", self.name, "CID:", self.cid)
 
 class KolaClient:
     def __init__(self):
@@ -193,7 +193,6 @@ class KolaClient:
 
     def GetCacheUrl(self, url):
 #         url = MAINSERVER_HOST + '/video/cache?url=' + urllib.quote(url)
-#         print url
 #         return self.GetUrl(url)
 
         response = ''
@@ -228,7 +227,7 @@ class KolaClient:
             return self.PostUrl(HOST + '/video/getplayer', response)
         except:
             t, v, tb = sys.exc_info()
-            print ("GetSoHuRealUrl playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+            print("GetSoHuRealUrl playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
             return self.GetRealPlayer(url, times + 1)
 
         return ''
@@ -252,22 +251,22 @@ class KolaClient:
             return False
         try:
             response = self.GetCacheUrl(cmd['source'])
-            if cmd.has_key('regular'):
+            if 'regular' in cmd:
                 response = self.RegularMatch(cmd['regular'], response)
 
             if response != '':
                 base = base64.encodestring(str(response))
                 cmd['data'] = base
             else:
-                print "[WARNING] Data is empty: ", cmd['source']
+                print("[WARNING] Data is empty: ", cmd['source'])
             body = json.dumps(cmd) #, ensure_ascii = False)
             ret = self.PostUrl(cmd['dest'], body) != None
         except:
             t, v, tb = sys.exc_info()
-            print ("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+            print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
             return self.ProcessCommand(cmd, times + 1)
 
-        print (ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', cmd['dest']
+        print((ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', cmd['dest'])
         return ret
 
     def GetKey(self):
@@ -278,7 +277,7 @@ class KolaClient:
 
         except:
             t, v, tb = sys.exc_info()
-            print ("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
+            print("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
 
         return ''
 
@@ -302,7 +301,7 @@ class KolaClient:
                     ret = True
         except:
             t, v, tb = sys.exc_info()
-            print ("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
+            print("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
 
         return ret
 
@@ -325,20 +324,20 @@ def test_album():
         'http://tv.sohu.com/20110328/n304983620.shtml'
     ]
     for u in  url:
-        print u
+        print(u)
         x = haha.RegularMatchUrl(u, regular)
-        print x
-        print "======================="
-        print re.findall(regular, x)
-        print "\n"
+        print(x)
+        print("=======================")
+        print(re.findall(regular, x))
+        print("\n")
 
     return
 
     url = album_table.find({}, fields = {'albumPageUrl': True})
     for u in  url:
-        print u['albumPageUrl']
+        print(u['albumPageUrl'])
         x = haha.RegularMatchUrl(u['albumPageUrl'], regular)
-        print x
+        print(x)
 
     return
 

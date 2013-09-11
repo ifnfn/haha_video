@@ -24,7 +24,7 @@ class JSONPHandler(BaseHandler):
         if chunk: self.write(chunk)
         # get client callback method
         #callback = tornado.escape(self.get_argument(self.CALLBACK, None))
-        #print "callback", callback
+        #print("callback", callback)
         # format output with jsonp
         #self._write_buffer.insert(0, callback + '(')
         #self._write_buffer.append(')')

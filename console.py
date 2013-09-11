@@ -1,4 +1,4 @@
-#! env /usr/bin/python
+#! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import sys, os
@@ -6,10 +6,10 @@ import sys, os
 import traceback
 import json
 import redis
-from utils.fetchTools import fetch_httplib2 as fetch
+from .utils.fetchTools import fetch_httplib2 as fetch
 import base64
 import re
-from utils.ThreadPool import ThreadPool
+from .utils.ThreadPool import ThreadPool
 from pymongo import Connection
 
 #log = logging.getLogger("crawler")

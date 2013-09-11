@@ -1,12 +1,12 @@
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 '''
 Created on 2012-8-3
 
 @author: wangwf
 '''
-import cookielib
-from mypackage import urllib, urllib2, httplib2
-import StringIO, gzip
+import httplib2
+import io, gzip
 
 global headers
 
@@ -24,24 +24,7 @@ headers = {
     'Cache-Control'  : 'max-age=0'
 }
 
-cookie = cookielib.CookieJar()
-opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
-urllib2.install_opener(opener)
-
-def fetch_urllib2(url, data=None, ip=None, headers=headers):
-    if not data and data == 'none':
-        data =None
-
-    request = urllib2.Request(url, data, headers)
-    request.add_header("Accept-encoding", "gzip")
-    usock = urllib2.urlopen(request, source_ip=ip, timeout=socket_timeout, host=None)
-    response = usock.read()
-    if usock.headers.get('content-encoding', None) == 'gzip':
-        response = gzip.GzipFile(fileobj=StringIO.StringIO(response)).read()
-
-    return usock.getcode(), usock.headers.get('content-type'), usock.headers.get('content-length'), response
-
-def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, referer=None, acceptencoding=None, proxy=None, ip=None, authority=None):
+def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, referer=None, acceptencoding=None):
 #    if method == 'GET' and (data or data != 'none'):
 #        data = None
     if cookies and cookies != 'none':
@@ -58,8 +41,7 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
         header['Content-Type'] = 'application/x-www-form-urlencoded'
     conn = httplib2.Http(timeout=socket_timeout)
     conn.follow_redirects = True
-    response, content = conn.request(uri=url, method=str(method).upper(), body=data,  headers=header,\
-                                     redirections=5, connection_type=None, source_ip=ip, authority=authority)
+    response, content = conn.request(uri=url, method=str(method).upper(), body=data,  headers=header)
     try:
         if response['-content-encoding'] == 'gzip':
             responses = gzip.GzipFile(fileobj=StringIO.StringIO(content)).read()
@@ -84,10 +66,14 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
     except:
         location = ''
 
-    if headers.has_key('referer'):
+    if 'referer' in headers:
         headers.pop('referer')
-    if headers.has_key('Cookie'):
+    if 'Cookie' in headers:
         headers.pop('Cookie')
 
     return response['status'], content_type, location, responses
 
+
+if __name__ == '__main__':
+    _, _, _, response = fetch_httplib2('http://tv.sohu.com')
+    print(response)

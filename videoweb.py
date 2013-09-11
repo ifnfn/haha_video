@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import tornado.ioloop
@@ -12,8 +12,8 @@ from tornado.options import define, options
 import redis
 import json
 # import re
-from basehandle import BaseHandler#, JSONPHandler
-from kolatv import Kolatv
+from .basehandle import BaseHandler#, JSONPHandler
+from .kolatv import Kolatv
 
 tv = Kolatv()
 
@@ -76,7 +76,7 @@ class GetPlayerHandler(BaseHandler):
 
 # http://xxxxx/video/getmenu?cid=1,2
 # http://xxxxx/video/getmenu
-# http://xxxxx/video/getmenu?name=µçÓ°,µçÊÓ¾ç
+# http://xxxxx/video/getmenu?name=ç”µå½±,ç”µè§†å‰§
 # http://xxxxx/video/getmenu?name=
 class GetMenupHandler(BaseHandler):
     def get(self):
@@ -102,7 +102,7 @@ class UploadHandler(BaseHandler):
     def post(self):
 #         user_id = self.get_argument('user_id')
 #         user_key = self.get_argument('user_key')
-#         print self.request.remote_ip, user_id, user_key
+#         print(self.request.remote_ip, user_id, user_key)
 #
 #         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 #         if not db.exists(user_id):
@@ -127,10 +127,10 @@ class Application(tornado.web.Application):
 
         handlers = [
             (r'/video/list',              VideoListHandler),
-            (r'/video/upload',            UploadHandler),          # ½ÓÊÜ¿Í»§¶ËÉÏÍøµÄĞèÒª½âÎöµÄÍøÒ³ÎÄ±¾
-            (r'/video/getplayer',         GetPlayerHandler),       # µÃµ½ÏÂÔØµØÎ»
-            (r'/video/urlmap',            UrlMapHandler),          # ºóÌ¨¹ÜÀí£¬Ôö¼ÓÍøÖ·Ó³Éä
-            (r'/video/getmenu',           GetMenupHandler),        # ºóÌ¨¹ÜÀí£¬Ôö¼ÓÍøÖ·Ó³Éä
+            (r'/video/upload',            UploadHandler),          # æ¥å—å®¢æˆ·ç«¯ä¸Šç½‘çš„éœ€è¦è§£æçš„ç½‘é¡µæ–‡æœ¬
+            (r'/video/getplayer',         GetPlayerHandler),       # å¾—åˆ°ä¸‹è½½åœ°ä½
+            (r'/video/urlmap',            UrlMapHandler),          # åå°ç®¡ç†ï¼Œå¢åŠ ç½‘å€æ˜ å°„
+            (r'/video/getmenu',           GetMenupHandler),        # åå°ç®¡ç†ï¼Œå¢åŠ ç½‘å€æ˜ å°„
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

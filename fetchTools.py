@@ -50,17 +50,9 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
     except:
         responses = content
     try:
-        cookie = response['set-cookie']
-    except:
-        cookie = ''
-    try:
         content_type = response['content-type']
     except:
         content_type = ''
-    try:
-        content_length = response['content-length']
-    except:
-        content_length = ''
     try:
         location = response['location']
     except:
@@ -74,6 +66,9 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
     return response['status'], content_type, location, responses
 
 
+
 if __name__ == '__main__':
-    _, _, _, response = fetch_httplib2('http://tv.sohu.com')
-    print(response)
+    url = 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html'
+    url = 'http://index.tv.sohu.com/index/switch-aid/1012657'
+    _, _, _, response = fetch_httplib2(url)
+    print(response.decode())

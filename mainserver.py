@@ -1,17 +1,17 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import tornado.ioloop
-import tornado.web
-import tornado.options
-from tornado.options import define, options
-from .utils.fetchTools import fetch_httplib2 as fetch
-
 import redis
 import json
 import hashlib
 from Crypto.PublicKey import RSA
-from .basehandle import BaseHandler#, JSONPHandler
+import tornado.ioloop
+import tornado.web
+import tornado.options
+from tornado.options import define, options
+
+from fetchTools import fetch_httplib2 as fetch
+from basehandle import BaseHandler#, JSONPHandler
 
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
 
@@ -93,14 +93,16 @@ class LoginHandler(BaseHandler):
             'next': 10   # 下次登录时间
         }
         if not db.exists(user_id):
-            key = hashlib.md5(user_id + self.request.remote_ip).hexdigest().upper()
+            key = (user_id + self.request.remote_ip).encode()
+            key = hashlib.md5(key).hexdigest().upper()
             db.set(user_id, key)
         else:
-            key = db.get(user_id)
+            key = db.get(user_id).decode()
 
         ret['key'] = key
         cmd = db.lpop('command')
         if cmd:
+            cmd = cmd.decode()
             data =json.loads(cmd)
             ret['command'].append(data)
         self.finish(json.dumps(ret))
@@ -113,7 +115,7 @@ class AddCommandHandler(BaseHandler):
         pass
 
     def post(self):
-        body = self.request.body
+        body = self.request.body.decode()
         if body:
             db = redis.Redis(host='127.0.0.1', port=6379, db=1)
             db.rpush('command', body)

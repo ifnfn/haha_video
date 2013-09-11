@@ -5,9 +5,10 @@ import logging
 import traceback
 import sys
 import json
-from .utils.fetchTools import fetch_httplib2 as fetch
-from pymongo import Connection
 import configparser
+from pymongo import Connection
+
+from fetchTools import fetch_httplib2 as fetch
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -353,6 +354,7 @@ class VideoMenuBase:
         return ret
 
     def GetAlbum(self, playlistid = '', albumName = '', albumPageUrl= '', auto = False):
+        playlistid = autostr(playlistid)
         if playlistid == '' and albumName == '' and albumPageUrl == '':
             return None
 

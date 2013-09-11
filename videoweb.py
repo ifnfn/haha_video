@@ -12,8 +12,8 @@ from tornado.options import define, options
 import redis
 import json
 # import re
-from .basehandle import BaseHandler#, JSONPHandler
-from .kolatv import Kolatv
+from basehandle import BaseHandler#, JSONPHandler
+from kolatv import Kolatv
 
 tv = Kolatv()
 
@@ -110,7 +110,7 @@ class UploadHandler(BaseHandler):
 #         elif db.get(user_id) != user_key:
 #             raise tornado.web.HTTPError(400, "Missing user_key %s" % user_key)
 
-        body = self.request.body
+        body = self.request.body.decode()
         if body and len(body) > 0:
             tv.AddTask(body)
 

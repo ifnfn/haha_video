@@ -4,12 +4,12 @@
 import json
 import base64
 import redis
-from . import sohuengine as eg
-
 import logging
 import os
-from .utils.ThreadPool import ThreadPool
 from apscheduler.scheduler import Scheduler
+
+import sohuengine as eg
+from ThreadPool import ThreadPool
 
 POOLSIZE = 10
 
@@ -58,7 +58,7 @@ class Kolatv:
             print("Error:", js['source'])
             return False
 
-        text = base64.decodestring(js['data'])
+        text = base64.decodebytes(js['data'].encode())
         if text:
             js['data'] = text
             menuName = js['menu']

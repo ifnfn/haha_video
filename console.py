@@ -6,10 +6,10 @@ import sys, os
 import traceback
 import json
 import redis
-from .utils.fetchTools import fetch_httplib2 as fetch
+from fetchTools import fetch_httplib2 as fetch
 import base64
 import re
-from .utils.ThreadPool import ThreadPool
+from ThreadPool import ThreadPool
 from pymongo import Connection
 
 #log = logging.getLogger("crawler")

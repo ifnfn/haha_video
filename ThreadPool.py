@@ -5,7 +5,6 @@ ThreadPool Implementation
 @license: LGPL v3
 '''
 
-
 from threading import Thread, RLock
 from time import sleep
 from queue import Queue, Empty

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys, os
-reload(sys)
 f_path = os.path.dirname(__file__)
 if len(f_path) < 1: f_path = "."
 sys.path.append(f_path)
@@ -11,14 +10,14 @@ sys.path.append(f_path + "/..")
 from pymongo import Connection
 import traceback
 import json
-from .utils.fetchTools import fetch_httplib2 as fetch
 import base64
 import re
-from .utils.ThreadPool import ThreadPool
 from Crypto.PublicKey import RSA
 import hashlib
 
-#log = logging.getLogger("crawler")
+from fetchTools import fetch_httplib2 as fetch
+from ThreadPool import ThreadPool
+
 MAINSERVER_HOST = 'http://127.0.0.1:9990'
 #MAINSERVER_HOST = 'http://121.199.20.175:9990'
 HOST = 'http://127.0.0.1:9991'
@@ -26,9 +25,33 @@ PARSER_HOST  = HOST + '/video/upload'
 MAX_TRY = 3
 
 cmd_list = [
+    {
+        'name'    : 'album_score',
+        'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+        'regular' : [
+            '({"index":\S+?),"asudIncomes'
+        ]
+    },
+    {
+        'name'    : 'videoall',
+        'source'  : 'http://tv.sohu.com/movieall/',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+    },
+    {
+        'name'    : 'album',
+        'source'  : 'http://store.tv.sohu.com/view_content/movie/1008522_577560.html',
+        'menu'    : '电影',
+        'dest'    : PARSER_HOST,
+        'regular' : [
+            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
+        ]
+    },
 #    {
-#        'name'    : 'videoall',
-#        'source'  : 'http://tv.sohu.com/movieall/',
+#        'name'    : 'album',
+#        'source'  : 'http://tv.sohu.com/s2011/ajyh/',
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #    },
@@ -38,7 +61,7 @@ cmd_list = [
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
+#            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
 #    {
@@ -47,34 +70,16 @@ cmd_list = [
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
+#            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
-#    {
-#        'name'    : 'album',
-#        'source'  : 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
-#        'menu'    : '电影',
-#        'dest'    : PARSER_HOST,
-#        'regular' : [
-#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
-#        ]
-#    },
-    {
-        'name'    : 'album',
-        'source'  : 'http://tv.sohu.com/s2011/nrb/',
-        'menu'    : '电影',
-        'dest'    : PARSER_HOST,
-        'regular' : [
-            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
-        ]
-    },
 #    {
 #        'name'    : 'album',
 #        'source'  : 'http://tv.sohu.com/20120517/n343417005.shtml',
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
+#            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
 #    {
@@ -83,7 +88,7 @@ cmd_list = [
 #        'menu'    : '电影',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
-#            'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
+#            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
 #        ]
 #    },
 #    {
@@ -197,10 +202,10 @@ class KolaClient:
 
         response = ''
 
-        key = hashlib.md5(url).hexdigest().upper()
+        key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
         filename = f_path + '/cache/' + key
         if os.path.exists(filename):
-            f = open(filename, 'r')
+            f = open(filename, 'rb')
             response = f.read()
             f.close()
         else:
@@ -251,19 +256,27 @@ class KolaClient:
             return False
         try:
             response = self.GetCacheUrl(cmd['source'])
+            codingg = 'utf8'
             if 'regular' in cmd:
-                response = self.RegularMatch(cmd['regular'], response)
+                try:
+                    text = response.decode(coding)
+                except:
+                    coding = 'GBK'
+                    text = response.decode(coding)
 
-            if response != '':
-                base = base64.encodestring(str(response))
-                cmd['data'] = base
+                response = self.RegularMatch(cmd['regular'], text)
+                response = response.encode(coding)
+
+            if response:
+                base = base64.encodebytes(response)
+                cmd['data'] = base.decode()
             else:
                 print("[WARNING] Data is empty: ", cmd['source'])
             body = json.dumps(cmd) #, ensure_ascii = False)
             ret = self.PostUrl(cmd['dest'], body) != None
         except:
             t, v, tb = sys.exc_info()
-            print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+            print("ProcessCommand playurl: %s %s, %s, %s" % (cmd['source'], t, v, traceback.format_tb(tb)))
             return self.ProcessCommand(cmd, times + 1)
 
         print((ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', cmd['dest'])
@@ -290,9 +303,7 @@ class KolaClient:
         playurl = MAINSERVER_HOST + '/video/login?user_id=000000'
 
         try:
-            response = self.GetUrl(playurl)
-
-            data = json.loads(response)
+            data = json.loads(self.GetUrl(playurl).decode("utf8"))
 
             if data:
                 if len(data['command']) > 0:
@@ -310,7 +321,10 @@ def test_album():
     db = con.kola
     album_table = db.album
     haha = KolaClient()
-    regular = 'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
+    regular = [
+        'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)',
+        'content="text/html; charset=(\S*?)"'
+    ]
 
     url = [
         'http://tv.sohu.com/s2011/bjdyj/',
@@ -327,9 +341,6 @@ def test_album():
         print(u)
         x = haha.RegularMatchUrl(u, regular)
         print(x)
-        print("=======================")
-        print(re.findall(regular, x))
-        print("\n")
 
     return
 
@@ -371,9 +382,9 @@ def main_getmenu():
 
 if __name__ == "__main__":
     #test()
-    main_thread()
+    #main_thread()
     #test_album()
     #main_one()
-    #main()
+    main()
     #main_getmenu()
 

@@ -12,14 +12,11 @@ import traceback
 import sys
 import json
 import re
-from .utils.fetchTools import fetch_httplib2 as fetch
-from .engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine
-#from .utils.BeautifulSoup import BeautifulSoup as bs
 import redis
-from bs4 import (
-        BeautifulSoup as bs,
-        BeautifulStoneSoup,
-)
+from bs4 import BeautifulSoup as bs
+
+from fetchTools import fetch_httplib2 as fetch
+from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -164,7 +161,7 @@ class SohuVideoMenu(VideoMenuBase):
     def CmdParserHotInfoByIapi(self, js):
         ret = []
         try:
-            text = js['data']
+            text = js['data'].decode()
             js = json.loads(text)
             tv = None
             if 'r' in js:
@@ -184,7 +181,7 @@ class SohuVideoMenu(VideoMenuBase):
     def CmdParserAlbumMvInfo(self, js):
         ret = []
         try:
-            text = js['data']
+            text = js['data'].decode()
             g = re.search('var video_album_videos_result=(\{.*.\})', text)
             if g:
                 playlistid = ''
@@ -194,7 +191,7 @@ class SohuVideoMenu(VideoMenuBase):
                 if 'playlistId' in a:
                     playlistid = str(a['playlistId'])
 
-                if 'videos' in a and str(a['videos']) > 0:
+                if 'videos' in a and len(a['videos']) > 0:
                     tv = None
                     video = a['videos'][0]
                     if 'videoAlbumName' in video:
@@ -233,7 +230,7 @@ class SohuVideoMenu(VideoMenuBase):
     def CmdParserAlbumFullInfo(self, js):
         ret = []
         try:
-            text = js['data']
+            text = js['data'].decode()
             js = json.loads(text)
 
             playlistid = js['playlistid']
@@ -264,7 +261,7 @@ class SohuVideoMenu(VideoMenuBase):
 
         try:
             text = js['data']
-            soup = bs(text)
+            soup = bs(text)#, from_encoding = 'GBK')
             playlist = soup.findAll('li')
             for a in playlist:
                 text = re.findall('<a href="(\S*)"\s+target="_blank">\s*(\S*)\s*</a>', a.prettify())
@@ -302,12 +299,12 @@ class SohuVideoMenu(VideoMenuBase):
     def CmdParserAlbum(self, js):
         ret = []
         try:
-            text = js['data']
+            text = js['data'].decode()
             tv = self.GetAlbumByUrl(js['source'], False)
             if tv == None:
                 return []
 
-            t = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)', text)
+            t = re.findall('var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)', text)
             if t:
                 for u in t:
                     if u[0] == 'pid':
@@ -316,8 +313,6 @@ class SohuVideoMenu(VideoMenuBase):
                         tv.vid = u[1]
                     elif u[0] == 'playlistId' or u[0] == 'PLAYLIST_ID':
                         tv.playlistid = u[1]
-                    elif u[0] == 'tag' and tv.albumName == "":
-                        tv.albumName = u[1]
 
                 if tv.vid == '-1' or tv.vid == '' or tv.vid == '1':
                     return ret
@@ -349,7 +344,8 @@ class SohuVideoMenu(VideoMenuBase):
     def CmdParserAlbumScore(self, js):
         ret = []
         try:
-            x = re.search('(.*?),"asudIncomes', js['data'])
+            text = js['data'].decode()
+            x = re.search('(.*?),"asudIncomes', text)
             if x and x.lastindex > 0:
                 text = x.group(1) + '}'
             else:
@@ -381,6 +377,7 @@ class SohuVideoMenu(VideoMenuBase):
                     ret.append(tv)
 
         except:
+            print(js['source'])
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
@@ -803,7 +800,7 @@ class SohuEngine(VideoEngine):
             'menu'    : '电影',
             'dest'    : self.parser_host,
             'regular' : [
-                'var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\W*([\d,]+)'
+                'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
             ],
         })
 
@@ -862,7 +859,8 @@ class SohuEngine(VideoEngine):
 
                         if self.menu[menu_name]:
                             t = self.menu[menu_name](menu_name, self, u)
-                            ret[menu_name.decode('utf-8')] = t
+                            ret[menu_name] = t
+                            #ret[menu_name.decode('utf-8')] = t
         except:
             t, v, tb = sys.exc_info()
             log.error('SohuEngine.GetMenu:  %s, %s,%s, %s' % (playurl, t, v, traceback.format_tb(tb)))
@@ -1112,7 +1110,7 @@ class test_case:
     #    url = 'http://tv.sohu.com/s2010/72jzk/'
     #    url = 'http://tv.sohu.com/s2011/7film/'
         _, _, _, response = fetch(url)
-        a = re.findall('var (playlistId|pid|vid|tag|PLAYLIST_ID)\s*=\s*\W*(.+?)"*', response)
+        a = re.findall('var (playlistId|pid|vid|PLAYLIST_ID)\s*=\s*\W*(.+?)"*', response)
         print(a)
 
     def test_mvi(self):

@@ -70,5 +70,6 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
 if __name__ == '__main__':
     url = 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html'
     url = 'http://index.tv.sohu.com/index/switch-aid/1012657'
+    url = 'http://www.kolatv.com/'
     _, _, _, response = fetch_httplib2(url)
     print(response.decode())

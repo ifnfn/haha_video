@@ -4,6 +4,10 @@
 #include <jansson.h>
 #include <pcre.h>
 #include <iostream>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 #if ENABLE_SSL
 #include <openssl/pem.h>
@@ -16,7 +20,23 @@
 #include "kola.hpp"
 #include "pcre.hpp"
 
-#define SERVER_HOST "http://127.0.0.1:9990"
+//#define SERVER_HOST "127.0.0.1"
+//#define SERVER_HOST "121.199.20.175"
+#define SERVER_HOST "www.kolatv.com"
+#define PORT 80
+
+static char *GetIP(const char *hostp)
+{
+	char str[32];
+	struct hostent *host = gethostbyname(hostp);
+
+	if (host == NULL)
+		return NULL;
+
+	inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
+
+	return strdup(str);
+}
 
 static char *ReadStringFile(FILE *fp)
 {
@@ -93,7 +113,7 @@ void test(void) {
 	FILE *fp = fopen("a.txt", "r");
 	char *x = ReadStringFile(fp);
 	fclose(fp);
-	pcre.AddRule("(var) (playlistId|pid|vid|tag|PLAYLIST_ID)\\s*=\\s*\"(.+?)\";");
+	pcre.AddRule("(var) (playlistId|pid|vid|PLAYLIST_ID)\\s*=\\s*\"(.+?)\";");
 	string xout = pcre.MatchAll(x);
 	std::cout << xout << std::endl;
 	free(x);
@@ -106,7 +126,7 @@ static char *http_get_str(const char *url)
 	http_resp_t *http_resp = NULL;
 	http_client = http_init_connection(url);
 	if (http_client == NULL) {
-		printf("no client\n");
+		printf("no client: %s\n", url);
 		return NULL;
 	}
 	int rc = http_get(http_client, "", &http_resp);
@@ -119,6 +139,22 @@ static char *http_get_str(const char *url)
 	return ret;
 }
 
+KolaClient::KolaClient(void)
+{
+	char buffer[512];
+	char *p = GetIP(SERVER_HOST);
+
+	if (p) {
+		sprintf(buffer, "http://%s:%d", p, PORT);
+		host_url = strdup(buffer);
+		free(p);
+	}
+
+	nextLoginSec = 3;
+#if ENABLE_SSL
+	rsa = NULL;
+#endif
+}
 #if ENABLE_SSL
 int KolaClient::Decrypt(int flen, const unsigned char *from, unsigned char *to)
 {
@@ -132,7 +168,11 @@ int KolaClient::Encrypt(int flen, const unsigned char *from, unsigned char *to)
 #endif
 void KolaClient::GetKey(void)
 {
-	const char *t = http_get_str(SERVER_HOST"/video/key");
+	char url[256];
+	sprintf(url, "%s/key", host_url);
+
+	const char *t = http_get_str(url);
+	printf("%s=\n", t);
 	if (t) {
 		publicKey = t;
 		std::cout << publicKey << std::endl;
@@ -192,12 +232,11 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 	json_sets(cmd, "data", out_buffer);
 	char *body = json_dumps(cmd, 2);
 
-//	printf("body: %s\n", body);
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
 	http_client = http_init_connection(dest);
 	if (http_client == NULL) {
-		printf("no client\n");
+		printf("no client: %s\n", dest);
 		goto out;
 	}
 	ret = http_post(http_client, "", &http_resp, body);
@@ -225,19 +264,18 @@ bool KolaClient::Login(void)
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
 
-	http_client = http_init_connection(SERVER_HOST);
+	http_client = http_init_connection(host_url);
 	if (http_client == NULL) {
-		printf("no client\n");
+		printf("no client: %s\n", host_url);
 		return (1);
 	}
 
-	ret = http_get(http_client, "/video/login?user_id=123123", &http_resp);
+	ret = http_get(http_client, "/login?user_id=123123", &http_resp);
 	if (http_resp) {
 		json_t *js = json_loads(http_resp->body, JSON_REJECT_DUPLICATES, &error);
 		if (js) {
 			const char *v = json_gets(js, "key", "");
-			baseUrl = json_gets(js, "server", SERVER_HOST);
-			printf("===================================================\n");
+			baseUrl = json_gets(js, "server", host_url);
 			printf("key= %s\n", v);
 			json_t *cmd = json_geto(js, "command");
 			if (cmd && json_is_array(cmd)) {
@@ -261,13 +299,12 @@ bool KolaClient::Login(void)
 
 int main(int argc, char **argv)
 {
+	char *s = GetIP("www.kolatv.com");
 //	test();
 //	return 0;
 	KolaClient kola;
 
-	kola.GetKey();
 	kola.Login();
 	return 0;
 }
-
 

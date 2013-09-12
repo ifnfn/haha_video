@@ -41,12 +41,7 @@ class KolaMenu {
 
 class KolaClient {
 	public:
-		KolaClient(void) {
-			nextLoginSec = 3;
-#if ENABLE_SSL
-			rsa = NULL;
-#endif
-		}
+		KolaClient(void);
 		~KolaClient(void) {
 #if ENABLE_SSL
 			if (rsa)
@@ -60,6 +55,7 @@ class KolaClient {
 		std::string publicKey;
 		std::string baseUrl;
 		int nextLoginSec;
+		char *host_url;
 #if ENABLE_SSL
 		RSA *rsa;
 		int Decrypt(int flen, const unsigned char *from, unsigned char *to);

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -87,6 +88,80 @@ void http_debug(int loglevel, const char *fmt, ...)
 
 #endif
 
+static char _x2c(char hex_up, char hex_low){
+	char digit;
+	digit = 16 * (hex_up >= 'A' ? ((hex_up & 0xdf) - 'A') + 10 : (hex_up - '0'));
+	digit += (hex_low >= 'A' ? ((hex_low & 0xdf) - 'A') + 10 : (hex_low - '0'));
+
+	return (digit);
+}
+
+
+/**********************************************
+ ** Usage : qURLencode(string to encode);
+ ** Return: Pointer of encoded str which is memory allocated.
+ ** Do    : Encode string.
+ **********************************************/
+char *URLencode(char *str)
+{
+	char *encstr, buf[2+1];
+	unsigned char c;
+	int i, j;
+
+	if(str == NULL) return NULL;
+	if((encstr = (char *)malloc((strlen(str) * 3) + 1)) == NULL) return NULL;
+
+	for(i = j = 0; str[i]; i++) {
+		c = (unsigned char)str[i];
+		if((c >= '0') && (c <= '9')) encstr[j++] = c;
+		else if((c >= 'A') && (c <= 'Z')) encstr[j++] = c;
+		else if((c >= 'a') && (c <= 'z')) encstr[j++] = c;
+		else if((c == '@') || (c == '.') || (c == '/') || (c == '\\')
+				|| (c == '-') || (c == '_') || (c == ':') ) encstr[j++] = c;
+		else {
+			sprintf(buf, "%02x", c);
+			encstr[j++] = '%';
+			encstr[j++] = buf[0];
+			encstr[j++] = buf[1];
+		}
+	}
+	encstr[j] = '\0';
+
+	return encstr;
+}
+
+/**********************************************
+ ** Usage : qURLdecode(query pointer);
+ ** Return: Pointer of query string.
+ ** Do    : Decode query string.
+ **********************************************/
+char *URLdecode(char *str)
+{
+	int i, j;
+
+	if(!str) return NULL;
+	for(i = j = 0; str[j]; i++, j++) {
+		switch(str[j]) {
+			case '+':{
+					 str[i] = ' ';
+					 break;
+				 }
+			case '%':{
+					 str[i] = _x2c(str[j + 1], str[j + 2]);
+					 j += 2;
+					 break;
+				 }
+			default:{
+					str[i] = str[j];
+					break;
+				}
+		}
+	}
+	str[i]='\0';
+
+	return str;
+}
+
 static char *convert_url(const char *to_convert)
 {
 	char *ret, *p;
@@ -126,7 +201,7 @@ static char *convert_url(const char *to_convert)
  * http_init_connection()
  * decode url and make connection
  */
-http_client_t *http_init_connection (const char *name)
+http_client_t *http_init_connection(const char *name)
 {
 	http_client_t *ptr;
 	char *url;
@@ -271,7 +346,6 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp)
 
 int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *body)
 {
-//	char header_buffer[4096];
 	char *header_buffer;
 	uint32_t buffer_len, max_len;
 	int ret = -1;
@@ -289,9 +363,10 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 		cptr->m_resource = strdup(url);
 	}
 
+	body = URLencode(body);
 	max_len = strlen(body) + 2048;
-
 	header_buffer = (char*)malloc(max_len);
+
 	/*
 	 * build header and send message
 	 */
@@ -360,6 +435,7 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 
 out:
 	free(header_buffer);
+	free(body);
 	return ret;
 }
 
@@ -370,7 +446,7 @@ out:
  * We're looking for m_host (destination name), m_port (destination port)
  * and m_resource (location of file on m_host - also called path)
  */
-static int http_dissect_url (const char *name, http_client_t *cptr)
+static int http_dissect_url(const char *name, http_client_t *cptr)
 {
 	// Assume name points at host name
 	const char *uptr = name;
@@ -390,18 +466,18 @@ static int http_dissect_url (const char *name, http_client_t *cptr)
 			} else
 				nextcolon = NULL;
 			nextslash = strchr(rightbracket, '/');
-		} else {
+		} else
 			return -1;
-		}
-	} else {
+
+	}
+	else {
 		nextslash = strchr(uptr, '/');
 		nextcolon = strchr(uptr, ':');
 	}
 
 	cptr->m_port = 80;
 	if (nextslash != NULL || nextcolon != NULL) {
-		if (nextcolon != NULL &&
-				(nextcolon < nextslash || nextslash == NULL)) {
+		if (nextcolon != NULL && (nextcolon < nextslash || nextslash == NULL)) {
 			hostlen = nextcolon - uptr;
 			// have a port number
 			nextcolon++;
@@ -414,32 +490,34 @@ static int http_dissect_url (const char *name, http_client_t *cptr)
 			if (cptr->m_port == 0 || (*nextcolon != '/' && *nextcolon != '\0')) {
 				return -1;
 			}
-		} else {
+		}
+		else {
 			// no port number
 			hostlen = nextslash - uptr;
 
 		}
-		if (hostlen == 0) {
+		if (hostlen == 0)
 			return -1;
-		}
+
 		FREE_CHECK(cptr, m_host);
 		if (rightbracket != NULL) hostlen--;
 		host = (char*)malloc(hostlen + 1);
-		if (host == NULL) {
+		if (host == NULL)
 			return -1;
-		}
+
 		memcpy(host, uptr, hostlen);
 		host[hostlen] = '\0';
 		cptr->m_host = host;
-	} else {
-		if (*uptr == '\0') {
+	}
+	else {
+		if (*uptr == '\0')
 			return EINVAL;
-		}
+
 		FREE_CHECK(cptr, m_host);
 		host = strdup(uptr);
-		if (rightbracket != NULL) {
+		if (rightbracket != NULL)
 			host[strlen(host) - 1] = '\0';
-		}
+
 		cptr->m_host = host;
 	}
 
@@ -542,9 +620,12 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 
 	// Create and connect the socket
 	cptr->m_server_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (cptr->m_server_socket == -1) {
+	if (cptr->m_server_socket == -1)
 		return -1;
-	}
+
+	int nNetTimeout = 30000;
+	setsockopt(cptr->m_server_socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&nNetTimeout,sizeof(int));
+	setsockopt(cptr->m_server_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&nNetTimeout,sizeof(int));
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_port = htons(cptr->m_port);
 	sockaddr.sin_addr = cptr->m_server_addr;
@@ -553,9 +634,9 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 			(struct sockaddr *)&sockaddr,
 			sizeof(sockaddr));
 
-	if (result == -1) {
+	if (result == -1)
 		return -1;
-	}
+
 	cptr->m_state = HTTP_STATE_CONNECTED;
 	return 0;
 }
@@ -794,7 +875,6 @@ HTTP_CMD_DECODE_FUNC(http_cmd_location)
 {
 	FREE_CHECK(cptr, m_redir_location);
 	cptr->m_redir_location = strdup(lptr);
-	printf("dddddddddddddddddddddddddddddddddd   %s\n", lptr);
 }
 
 /*

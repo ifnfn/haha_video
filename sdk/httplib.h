@@ -75,6 +75,9 @@ extern "C" {
    * http_set_loglevel - set the log level for library output
    */
   void http_set_loglevel(int loglevel);
+
+  char *URLencode(char *str);
+  char *URLdecode(char *str);
 #ifdef __cplusplus
 }
 #endif

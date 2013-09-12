@@ -123,14 +123,6 @@ class AddCommandHandler(BaseHandler):
 
         return
 
-class GetMainMenuHandler(BaseHandler):
-    def get(self):
-        pass
-
-class GetAlbumListHandler(BaseHandler):
-    def get(self):
-        pass
-
 class SohuCacheHandler(BaseHandler):
     def get(self):
         response = ''
@@ -143,20 +135,6 @@ class SohuCacheHandler(BaseHandler):
             response = db.get(url)
 
         self.finish(response)
-
-class Login2Handler(BaseHandler):
-    def get(self):
-        #self.add_header('_xsrf', self.xsrf_form_html())
-        #self.set_cookie("checkflag", "true")
-        s = self.xsrf_form_html()
-        self.write('<html><body><form action="/video/login2" method="post">'
-                   'Name: <input type="text" name="name">'
-                   '<input type="submit" value="Sign in">' + s +
-                   '</form></body></html>')
-
-    def post(self):
-        self.set_secure_cookie("user", self.get_argument("name"))
-        self.redirect("/")
 
 define('port', default=9990, help='run on the given port', type=int)
 
@@ -171,18 +149,16 @@ class Application(tornado.web.Application):
         )
 
         handlers = [
-            (r'/video/key',               KeyHandler),              # 取得public key
-            (r'/video/login',             LoginHandler),            # 登录认证
-            (r'/video/login2',            Login2Handler),            # 登录认证
-            (r'/video/addcommand',        AddCommandHandler),       # 增加命令
-            (r'/video/getmenu',           GetMainMenuHandler),      # 得到一级菜单
-            (r'/video/programemlist',     GetAlbumListHandler),     # 得到节目列表
-            (r'/video/cache',             SohuCacheHandler),     # 得到节目列表
+            (r'/key',               KeyHandler),           # 取得public key
+            (r'/login',             LoginHandler),         # 登录认证
+            (r'/addcommand',        AddCommandHandler),    # 增加命令
+            (r'/cache',             SohuCacheHandler),     # 得到节目列表
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)
 
 def main():
+    tornado.options.options.logging = "debug"
     tornado.options.parse_command_line()
     http_server = Application()
     http_server.listen(options.port)

@@ -42,7 +42,7 @@ class VideoListHandler(BaseHandler):
         argument['size'] = int(self.get_argument('size', 20))
         if self.request.body:
             try:
-                umap = json.loads(self.request.body)
+                umap = json.loads(self.request.body.decode())
 #                 argument['filter'] = {}
 #                 argument['fields'] = {}
 #                 argument['sort'] = {}

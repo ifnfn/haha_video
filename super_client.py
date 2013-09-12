@@ -1,4 +1,4 @@
-#! env /usr/bin/python3
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import sys, os
@@ -210,9 +210,10 @@ class KolaClient:
             f.close()
         else:
             _, _, _, response = fetch(url)
-            f = open(filename, 'w')
+            f = open(filename, 'wb')
             f.write(response)
             f.close()
+
         return response
 
     def PostUrl(self, url, body):
@@ -283,7 +284,7 @@ class KolaClient:
         return ret
 
     def GetKey(self):
-        playurl = MAINSERVER_HOST + '/video/key'
+        playurl = MAINSERVER_HOST + '/key'
         try:
             _, _, _, response = fetch(playurl)
             self.rsa = R(response)
@@ -300,7 +301,7 @@ class KolaClient:
         #if self.rsa == None:
         #    self.GetKey()
 
-        playurl = MAINSERVER_HOST + '/video/login?user_id=000000'
+        playurl = MAINSERVER_HOST + '/login?user_id=000000'
 
         try:
             data = json.loads(self.GetUrl(playurl).decode("utf8"))

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+from urllib.parse import unquote
 import tornado.ioloop
 import tornado.web
 import tornado.options
@@ -42,7 +43,7 @@ class VideoListHandler(BaseHandler):
         argument['size'] = int(self.get_argument('size', 20))
         if self.request.body:
             try:
-                umap = json.loads(self.request.body.decode())
+                umap = json.loads(self.request.body)
 #                 argument['filter'] = {}
 #                 argument['fields'] = {}
 #                 argument['sort'] = {}
@@ -110,7 +111,7 @@ class UploadHandler(BaseHandler):
 #         elif db.get(user_id) != user_key:
 #             raise tornado.web.HTTPError(400, "Missing user_key %s" % user_key)
 
-        body = self.request.body.decode()
+        body = unquote(self.request.body.decode())
         if body and len(body) > 0:
             tv.AddTask(body)
 

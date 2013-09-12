@@ -304,7 +304,9 @@ int main(int argc, char **argv)
 //	return 0;
 	KolaClient kola;
 
+	kola.GetKey();
 	kola.Login();
 	return 0;
 }
+
 

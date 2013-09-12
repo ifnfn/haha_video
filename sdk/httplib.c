@@ -468,7 +468,6 @@ static int http_dissect_url(const char *name, http_client_t *cptr)
 			nextslash = strchr(rightbracket, '/');
 		} else
 			return -1;
-
 	}
 	else {
 		nextslash = strchr(uptr, '/');
@@ -623,9 +622,6 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 	if (cptr->m_server_socket == -1)
 		return -1;
 
-	int nNetTimeout = 30000;
-	setsockopt(cptr->m_server_socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&nNetTimeout,sizeof(int));
-	setsockopt(cptr->m_server_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&nNetTimeout,sizeof(int));
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_port = htons(cptr->m_port);
 	sockaddr.sin_addr = cptr->m_server_addr;

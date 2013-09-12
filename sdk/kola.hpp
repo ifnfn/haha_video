@@ -47,6 +47,8 @@ class KolaClient {
 			if (rsa)
 				RSA_free(rsa);
 #endif
+			if (host_url)
+				delete host;
 		}
 		bool Login(void);
 		KolaMenu *GetMenuByName(const char *name);

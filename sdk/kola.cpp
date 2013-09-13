@@ -9,11 +9,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#if ENABLE_SSL
-#include <openssl/pem.h>
-#include <openssl/bio.h>
-#endif
-
 #include "httplib.h"
 #include "json.h"
 #include "base64.h"
@@ -25,10 +20,6 @@
 #define SERVER_HOST "www.kolatv.com"
 #define PORT 80
 
-
-#define foreach(container,i) for(bool __foreach_ctrl__=true;__foreach_ctrl__;)\
-	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
-	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 static char *GetIP(const char *hostp)
 {
@@ -70,6 +61,18 @@ KolaMenu::KolaMenu(KolaClient *parent, json_t *js)
 	PageId   = -1;
 	name = json_gets(js, "name", "");
 	cid = json_geti(js, "cid" , -1);
+	const char *key;
+	json_t *filter = json_geto(js, "filter");
+
+	if (filter) {
+		json_t *value;
+		json_object_foreach(filter, key, value) {
+			printf("key=%s\n", key);
+
+
+		}
+	}
+
 	client = parent;
 	printf("cid = %d, name = %s\n", cid, name.c_str());
 }
@@ -77,9 +80,8 @@ KolaMenu::KolaMenu(KolaClient *parent, json_t *js)
 bool KolaMenu::GetPage(int page)
 {
 	char url[256];
-
-	const char *body = NULL; //"{\"filter\": {}}";
 	char *res;
+	std::string body = filter.GetJsonStr();
 
 	if (page == -1)
 		PageId++;
@@ -87,7 +89,7 @@ bool KolaMenu::GetPage(int page)
 		PageId = page;
 
 	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", PageId, PageSize, name.c_str());
-	if (client->PostUrl(url, body, &res) == true) {
+	if (client->PostUrl(url, body.c_str(), &res) == true) {
 		printf("%s\n", res);
 		delete res;
 	}
@@ -113,12 +115,19 @@ KolaClient::KolaClient(void)
 #if ENABLE_SSL
 int KolaClient::Decrypt(int flen, const unsigned char *from, unsigned char *to)
 {
-	return RSA_public_decrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
+//	return RSA_public_decrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
 }
 
-int KolaClient::Encrypt(int flen, const unsigned char *from, unsigned char *to)
+int KolaClient::Encrypt(int flen, const unsigned char *in, int in_size, unsigned char *out, int out_size)
 {
-	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
+	int rsa_size = RSA_size(rsa);
+	int blocks = in_size / rsa_size;
+	int cur_len = 0;
+
+	for (int i = 0; i < blocks; i++) {
+
+	}
+//	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
 }
 #endif
 
@@ -204,7 +213,7 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 {
 	int ret = -1;
 	char *html;
-	string regular_result;
+	std::string regular_result;
 	Pcre pcre;
 	const char *name = json_gets(cmd, "name", "");
 	const char *source = json_gets(cmd, "source", "");
@@ -263,7 +272,7 @@ bool KolaClient::Login(void)
 
 	if (js) {
 		const char *v = json_gets(js, "key", "");
-		//baseUrl = json_gets(js, "server", baseUrl.c_str());
+		baseUrl = json_gets(js, "server", baseUrl.c_str());
 		json_t *cmd = json_geto(js, "command");
 		if (cmd && json_is_array(cmd)) {
 			int count = json_array_size(cmd);
@@ -296,6 +305,7 @@ bool KolaClient::UpdateMenu(void)
 	}
 
 	menuMap.clear();
+	printf("%s\n", html);
 	js = json_loads(html, JSON_REJECT_DUPLICATES, &error);
 	delete html;
 	count = json_array_size(js);
@@ -304,8 +314,7 @@ bool KolaClient::UpdateMenu(void)
 		if (p) {
 			const char *name = json_gets(p, "name", "");
 
-			KolaMenu* menu = new KolaMenu(this, p);
-			menuMap.insert(pair<std::string, KolaMenu*>(name, menu));
+			menuMap.insert(std::pair<std::string, KolaMenu>(name, KolaMenu(this, p)));
 		}
 	}
 
@@ -315,8 +324,8 @@ bool KolaClient::UpdateMenu(void)
 KolaMenu *KolaClient::GetMenuByCid(int cid)
 {
 	foreach(menuMap, i) {
-		if (i->second->cid == cid)
-			return i->second;
+		if (i->second.cid == cid)
+			return &i->second;
 	}
 
 	return NULL;
@@ -333,17 +342,17 @@ KolaMenu *KolaClient::GetMenuByName(const char *menuName)
 	if (menuName == NULL)
 		return NULL;
 
-	std::map<std::string, KolaMenu*>::iterator it = menuMap.find(menuName);
+	std::map<std::string, KolaMenu>::iterator it = menuMap.find(menuName);
 
 	if (it != menuMap.end())
-		ret = it->second;
+		ret = &it->second;
 
 	if (ret == NULL) {
 		UpdateMenu();
-		std::map<std::string, KolaMenu*>::iterator it = menuMap.find(menuName);
+		std::map<std::string, KolaMenu>::iterator it = menuMap.find(menuName);
 
 		if (it != menuMap.end())
-			ret = it->second;
+			ret = &it->second;
 	}
 
 	return ret;
@@ -351,11 +360,35 @@ KolaMenu *KolaClient::GetMenuByName(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	char *s = GetIP("www.kolatv.com");
+	KolaFilter filter;
+
+	filter.KeyAdd("aa", "a1");
+	filter.KeyAdd("aa", "a2");
+	filter.KeyAdd("aa", "a3");
+	filter.KeyAdd("aa", "a4");
+	filter.KeyAdd("bb", "b1");
+	filter.KeyAdd("bb", "b2");
+	filter.KeyAdd("bb", "b3");
+	filter.KeyAdd("bb", "b4");
+	filter.GetJsonStr();
+	filter.KeyRemove("bb", "b3");
+
+	filter["aa"].Add("aaaaaa");
+	ValueArray keys = filter["aa"];
+	foreach(keys, i)
+		printf("%s\n", i->c_str());
+
+	filter.GetJsonStr();
+	filter["aa"].clear();
+	filter["bb"].clear();
+	printf("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n");
+	filter.GetJsonStr();
+
+	return 0;
 	KolaClient kola;
 
-	kola.GetKey();
-	kola.Login();
+//	kola.GetKey();
+//	kola.Login();
 	kola.UpdateMenu();
 	KolaMenu *m = kola.GetMenuByCid(1);
 	if (m)
@@ -363,9 +396,9 @@ int main(int argc, char **argv)
 	m = kola.GetMenuByName("电影");
 	if (m) {
 		std::cout << m->name << std::endl;
-		m->GetPage();
-		m->GetPage();
-		m->GetPage();
+//		m->GetPage();
+//		m->GetPage();
+//		m->GetPage();
 	}
 	return 0;
 }

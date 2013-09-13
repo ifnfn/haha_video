@@ -4,6 +4,7 @@
 import redis
 import json
 import hashlib
+import base64
 from Crypto.PublicKey import RSA
 import tornado.ioloop
 import tornado.web
@@ -64,7 +65,21 @@ class R:
         print("Has private:", key.has_private())
 
     def RSAEncrypt(self, text):
-        return self.publicRSAKey.encrypt(text, len(text))
+        bits = ""
+        pos = 0
+        size = len(text)
+        chuncklen = self.publicRSAKey.size() // 8 + 1
+        print(chuncklen)
+        while pos <size:
+            a = text[pos : pos + chuncklen].encode()
+            cipheredText = self.publicRSAKey.encrypt(a, "")
+            x = [chr(v) for v in cipheredText[0]]
+            bits += ''.join(x)
+            pos += chuncklen
+
+        print(len(bits))
+
+#        return self.publicRSAKey.encrypt(text, len(text))
 
     def RSADecrypt(self, text):
         return self.privateRSAKey.decrypt(text)
@@ -74,6 +89,7 @@ class R:
 def test():
     a = R()
     t = a.RSAEncrypt('text')
+    print(t)
     print(a.RSADecrypt(t))
 
 class KeyHandler(BaseHandler):
@@ -165,5 +181,5 @@ def main():
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':
-    main()
+    #main()
     test()

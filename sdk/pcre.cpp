@@ -2,6 +2,8 @@
 
 #include "pcre.hpp"
 
+using namespace std;
+
 Pcre::Pcre()
 {
 	re_arr.clear();
@@ -42,7 +44,7 @@ void Pcre::ClearRules()
 }
 
 //match all regrex, if any match, return the matched patten name and it's values
-string Pcre::MatchAll(const char *content)
+std::string Pcre::MatchAll(const char *content)
 {
 	int length = strlen(content);
 	char buf[512];

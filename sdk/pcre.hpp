@@ -6,9 +6,7 @@
 #include <vector>
 #include <string.h>
 
-using namespace std;
-
-const int VECSIZE = 300;
+#define VECSIZE 300
 
 class Pcre {
 public:
@@ -16,17 +14,17 @@ public:
 	~Pcre();
 
 	//Add a regrex, pass in name and regrex
-	int AddRule(const string &patten);
+	int AddRule(const std::string &patten);
 
 	//clear all the regrex
 	void ClearRules();
 
 	//match all the regrex, also return all the string match to every regrex
-	string MatchAll(const char *content);
+	std::string MatchAll(const char *content);
 private:
 	const char *error;
 	int erroffset;
 	int ovector[VECSIZE];
-	vector<pcre*> re_arr;
+	std::vector<pcre*> re_arr;
 };
 #endif

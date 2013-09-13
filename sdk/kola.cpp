@@ -25,6 +25,11 @@
 #define SERVER_HOST "www.kolatv.com"
 #define PORT 80
 
+
+#define foreach(container,i) for(bool __foreach_ctrl__=true;__foreach_ctrl__;)\
+	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
+	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
+
 static char *GetIP(const char *hostp)
 {
 	char str[32];
@@ -59,84 +64,33 @@ static char *ReadStringFile(FILE *fp)
 	return s;
 }
 
-#define OFFSET_SIZE 200
-static int regular(const char *pattern, const char *content, char **out, int *len)
+KolaMenu::KolaMenu(KolaClient *parent, json_t *js)
 {
-	pcre *re;
-	int rc;
-	int erroffset;
-	int ovector[OFFSET_SIZE];
-	const char *error;
-
-	re = pcre_compile(
-			pattern,    /* the pattern                  */
-			0,          /* default options              */
-			&error,     /* for error message            */
-			&erroffset, /* for error offset             */
-			NULL);      /* use default character tables */
-
-	if (re == NULL) {
-		perror("pcre_compile failed");
-		return -1;
-	}
-
-	int offset = 0;
-	int flags = 0;
-	int length = strlen(content);
-	int outlen = 0;
-
-	*out = NULL;
-
-	while (offset < length && (rc = pcre_exec(re, 0, content, length, offset, flags, ovector, OFFSET_SIZE)) > 0) {
-		const char *substring_start = content + ovector[0];
-		int substring_length = ovector[1] - ovector[0];
-
-		*out = (char *)realloc(*out, outlen + substring_length + 1);
-		memcpy(*out + outlen, substring_start, substring_length);
-		outlen += substring_length + 1;
-		(*out)[outlen - 1] = '\n';
-
-		offset = ovector[2 * (rc - 1)];
-		//offset = ovector[1];
-		flags |= PCRE_NOTBOL;
-	}
-	if (*len)
-		*len =outlen;
-
-	pcre_free(re); // finished matching
-
-	return 0;
+	PageSize = 10;
+	PageId   = -1;
+	name = json_gets(js, "name", "");
+	cid = json_geti(js, "cid" , -1);
+	client = parent;
+	printf("cid = %d, name = %s\n", cid, name.c_str());
 }
 
-void test(void) {
-	Pcre pcre;
-	FILE *fp = fopen("a.txt", "r");
-	char *x = ReadStringFile(fp);
-	fclose(fp);
-	pcre.AddRule("(var) (playlistId|pid|vid|PLAYLIST_ID)\\s*=\\s*\"(.+?)\";");
-	string xout = pcre.MatchAll(x);
-	std::cout << xout << std::endl;
-	free(x);
-}
-
-static char *http_get_str(const char *url)
+bool KolaMenu::GetPage(int page)
 {
-	char *ret = NULL;
-	http_client_t *http_client;
-	http_resp_t *http_resp = NULL;
-	http_client = http_init_connection(url);
-	if (http_client == NULL) {
-		printf("no client: %s\n", url);
-		return NULL;
+	char url[256];
+
+	const char *body = NULL; //"{\"filter\": {}}";
+	char *res;
+
+	if (page == -1)
+		PageId++;
+	else
+		PageId = page;
+
+	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", PageId, PageSize, name.c_str());
+	if (client->PostUrl(url, body, &res) == true) {
+		printf("%s\n", res);
+		delete res;
 	}
-	int rc = http_get(http_client, "", &http_resp);
-	if (rc && http_resp && http_resp->body)
-		ret = strdup(http_resp->body);
-
-	http_resp_free(http_resp);
-	http_free_connection(http_client);
-
-	return ret;
 }
 
 KolaClient::KolaClient(void)
@@ -146,8 +100,8 @@ KolaClient::KolaClient(void)
 
 	if (p) {
 		sprintf(buffer, "http://%s:%d", p, PORT);
-		host_url = strdup(buffer);
-		free(p);
+		baseUrl = buffer;
+		delete p;
 	}
 
 	nextLoginSec = 3;
@@ -155,6 +109,7 @@ KolaClient::KolaClient(void)
 	rsa = NULL;
 #endif
 }
+
 #if ENABLE_SSL
 int KolaClient::Decrypt(int flen, const unsigned char *from, unsigned char *to)
 {
@@ -166,21 +121,72 @@ int KolaClient::Encrypt(int flen, const unsigned char *from, unsigned char *to)
 	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
 }
 #endif
+
+bool KolaClient::GetUrl(const char *url, char **ret, const char *home)
+{
+	bool ok = false;
+	http_client_t *http_client;
+	http_resp_t *http_resp = NULL;
+
+	if (home == NULL)
+		home = baseUrl.c_str();
+
+	http_client = http_init_connection(home);
+	if (http_client == NULL) {
+		printf("no client: %s\n", url);
+		return false;
+	}
+	int rc = http_get(http_client, url, &http_resp);
+	if (rc && ret != NULL && http_resp && http_resp->body) {
+		*ret = strdup(http_resp->body);
+		ok = true;
+	}
+
+	http_resp_free(http_resp);
+	http_free_connection(http_client);
+
+	return ok;
+}
+
+bool KolaClient::PostUrl(const char *url, const char *body, char **ret, const char *home)
+{
+	bool ok = false;
+	http_client_t *http_client;
+	http_resp_t *http_resp = NULL;
+
+	if (home == NULL)
+		home = baseUrl.c_str();
+
+	http_client = http_init_connection(home);
+	if (http_client == NULL) {
+		printf("no client: %s\n", url);
+		return false;
+	}
+
+	int rc = http_post(http_client, url, &http_resp, body);
+	if (rc && ret != NULL && http_resp && http_resp->body) {
+		*ret = strdup(http_resp->body);
+		ok = true;
+	}
+
+	http_resp_free(http_resp);
+	http_free_connection(http_client);
+
+	return ok;
+}
+
 void KolaClient::GetKey(void)
 {
-	char url[256];
-	sprintf(url, "%s/key", host_url);
-
-	const char *t = http_get_str(url);
-	printf("%s=\n", t);
-	if (t) {
+	char *t = NULL;
+	if (GetUrl("/key", &t) == true) {
 		publicKey = t;
-		std::cout << publicKey << std::endl;
+//		std::cout << publicKey << std::endl;
 #if ENABLE_SSL
 		BIO *key= BIO_new_mem_buf((void*)t, strlen(t));
 		rsa = PEM_read_bio_RSA_PUBKEY(key, NULL, NULL, NULL);
 		BIO_free_all(key);
 #endif
+		delete t;
 	}
 }
 
@@ -197,17 +203,22 @@ char *KolaClient::Run(const char *cmd)
 bool KolaClient::ProcessCommand(json_t *cmd)
 {
 	int ret = -1;
-	const char *name = json_gets(cmd, "name", "");
-	const char *source = json_gets(cmd, "source", "");
-	const char *dest = json_gets(cmd, "dest", "");
 	char *html;
 	string regular_result;
 	Pcre pcre;
+	const char *name = json_gets(cmd, "name", "");
+	const char *source = json_gets(cmd, "source", "");
+	const char *dest = json_gets(cmd, "dest", "");
 
-	html = http_get_str(source);
+	printf("%s --> %s\n", source, dest);
 
-	if (html == NULL)
+	if (GetUrl("", &html, source) == false)
 		return false;
+
+	if (strlen(html) == 0) {
+		delete html;
+		return false;
+	}
 
 	json_t *regular = json_object_get(cmd, "regular");
 	if (json_is_array(regular)) {
@@ -222,8 +233,6 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 	else
 		regular_result = html;
 
-	free(html);
-
 	int in_size = regular_result.size();
 	int out_size = BASE64_SIZE(in_size);
 
@@ -232,24 +241,11 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 	json_sets(cmd, "data", out_buffer);
 	char *body = json_dumps(cmd, 2);
 
-	http_client_t *http_client;
-	http_resp_t *http_resp = NULL;
-	http_client = http_init_connection(dest);
-	if (http_client == NULL) {
-		printf("no client: %s\n", dest);
-		goto out;
-	}
-	ret = http_post(http_client, "", &http_resp, body);
-	if (ret && http_resp && http_resp->body) {
-		printf("%s\n", http_resp->body);
-	}
-
-	http_resp_free(http_resp);
-	http_free_connection(http_client);
-
+	PostUrl("", body, NULL, dest);
 out:
-	free(body);
-	free(out_buffer);
+	delete body;
+	delete out_buffer;
+	delete html;
 
 	return 0;
 }
@@ -257,55 +253,120 @@ out:
 bool KolaClient::Login(void)
 {
 	json_error_t error;
-	char *data = NULL, *filename = NULL;
-	char typebuf[70];
-	int len;
-	int ret;
-	http_client_t *http_client;
-	http_resp_t *http_resp = NULL;
+	char *body = NULL;
 
-	http_client = http_init_connection(host_url);
-	if (http_client == NULL) {
-		printf("no client: %s\n", host_url);
-		return (1);
-	}
+	if (GetUrl("/login?user_id=123123", &body) == false)
+		return false;
 
-	ret = http_get(http_client, "/login?user_id=123123", &http_resp);
-	if (http_resp) {
-		json_t *js = json_loads(http_resp->body, JSON_REJECT_DUPLICATES, &error);
-		if (js) {
-			const char *v = json_gets(js, "key", "");
-			baseUrl = json_gets(js, "server", host_url);
-			printf("key= %s\n", v);
-			json_t *cmd = json_geto(js, "command");
-			if (cmd && json_is_array(cmd)) {
-				int i;
-				int count = json_array_size(cmd);
-				for (i = 0; i < count; i++) {
-					json_t *p = json_array_get(cmd, i);
-					if (p)
-						ProcessCommand(p);
-				}
+	json_t *js = json_loads(body, JSON_REJECT_DUPLICATES, &error);
+	delete body;
+
+	if (js) {
+		const char *v = json_gets(js, "key", "");
+		//baseUrl = json_gets(js, "server", baseUrl.c_str());
+		json_t *cmd = json_geto(js, "command");
+		if (cmd && json_is_array(cmd)) {
+			int count = json_array_size(cmd);
+			for (int i = 0; i < count; i++) {
+				json_t *p = json_array_get(cmd, i);
+				if (p)
+					ProcessCommand(p);
 			}
-
-			nextLoginSec = json_geti(js, "next", nextLoginSec);
 		}
+
+		nextLoginSec = json_geti(js, "next", nextLoginSec);
 	}
-	http_resp_free(http_resp);
-	http_free_connection(http_client);
 
 	return 0;
+}
+
+bool KolaClient::UpdateMenu(void)
+{
+	json_error_t error;
+	json_t *js;
+	int count;
+	char *html = NULL;
+
+	if ( GetUrl("/video/getmenu", &html) == false)
+		return false;
+
+	if (strlen(html) == 0) {
+		delete html;
+		return false;
+	}
+
+	menuMap.clear();
+	js = json_loads(html, JSON_REJECT_DUPLICATES, &error);
+	delete html;
+	count = json_array_size(js);
+	for (int i = 0; i < count; i++) {
+		json_t *p = json_array_get(js, i);
+		if (p) {
+			const char *name = json_gets(p, "name", "");
+
+			KolaMenu* menu = new KolaMenu(this, p);
+			menuMap.insert(pair<std::string, KolaMenu*>(name, menu));
+		}
+	}
+
+	return true;
+}
+
+KolaMenu *KolaClient::GetMenuByCid(int cid)
+{
+	foreach(menuMap, i) {
+		if (i->second->cid == cid)
+			return i->second;
+	}
+
+	return NULL;
+}
+
+KolaMenu *KolaClient::GetMenuByName(const char *menuName)
+{
+	json_error_t error;
+	json_t *js;
+	int count;
+	const char *html;
+	KolaMenu *ret = NULL;
+
+	if (menuName == NULL)
+		return NULL;
+
+	std::map<std::string, KolaMenu*>::iterator it = menuMap.find(menuName);
+
+	if (it != menuMap.end())
+		ret = it->second;
+
+	if (ret == NULL) {
+		UpdateMenu();
+		std::map<std::string, KolaMenu*>::iterator it = menuMap.find(menuName);
+
+		if (it != menuMap.end())
+			ret = it->second;
+	}
+
+	return ret;
 }
 
 int main(int argc, char **argv)
 {
 	char *s = GetIP("www.kolatv.com");
-//	test();
-//	return 0;
 	KolaClient kola;
 
 	kola.GetKey();
 	kola.Login();
+	kola.UpdateMenu();
+	KolaMenu *m = kola.GetMenuByCid(1);
+	if (m)
+		std::cout << m->name << std::endl;
+	m = kola.GetMenuByName("电影");
+	if (m) {
+		std::cout << m->name << std::endl;
+		m->GetPage();
+		m->GetPage();
+		m->GetPage();
+	}
 	return 0;
 }
 

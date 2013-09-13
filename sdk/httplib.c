@@ -67,7 +67,7 @@ int http_decode_and_connect_url (const char *name,
 
 int http_build_header(char *buffer, uint32_t maxlen, uint32_t *at,
 		http_client_t *cptr, const char *method,
-		const char *add_header, char *content_body);
+		const char *add_header, const char *content_body);
 
 int http_get_response(http_client_t *handle, http_resp_t **resp);
 
@@ -102,7 +102,7 @@ static char _x2c(char hex_up, char hex_low){
  ** Return: Pointer of encoded str which is memory allocated.
  ** Do    : Encode string.
  **********************************************/
-char *URLencode(char *str)
+char *URLencode(const char *str)
 {
 	char *encstr, buf[2+1];
 	unsigned char c;
@@ -344,12 +344,13 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp)
 	return ret;
 }
 
-int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *body)
+int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, const char *body)
 {
 	char *header_buffer;
-	uint32_t buffer_len, max_len;
+	uint32_t buffer_len, max_len = 2048;
 	int ret = -1;
 	int more;
+	char *encode_body = NULL;
 
 	if (cptr == NULL)
 		return -1;
@@ -363,15 +364,18 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 		cptr->m_resource = strdup(url);
 	}
 
-	body = URLencode(body);
-	max_len = strlen(body) + 2048;
+	if (body) {
+		encode_body = URLencode(body);
+		max_len = strlen(encode_body) + 2048;
+	}
 	header_buffer = (char*)malloc(max_len);
+
 
 	/*
 	 * build header and send message
 	 */
 	ret = http_build_header(header_buffer, max_len - 1, &buffer_len, cptr, "POST",
-			"Content-Type: application/x-www-form-urlencoded", body);
+			"Content-Type: application/x-www-form-urlencoded", encode_body);
 	if (ret == -1) {
 		http_debug(LOG_ERR, "Could not build header");
 		goto out;
@@ -415,7 +419,7 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 				}
 				buffer_len = 0;
 				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "POST",
-						"Content-type: application/x-www-form-urlencoded",  body);
+						"Content-type: application/x-www-form-urlencoded",  encode_body);
 				http_debug(LOG_DEBUG, "%s", header_buffer);
 				if (send(cptr->m_server_socket,
 							header_buffer,
@@ -435,7 +439,7 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, char *b
 
 out:
 	free(header_buffer);
-	free(body);
+	free(encode_body);
 	return ret;
 }
 
@@ -650,7 +654,7 @@ int http_build_header (char *buffer,
 		http_client_t *cptr,
 		const char *method,
 		const char *add_header,
-		char *content_body)
+		const char *content_body)
 {
 	int ret;
 #define SNPRINTF_CHECK(fmt, value) \

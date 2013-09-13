@@ -56,7 +56,7 @@ string Pcre::MatchAll(const char *content)
 			result.append(content, ovector[0], ovector[1] - ovector[0]);
 			result = result + "\n";
 
-			offset = ovector[2 * (rc - 1)];
+			offset = ovector[2 * rc - 1];
 			//offset = ovector[1];
 //			flags |= PCRE_NOTBOL;
 		}

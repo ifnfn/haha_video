@@ -3,6 +3,9 @@
 #include <string.h>
 #include <jansson.h>
 #include <string>
+#include <list>
+#include <vector>
+#include <map>
 
 #if ENABLE_SSL
 #include <openssl/rsa.h>
@@ -12,6 +15,7 @@
 #include "json.h"
 #include "base64.h"
 
+class KolaClient;
 
 class KolaVideo {
 	public:
@@ -24,19 +28,31 @@ class KolaAlbum {
 	public:
 		KolaAlbum() {}
 		~KolaAlbum() {}
+		int GetCount();
 	private:
+};
 
+class Filter {
+	public:
+		Filter() {}
+		~Filter() {}
+	private:
 };
 
 class KolaMenu {
 	public:
-		KolaMenu() {}
+		KolaMenu(KolaClient *parent, std::string name) {}
+		KolaMenu(KolaClient *parent, json_t *js);
 		~KolaMenu() {}
-		int GetCount();
-		void NextPage();
+
+		std::string name;
+		int cid;
+		bool GetPage(int page = -1);
 	private:
+		KolaClient *client;
+		std::list<KolaAlbum> pageList;
 		int PageSize;
-		int PageCount;
+		int PageId;
 };
 
 class KolaClient {
@@ -47,17 +63,21 @@ class KolaClient {
 			if (rsa)
 				RSA_free(rsa);
 #endif
-			if (host_url)
-				delete host;
 		}
 		bool Login(void);
 		KolaMenu *GetMenuByName(const char *name);
+		KolaMenu *GetMenuByCid(int cid);
 		void GetKey(void);
+
+		bool UpdateMenu(void);
+		bool GetUrl(const char *url, char **ret, const char *home = NULL);
+		bool PostUrl(const char *url, const char *body, char **ret, const char *home = NULL);
 	private:
 		std::string publicKey;
 		std::string baseUrl;
+		std::map<std::string, KolaMenu*> menuMap;
 		int nextLoginSec;
-		char *host_url;
+
 #if ENABLE_SSL
 		RSA *rsa;
 		int Decrypt(int flen, const unsigned char *from, unsigned char *to);

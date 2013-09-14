@@ -89,7 +89,6 @@ class R:
 def test():
     a = R()
     t = a.RSAEncrypt('text')
-    print(t)
     print(a.RSADecrypt(t))
 
 class KeyHandler(BaseHandler):

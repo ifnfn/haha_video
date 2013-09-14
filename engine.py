@@ -141,16 +141,16 @@ class AlbumBase:
         ret = {}
         ret['cid'] = self.cid
 
-        if self.albumName != ''   : ret['albumName'] = self.albumName
-        if self.albumPageUrl != '': ret['albumPageUrl'] = self.albumPageUrl
-        if self.pid != ''         : ret['pid'] = self.pid
-        if self.vid != ''         : ret['vid'] = self.vid
-        if self.playlistid != ''  : ret['playlistid'] = self.playlistid
-        if self.isHigh != ''      : ret['isHigh'] = self.isHigh
+        if self.albumName != ''      : ret['albumName'] = self.albumName
+        if self.albumPageUrl != ''   : ret['albumPageUrl'] = self.albumPageUrl
+        if self.pid != ''            : ret['pid'] = self.pid
+        if self.vid != ''            : ret['vid'] = self.vid
+        if self.playlistid != ''     : ret['playlistid'] = self.playlistid
+        if self.isHigh != ''         : ret['isHigh'] = self.isHigh
 
-        if self.area != ''        : ret['area'] = self.area
-        if self.categories != []  : ret['categories'] = self.categories
-        if self.publishYear != '' : ret['publishYear'] = self.publishYear
+        if self.area != ''           : ret['area'] = self.area
+        if self.categories != []     : ret['categories'] = self.categories
+        if self.publishYear != ''    : ret['publishYear'] = self.publishYear
 
         if self.defaultPageUrl != '' : ret['defaultPageUrl'] = self.defaultPageUrl
         if self.albumDesc != ''      : ret['albumDesc'] = self.albumDesc

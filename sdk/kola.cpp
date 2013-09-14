@@ -20,7 +20,6 @@
 #define SERVER_HOST "www.kolatv.com"
 #define PORT 80
 
-
 static char *GetIP(const char *hostp)
 {
 	char str[32];
@@ -90,7 +89,22 @@ bool KolaMenu::GetPage(int page)
 
 	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", PageId, PageSize, name.c_str());
 	if (client->PostUrl(url, body.c_str(), &res) == true) {
-		printf("%s\n", res);
+		clear();
+
+		json_error_t error;
+		json_t *js = json_loads(res, JSON_REJECT_DUPLICATES, &error);
+		json_t *results = json_geto(js, "result");
+
+		if (results && json_is_array(results)) {
+			int count = json_array_size(results);
+			for (int i = 0; i < count; i++) {
+				json_t *p = json_array_get(results, i);
+				if (p)
+					push_back(KolaAlbum(this, p));
+			}
+		}
+
+		std::cout << res << std::endl;
 		delete res;
 	}
 }
@@ -115,7 +129,7 @@ KolaClient::KolaClient(void)
 #if ENABLE_SSL
 int KolaClient::Decrypt(int flen, const unsigned char *from, unsigned char *to)
 {
-//	return RSA_public_decrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
+	//	return RSA_public_decrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
 }
 
 int KolaClient::Encrypt(int flen, const unsigned char *in, int in_size, unsigned char *out, int out_size)
@@ -127,7 +141,7 @@ int KolaClient::Encrypt(int flen, const unsigned char *in, int in_size, unsigned
 	for (int i = 0; i < blocks; i++) {
 
 	}
-//	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
+	//	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
 }
 #endif
 
@@ -189,7 +203,7 @@ void KolaClient::GetKey(void)
 	char *t = NULL;
 	if (GetUrl("/key", &t) == true) {
 		publicKey = t;
-//		std::cout << publicKey << std::endl;
+		//		std::cout << publicKey << std::endl;
 #if ENABLE_SSL
 		BIO *key= BIO_new_mem_buf((void*)t, strlen(t));
 		rsa = PEM_read_bio_RSA_PUBKEY(key, NULL, NULL, NULL);
@@ -360,35 +374,35 @@ KolaMenu *KolaClient::GetMenuByName(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	KolaFilter filter;
-
-	filter.KeyAdd("aa", "a1");
-	filter.KeyAdd("aa", "a2");
-	filter.KeyAdd("aa", "a3");
-	filter.KeyAdd("aa", "a4");
-	filter.KeyAdd("bb", "b1");
-	filter.KeyAdd("bb", "b2");
-	filter.KeyAdd("bb", "b3");
-	filter.KeyAdd("bb", "b4");
-	filter.GetJsonStr();
-	filter.KeyRemove("bb", "b3");
-
-	filter["aa"].Add("aaaaaa");
-	ValueArray keys = filter["aa"];
-	foreach(keys, i)
-		printf("%s\n", i->c_str());
-
-	filter.GetJsonStr();
-	filter["aa"].clear();
-	filter["bb"].clear();
-	printf("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n");
-	filter.GetJsonStr();
-
-	return 0;
+	//	KolaFilter filter;
+	//
+	//	filter.KeyAdd("aa", "a1");
+	//	filter.KeyAdd("aa", "a2");
+	//	filter.KeyAdd("aa", "a3");
+	//	filter.KeyAdd("aa", "a4");
+	//	filter.KeyAdd("bb", "b1");
+	//	filter.KeyAdd("bb", "b2");
+	//	filter.KeyAdd("bb", "b3");
+	//	filter.KeyAdd("bb", "b4");
+	//	filter.GetJsonStr();
+	//	filter.KeyRemove("bb", "b3");
+	//
+	//	filter["aa"].Add("aaaaaa");
+	//	ValueArray keys = filter["aa"];
+	//	foreach(keys, i)
+	//		printf("%s\n", i->c_str());
+	//
+	//	filter.GetJsonStr();
+	//	filter["aa"].clear();
+	//	filter["bb"].clear();
+	//	printf("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n");
+	//	filter.GetJsonStr();
+	//
+	//	return 0;
 	KolaClient kola;
 
-//	kola.GetKey();
-//	kola.Login();
+	//	kola.GetKey();
+	//	kola.Login();
 	kola.UpdateMenu();
 	KolaMenu *m = kola.GetMenuByCid(1);
 	if (m)
@@ -396,9 +410,20 @@ int main(int argc, char **argv)
 	m = kola.GetMenuByName("电影");
 	if (m) {
 		std::cout << m->name << std::endl;
-//		m->GetPage();
-//		m->GetPage();
-//		m->GetPage();
+		m->GetPage(10);
+		std::cout << m->size() << std::endl;
+
+		for (int i = 0 ; i < m->size(); i++)
+			std::cout << m->at(i).albumName << std::endl;
+
+		std::vector<KolaAlbum>::iterator it;
+		for (it= m->begin(); it != m->end(); it++) {
+			std::cout << it->albumName << std::endl;
+			std::cout << it->albumDesc << std::endl;
+		}
+
+		//		m->GetPage();
+		//		m->GetPage();
 	}
 	return 0;
 }

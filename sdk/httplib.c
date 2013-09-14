@@ -88,7 +88,8 @@ void http_debug(int loglevel, const char *fmt, ...)
 
 #endif
 
-static char _x2c(char hex_up, char hex_low){
+static char _x2c(char hex_up, char hex_low)
+{
 	char digit;
 	digit = 16 * (hex_up >= 'A' ? ((hex_up & 0xdf) - 'A') + 10 : (hex_up - '0'));
 	digit += (hex_low >= 'A' ? ((hex_low & 0xdf) - 'A') + 10 : (hex_low - '0'));
@@ -369,7 +370,6 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, const c
 		max_len = strlen(encode_body) + 2048;
 	}
 	header_buffer = (char*)malloc(max_len);
-
 
 	/*
 	 * build header and send message

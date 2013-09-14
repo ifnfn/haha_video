@@ -35,6 +35,13 @@ class R:
     def Decrypt(self, text):
         return self.key.decrypt(text)
 
+class KolaAlbum:
+    def __init__(self):
+        pass
+
+    def GetFileds(self):
+        pass
+
 class KolaMenu:
     def __init__(self, client, js):
         self.client = client
@@ -159,7 +166,7 @@ class KolaClient:
             return False
         try:
             response = self.GetCacheUrl(cmd['source'])
-            codingg = 'utf8'
+            coding = 'utf8'
             if 'regular' in cmd:
                 try:
                     text = response.decode(coding)

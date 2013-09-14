@@ -84,6 +84,7 @@ class KolaClient:
         self.rsa_public_key = ''
         self.rsa = None
         self.menuList = []
+        self.key = ''
 
     def GenKolaMenu(self):
         print (HOST + '/video/getmenu')
@@ -102,7 +103,8 @@ class KolaClient:
         #if self.rsa:
         #    response = self.rsa.Decrypt(response)
         if status != '200':
-            pass
+            print(response)
+            return ""
         return response
 
     def GetCacheUrl(self, url):
@@ -129,9 +131,14 @@ class KolaClient:
         #if self.rsa:
         #    body = self.rsa.Encrypt(body)
         try:
-            _, _, _, response = fetch(url, 'POST', body)
+            ret, _, _, response = fetch(url, 'POST', body, cookies = "key=" + self.key)
+            if ret != "200":
+                print(response)
+                return None
             return response
         except:
+            t, v, tb = sys.exc_info()
+            print("PostUrl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
             return None
 
     def GetRealPlayer(self, url, times = 0):
@@ -210,12 +217,14 @@ class KolaClient:
         #if self.rsa == None:
         #    self.GetKey()
 
-        playurl = MAINSERVER_HOST + '/login?user_id=000000'
+        playurl = MAINSERVER_HOST + '/login?user_id=000001'
 
         try:
             data = json.loads(self.GetUrl(playurl).decode("utf8"))
 
             if data:
+                self.key = data['key']
+                print(self.key)
                 if len(data['command']) > 0:
                     for cmd in data['command']:
                         self.ProcessCommand(cmd)

@@ -15,9 +15,9 @@
 #include "kola.hpp"
 #include "pcre.hpp"
 
-//#define SERVER_HOST "127.0.0.1"
+#define SERVER_HOST "127.0.0.1"
 //#define SERVER_HOST "121.199.20.175"
-#define SERVER_HOST "www.kolatv.com"
+//#define SERVER_HOST "www.kolatv.com"
 #define PORT 80
 
 static char *GetIP(const char *hostp)
@@ -410,7 +410,8 @@ int main(int argc, char **argv)
 	KolaClient kola;
 
 	//	kola.GetKey();
-	//	kola.Login();
+	kola.Login();
+	return 0;
 	kola.UpdateMenu();
 	KolaMenu *m = kola.GetMenuByCid(1);
 	if (m)

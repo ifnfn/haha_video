@@ -8,6 +8,7 @@ Created on 2013-9-9
 
 import tornado.web
 import tornado.escape
+import redis
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -15,6 +16,14 @@ class BaseHandler(tornado.web.RequestHandler):
         if not user:
             return
         return tornado.escape.json_decode(user)
+    def check(self):
+        key = self.get_cookie('key')
+        #print(self.request.remote_ip, user_id)
+        db = redis.Redis(host='127.0.0.1', port=6379, db=1)
+        if db.exists(key):
+            db_ip = db.get(key).decode()
+            if db_ip != self.request.remote_ip:
+                raise tornado.web.HTTPError(401, "Missing key %s" % key)
 
 class JSONPHandler(BaseHandler):
     CALLBACK = 'jsonp' # define callback argument name

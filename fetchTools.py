@@ -12,7 +12,6 @@ global headers
 
 socket_timeout = 20
 
-
 headers = {
     'User-Agent'     : 'BFDSpider_INIT_A',
     'Accept'         : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',

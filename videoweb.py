@@ -101,15 +101,7 @@ class UploadHandler(BaseHandler):
         pass
 
     def post(self):
-#         user_id = self.get_argument('user_id')
-#         user_key = self.get_argument('user_key')
-#         print(self.request.remote_ip, user_id, user_key)
-#
-#         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
-#         if not db.exists(user_id):
-#             raise tornado.web.HTTPError(400, "Timeout user_key %s" % user_key)
-#         elif db.get(user_id) != user_key:
-#             raise tornado.web.HTTPError(400, "Missing user_key %s" % user_key)
+        self.check()
 
         body = unquote(self.request.body.decode())
         if body and len(body) > 0:
@@ -119,7 +111,7 @@ define('port', default=9991, help='run on the given port', type=int)
 class Application(tornado.web.Application):
     def __init__(self):
         settings = dict(
-            debug = True,
+            debug = False,
             login_url = "/login",
             cookie_secret = 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To=',
             #xsrf_cookies = True,

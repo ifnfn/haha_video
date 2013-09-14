@@ -13,8 +13,8 @@ from fetchTools import fetch_httplib2 as fetch
 logging.basicConfig()
 log = logging.getLogger("crawler")
 
-COMMAND_HOST = 'http://112.124.60.152:9990/addcommand'
-PARSER_HOST = 'http://112.124.60.152:9991/video/upload'
+COMMAND_HOST = 'http://127.0.0.1:9990/addcommand'
+PARSER_HOST = 'http://127.0.0.1:9991/video/upload'
 
 # 命令管理器
 class Commands:
@@ -57,7 +57,7 @@ class Commands:
             cmd['menu'] = menu
             if private_data:
                 cmd['privdate_data'] = private_data
-            _, _, _, response = fetch(self.commandHost + '?' + name, 'POST', json.dumps(cmd))
+            _, _, _, response = fetch(self.commandHost, 'POST', json.dumps(cmd))
             return response == ""
         return False
 

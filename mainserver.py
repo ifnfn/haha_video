@@ -1,15 +1,16 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import random
 import redis
 import json
 import hashlib
-import base64
 from Crypto.PublicKey import RSA
 import tornado.ioloop
 import tornado.web
 import tornado.options
 from tornado.options import define, options
+from pymongo import Connection
 
 from fetchTools import fetch_httplib2 as fetch
 from basehandle import BaseHandler#, JSONPHandler
@@ -91,14 +92,41 @@ def test():
     t = a.RSAEncrypt('text')
     print(a.RSADecrypt(t))
 
+def getRandomStr(n):
+    st = ''
+    while len(st) < n:
+        temp = chr(97 + random.randint(0,25))
+        st = st.join(['',temp])
+    return st
+
 class KeyHandler(BaseHandler):
     def get(self):
         self.finish(R().exportKey())
 
 class LoginHandler(BaseHandler):
-    def get(self):
+    def check_user_id(self):
+        self.user_id = ''
+        self.status = 'NO'
+        self.con = Connection('localhost', 27017)
+        self.db = self.con.kola
+        user_table = self.db.users
+
         user_id = self.get_argument('user_id')
-        #print(self.request.remote_ip, user_id)
+
+        json = user_table.find_one({'user_id' : user_id})
+        if json:
+            self.user_id = json['user_id']
+            self.status = json['status']
+        else:
+            user_table.insert({'user_id' : user_id, 'status' : 'YES'})
+
+        if self.status == 'NO':
+            raise tornado.web.HTTPError(401, "Missing key %s" % self.user_id)
+
+    def get(self):
+        self.check_user_id()
+        key = ''
+
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
         ret = {
@@ -107,12 +135,16 @@ class LoginHandler(BaseHandler):
             'server' : MAINSERVER_HOST,
             'next': 10   # 下次登录时间
         }
-        if not db.exists(user_id):
-            key = (user_id + self.request.remote_ip).encode()
+
+        if not db.exists(self.user_id): # 如果没有登录，生成随机 KEY
+            key = (self.user_id + getRandomStr(32) + self.request.remote_ip).encode()
             key = hashlib.md5(key).hexdigest().upper()
-            db.set(user_id, key)
+            db.set(self.user_id, key)
+            db.set(key, self.request.remote_ip)
+            db.expire(self.user_id, 60) # 十秒过期
+            db.expire(key, 60) # 十秒过期
         else:
-            key = db.get(user_id).decode()
+            key = db.get(self.user_id).decode()
 
         ret['key'] = key
         cmd = db.lpop('command')
@@ -180,5 +212,5 @@ def main():
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':
-    #main()
-    test()
+    main()
+    #test()

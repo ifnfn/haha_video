@@ -93,19 +93,22 @@ bool KolaMenu::GetPage(int page)
 
 		json_error_t error;
 		json_t *js = json_loads(res, JSON_REJECT_DUPLICATES, &error);
-		json_t *results = json_geto(js, "result");
+		if (js) {
+			json_t *results = json_geto(js, "result");
 
-		if (results && json_is_array(results)) {
-			int count = json_array_size(results);
-			for (int i = 0; i < count; i++) {
-				json_t *p = json_array_get(results, i);
-				if (p)
-					push_back(KolaAlbum(this, p));
+			if (results && json_is_array(results)) {
+				int count = json_array_size(results);
+				for (int i = 0; i < count; i++) {
+					json_t *p = json_array_get(results, i);
+					if (p)
+						push_back(KolaAlbum(this, p));
+				}
 			}
-		}
 
-		std::cout << res << std::endl;
-		delete res;
+			std::cout << res << std::endl;
+			delete res;
+			json_delete(js);
+		}
 	}
 }
 
@@ -298,6 +301,7 @@ bool KolaClient::Login(void)
 		}
 
 		nextLoginSec = json_geti(js, "next", nextLoginSec);
+		json_delete(js);
 	}
 
 	return 0;
@@ -322,14 +326,18 @@ bool KolaClient::UpdateMenu(void)
 	printf("%s\n", html);
 	js = json_loads(html, JSON_REJECT_DUPLICATES, &error);
 	delete html;
-	count = json_array_size(js);
-	for (int i = 0; i < count; i++) {
-		json_t *p = json_array_get(js, i);
-		if (p) {
-			const char *name = json_gets(p, "name", "");
 
-			menuMap.insert(std::pair<std::string, KolaMenu>(name, KolaMenu(this, p)));
+	if (js) {
+		count = json_array_size(js);
+		for (int i = 0; i < count; i++) {
+			json_t *p = json_array_get(js, i);
+			if (p) {
+				const char *name = json_gets(p, "name", "");
+
+				menuMap.insert(std::pair<std::string, KolaMenu>(name, KolaMenu(this, p)));
+			}
 		}
+		json_delete(js);
 	}
 
 	return true;

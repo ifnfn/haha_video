@@ -1,27 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <jansson.h>
 #include <string>
-#include <list>
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <assert.h>
+#include <pthread.h>
+#include <jansson.h>
 
 #define ENABLE_SSL 0
-
-#if ENABLE_SSL
-#include <openssl/pem.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
-#include <openssl/rsa.h>
-#endif
-
-#include "httplib.h"
-#include "json.h"
-#include "base64.h"
 
 #define foreach(container,i) \
 	for(bool __foreach_ctrl__=true;__foreach_ctrl__;)\
@@ -76,31 +60,7 @@ class KolaAlbum {
 		bool GetPlayUrl(void **data, int *size);                    // 得到播放列表
 	private:
 		KolaMenu *menu;
-		bool LoadFromJson(json_t *js) {
-			albumName      = json_gets(js, "albumName"  , "");
-			albumDesc      = json_gets(js, "albumDesc"  , "");
-			vid            = json_gets(js, "vid"        , "");
-			pid            = json_gets(js, "pid"        , "");
-			playlistid     = json_gets(js, "playlistid" , "");
-			isHigh         = json_geti(js, "isHigh"     , 0);
-			publishYear    = json_geti(js, "publishYear", 0);
-			totalSet       = json_geti(js, "totalSet"   , 0);
-			area           = json_gets(js, "area"       , "");
-
-			largePicUrl    = json_gets(js, "largePicUrl"   , "");
-			smallPicUrl    = json_gets(js, "smallPicUrl"   , "");
-			largeHorPicUrl = json_gets(js, "largeHorPicUrl", "");
-			smallHorPicUrl = json_gets(js, "smallHorPicUrl", "");
-			largeVerPicUrl = json_gets(js, "largeVerPicUrl", "");
-			smallVerPicUrl = json_gets(js, "smallVerPicUrl", "");
-
-			//directors = json_gets(js, "directors", "");
-			//actors = json_gets(js, "actors", "");
-			//mainActors = json_gets(js, "mainActors", "");
-			//categories = json_gets(js, "categories", "");
-
-			//std::cout << albumName << std::endl;
-		}
+		bool LoadFromJson(json_t *js);
 
 		std::string pid;
 		std::string vid;
@@ -167,32 +127,26 @@ class KolaMenu :public std::vector<KolaAlbum> {
 class KolaClient {
 	public:
 		KolaClient(void);
-		~KolaClient(void) {
-#if ENABLE_SSL
-			if (rsa)
-				RSA_free(rsa);
-#endif
-		}
-		bool Login(void);
+		~KolaClient(void);
+
+		void Quit(void);
 		KolaMenu *GetMenuByName(const char *name);
 		KolaMenu *GetMenuByCid(int cid);
-		void GetKey(void);
 
 		bool UpdateMenu(void);
-		bool GetUrl(const char *url, char **ret, const char *home = NULL);
-		bool PostUrl(const char *url, const char *body, char **ret, const char *home = NULL);
+		bool UrlGet(const char *url, char **ret, const char *home = NULL);
+		bool UrlPost(const char *url, const char *body, char **ret, const char *home = NULL);
 	private:
-		std::string publicKey;
 		std::string baseUrl;
 		std::map<std::string, KolaMenu> menuMap;
 		int nextLoginSec;
 
-#if ENABLE_SSL
-		RSA *rsa;
-		int Decrypt(int flen, const unsigned char *from, unsigned char *to);
-		int Encrypt(int flen, const unsigned char *in, int in_size, unsigned char *out, int out_size);
-#endif
+		void GetKey(void);
+		bool Login(void);
 		char *Run(const char *cmd);
 		bool ProcessCommand(json_t *cmd);
-		void GetMenu();
+		bool running;
+		pthread_t thread;
+		pthread_mutex_t lock;
+		friend void *kola_login_thread(void *arg);
 };

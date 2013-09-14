@@ -264,12 +264,13 @@ void http_free_connection (http_client_t *ptr)
 /*
  * http_get - get from url after client already set up
  */
-int http_get(http_client_t *cptr, const char *url, http_resp_t **resp)
+int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const char *cookie)
 {
 	char header_buffer[4096];
 	uint32_t buffer_len;
 	int ret;
 	int more;
+	char cookie_buffer[128];
 
 	if (cptr == NULL)
 		return -1;
@@ -287,12 +288,18 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp)
 	if (*resp != NULL) {
 		http_resp_clear(*resp);
 	}
+
+	if (cookie) {
+		sprintf(cookie_buffer, "Cookie: %s", cookie);
+		cookie = cookie_buffer;
+	}
+
 	buffer_len = 0;
 	/*
 	 * build header and send message
 	 */
 	ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET",
-			NULL, NULL);
+			cookie, NULL);
 	http_debug(LOG_DEBUG, "%s", header_buffer);
 	if (send(cptr->m_server_socket,
 				header_buffer,
@@ -329,7 +336,7 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp)
 				}
 				buffer_len = 0;
 				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET",
-						NULL, NULL);
+						cookie, NULL);
 				http_debug(LOG_DEBUG, "%s", header_buffer);
 				if (send(cptr->m_server_socket, header_buffer, buffer_len, 0) < 0) {
 					http_debug(LOG_CRIT,"Send failure");
@@ -345,13 +352,14 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp)
 	return ret;
 }
 
-int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, const char *body)
+int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, const char *body, const char *cookie)
 {
 	char *header_buffer;
 	uint32_t buffer_len, max_len = 2048;
 	int ret = -1;
 	int more;
 	char *encode_body = NULL;
+	char cookie_buffer[256] = "Content-Type: application/x-www-form-urlencoded";
 
 	if (cptr == NULL)
 		return -1;
@@ -371,11 +379,15 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, const c
 	}
 	header_buffer = (char*)malloc(max_len);
 
+	if (cookie) {
+		sprintf(cookie_buffer, "Content-Type: application/x-www-form-urlencoded\r\nCookie: %s", cookie);
+		cookie = cookie_buffer;
+	}
+
 	/*
 	 * build header and send message
 	 */
-	ret = http_build_header(header_buffer, max_len - 1, &buffer_len, cptr, "POST",
-			"Content-Type: application/x-www-form-urlencoded", encode_body);
+	ret = http_build_header(header_buffer, max_len - 1, &buffer_len, cptr, "POST", cookie, encode_body);
 	if (ret == -1) {
 		http_debug(LOG_ERR, "Could not build header");
 		goto out;
@@ -419,7 +431,7 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, const c
 				}
 				buffer_len = 0;
 				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "POST",
-						"Content-type: application/x-www-form-urlencoded",  encode_body);
+						cookie,  encode_body);
 				http_debug(LOG_DEBUG, "%s", header_buffer);
 				if (send(cptr->m_server_socket,
 							header_buffer,
@@ -641,7 +653,7 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 	return 0;
 }
 
-static const char *user_agent = "Mpeg4ip http library 0.1";
+static const char *user_agent = "kolatv http library 0.1";
 
 /*
  * http_build_header - create a header string
@@ -658,11 +670,13 @@ int http_build_header (char *buffer,
 {
 	int ret;
 #define SNPRINTF_CHECK(fmt, value) \
-	ret = snprintf(buffer + *at, maxlen - *at, (fmt), value); \
-	if (ret == -1) { \
-		return -1; \
-	}\
-	*at += ret;
+	if (value) { \
+		ret = snprintf(buffer + *at, maxlen - *at, (fmt), value); \
+		if (ret == -1) { \
+			return -1; \
+		}\
+		*at += ret; \
+	}
 
 	SNPRINTF_CHECK("%s ", method);
 	if (cptr->m_content_location != NULL &&

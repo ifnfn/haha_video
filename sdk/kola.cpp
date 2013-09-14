@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <jansson.h>
 #include <pcre.h>
 #include <iostream>
 #include <sys/socket.h>
@@ -9,8 +8,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#include "httplib.h"
 #include "json.h"
+#include "httplib.h"
 #include "base64.h"
 #include "kola.hpp"
 #include "pcre.hpp"
@@ -18,7 +17,37 @@
 #define SERVER_HOST "127.0.0.1"
 //#define SERVER_HOST "121.199.20.175"
 //#define SERVER_HOST "www.kolatv.com"
-#define PORT 80
+#define PORT 9990
+
+static std::string loginKey;
+static std::string loginKeyCookie;
+
+#if ENABLE_SSL
+
+#include <openssl/pem.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
+#include <openssl/rsa.h>
+
+static RSA *rsa = NULL;
+int Decrypt(int flen, const unsigned char *from, unsigned char *to)
+{
+	//	return RSA_public_decrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
+}
+
+int Encrypt(int flen, const unsigned char *in, int in_size, unsigned char *out, int out_size)
+{
+	int rsa_size = RSA_size(rsa);
+	int blocks = in_size / rsa_size;
+	int cur_len = 0;
+
+	for (int i = 0; i < blocks; i++) {
+
+	}
+	//	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
+}
+#endif
 
 static char *GetIP(const char *hostp)
 {
@@ -88,7 +117,7 @@ bool KolaMenu::GetPage(int page)
 		PageId = page;
 
 	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", PageId, PageSize, name.c_str());
-	if (client->PostUrl(url, body.c_str(), &res) == true) {
+	if (client->UrlPost(url, body.c_str(), &res) == true) {
 		clear();
 
 		json_error_t error;
@@ -112,6 +141,7 @@ bool KolaMenu::GetPage(int page)
 	}
 }
 
+void *kola_login_thread(void *arg);
 KolaClient::KolaClient(void)
 {
 	char buffer[512];
@@ -124,33 +154,31 @@ KolaClient::KolaClient(void)
 	}
 
 	nextLoginSec = 3;
+	running = true;
+
+	pthread_mutex_init(&lock, NULL);
+	Login();
+	pthread_create(&thread, NULL, kola_login_thread, this);
+}
+
+void KolaClient::Quit(void)
+{
+	pthread_cancel(thread);
+	pthread_join(thread, NULL);
+}
+
+KolaClient::~KolaClient(void)
+{
 #if ENABLE_SSL
-	rsa = NULL;
+	if (rsa)
+		RSA_free(rsa);
 #endif
 }
 
-#if ENABLE_SSL
-int KolaClient::Decrypt(int flen, const unsigned char *from, unsigned char *to)
-{
-	//	return RSA_public_decrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
-}
-
-int KolaClient::Encrypt(int flen, const unsigned char *in, int in_size, unsigned char *out, int out_size)
-{
-	int rsa_size = RSA_size(rsa);
-	int blocks = in_size / rsa_size;
-	int cur_len = 0;
-
-	for (int i = 0; i < blocks; i++) {
-
-	}
-	//	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
-}
-#endif
-
-bool KolaClient::GetUrl(const char *url, char **ret, const char *home)
+bool KolaClient::UrlGet(const char *url, char **ret, const char *home)
 {
 	bool ok = false;
+	int rc;
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
 
@@ -162,7 +190,9 @@ bool KolaClient::GetUrl(const char *url, char **ret, const char *home)
 		printf("no client: %s\n", url);
 		return false;
 	}
-	int rc = http_get(http_client, url, &http_resp);
+	pthread_mutex_lock(&lock);
+	rc = http_get(http_client, url, &http_resp, loginKeyCookie.c_str());
+	pthread_mutex_unlock(&lock);
 	if (rc && ret != NULL && http_resp && http_resp->body) {
 		*ret = strdup(http_resp->body);
 		ok = true;
@@ -174,9 +204,10 @@ bool KolaClient::GetUrl(const char *url, char **ret, const char *home)
 	return ok;
 }
 
-bool KolaClient::PostUrl(const char *url, const char *body, char **ret, const char *home)
+bool KolaClient::UrlPost(const char *url, const char *body, char **ret, const char *home)
 {
 	bool ok = false;
+	int rc;
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
 
@@ -189,7 +220,9 @@ bool KolaClient::PostUrl(const char *url, const char *body, char **ret, const ch
 		return false;
 	}
 
-	int rc = http_post(http_client, url, &http_resp, body);
+	pthread_mutex_lock(&lock);
+	rc = http_post(http_client, url, &http_resp, body, loginKeyCookie.c_str());
+	pthread_mutex_unlock(&lock);
 	if (rc && ret != NULL && http_resp && http_resp->body) {
 		*ret = strdup(http_resp->body);
 		ok = true;
@@ -204,9 +237,7 @@ bool KolaClient::PostUrl(const char *url, const char *body, char **ret, const ch
 void KolaClient::GetKey(void)
 {
 	char *t = NULL;
-	if (GetUrl("/key", &t) == true) {
-		publicKey = t;
-		//		std::cout << publicKey << std::endl;
+	if (UrlGet("/key", &t) == true) {
 #if ENABLE_SSL
 		BIO *key= BIO_new_mem_buf((void*)t, strlen(t));
 		rsa = PEM_read_bio_RSA_PUBKEY(key, NULL, NULL, NULL);
@@ -236,9 +267,11 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 	const char *source = json_gets(cmd, "source", "");
 	const char *dest = json_gets(cmd, "dest", "");
 
-	printf("%s --> %s\n", source, dest);
+//	name = "album";
+//	source = "http://tv.sohu.com/s2012/azhx/";
+	printf("[%s]: %s --> %s\n", name, source, dest);
 
-	if (GetUrl("", &html, source) == false)
+	if (UrlGet("", &html, source) == false)
 		return false;
 
 	if (strlen(html) == 0) {
@@ -260,14 +293,14 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 		regular_result = html;
 
 	int in_size = regular_result.size();
-	int out_size = BASE64_SIZE(in_size);
+	int out_size = BASE64_SIZE(in_size) + 1;
 
-	char *out_buffer = (char *)malloc(out_size);
+	char *out_buffer = (char *)calloc(1, out_size);
 	base64encode((unsigned char *)regular_result.c_str(), in_size, (unsigned char*)out_buffer, out_size);
 	json_sets(cmd, "data", out_buffer);
 	char *body = json_dumps(cmd, 2);
 
-	PostUrl("", body, NULL, dest);
+	UrlPost("", body, NULL, dest);
 out:
 	delete body;
 	delete out_buffer;
@@ -281,14 +314,19 @@ bool KolaClient::Login(void)
 	json_error_t error;
 	char *body = NULL;
 
-	if (GetUrl("/login?user_id=123123", &body) == false)
+	if (UrlGet("/login?user_id=000001", &body) == false)
 		return false;
 
 	json_t *js = json_loads(body, JSON_REJECT_DUPLICATES, &error);
 	delete body;
 
 	if (js) {
-		const char *v = json_gets(js, "key", "");
+		pthread_mutex_lock(&lock);
+		loginKey = json_gets(js, "key", "");
+		loginKeyCookie = "key=" + loginKey;
+		pthread_mutex_unlock(&lock);
+
+		std::cout << loginKey << std::endl;
 		baseUrl = json_gets(js, "server", baseUrl.c_str());
 		json_t *cmd = json_geto(js, "command");
 		if (cmd && json_is_array(cmd)) {
@@ -314,7 +352,7 @@ bool KolaClient::UpdateMenu(void)
 	int count;
 	char *html = NULL;
 
-	if ( GetUrl("/video/getmenu", &html) == false)
+	if ( UrlGet("/video/getmenu", &html) == false)
 		return false;
 
 	if (strlen(html) == 0) {
@@ -380,8 +418,32 @@ KolaMenu *KolaClient::GetMenuByName(const char *menuName)
 	return ret;
 }
 
+static void cancel(void *any)
+{
+	printf("Login thread canceled!!\n");
+}
+
+void *kola_login_thread(void *arg)
+{
+	KolaClient *client = (KolaClient*)arg;
+
+	pthread_cleanup_push(cancel, NULL);
+	while (client->running) {
+		sleep(client->nextLoginSec);
+		pthread_testcancel();
+		client->Login();
+		pthread_testcancel();
+	}
+	pthread_cleanup_pop(0);
+
+	pthread_exit(NULL);
+
+	return NULL;
+}
+
 int main(int argc, char **argv)
 {
+	int count = 30;
 	//	KolaFilter filter;
 	//
 	//	filter.KeyAdd("aa", "a1");
@@ -409,8 +471,12 @@ int main(int argc, char **argv)
 	//	return 0;
 	KolaClient kola;
 
-	//	kola.GetKey();
-	kola.Login();
+	//kola.GetKey();
+	//kola.Login();
+	while (count--)
+		sleep(1);
+	kola.Quit();
+
 	return 0;
 	kola.UpdateMenu();
 	KolaMenu *m = kola.GetMenuByCid(1);
@@ -431,8 +497,8 @@ int main(int argc, char **argv)
 			std::cout << it->albumDesc << std::endl;
 		}
 
-		//		m->GetPage();
-		//		m->GetPage();
+		//m->GetPage();
+		//m->GetPage();
 	}
 	return 0;
 }

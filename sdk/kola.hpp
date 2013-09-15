@@ -15,11 +15,34 @@
 class KolaClient;
 class KolaMenu;
 
-class KolaVideo {
+class VideoSegment {
+	public:
+		VideoSegment(void) {
+
+		}
+		~VideoSegment() {
+
+		}
+		int id;
+		std::string url;
+		double duration;
+		size_t size;
+};
+
+class KolaVideo :public std::vector<VideoSegment> {
 	public:
 		KolaVideo() {}
 		~KolaVideo() {}
 
+		int width;
+		int height;
+		int fps;
+		double totalDuration;
+		size_t totalBytes;
+		int totalBlocks;
+
+		std::string GetM3U8(void);
+		std::string GetSubtitle(const char *lang);
 	private:
 };
 
@@ -56,6 +79,8 @@ class KolaAlbum {
 		std::string mainActors;
 		std::string actors;
 		std::string directors;
+		KolaVideo video;
+
 		bool GetPicture(enum PicType type, void **data, int *size); // 得到图片
 		bool GetPlayUrl(void **data, int *size);                    // 得到播放列表
 	private:
@@ -76,8 +101,6 @@ class KolaAlbum {
 		std::string videoScore;
 
 		std::string defaultPageUrl;  // 当前播放集
-
-		std::vector<KolaVideo> videos;
 };
 
 class ValueArray: public std::vector<std::string> {

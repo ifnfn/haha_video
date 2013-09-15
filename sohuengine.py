@@ -275,15 +275,15 @@ class SohuVideoMenu(VideoMenuBase):
                     (url, album) = text[0]
 
                     if url != "" and album != "":
-                        test = [
-                                'http://tv.sohu.com/s2011/1663/s322643386/',
+#                        test = [
+#                                'http://tv.sohu.com/s2011/1663/s322643386/',
 #                                 'http://tv.sohu.com/s2011/ajyh/',
 #                                 'http://tv.sohu.com/20110426/n306486856.shtml',
 #                                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
 #                                 'http://tv.sohu.com/20120517/n343417005.shtml',
 #                                 'http://tv.sohu.com/s2012/zlyeye/',
 #                                 'http://store.tv.sohu.com/5009508/706684_1772.html',
-                                ]
+#                                ]
 #                        if url in test:
 #                            pass
 #                        else:
@@ -938,6 +938,9 @@ class SohuEngine(VideoEngine):
             if 'totalBytes' in data:
                 res['totalBytes'] = data['totalBytes']
 
+            if 'totalBlocks' in data:
+                res['totalBlocks'] = data['totalBlocks']
+
             if 'totalDuration' in data:
                 res['totalDuration'] = data['totalDuration']
             if 'clipsDuration' in data:
@@ -962,7 +965,7 @@ class SohuEngine(VideoEngine):
                 urls.append(x)
                 #urls.append(self.GetSoHuInfo(host, prot, tfile, new))
 
-            res['urls'] = urls
+            res['sets'] = urls
 
             return res
         except:
@@ -976,16 +979,17 @@ class SohuEngine(VideoEngine):
         try:
             ret = json.loads(text)
 
-            urls = []
-            for url in ret['urls']:
-                new = url['new']
-                text = base64.decodebytes(url['url'].encode()).decode()
+            if 'sets' in ret:
+                urls = []
+                for url in ret['sets']:
+                    new = url['new']
+                    text = base64.decodebytes(url['url'].encode()).decode()
 
-                start, _, _, key, _, _, _, _ = text.split('|')
-                u = '%s%s?key=%s' % (start[:-1], new, key)
-                urls.append(u)
+                    start, _, _, key, _, _, _, _ = text.split('|')
+                    u = '%s%s?key=%s' % (start[:-1], new, key)
+                    urls.append(u)
 
-            ret['urls'] = urls
+                ret['sets'] = urls
         except:
             t, v, tb = sys.exc_info()
             log.error('SohuEngine.ParserRealUrlStep1 playurl: %s,%s,%s' % (t, v, traceback.format_tb(tb)))

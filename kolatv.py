@@ -97,12 +97,10 @@ class Kolatv:
     def GetRealPlayer(self, text, step):
         if step == '1':
             res = self.engine.ParserRealUrlStep1(text)
-            text = json.dumps(res, indent=4, ensure_ascii=False)
         else:
             res = self.engine.ParserRealUrlStep2(text)
-            text = self.engine.toM3U8(res)
 
-        return text
+        return json.dumps(res, indent=4, ensure_ascii=False)
 
     def FindMenu(self, name):
         if name in self.MenuList:

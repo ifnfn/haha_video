@@ -46,26 +46,54 @@ class KolaAlbum:
         else:
             self.videoPlayUrl = ''
 
-        self.GetText()
+        self.videos = self.GetText()
+        print(self.toM3U8(self.videos))
+
 
     def GetText(self):
-        ret = self.menu.client.GetRealPlayer(self.videoPlayUrl)
-        if ret:
-            urls = []
-            js = json.loads(ret.decode())
-            for url in js['urls']:
+        ret = {}
+
+        text = self.menu.client.GetRealPlayer(self.videoPlayUrl)
+        if text:
+            js = json.loads(text.decode())
+            ret.update(js)
+            ret['sets'] = []
+
+            for url in js['sets']:
                 txt = self.menu.client.GetUrl(url['url'])
                 if txt:
+                    new = {}
+                    urls = []
                     txt = base64.encodebytes(txt).decode()
                     url['url'] = txt
                     urls.append(url)
-            js['urls'] = urls
+                    new['sets'] = urls
 
-            ret = self.menu.client.PostUrl(HOST + '/video/getplayer?step=2', json.dumps(js))
+                    res = self.menu.client.PostUrl(HOST + '/video/getplayer?step=2', json.dumps(new))
+                    if res:
+                        res = json.loads(res.decode())
+                        for r in res['sets']:
+                            ret['sets'].append(r)
 
-            ret = ret.decode()
-            print(ret)
+        print(json.dumps(ret, indent=4, ensure_ascii=False))
+        return ret
 
+    def toM3U8(self, js):
+        txt = []
+        max_duration  = 0
+        for dur in js['clipsDuration']:
+            if dur > max_duration:
+                max_duration = dur
+        txt.append('#EXTM3U\n')
+        txt.append('#EXT-X-TARGETDURATION:%d\n' % (max_duration))
+
+        for dur, url in zip(js['clipsDuration'], js['sets']):
+            txt.append('#EXTINF:%d,\n' % (dur))
+            txt.append(url + '\n')
+
+        txt.append('#EXT-X-ENDLIST\n')
+
+        return ''.join(txt)
 class KolaMenu:
     def __init__(self, client, js):
         self.client = client
@@ -289,10 +317,8 @@ def main_getmenu():
     haha.GenKolaMenu()
     for menu in haha.menuList:
         menu.NextPage()
-        print("==============================\n")
-        menu.NextPage()
-        print("==============================\n")
-        menu.NextPage()
+#        menu.NextPage()
+#        menu.NextPage()
 
 if __name__ == "__main__":
     #main_thread()

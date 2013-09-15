@@ -13,6 +13,7 @@ import sys
 import json
 import re
 import redis
+import base64
 from bs4 import BeautifulSoup as bs
 
 from fetchTools import fetch_httplib2 as fetch
@@ -53,7 +54,6 @@ class SohuAlbum(AlbumBase):
 
         return ret
 
-
     # 更新节目指数信息
     def UpdateScoreCommand(self):
         ret = self.playlistid != ""
@@ -66,6 +66,12 @@ class SohuAlbum(AlbumBase):
     def UpdateAlbumPageCommand(self):
         if self.albumPageUrl != '':
             self.command.SendCommand('album', self.parent.name, self.albumPageUrl)
+
+    def GetVideoPlayUrl(self):
+        if self.vid != '':
+            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % self.vid
+        else:
+            return ''
 
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name, engine, url):
@@ -908,38 +914,100 @@ class SohuEngine(VideoEngine):
             return
         try:
             url = 'http://%s/?prot=%s&file=%s&new=%s' % (host, prot, tfile, new)
-            _, _, _, response = fetch(url)
-            start, _, host, key, _, _, _, _ = response.split('|')
-            return '%s%s?key=%s' % (start[:-1], new, key)
+            rc, _, _, response = fetch(url)
+            if rc == '200':
+                response = response.decode()
+                start, _, host, key, _, _, _, _ = response.split('|')
+                return '%s%s?key=%s' % (start[:-1], new, key)
+            else:
+                return ''
         except:
             t, v, tb = sys.exc_info()
             log.error('SohuEngine.GetSoHuInfo %s,%s,%s' % (t, v, traceback.format_tb(tb)))
             return self.GetSoHuInfo(host, prot, tfile, new, times + 1)
 
-    def ParserRealUrl(self, text):
-        res = []
+    def ParserRealUrlStep1(self, text):
+        res = {}
         try:
             jdata = json.loads(text)
             host = jdata['allot']
             prot = jdata['prot']
             urls = []
             data = jdata['data']
+
+            if 'totalBytes' in data:
+                res['totalBytes'] = data['totalBytes']
+
+            if 'totalDuration' in data:
+                res['totalDuration'] = data['totalDuration']
+            if 'clipsDuration' in data:
+                res['clipsDuration'] = data['clipsDuration']
+            if 'height' in data:
+                res['height'] = data['height']
+            if 'width' in data:
+                res['width'] = data['width']
+
+            if 'fps' in data:
+                res['fps'] = data['fps']
+
+            if 'scap' in jdata: # 字幕
+                res['scap'] = jdata['scap']
+
             # title = data['tvName']
             # size = sum(data['clipsBytes'])
             for tfile, new in zip(data['clipsURL'], data['su']):
-                urls.append(self.GetSoHuInfo(host, prot, tfile, new))
-            if len(urls) == 1:
-                url = urls[0]
-                res.append(['', url])
-            else:
-                for url in urls:
-                    res.append(['', url])
+                x = {}
+                x['new'] = new
+                x['url'] = 'http://%s/?prot=%s&file=%s&new=%s' % (host, prot, tfile, new)
+                urls.append(x)
+                #urls.append(self.GetSoHuInfo(host, prot, tfile, new))
+
+            res['urls'] = urls
+
             return res
         except:
             t, v, tb = sys.exc_info()
-            log.error('SohuEngine.ParserRealUrl playurl: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
+            log.error('SohuEngine.ParserRealUrlStep1 playurl: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
 
         return res;
+
+    def ParserRealUrlStep2(self, text):
+        ret = {}
+        try:
+            ret = json.loads(text)
+
+            urls = []
+            for url in ret['urls']:
+                new = url['new']
+                text = base64.decodebytes(url['url'].encode()).decode()
+
+                start, _, _, key, _, _, _, _ = text.split('|')
+                u = '%s%s?key=%s' % (start[:-1], new, key)
+                urls.append(u)
+
+            ret['urls'] = urls
+        except:
+            t, v, tb = sys.exc_info()
+            log.error('SohuEngine.ParserRealUrlStep1 playurl: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    def toM3U8(self, js):
+        txt = []
+        max_duration  = 0
+        for dur in js['clipsDuration']:
+            if dur > max_duration:
+                max_duration = dur
+        txt.append('#EXTM3U\n')
+        txt.append('#EXT-X-TARGETDURATION:%d\n' % (max_duration))
+
+        for dur, url in zip(js['clipsDuration'], js['urls']):
+            txt.append('#EXTINF:%d,\n' % (dur))
+            txt.append(url + '\n')
+
+        txt.append('#EXT-X-ENDLIST\n')
+
+        return ''.join(txt)
 
     def RealUrl(self, playurl, times=0):
         res = []
@@ -1167,6 +1235,13 @@ class test_case:
         a = json.loads(response)
         print(json.dumps(a, ensure_ascii=False, indent=4))
 
+    def test_playlist(self):
+        url = "http://hot.vrs.sohu.com/vrs_flash.action?vid=899609"
+        status, _, _, response = fetch(url)
+
+        a = json.loads(response.decode())
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
     def test_all(self):
         self.test_videolist()
         return
@@ -1182,7 +1257,8 @@ class test_case:
 
 def test():
     t = test_case()
-    t.test_videopage()
+    t.test_playlist()
+#    t.test_videopage()
     return
     t.playlistid = '1005485'
     t.vid = '460464'

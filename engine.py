@@ -137,9 +137,15 @@ class AlbumBase:
         self.data = {}
         self.videos = []
 
+    def GetVideoPlayUrl(self):
+        pass
+
     def SaveToJson(self):
         ret = {}
         ret['cid'] = self.cid
+        url = self.GetVideoPlayUrl()
+        if url != '':
+            ret['videoPlayUrl'] = url
 
         if self.albumName != ''      : ret['albumName'] = self.albumName
         if self.albumPageUrl != ''   : ret['albumPageUrl'] = self.albumPageUrl

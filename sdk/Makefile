@@ -1,2 +1,5 @@
 all:
-	g++ -O0 -g -o a pcre.cpp kola.cpp album.cpp filter.cpp httplib.c base64.c -ljansson -D_DEBUG -lpcre -lssl -lcrypto -pthread
+	g++ -O0 -g -o a \
+		httplib.c base64.c \
+		pcre.cpp kola.cpp album.cpp filter.cpp main.cpp \
+		-ljansson -D_DEBUG -lpcre -lssl -lcrypto -pthread

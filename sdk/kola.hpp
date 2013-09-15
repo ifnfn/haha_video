@@ -134,13 +134,18 @@ class KolaClient {
 		KolaMenu *GetMenuByCid(int cid);
 
 		bool UpdateMenu(void);
-		bool UrlGet(const char *url, char **ret, const char *home = NULL);
-		bool UrlPost(const char *url, const char *body, char **ret, const char *home = NULL);
+		KolaMenu* operator[] (const char *name);
+		KolaMenu* operator[] (int inx);
+		int MenuCount() {
+			return menuMap.size();
+		};
 	private:
 		std::string baseUrl;
 		std::map<std::string, KolaMenu> menuMap;
 		int nextLoginSec;
 
+		bool UrlGet(const char *url, char **ret, const char *home = NULL);
+		bool UrlPost(const char *url, const char *body, char **ret, const char *home = NULL);
 		void GetKey(void);
 		bool Login(void);
 		char *Run(const char *cmd);
@@ -149,4 +154,5 @@ class KolaClient {
 		pthread_t thread;
 		pthread_mutex_t lock;
 		friend void *kola_login_thread(void *arg);
+		friend KolaMenu;
 };

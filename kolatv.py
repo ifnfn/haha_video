@@ -94,9 +94,15 @@ class Kolatv:
         #    menu.UpdateAlbumList()         # 重新获得所有节目列表
         #    menu.UpdateAllAlbumFullInfo()  # 更新节目详细信息
 
-    def GetRealPlayer(self, text):
-        text = base64.decodestring(text)
-        return self.engine.ParserRealUrl(text)
+    def GetRealPlayer(self, text, step):
+        if step == '1':
+            res = self.engine.ParserRealUrlStep1(text)
+            text = json.dumps(res, indent=4, ensure_ascii=False)
+        else:
+            res = self.engine.ParserRealUrlStep2(text)
+            text = self.engine.toM3U8(res)
+
+        return text
 
     def FindMenu(self, name):
         if name in self.MenuList:

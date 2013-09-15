@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from urllib.parse import unquote
+import sys
+import traceback
 import tornado.ioloop
 import tornado.web
 import tornado.options
@@ -12,10 +14,13 @@ from tornado.options import define, options
 
 import redis
 import json
+import logging
 # import re
 from basehandle import BaseHandler#, JSONPHandler
 from kolatv import Kolatv
 
+logging.basicConfig()
+log = logging.getLogger("crawler")
 tv = Kolatv()
 
 def getlist(menuName, argument):
@@ -43,12 +48,14 @@ class VideoListHandler(BaseHandler):
         argument['size'] = int(self.get_argument('size', 20))
         if self.request.body:
             try:
-                umap = json.loads(self.request.body)
+                umap = json.loads(self.request.body.decode())
 #                 argument['filter'] = {}
 #                 argument['fields'] = {}
 #                 argument['sort'] = {}
                 argument.update(umap)
             except:
+                t, v, tb = sys.exc_info()
+                log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
         argument['result'] = getlist(menu, argument)
@@ -69,9 +76,11 @@ class UrlMapHandler(BaseHandler):
 
 class GetPlayerHandler(BaseHandler):
     def post(self):
-        body = self.request.body
+        body = self.request.body.decode()
         if body and len(body) > 0:
-            self.finish(tv.GetRealPlayer(body))
+            step = self.get_argument('step', "1",)
+            text = tv.GetRealPlayer(body, step)
+            self.finish(text)
         else:
             raise tornado.web.HTTPError(404)
 

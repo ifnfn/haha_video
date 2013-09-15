@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <pcre.h>
 #include <iostream>
@@ -96,8 +97,6 @@ KolaMenu::KolaMenu(KolaClient *parent, json_t *js)
 		json_t *value;
 		json_object_foreach(filter, key, value) {
 			printf("key=%s\n", key);
-
-
 		}
 	}
 
@@ -361,7 +360,6 @@ bool KolaClient::UpdateMenu(void)
 	}
 
 	menuMap.clear();
-	printf("%s\n", html);
 	js = json_loads(html, JSON_REJECT_DUPLICATES, &error);
 	delete html;
 
@@ -379,6 +377,22 @@ bool KolaClient::UpdateMenu(void)
 	}
 
 	return true;
+}
+
+KolaMenu* KolaClient::operator[] (const char *name)
+{
+	return GetMenuByName(name);
+}
+
+KolaMenu* KolaClient::operator[] (int index)
+{
+	std::map<std::string, KolaMenu>::iterator it = menuMap.begin();
+	for(; it != menuMap.end() && index; it++, index--);
+
+	if (index == 0 && it != menuMap.end())
+		return &it->second;
+	else
+		return NULL;
 }
 
 KolaMenu *KolaClient::GetMenuByCid(int cid)
@@ -441,66 +455,5 @@ void *kola_login_thread(void *arg)
 	return NULL;
 }
 
-int main(int argc, char **argv)
-{
-	int count = 30;
-	//	KolaFilter filter;
-	//
-	//	filter.KeyAdd("aa", "a1");
-	//	filter.KeyAdd("aa", "a2");
-	//	filter.KeyAdd("aa", "a3");
-	//	filter.KeyAdd("aa", "a4");
-	//	filter.KeyAdd("bb", "b1");
-	//	filter.KeyAdd("bb", "b2");
-	//	filter.KeyAdd("bb", "b3");
-	//	filter.KeyAdd("bb", "b4");
-	//	filter.GetJsonStr();
-	//	filter.KeyRemove("bb", "b3");
-	//
-	//	filter["aa"].Add("aaaaaa");
-	//	ValueArray keys = filter["aa"];
-	//	foreach(keys, i)
-	//		printf("%s\n", i->c_str());
-	//
-	//	filter.GetJsonStr();
-	//	filter["aa"].clear();
-	//	filter["bb"].clear();
-	//	printf("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n");
-	//	filter.GetJsonStr();
-	//
-	//	return 0;
-	KolaClient kola;
-
-	//kola.GetKey();
-	//kola.Login();
-	while (count--)
-		sleep(1);
-	kola.Quit();
-
-	return 0;
-	kola.UpdateMenu();
-	KolaMenu *m = kola.GetMenuByCid(1);
-	if (m)
-		std::cout << m->name << std::endl;
-	m = kola.GetMenuByName("电影");
-	if (m) {
-		std::cout << m->name << std::endl;
-		m->GetPage(10);
-		std::cout << m->size() << std::endl;
-
-		for (int i = 0 ; i < m->size(); i++)
-			std::cout << m->at(i).albumName << std::endl;
-
-		std::vector<KolaAlbum>::iterator it;
-		for (it= m->begin(); it != m->end(); it++) {
-			std::cout << it->albumName << std::endl;
-			std::cout << it->albumDesc << std::endl;
-		}
-
-		//m->GetPage();
-		//m->GetPage();
-	}
-	return 0;
-}
 
 

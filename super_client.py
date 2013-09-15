@@ -36,11 +36,35 @@ class R:
         return self.key.decrypt(text)
 
 class KolaAlbum:
-    def __init__(self):
-        pass
+    def __init__(self, parent, js):
+        self.menu = parent
+        self.js = js
+        self.vid = js['vid']
 
-    def GetFileds(self):
-        pass
+        if 'videoPlayUrl' in js:
+            self.videoPlayUrl = js['videoPlayUrl']
+        else:
+            self.videoPlayUrl = ''
+
+        self.GetText()
+
+    def GetText(self):
+        ret = self.menu.client.GetRealPlayer(self.videoPlayUrl)
+        if ret:
+            urls = []
+            js = json.loads(ret.decode())
+            for url in js['urls']:
+                txt = self.menu.client.GetUrl(url['url'])
+                if txt:
+                    txt = base64.encodebytes(txt).decode()
+                    url['url'] = txt
+                    urls.append(url)
+            js['urls'] = urls
+
+            ret = self.menu.client.PostUrl(HOST + '/video/getplayer?step=2', json.dumps(js))
+
+            ret = ret.decode()
+            print(ret)
 
 class KolaMenu:
     def __init__(self, client, js):
@@ -51,6 +75,7 @@ class KolaMenu:
         self.pageSize = 20
         self.pageId = 0
         self.Show()
+        self.albumList = []
 
     def GetFilter(self, key):
         if key in self.filter:
@@ -73,8 +98,17 @@ class KolaMenu:
                 #'fields': {},
                 #'sort': {},
                 }
-        print(self.client.PostUrl(url, json.dumps(body)).decode())
-        self.pageId += 1
+        ret = self.client.PostUrl(url, json.dumps(body))
+        if ret:
+            self.albumList = []
+            ret = ret.decode()
+            js = json.loads(ret)
+            if js:
+                res = js['result']
+                for x in res:
+                    self.albumList.append(KolaAlbum(self, x))
+
+            self.pageId += 1
 
     def Show(self):
         print("Name:", self.name, "CID:", self.cid)
@@ -262,7 +296,7 @@ def main_getmenu():
 
 if __name__ == "__main__":
     #main_thread()
-    main_one()
+    #main_one()
     #main()
-    #main_getmenu()
+    main_getmenu()
 

@@ -80,6 +80,7 @@ class KolaAlbum {
 		std::string actors;
 		std::string directors;
 		KolaVideo video;
+		std::vector<KolaAlbum> subAlbum; // 子集
 
 		bool GetPicture(enum PicType type, void **data, int *size); // 得到图片
 		bool GetPlayUrl(void **data, int *size);                    // 得到播放列表

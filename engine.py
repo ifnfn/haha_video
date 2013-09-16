@@ -143,15 +143,16 @@ class AlbumBase:
     def SaveToJson(self):
         ret = {}
         ret['cid'] = self.cid
+
         url = self.GetVideoPlayUrl()
         if url != '':
             ret['videoPlayUrl'] = url
 
+        if self.playlistid != ''     : ret['playlistid'] = self.playlistid
         if self.albumName != ''      : ret['albumName'] = self.albumName
         if self.albumPageUrl != ''   : ret['albumPageUrl'] = self.albumPageUrl
         if self.pid != ''            : ret['pid'] = self.pid
         if self.vid != ''            : ret['vid'] = self.vid
-        if self.playlistid != ''     : ret['playlistid'] = self.playlistid
         if self.isHigh != ''         : ret['isHigh'] = self.isHigh
 
         if self.area != ''           : ret['area'] = self.area
@@ -269,6 +270,10 @@ class VideoMenuBase:
 
     def GetFilterJson(self):
         pass
+
+    def GetSortJson(self):
+        pass
+
     def GetJsonInfo(self):
         ret = {}
 
@@ -276,6 +281,7 @@ class VideoMenuBase:
         ret['cid'] = self.cid
         ret['count'] = self.engine.album_table.find({'cid': self.cid}).count()
         ret['filter'] = self.GetFilterJson()
+        ret['sort'] = self.GetSortJson()
 
         return ret
 
@@ -306,7 +312,9 @@ class VideoMenuBase:
             size = arg['size']
 
             _filter = {}
-            _filter['cid'] = self.cid
+            _filter['cid']        = self.cid
+            _filter['playlistid'] = {'$exists' : True}
+            _filter['vid']        = {'$exists' : True}
             if 'filter' in arg:
                 _filter.update(arg['filter'])
 

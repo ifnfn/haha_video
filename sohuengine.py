@@ -110,11 +110,25 @@ class SohuVideoMenu(VideoMenuBase):
             '页号' : 'p10',
             '语言' : 'p11',
         }
+        self.sort = {
+            '周播放最多' : 7,
+            '日播放最多' : 5,
+            '总播放最多' : 1,
+            '最新发布'   : 3,
+            '评分最高'   : 4
+        }
 
     def GetFilterJson(self):
         ret = {}
         for k,v in list(self.filter.items()):
             ret[k] = [list(x.keys())[0] for x in v]
+
+        return ret
+
+    def GetSortJson(self):
+        ret = []
+        for k in self.sort:
+            ret.append(k)
 
         return ret
 
@@ -930,6 +944,9 @@ class SohuEngine(VideoEngine):
         res = {}
         try:
             jdata = json.loads(text)
+            if 'data' not in jdata:
+                return res
+
             host = jdata['allot']
             prot = jdata['prot']
             urls = []

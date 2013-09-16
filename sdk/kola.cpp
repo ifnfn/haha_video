@@ -11,7 +11,7 @@
 
 #include "json.h"
 #include "httplib.h"
-#include "base64.h"
+#include "base64.hpp"
 #include "kola.hpp"
 #include "pcre.hpp"
 
@@ -20,8 +20,18 @@
 //#define SERVER_HOST "www.kolatv.com"
 #define PORT 9990
 
+#define TRY_TIMES 3
+
 static std::string loginKey;
 static std::string loginKeyCookie;
+
+#if 1
+#define LOCK(lock)   pthread_mutex_lock(&lock)
+#define UNLOCK(lock) pthread_mutex_unlock(&lock)
+#else
+#define LOCK(lock)   do {} while(0)
+#define UNLOCK(lock) do {} while(0)
+#endif
 
 #if ENABLE_SSL
 
@@ -84,7 +94,7 @@ static char *ReadStringFile(FILE *fp)
 	return s;
 }
 
-KolaMenu::KolaMenu(KolaClient *parent, json_t *js)
+KolaMenu::KolaMenu(json_t *js)
 {
 	PageSize = 10;
 	PageId   = -1;
@@ -93,6 +103,7 @@ KolaMenu::KolaMenu(KolaClient *parent, json_t *js)
 	const char *key;
 	json_t *filter = json_geto(js, "filter");
 
+	client = &KolaClient::Instance();
 	if (filter) {
 		json_t *value;
 		json_object_foreach(filter, key, value) {
@@ -100,14 +111,13 @@ KolaMenu::KolaMenu(KolaClient *parent, json_t *js)
 		}
 	}
 
-	client = parent;
 	printf("cid = %d, name = %s\n", cid, name.c_str());
 }
 
 bool KolaMenu::GetPage(int page)
 {
 	char url[256];
-	char *res;
+	std::string text;
 	std::string body = filter.GetJsonStr();
 
 	if (page == -1)
@@ -116,25 +126,21 @@ bool KolaMenu::GetPage(int page)
 		PageId = page;
 
 	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", PageId, PageSize, name.c_str());
-	if (client->UrlPost(url, body.c_str(), &res) == true) {
+	if (client->UrlPost(url, body.c_str(), text) == true) {
 		clear();
 
 		json_error_t error;
-		json_t *js = json_loads(res, JSON_REJECT_DUPLICATES, &error);
+		json_t *js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
 		if (js) {
 			json_t *results = json_geto(js, "result");
 
 			if (results && json_is_array(results)) {
-				int count = json_array_size(results);
-				for (int i = 0; i < count; i++) {
-					json_t *p = json_array_get(results, i);
-					if (p)
-						push_back(KolaAlbum(this, p));
-				}
+				json_t *value;
+				json_array_foreach(results, value)
+					push_back(KolaAlbum(value));
 			}
 
-			std::cout << res << std::endl;
-			delete res;
+//			std::cout << text << std::endl;
 			json_delete(js);
 		}
 	}
@@ -164,6 +170,7 @@ void KolaClient::Quit(void)
 {
 	pthread_cancel(thread);
 	pthread_join(thread, NULL);
+	printf("KolaClient Quit: %p\n", this);
 }
 
 KolaClient::~KolaClient(void)
@@ -172,77 +179,94 @@ KolaClient::~KolaClient(void)
 	if (rsa)
 		RSA_free(rsa);
 #endif
+	Quit();
 }
 
-bool KolaClient::UrlGet(const char *url, char **ret, const char *home)
+bool KolaClient::UrlGet(const char *url, std::string &ret, const char *home_url, int times)
 {
 	bool ok = false;
 	int rc;
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
+	std::string cookie;
 
-	if (home == NULL)
-		home = baseUrl.c_str();
+	if (times > TRY_TIMES)
+		return false;
 
-	http_client = http_init_connection(home);
+	if (home_url == NULL)
+		home_url = baseUrl.c_str();
+
+	http_client = http_init_connection(home_url);
 	if (http_client == NULL) {
 		printf("no client: %s\n", url);
 		return false;
 	}
-	pthread_mutex_lock(&lock);
-	rc = http_get(http_client, url, &http_resp, loginKeyCookie.c_str());
-	pthread_mutex_unlock(&lock);
-	if (rc && ret != NULL && http_resp && http_resp->body) {
-		*ret = strdup(http_resp->body);
+	LOCK(lock);
+	cookie = loginKeyCookie;
+	UNLOCK(lock);
+
+	rc = http_get(http_client, url, &http_resp, cookie.c_str());
+	if (rc && http_resp && http_resp->body) {
+		ret = strdup(http_resp->body);
 		ok = true;
 	}
 
 	http_resp_free(http_resp);
 	http_free_connection(http_client);
 
-	return ok;
+	if (ok == false)
+		return UrlGet(url, ret, home_url, times + 1);
+	else
+		return ok;
 }
 
-bool KolaClient::UrlPost(const char *url, const char *body, char **ret, const char *home)
+bool KolaClient::UrlPost(const char *url, const char *body, std::string &ret, const char *home_url, int times)
 {
 	bool ok = false;
 	int rc;
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
+	std::string cookie;
 
-	if (home == NULL)
-		home = baseUrl.c_str();
+	if (times > TRY_TIMES)
+		return false;
 
-	http_client = http_init_connection(home);
+	if (home_url == NULL)
+		home_url = baseUrl.c_str();
+
+	http_client = http_init_connection(home_url);
 	if (http_client == NULL) {
 		printf("no client: %s\n", url);
 		return false;
 	}
 
-	pthread_mutex_lock(&lock);
-	rc = http_post(http_client, url, &http_resp, body, loginKeyCookie.c_str());
-	pthread_mutex_unlock(&lock);
-	if (rc && ret != NULL && http_resp && http_resp->body) {
-		*ret = strdup(http_resp->body);
+	LOCK(lock);
+	cookie = loginKeyCookie;
+	UNLOCK(lock);
+	rc = http_post(http_client, url, &http_resp, body, cookie.c_str());
+	if (rc && http_resp && http_resp->body) {
+		ret = strdup(http_resp->body);
 		ok = true;
 	}
 
 	http_resp_free(http_resp);
 	http_free_connection(http_client);
 
-	return ok;
+	if (ok == false)
+		return UrlPost(url, body, ret, home_url, times + 1);
+	else
+		return ok;
 }
 
 void KolaClient::GetKey(void)
 {
-	char *t = NULL;
-	if (UrlGet("/key", &t) == true) {
+	std::string text;
+	if (UrlGet("/key", text) == true) {
 #if ENABLE_SSL
-		BIO *key= BIO_new_mem_buf((void*)t, strlen(t));
+		BIO *key= BIO_new_mem_buf((void*)text.c_str(), text.size());
 		rsa = PEM_read_bio_RSA_PUBKEY(key, NULL, NULL, NULL);
 		BIO_free_all(key);
 #endif
-		delete t;
 	}
 }
 
@@ -259,8 +283,7 @@ char *KolaClient::Run(const char *cmd)
 bool KolaClient::ProcessCommand(json_t *cmd)
 {
 	int ret = -1;
-	char *html;
-	std::string regular_result;
+	std::string text;
 	Pcre pcre;
 	const char *name = json_gets(cmd, "name", "");
 	const char *source = json_gets(cmd, "source", "");
@@ -270,40 +293,35 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 //	source = "http://tv.sohu.com/s2012/azhx/";
 	printf("[%s]: %s --> %s\n", name, source, dest);
 
-	if (UrlGet("", &html, source) == false)
+	if (UrlGet("", text, source) == false)
 		return false;
 
-	if (strlen(html) == 0) {
-		delete html;
+	if (text.size() == 0)
 		return false;
-	}
 
 	json_t *regular = json_object_get(cmd, "regular");
 	if (json_is_array(regular)) {
-		int count = json_array_size(regular);
-		for (int i = 0; i < count; i++) {
-			json_t *p = json_array_get(regular, i);
-			const char *r = json_string_value(p);
+		json_t *value;
+
+		json_array_foreach(regular, value) {
+			const char *r = json_string_value(value);
 			pcre.AddRule(r);
 		}
-		regular_result = pcre.MatchAll(html);
+		text = pcre.MatchAll(text.c_str());
 	}
-	else
-		regular_result = html;
 
-	int in_size = regular_result.size();
+	int in_size = text.size();
 	int out_size = BASE64_SIZE(in_size) + 1;
 
 	char *out_buffer = (char *)calloc(1, out_size);
-	base64encode((unsigned char *)regular_result.c_str(), in_size, (unsigned char*)out_buffer, out_size);
+	base64encode((unsigned char *)text.c_str(), in_size, (unsigned char*)out_buffer, out_size);
 	json_sets(cmd, "data", out_buffer);
 	char *body = json_dumps(cmd, 2);
 
-	UrlPost("", body, NULL, dest);
+	UrlPost("", body, text, dest);
 out:
 	delete body;
 	delete out_buffer;
-	delete html;
 
 	return 0;
 }
@@ -311,29 +329,26 @@ out:
 bool KolaClient::Login(void)
 {
 	json_error_t error;
-	char *body = NULL;
+	std::string text;
 
-	if (UrlGet("/login?user_id=000001", &body) == false)
+	if (UrlGet("/login?user_id=000001", text) == false)
 		return false;
 
-	json_t *js = json_loads(body, JSON_REJECT_DUPLICATES, &error);
-	delete body;
+	json_t *js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
 
 	if (js) {
-		pthread_mutex_lock(&lock);
+		LOCK(lock);
 		loginKey = json_gets(js, "key", "");
 		loginKeyCookie = "key=" + loginKey;
-		pthread_mutex_unlock(&lock);
+		UNLOCK(lock);
 
 		std::cout << loginKey << std::endl;
 		baseUrl = json_gets(js, "server", baseUrl.c_str());
 		json_t *cmd = json_geto(js, "command");
 		if (cmd && json_is_array(cmd)) {
-			int count = json_array_size(cmd);
-			for (int i = 0; i < count; i++) {
-				json_t *p = json_array_get(cmd, i);
-				if (p)
-					ProcessCommand(p);
+			json_t *value;
+			json_array_foreach(cmd, value) {
+				ProcessCommand(value);
 			}
 		}
 
@@ -349,29 +364,23 @@ bool KolaClient::UpdateMenu(void)
 	json_error_t error;
 	json_t *js;
 	int count;
-	char *html = NULL;
+	std::string text;
 
-	if ( UrlGet("/video/getmenu", &html) == false)
+	if ( UrlGet("/video/getmenu", text) == false)
 		return false;
 
-	if (strlen(html) == 0) {
-		delete html;
+	if (text.size() == 0) {
 		return false;
 	}
 
 	menuMap.clear();
-	js = json_loads(html, JSON_REJECT_DUPLICATES, &error);
-	delete html;
+	js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
 
 	if (js) {
-		count = json_array_size(js);
-		for (int i = 0; i < count; i++) {
-			json_t *p = json_array_get(js, i);
-			if (p) {
-				const char *name = json_gets(p, "name", "");
-
-				menuMap.insert(std::pair<std::string, KolaMenu>(name, KolaMenu(this, p)));
-			}
+		json_t *value;
+		json_array_foreach(js, value) {
+			const char *name = json_gets(value, "name", "");
+			menuMap.insert(std::pair<std::string, KolaMenu>(name, KolaMenu(value)));
 		}
 		json_delete(js);
 	}
@@ -454,6 +463,4 @@ void *kola_login_thread(void *arg)
 
 	return NULL;
 }
-
-
 

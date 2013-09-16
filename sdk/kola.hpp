@@ -14,22 +14,37 @@
 
 class KolaClient;
 class KolaMenu;
+class KolaAlbum;
 
 class VideoSegment {
 	public:
-		VideoSegment(void) {
-
+		VideoSegment() {}
+		VideoSegment(json_t *js) {
+			LoadFromJson(js);
+		}
+		VideoSegment(std::string u, std::string n, double d, size_t s) {
+			url = url;
+			newfile = n;
+			duration = d;
+			size = s;
 		}
 		~VideoSegment() {
 
 		}
-		int id;
 		std::string url;
+		std::string newfile;
 		double duration;
 		size_t size;
+		std::string realUrl;
+		bool LoadFromJson(json_t *js);
+
+		std::string GetJsonStr(std::string *newUrl);
+		void Print(void) {
+			printf("%s, %s, %f, %d\n", url.c_str(), newfile.c_str(), duration, size);
+		}
 };
 
-class KolaVideo :public std::vector<VideoSegment> {
+class KolaVideo: public std::vector<VideoSegment> {
 	public:
 		KolaVideo() {}
 		~KolaVideo() {}
@@ -41,9 +56,11 @@ class KolaVideo :public std::vector<VideoSegment> {
 		size_t totalBytes;
 		int totalBlocks;
 
+		bool LoadFromJson(json_t *js);
+
 		std::string GetM3U8(void);
 		std::string GetSubtitle(const char *lang);
-	private:
+		bool GetPlayerUrl(int index);
 };
 
 class KolaAlbum {
@@ -57,8 +74,7 @@ class KolaAlbum {
 			PIC_SMALL_VER,
 		};
 
-		KolaAlbum(KolaMenu *m, json_t *js) {
-			menu = m;
+		KolaAlbum(json_t *js) {
 			LoadFromJson(js);
 		}
 		~KolaAlbum() {}
@@ -82,16 +98,17 @@ class KolaAlbum {
 		KolaVideo video;
 		std::vector<KolaAlbum> subAlbum; // 子集
 
+		bool GetVideo(void);
 		bool GetPicture(enum PicType type, void **data, int *size); // 得到图片
 		bool GetPlayUrl(void **data, int *size);                    // 得到播放列表
 	private:
-		KolaMenu *menu;
 		bool LoadFromJson(json_t *js);
 
 		std::string pid;
 		std::string vid;
 		std::string playlistid;
 
+		std::string videoPlayUrl;
 		std::string largePicUrl;      // 大图片网址
 		std::string smallPicUrl;      // 小图片网址
 		std::string largeHorPicUrl;
@@ -134,8 +151,10 @@ class KolaFilter {
 
 class KolaMenu :public std::vector<KolaAlbum> {
 	public:
-		KolaMenu(KolaClient *parent, std::string name) {}
-		KolaMenu(KolaClient *parent, json_t *js);
+		KolaMenu(std::string _name) {
+			name = _name;
+		}
+		KolaMenu(json_t *js);
 		~KolaMenu() {}
 
 		std::string name;
@@ -150,7 +169,11 @@ class KolaMenu :public std::vector<KolaAlbum> {
 
 class KolaClient {
 	public:
-		KolaClient(void);
+		static KolaClient& Instance(void) {
+			static KolaClient m_kola;
+
+			return m_kola;
+		}
 		~KolaClient(void);
 
 		void Quit(void);
@@ -164,12 +187,13 @@ class KolaClient {
 			return menuMap.size();
 		};
 	private:
+		KolaClient(void);
 		std::string baseUrl;
 		std::map<std::string, KolaMenu> menuMap;
 		int nextLoginSec;
 
-		bool UrlGet(const char *url, char **ret, const char *home = NULL);
-		bool UrlPost(const char *url, const char *body, char **ret, const char *home = NULL);
+		bool UrlGet(const char *url, std::string &ret, const char *home_url = NULL, int times = 0);
+		bool UrlPost(const char *url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
 		void GetKey(void);
 		bool Login(void);
 		char *Run(const char *cmd);
@@ -177,6 +201,9 @@ class KolaClient {
 		bool running;
 		pthread_t thread;
 		pthread_mutex_t lock;
+
 		friend void *kola_login_thread(void *arg);
 		friend KolaMenu;
+		friend KolaAlbum;
+		friend KolaVideo;
 };

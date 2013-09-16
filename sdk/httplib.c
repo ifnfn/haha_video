@@ -352,7 +352,7 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 	return ret;
 }
 
-int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, const char *body, const char *cookie)
+int http_post(http_client_t *cptr, const char *url, http_resp_t **resp, const char *body, const char *cookie)
 {
 	char *header_buffer;
 	uint32_t buffer_len, max_len = 2048;
@@ -373,7 +373,7 @@ int http_post (http_client_t *cptr, const char *url, http_resp_t **resp, const c
 		cptr->m_resource = strdup(url);
 	}
 
-	if (body) {
+	if (body && strlen(body) > 0) {
 		encode_body = URLencode(body);
 		max_len = strlen(encode_body) + 2048;
 	}

@@ -1,9 +1,27 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <assert.h>
 
-#include "base64.h"
+#include "base64.hpp"
 
 #define ASSERT(expr)	assert(expr)
 static unsigned char basis_64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+std::string base64encode(const std::string input)
+{
+	int out_size = BASE64_SIZE(input.size()) + 1;
+	std::string ret;
+
+	char *out_buffer = (char *)calloc(1, out_size);
+	base64encode((unsigned char *)input.c_str(), input.size(), (unsigned char*)out_buffer, out_size);
+
+	ret = out_buffer;
+
+	delete out_buffer;
+
+	return ret;
+}
 
 unsigned int base64encode(const unsigned char *input, unsigned int input_length, unsigned char *output, int output_length)
 {

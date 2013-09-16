@@ -323,6 +323,6 @@ def main_getmenu():
 if __name__ == "__main__":
     #main_thread()
     #main_one()
-    #main()
-    main_getmenu()
+    main()
+    #main_getmenu()
 

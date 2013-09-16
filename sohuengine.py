@@ -958,8 +958,10 @@ class SohuEngine(VideoEngine):
 
             # title = data['tvName']
             # size = sum(data['clipsBytes'])
-            for tfile, new in zip(data['clipsURL'], data['su']):
+            for tfile, new, duration, byte in zip(data['clipsURL'], data['su'], data['clipsDuration'], data['clipsBytes']):
                 x = {}
+                x['duration'] = duration
+                x['size'] = byte
                 x['new'] = new
                 x['url'] = 'http://%s/?prot=%s&file=%s&new=%s' % (host, prot, tfile, new)
                 urls.append(x)

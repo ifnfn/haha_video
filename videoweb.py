@@ -41,14 +41,18 @@ class VideoListHandler(BaseHandler):
         self.finish(json.dumps(js, indent=4, ensure_ascii=False))
 
     def post(self):
+        self.check()
+
         argument = {}
         menu = self.get_argument('menu', '')
 
         argument['page'] = int(self.get_argument('page', 0))
         argument['size'] = int(self.get_argument('size', 20))
+
         if self.request.body:
+            body = unquote(self.request.body.decode())
             try:
-                umap = json.loads(self.request.body.decode())
+                umap = json.loads(body)
 #                 argument['filter'] = {}
 #                 argument['fields'] = {}
 #                 argument['sort'] = {}
@@ -63,7 +67,7 @@ class VideoListHandler(BaseHandler):
 
 class UrlMapHandler(BaseHandler):
     def post(self):
-        body = self.request.body
+        body = unquote(self.request.body.decode())
         if body and len(body) > 0:
             try:
                 umap = json.loads(body)
@@ -75,8 +79,12 @@ class UrlMapHandler(BaseHandler):
             raise tornado.web.HTTPError(404)
 
 class GetPlayerHandler(BaseHandler):
+    def get(self):
+        pass
     def post(self):
-        body = self.request.body.decode()
+        self.check()
+
+        body = unquote(self.request.body.decode())
         if body and len(body) > 0:
             step = self.get_argument('step', "1",)
             text = tv.GetRealPlayer(body, step)

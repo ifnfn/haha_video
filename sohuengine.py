@@ -951,6 +951,8 @@ class SohuEngine(VideoEngine):
             prot = jdata['prot']
             urls = []
             data = jdata['data']
+            if data == None:
+                return {}
 
             if 'totalBytes' in data:
                 res['totalBytes'] = data['totalBytes']

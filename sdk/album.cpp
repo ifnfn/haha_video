@@ -30,7 +30,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	//mainActors = json_gets(js, "mainActors", "");
 	//categories = json_gets(js, "categories", "");
 
-	std::cout << "KolaAlbum:" << albumName << std::endl;
+//	std::cout << "KolaAlbum:" << albumName << std::endl;
 }
 
 bool KolaAlbum::GetVideo(void)
@@ -106,7 +106,7 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	return true;
 }
 
-bool KolaVideo::GetPlayerUrl(int index)
+bool KolaVideo::GetPlayerUrl(int index, std::string &url)
 {
 	KolaClient *client =& KolaClient::Instance();
 	std::string text;
@@ -121,7 +121,7 @@ bool KolaVideo::GetPlayerUrl(int index)
 		return false;
 
 	VideoSegment &seg = at(index);
-	std::cout << "Get: " << seg.url << std::endl;
+	//std::cout << "Get: " << seg.url << std::endl;
 	if (client->UrlGet("", text, seg.url.c_str()) == false)
 		return false;
 
@@ -137,11 +137,14 @@ bool KolaVideo::GetPlayerUrl(int index)
 	sets = json_geto(js, "sets");
 	if (sets && json_is_array(sets) && json_array_size(sets) > 0) {
 		json_t *u = json_array_get(sets, 0);
-		if (u)
+		if (u) {
 			seg.realUrl = json_string_value(u);
+			url = seg.realUrl;
+			return true;
+		}
 	}
 
-	std::cout << seg.realUrl << std::endl;
+	//std::cout << seg.realUrl << std::endl;
 
-	return true;
+	return false;
 }

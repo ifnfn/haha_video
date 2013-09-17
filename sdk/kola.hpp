@@ -60,7 +60,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 
 		std::string GetM3U8(void);
 		std::string GetSubtitle(const char *lang);
-		bool GetPlayerUrl(int index);
+		bool GetPlayerUrl(int index, std::string &url);
 };
 
 class KolaAlbum {
@@ -77,7 +77,9 @@ class KolaAlbum {
 		KolaAlbum(json_t *js) {
 			LoadFromJson(js);
 		}
-		~KolaAlbum() {}
+		~KolaAlbum() {
+//			printf("~KolaAlbum %s\n", albumName.c_str());
+		}
 
 		std::string albumName;
 		std::string albumDesc;
@@ -121,20 +123,59 @@ class KolaAlbum {
 		std::string defaultPageUrl;  // 当前播放集
 };
 
-class ValueArray: public std::vector<std::string> {
+class StringList: public std::vector<std::string> {
 	public:
-		ValueArray() {}
-		~ValueArray() {}
-		void Add(std::string v) {
-			std::vector<std::string>::iterator iter = find(begin(), end(), v);
+		virtual void Add(std::string v) {
+			StringList::iterator iter = find(begin(), end(), v);
 			if (iter == end())
 				push_back(v);
 		}
-		void Remove(std:: string v) {
-			std::vector<std::string>::iterator iter = find(begin(), end(), v);
+		virtual void Remove(std::string v) {
+			StringList::iterator iter = find(begin(), end(), v);
 			if (iter != end())
 				erase(iter);
 		}
+
+		void operator<< (std::string v) {
+			Add(v);
+		}
+		void operator>> (std::string v) {
+			Remove(v);
+		}
+
+		bool Find(std::string v) {
+			StringList::iterator iter = find(begin(), end(), v);
+			return iter != end();
+		}
+
+		std::string ToString(std::string s = "", std::string e = "", std::string split = ",") {
+			std::string ret;
+			int count = size();
+
+			if (count > 0) {
+				ret = s;
+				for (int i = 0; i < count - 1; i++)
+					ret += at(i) + split;
+
+				ret += at(count - 1) + e;
+			}
+			return ret;
+		}
+};
+
+class ValueArray: public StringList {
+	public:
+		ValueArray() {}
+		~ValueArray() {}
+		virtual void Add(std::string v) {
+//			if (values.Find(v))
+				StringList::Add(v);
+		}
+		virtual void Remove(std:: string v) {
+			StringList::Remove(v);
+		}
+	private:
+		StringList values;
 };
 
 class KolaFilter {
@@ -149,20 +190,39 @@ class KolaFilter {
 		std::map<std::string, ValueArray> filterKey;
 };
 
+class KolaSort: public ValueArray {
+	public:
+		virtual void Add(std::string v) {
+			clear();
+			ValueArray::Add(v);
+		}
+		virtual void Remove(std:: string v) {
+			clear();
+		}
+		std::string GetJsonStr(void) {
+			std::string ret = ToString();
+			if (ret != "")
+				ret = "\"filter\": \"" + ret + "\"";
+
+			return ret;
+		}
+};
+
 class KolaMenu :public std::vector<KolaAlbum> {
 	public:
-		KolaMenu(std::string _name) {
-			name = _name;
-		}
+		KolaMenu(void);
+		KolaMenu(const KolaMenu& m);
 		KolaMenu(json_t *js);
-		~KolaMenu() {}
+		~KolaMenu(void) {}
 
 		std::string name;
 		int cid;
 		bool GetPage(int page = -1);
+
+		KolaFilter filter;
+		KolaSort   sort;
 	private:
 		KolaClient *client;
-		KolaFilter filter;
 		int PageSize;
 		int PageId;
 };
@@ -177,12 +237,12 @@ class KolaClient {
 		~KolaClient(void);
 
 		void Quit(void);
-		KolaMenu *GetMenuByName(const char *name);
-		KolaMenu *GetMenuByCid(int cid);
+		KolaMenu GetMenuByName(const char *name);
+		KolaMenu GetMenuByCid(int cid);
 
 		bool UpdateMenu(void);
-		KolaMenu* operator[] (const char *name);
-		KolaMenu* operator[] (int inx);
+		KolaMenu operator[] (const char *name);
+		KolaMenu operator[] (int inx);
 		int MenuCount() {
 			return menuMap.size();
 		};

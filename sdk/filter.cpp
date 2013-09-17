@@ -22,16 +22,8 @@ std::string KolaFilter::GetJsonStr(void)
 	foreach(filterKey, i) {
 		int v_count = 0;
 
-		std::string v("[");
-		foreach(i->second, j) {
-			v += *j + ",";
-			v_count++;
-		}
-
-		if (v_count > 0) {
-			v.erase(v.end() - 1);
-			v += "]";
-
+		std::string v = i->second.ToString("[", "]", ", ");
+		if (v != "") {
 			filter += "\"" + i->first + "\":" + v + ",";
 			count++;
 		}

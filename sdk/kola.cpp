@@ -4,6 +4,7 @@
 #include <string.h>
 #include <pcre.h>
 #include <iostream>
+#include <stdexcept>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
@@ -94,6 +95,15 @@ static char *ReadStringFile(FILE *fp)
 	return s;
 }
 
+
+KolaMenu::KolaMenu() {
+	cid = -1;
+	PageId = -1;
+	PageSize = 20;
+
+	client = &KolaClient::Instance();
+}
+
 KolaMenu::KolaMenu(json_t *js)
 {
 	PageSize = 10;
@@ -104,14 +114,28 @@ KolaMenu::KolaMenu(json_t *js)
 	json_t *filter = json_geto(js, "filter");
 
 	client = &KolaClient::Instance();
+
+
+#if 0
 	if (filter) {
+		const char *key;
 		json_t *value;
 		json_object_foreach(filter, key, value) {
 			printf("key=%s\n", key);
 		}
 	}
+#endif
 
 	printf("cid = %d, name = %s\n", cid, name.c_str());
+}
+
+KolaMenu::KolaMenu(const KolaMenu &m) {
+	name = m.name;
+	cid = m.cid;
+	PageSize = m.PageSize;
+	PageId = m.PageId;
+	client = m.client;
+//	client = &KolaClient::Instance();
 }
 
 bool KolaMenu::GetPage(int page)
@@ -120,6 +144,8 @@ bool KolaMenu::GetPage(int page)
 	std::string text;
 	std::string body = filter.GetJsonStr();
 
+	if (name == "" or cid == -1)
+		return false;
 	if (page == -1)
 		PageId++;
 	else
@@ -207,7 +233,7 @@ bool KolaClient::UrlGet(const char *url, std::string &ret, const char *home_url,
 
 	rc = http_get(http_client, url, &http_resp, cookie.c_str());
 	if (rc && http_resp && http_resp->body) {
-		ret = strdup(http_resp->body);
+		ret = http_resp->body;
 		ok = true;
 	}
 
@@ -245,7 +271,7 @@ bool KolaClient::UrlPost(const char *url, const char *body, std::string &ret, co
 	UNLOCK(lock);
 	rc = http_post(http_client, url, &http_resp, body, cookie.c_str());
 	if (rc && http_resp && http_resp->body) {
-		ret = strdup(http_resp->body);
+		ret = http_resp->body;
 		ok = true;
 	}
 
@@ -307,6 +333,7 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 			const char *r = json_string_value(value);
 			pcre.AddRule(r);
 		}
+
 		text = pcre.MatchAll(text.c_str());
 	}
 
@@ -388,55 +415,54 @@ bool KolaClient::UpdateMenu(void)
 	return true;
 }
 
-KolaMenu* KolaClient::operator[] (const char *name)
+KolaMenu KolaClient::operator[] (const char *name)
 {
 	return GetMenuByName(name);
 }
 
-KolaMenu* KolaClient::operator[] (int index)
+KolaMenu KolaClient::operator[] (int index)
 {
 	std::map<std::string, KolaMenu>::iterator it = menuMap.begin();
 	for(; it != menuMap.end() && index; it++, index--);
 
 	if (index == 0 && it != menuMap.end())
-		return &it->second;
+		return it->second;
 	else
-		return NULL;
+		throw std::out_of_range("index");
 }
 
-KolaMenu *KolaClient::GetMenuByCid(int cid)
+KolaMenu KolaClient::GetMenuByCid(int cid)
 {
 	foreach(menuMap, i) {
 		if (i->second.cid == cid)
-			return &i->second;
+			return i->second;
 	}
-
-	return NULL;
+	// TODO
+	return KolaMenu();
 }
 
-KolaMenu *KolaClient::GetMenuByName(const char *menuName)
+KolaMenu KolaClient::GetMenuByName(const char *menuName)
 {
 	json_error_t error;
 	json_t *js;
 	int count;
 	const char *html;
-	KolaMenu *ret = NULL;
+	KolaMenu ret;
+	std::map<std::string, KolaMenu>::iterator it;
 
 	if (menuName == NULL)
-		return NULL;
+		throw std::invalid_argument(menuName);
 
-	std::map<std::string, KolaMenu>::iterator it = menuMap.find(menuName);
+	it = menuMap.find(menuName);
 
 	if (it != menuMap.end())
-		ret = &it->second;
+		return it->second;
 
-	if (ret == NULL) {
-		UpdateMenu();
-		std::map<std::string, KolaMenu>::iterator it = menuMap.find(menuName);
+	UpdateMenu();
+	it = menuMap.find(menuName);
 
-		if (it != menuMap.end())
-			ret = &it->second;
-	}
+	if (it != menuMap.end())
+		ret = it->second;
 
 	return ret;
 }

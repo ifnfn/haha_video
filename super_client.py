@@ -17,7 +17,7 @@ from fetchTools import fetch_httplib2 as fetch
 from ThreadPool import ThreadPool
 
 HOST = 'http://127.0.0.1:9991'
-#HOST = 'http://121.199.20.175'
+HOST = 'http://121.199.20.175'
 MAX_TRY = 3
 
 class KolaClient:

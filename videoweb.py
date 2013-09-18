@@ -98,7 +98,7 @@ class GetPlayerHandler(BaseHandler):
 # http://xxxxx/video/getmenu
 # http://xxxxx/video/getmenu?name=电影,电视剧
 # http://xxxxx/video/getmenu?name=
-class GetMenupHandler(BaseHandler):
+class GetMenuHandler(BaseHandler):
     def get(self):
         ret = []
         cid = self.get_argument('cid', '')
@@ -131,7 +131,7 @@ def getRandomStr(n):
         st = st.join(['',temp])
     return st
 
-class LoginHandler(tornado.web.RequestHandler):
+class LoginHandler(BaseHandler):
     def check_user_id(self):
         self.user_id = ''
         self.status = 'NO'
@@ -153,16 +153,18 @@ class LoginHandler(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(401, "Missing key %s" % self.user_id)
 
         if not db.exists(self.user_id): # 如果没有登录，生成随机 KEY
-            key = (self.user_id + getRandomStr(32) + self.request.remote_ip).encode()
+            key = (self.user_id + getRandomStr(32) + self.client_ip).encode()
             key = hashlib.md5(key).hexdigest().upper()
             db.set(self.user_id, key)
-            db.set(key, self.request.remote_ip)
+            db.set(key, self.client_ip)
 #            db.expire(self.user_id, 60) # 十秒过期
 #            db.expire(key, 60) # 十秒过期
         else:
             key = db.get(self.user_id).decode()
 
         return key
+    def prepare(self):
+        pass
 
     def get(self):
         key = self.check_user_id()
@@ -200,7 +202,7 @@ class Application(tornado.web.Application):
             (r'/video/upload',            UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',         GetPlayerHandler),       # 得到下载地位
             (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
-            (r'/video/getmenu',           GetMenupHandler),        # 后台管理，增加网址映射
+            (r'/video/getmenu',           GetMenuHandler),         # 后台管理，增加网址映射
             (r'/login',                   LoginHandler),           # 登录认证
         ]
 

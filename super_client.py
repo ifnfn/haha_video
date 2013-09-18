@@ -11,6 +11,7 @@ import traceback
 import json
 import base64, zlib
 import re
+import time
 import hashlib
 
 from fetchTools import fetch_httplib2 as fetch
@@ -147,6 +148,14 @@ def main():
         if haha.Login() == False:
             break
 
+def main_loop():
+    haha = KolaClient()
+    while True:
+        while True:
+            if haha.Login() == False:
+                break
+        time.sleep(3600)
+
 def main_thread():
     thread_pool = ThreadPool(10)
     for _ in range(10):
@@ -155,4 +164,4 @@ def main_thread():
 if __name__ == "__main__":
     #main_thread()
     #main_one()
-    main()
+    main_loop()

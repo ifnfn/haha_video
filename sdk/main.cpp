@@ -9,12 +9,19 @@ void filter_test(void)
 	KolaFilter filter;
 
 	filter.KeyAdd("aa", "a1");
+	filter.GetJsonStr();
 	filter.KeyAdd("aa", "a2");
+	filter.GetJsonStr();
 	filter.KeyAdd("aa", "a3");
+	filter.GetJsonStr();
 	filter.KeyAdd("aa", "a4");
+	filter.GetJsonStr();
 	filter.KeyAdd("bb", "b1");
+	filter.GetJsonStr();
 	filter.KeyAdd("bb", "b2");
+	filter.GetJsonStr();
 	filter.KeyAdd("bb", "b3");
+	filter.GetJsonStr();
 	filter.KeyAdd("bb", "b4");
 	filter.GetJsonStr();
 	filter.KeyRemove("bb", "b3");
@@ -50,6 +57,7 @@ int main(int argc, char **argv)
 #if 1
 	filter_test();
 
+//	return 0;
 	int count = 30;
 	KolaClient &kola = KolaClient::Instance();
 

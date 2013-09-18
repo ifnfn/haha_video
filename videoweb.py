@@ -54,9 +54,8 @@ class VideoListHandler(BaseHandler):
         argument['size'] = int(self.get_argument('size', 20))
 
         if self.request.body:
-            body = self.request.body.decode()
             try:
-                umap = json.loads(body)
+                umap = tornado.escape.json_decode(self.request.body)
 #                 argument['filter'] = {}
 #                 argument['fields'] = {}
 #                 argument['sort'] = {}
@@ -71,16 +70,13 @@ class VideoListHandler(BaseHandler):
 
 class UrlMapHandler(BaseHandler):
     def post(self):
-        body = self.request.body.decode()
-        if body and len(body) > 0:
-            try:
-                umap = json.loads(body)
+        try:
+            umap = tornado.escape.json_decode(self.request.body)
+            if umap:
                 tv.engine.command.AddUrlMap(umap['source'], umap['dest'])
-            except:
-                raise tornado.web.HTTPError(400)
-            self.finish('OK')
-        else:
-            raise tornado.web.HTTPError(404)
+        except:
+            raise tornado.web.HTTPError(400)
+        self.finish('OK')
 
 class GetPlayerHandler(BaseHandler):
     def get(self):

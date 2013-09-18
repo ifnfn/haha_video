@@ -6,8 +6,9 @@ import traceback
 import sys
 import json
 import configparser
-from pymongo import Connection
+import tornado.escape
 import redis
+from pymongo import Connection
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -61,7 +62,7 @@ class Commands:
     def GetCommandNext(self):
         cmd = self.db.lpop('command')
         if cmd:
-            return json.loads(cmd.decode())
+            return tornado.escape.json_decode(cmd)
 
         return None
 

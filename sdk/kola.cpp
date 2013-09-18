@@ -17,10 +17,10 @@
 #include "kola.hpp"
 #include "pcre.hpp"
 
-//#define SERVER_HOST "127.0.0.1"
+#define SERVER_HOST "127.0.0.1"
 //#define SERVER_HOST "121.199.20.175"
-#define SERVER_HOST "www.kolatv.com"
-#define PORT 80
+//#define SERVER_HOST "www.kolatv.com"
+#define PORT 9991
 
 #define TRY_TIMES 3
 
@@ -115,13 +115,18 @@ KolaMenu::KolaMenu(json_t *js)
 
 	client = &KolaClient::Instance();
 
-
-#if 0
+#if 1
 	if (filter) {
 		const char *key;
-		json_t *value;
-		json_object_foreach(filter, key, value) {
-			printf("key=%s\n", key);
+		json_t *values;
+		json_object_foreach(filter, key, values) {
+			json_t *v;
+			std::string list;
+			json_array_foreach(values, v)
+				list = list + json_string_value(v) + ",";
+			Filter.filterKey.insert(std::pair<std::string, ValueArray>(key, ValueArray(list)));
+			printf("%s = [%s]\n", key, list.c_str());
+			Filter[key] = Filter[key][0];
 		}
 	}
 #endif
@@ -142,7 +147,9 @@ bool KolaMenu::GetPage(int page)
 {
 	char url[256];
 	std::string text;
-	std::string body = filter.GetJsonStr();
+	std::string body = Filter.GetJsonStr();
+
+	std::cout << "Filter Body: " << body << std::endl;
 
 	if (name == "" or cid == -1)
 		return false;

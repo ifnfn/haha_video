@@ -165,28 +165,31 @@ class StringList: public std::vector<std::string> {
 
 class ValueArray: public StringList {
 	public:
-		ValueArray() {}
+		ValueArray(void) { }
+		ValueArray(const std::string items);
 		~ValueArray() {}
 		virtual void Add(std::string v) {
-//			if (values.Find(v))
-				StringList::Add(v);
+//			if (Find(v))
+				value = v;
 		}
 		virtual void Remove(std:: string v) {
-			StringList::Remove(v);
+			value = "";
 		}
-	private:
-		StringList values;
+		void LoadValue(const std::string items);
+//	private:
+		std::string value;
 };
 
 class KolaFilter {
 	public:
 		KolaFilter() {}
 		~KolaFilter() {}
+		void LoadFromJson(json_t *js);
 		void KeyAdd(std::string key, std::string value);
 		void KeyRemove(std::string key, std::string value);
 		std::string GetJsonStr(void);
 		ValueArray& operator[] (std::string key);
-	private:
+//	private:
 		std::map<std::string, ValueArray> filterKey;
 };
 
@@ -219,8 +222,8 @@ class KolaMenu :public std::vector<KolaAlbum> {
 		int cid;
 		bool GetPage(int page = -1);
 
-		KolaFilter filter;
-		KolaSort   sort;
+		KolaFilter Filter;
+		KolaSort   Sort;
 	private:
 		KolaClient *client;
 		int PageSize;

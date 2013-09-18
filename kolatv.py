@@ -5,10 +5,11 @@ import json
 import base64
 import redis
 import logging
-from apscheduler.scheduler import Scheduler
-
+import tornado.escape
 import sohuengine as eg
+
 from ThreadPool import ThreadPool
+from apscheduler.scheduler import Scheduler
 
 POOLSIZE = 10
 
@@ -50,7 +51,7 @@ class Kolatv:
             menu.UpdateAlbumList()
 
     def ParserHtml(self, data):
-        js = json.loads(data)
+        js = tornado.escape.json_decode(data)
         if (js == None) or ('data' not in js):
             db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
             db.rpush('urls', js['source'])

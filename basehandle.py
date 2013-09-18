@@ -10,13 +10,12 @@ from urllib.parse import unquote
 class BaseHandler(tornado.web.RequestHandler):
     def initialize(self):
         self.client_ip = self.request.remote_ip
-        print(self.request.headers)
         if 'X-Real-IP' in self.request.headers:
             self.client_ip = self.request.headers['X-Real-IP']
-        elif 'Host' in self.request.headers:
-            host = self.request.headers['Host'].split(':')
-            if len(host) > 0:
-                self.client_ip = host[0]
+        elif 'remote_ip' in self.request.headers:
+            self.client_ip = self.request.headers['remote_ip']
+
+#        print(self.client_ip)
 
     def get_current_user(self):
         user = self.get_secure_cookie('user')

@@ -22,8 +22,8 @@ from basehandle import BaseHandler#, JSONPHandler
 from kolatv import Kolatv
 
 
-MAINSERVER_HOST = 'http://127.0.0.1:9991'
-
+#MAINSERVER_HOST = 'http://127.0.0.1:9991'
+MAINSERVER_HOST = 'http://112.124.60.152:9991'
 
 logging.basicConfig()
 log = logging.getLogger("crawler")

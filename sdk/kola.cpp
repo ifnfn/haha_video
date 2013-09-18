@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <zlib.h>
 
 #include "json.h"
 #include "httplib.h"
@@ -94,7 +95,6 @@ static char *ReadStringFile(FILE *fp)
 
 	return s;
 }
-
 
 KolaMenu::KolaMenu() {
 	cid = -1;
@@ -246,13 +246,70 @@ bool KolaClient::UrlGet(const char *url, std::string &ret, const char *home_url,
 		return ok;
 }
 
+
+/* Compress gzip data */
+static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
+{
+	z_stream c_stream;
+	int err = 0;
+
+	if(data && ndata > 0)
+	{
+		c_stream.zalloc = Z_NULL;
+		c_stream.zfree = Z_NULL;
+		c_stream.opaque = Z_NULL;
+		if(deflateInit2(&c_stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
+					-MAX_WBITS, 8, Z_DEFAULT_STRATEGY) != Z_OK) return -1;
+		c_stream.next_in  = data;
+		c_stream.avail_in  = ndata;
+		c_stream.next_out = zdata;
+		c_stream.avail_out  = *nzdata;
+		while (c_stream.avail_in != 0 && c_stream.total_out < *nzdata)
+		{
+			if(deflate(&c_stream, Z_NO_FLUSH) != Z_OK) return -1;
+		}
+		if(c_stream.avail_in != 0) return c_stream.avail_in;
+		for (;;) {
+			if((err = deflate(&c_stream, Z_FINISH)) == Z_STREAM_END) break;
+			if(err != Z_OK) return -1;
+		}
+		if(deflateEnd(&c_stream) != Z_OK) return -1;
+		*nzdata = c_stream.total_out;
+		return 0;
+	}
+	return -1;
+}
+
+static std::string gzip_base64(const char *data, int ndata)
+{
+	std::string ret;
+	Byte *zdata = (Byte*)malloc(ndata);
+	uLong nzdata = ndata;
+
+	if (gzcompress((Bytef *)data, (uLong)ndata, zdata, &nzdata) == 0) {
+		data = (const char*)zdata;
+		ndata = nzdata;
+	}
+	int out_size = BASE64_SIZE(ndata) + 1;
+
+	char *out_buffer = (char *)calloc(1, out_size);
+	base64encode((unsigned char *)data, ndata, (unsigned char*)out_buffer, out_size);
+
+	ret = out_buffer;
+
+	delete out_buffer;
+	delete zdata;
+
+	return ret;
+}
+
 bool KolaClient::UrlPost(const char *url, const char *body, std::string &ret, const char *home_url, int times)
 {
 	bool ok = false;
 	int rc;
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
-	std::string cookie;
+	std::string cookie, new_body;
 
 	if (times > TRY_TIMES)
 		return false;
@@ -269,7 +326,9 @@ bool KolaClient::UrlPost(const char *url, const char *body, std::string &ret, co
 	LOCK(lock);
 	cookie = loginKeyCookie;
 	UNLOCK(lock);
-	rc = http_post(http_client, url, &http_resp, body, cookie.c_str());
+
+	new_body = gzip_base64(body, strlen(body));
+	rc = http_post(http_client, url, &http_resp, new_body.c_str(), cookie.c_str());
 	if (rc && http_resp && http_resp->body) {
 		ret = http_resp->body;
 		ok = true;

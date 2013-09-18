@@ -7,139 +7,18 @@ if len(f_path) < 1: f_path = "."
 sys.path.append(f_path)
 sys.path.append(f_path + "/..")
 
-from pymongo import Connection
 import traceback
 import json
-import base64
+import base64, zlib
 import re
-from Crypto.PublicKey import RSA
 import hashlib
 
 from fetchTools import fetch_httplib2 as fetch
 from ThreadPool import ThreadPool
 
-MAINSERVER_HOST = 'http://127.0.0.1:9990'
-#MAINSERVER_HOST = 'http://121.199.20.175:9990'
 HOST = 'http://127.0.0.1:9991'
 #HOST = 'http://121.199.20.175'
-PARSER_HOST  = HOST + '/video/upload'
 MAX_TRY = 3
-
-class R:
-    def __init__(self, key):
-        self.key = RSA.importKey(key)
-
-    def Encrypt(self, text):
-        return self.key.encrypt(text, len(text))
-
-    def Decrypt(self, text):
-        return self.key.decrypt(text)
-
-class KolaAlbum:
-    def __init__(self, parent, js):
-        self.menu = parent
-        self.js = js
-        self.vid = js['vid']
-
-        if 'videoPlayUrl' in js:
-            self.videoPlayUrl = js['videoPlayUrl']
-        else:
-            self.videoPlayUrl = ''
-
-        self.videos = self.GetText()
-        print(self.toM3U8(self.videos))
-
-
-    def GetText(self):
-        ret = {}
-
-        text = self.menu.client.GetRealPlayer(self.videoPlayUrl)
-        if text:
-            js = json.loads(text.decode())
-            ret.update(js)
-            ret['sets'] = []
-
-            for url in js['sets']:
-                txt = self.menu.client.GetUrl(url['url'])
-                if txt:
-                    new = {}
-                    urls = []
-                    txt = base64.encodebytes(txt).decode()
-                    url['url'] = txt
-                    urls.append(url)
-                    new['sets'] = urls
-
-                    res = self.menu.client.PostUrl(HOST + '/video/getplayer?step=2', json.dumps(new))
-                    if res:
-                        res = json.loads(res.decode())
-                        for r in res['sets']:
-                            ret['sets'].append(r)
-
-        print(json.dumps(ret, indent=4, ensure_ascii=False))
-        return ret
-
-    def toM3U8(self, js):
-        txt = []
-        max_duration  = 0
-        for dur in js['clipsDuration']:
-            if dur > max_duration:
-                max_duration = dur
-        txt.append('#EXTM3U\n')
-        txt.append('#EXT-X-TARGETDURATION:%d\n' % (max_duration))
-
-        for dur, url in zip(js['clipsDuration'], js['sets']):
-            txt.append('#EXTINF:%d,\n' % (dur))
-            txt.append(url + '\n')
-
-        txt.append('#EXT-X-ENDLIST\n')
-
-        return ''.join(txt)
-class KolaMenu:
-    def __init__(self, client, js):
-        self.client = client
-        self.filter = js['filter']
-        self.cid = js['cid']
-        self.name = js['name']
-        self.pageSize = 20
-        self.pageId = 0
-        self.Show()
-        self.albumList = []
-
-    def GetFilter(self, key):
-        if key in self.filter:
-            return self.filter[key]
-        else:
-            return []
-
-    def SetFilter(self, key, value):
-        self.filter[key] = value
-
-    def SetSort(self, key):
-        pass
-
-    def SetFields(self, fields):
-        pass
-    def NextPage(self):
-        url = '%s/video/list?page=%d&size=%d&menu=%s' % (HOST, self.pageId, self.pageSize, self.name)
-        body = {
-                #'filter': {},
-                #'fields': {},
-                #'sort': {},
-                }
-        ret = self.client.PostUrl(url, json.dumps(body))
-        if ret:
-            self.albumList = []
-            ret = ret.decode()
-            js = json.loads(ret)
-            if js:
-                res = js['result']
-                for x in res:
-                    self.albumList.append(KolaAlbum(self, x))
-
-            self.pageId += 1
-
-    def Show(self):
-        print("Name:", self.name, "CID:", self.cid)
 
 class KolaClient:
     def __init__(self):
@@ -148,31 +27,14 @@ class KolaClient:
         self.menuList = []
         self.key = ''
 
-    def GenKolaMenu(self):
-        print (HOST + '/video/getmenu')
-        res = self.GetUrl(HOST + '/video/getmenu').decode()
-        try:
-            js = json.loads(res)
-            for x in js:
-                self.menuList.append(KolaMenu(self, x))
-        except:
-            pass
-
-        return self.menuList
-
     def GetUrl(self, url):
         status, _, _, response = fetch(url)
-        #if self.rsa:
-        #    response = self.rsa.Decrypt(response)
         if status != '200':
             print(response)
             return ""
         return response
 
     def GetCacheUrl(self, url):
-#         url = MAINSERVER_HOST + '/video/cache?url=' + urllib.quote(url)
-#         return self.GetUrl(url)
-
         response = ''
 
         key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
@@ -182,17 +44,25 @@ class KolaClient:
             response = f.read()
             f.close()
         else:
-            _, _, _, response = fetch(url)
-            f = open(filename, 'wb')
-            f.write(response)
-            f.close()
+            ret, _, _, response = fetch(url)
+            if ret == '200':
+                f = open(filename, 'wb')
+                f.write(response)
+                f.close()
 
         return response
 
     def PostUrl(self, url, body):
-        #if self.rsa:
-        #    body = self.rsa.Encrypt(body)
         try:
+            compress = zlib.compressobj(9,
+                                        zlib.DEFLATED,
+                                        - zlib.MAX_WBITS,
+                                        zlib.DEF_MEM_LEVEL,
+                                        0)
+            body = compress.compress(body.encode())
+            body += compress.flush()
+            body = base64.encodebytes(body).decode()
+
             ret, _, _, response = fetch(url, 'POST', body, cookies = "key=" + self.key)
             if ret != "200":
                 print(response)
@@ -202,19 +72,6 @@ class KolaClient:
             t, v, tb = sys.exc_info()
             print("PostUrl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
             return None
-
-    def GetRealPlayer(self, url, times = 0):
-        if times > MAX_TRY:
-            return ''
-        try:
-            response = self.GetUrl(url)
-            return self.PostUrl(HOST + '/video/getplayer', response)
-        except:
-            t, v, tb = sys.exc_info()
-            print("GetSoHuRealUrl playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
-            return self.GetRealPlayer(url, times + 1)
-
-        return ''
 
     def RegularMatchUrl(self, url, regular):
         response = self.GetUrl(url)
@@ -243,12 +100,10 @@ class KolaClient:
                     coding = 'GBK'
                     text = response.decode(coding)
 
-                response = self.RegularMatch(cmd['regular'], text)
-                response = response.encode(coding)
+                response = self.RegularMatch(cmd['regular'], text).encode(coding)
 
             if response:
-                base = base64.encodebytes(response)
-                cmd['data'] = base.decode()
+                cmd['data'] = base64.encodebytes(response).decode()
             else:
                 print("[WARNING] Data is empty: ", cmd['source'])
             body = json.dumps(cmd) #, ensure_ascii = False)
@@ -261,28 +116,13 @@ class KolaClient:
         print((ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', cmd['dest'])
         return ret
 
-    def GetKey(self):
-        playurl = MAINSERVER_HOST + '/key'
-        try:
-            _, _, _, response = fetch(playurl)
-            self.rsa = R(response)
-
-        except:
-            t, v, tb = sys.exc_info()
-            print("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
-
-        return ''
-
     def Login(self):
         ret = False
 
-        #if self.rsa == None:
-        #    self.GetKey()
-
-        playurl = MAINSERVER_HOST + '/login?user_id=000001'
+        playurl = HOST + '/login?user_id=000001'
 
         try:
-            data = json.loads(self.GetUrl(playurl).decode("utf8"))
+            data = json.loads(self.GetUrl(playurl).decode())
 
             if data:
                 self.key = data['key']
@@ -312,17 +152,7 @@ def main_thread():
     for _ in range(10):
         thread_pool.add_job(main)
 
-def main_getmenu():
-    haha = KolaClient()
-    haha.GenKolaMenu()
-    for menu in haha.menuList:
-        menu.NextPage()
-#        menu.NextPage()
-#        menu.NextPage()
-
 if __name__ == "__main__":
     #main_thread()
     #main_one()
     main()
-    #main_getmenu()
-

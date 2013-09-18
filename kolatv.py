@@ -5,7 +5,6 @@ import json
 import base64
 import redis
 import logging
-import os
 from apscheduler.scheduler import Scheduler
 
 import sohuengine as eg

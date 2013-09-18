@@ -6,7 +6,6 @@ Created on 2012-8-3
 @author: wangwf
 '''
 import httplib2
-import io, gzip
 
 global headers
 
@@ -40,14 +39,7 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
         header['Content-Type'] = 'application/x-www-form-urlencoded'
     conn = httplib2.Http(timeout=socket_timeout)
     conn.follow_redirects = True
-    response, content = conn.request(uri=url, method=str(method).upper(), body=data,  headers=header)
-    try:
-        if response['-content-encoding'] == 'gzip':
-            responses = gzip.GzipFile(fileobj=StringIO.StringIO(content)).read()
-        else:
-            responses = gzip.GzipFile(fileobj=StringIO.StringIO(content)).read()
-    except:
-        responses = content
+    response, responses = conn.request(uri=url, method=str(method).upper(), body=data,  headers=header)
     try:
         content_type = response['content-type']
     except:

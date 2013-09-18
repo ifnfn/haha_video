@@ -1,14 +1,11 @@
 # coding=utf-8
 
-'''
-Created on 2013-9-9
-
-@author: zhuzhg
-'''
-
 import tornado.web
 import tornado.escape
 import redis
+import zlib
+import base64
+from urllib.parse import unquote
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -16,24 +13,18 @@ class BaseHandler(tornado.web.RequestHandler):
         if not user:
             return
         return tornado.escape.json_decode(user)
-    def check(self):
+
+    def prepare(self):
+        self.check_cookie()
+        if self.request.method == "POST" and self.request.body:
+            body = unquote(self.request.body.decode())           # URLDecode
+            body = base64.decodebytes(body.encode())             # BASE64_Decode
+            decompress = zlib.decompressobj(-zlib.MAX_WBITS)     # ZLIB Decompress
+            self.request.body = decompress.decompress(body)
+
+    def check_cookie(self):
         key = self.get_cookie('key')
         #print(self.request.remote_ip, user_id)
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
         if not db.exists(key) or db.get(key).decode() != self.request.remote_ip:
             raise tornado.web.HTTPError(401, "Missing key %s" % key)
-
-class JSONPHandler(BaseHandler):
-    CALLBACK = 'jsonp' # define callback argument name
-    def finish(self, chunk=None):
-        """Finishes this response, ending the HTTP request."""
-        assert not self._finished
-        if chunk: self.write(chunk)
-        # get client callback method
-        #callback = tornado.escape(self.get_argument(self.CALLBACK, None))
-        #print("callback", callback)
-        # format output with jsonp
-        #self._write_buffer.insert(0, callback + '(')
-        #self._write_buffer.append(')')
-        # call base class finish method
-        super(JSONPHandler, self).finish() # chunk must be None

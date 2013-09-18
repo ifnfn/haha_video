@@ -50,7 +50,7 @@ class SohuAlbum(AlbumBase):
 
         if ret:
             url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlistid
-            self.command.SendCommand('album_fullinfo', self.parent.name, url)
+            self.command.AddCommand('album_fullinfo', self.parent.name, url)
 
         return ret
 
@@ -59,13 +59,13 @@ class SohuAlbum(AlbumBase):
         ret = self.playlistid != ""
         if ret:
             url = 'http://index.tv.sohu.com/index/switch-aid/%s' % self.playlistid
-            self.command.SendCommand('album_score', self.parent.name, url)
+            self.command.AddCommand('album_score', self.parent.name, url)
         return ret
 
     # 访问网页
     def UpdateAlbumPageCommand(self):
         if self.albumPageUrl != '':
-            self.command.SendCommand('album', self.parent.name, self.albumPageUrl)
+            self.command.AddCommand('album', self.parent.name, self.albumPageUrl)
 
     def GetVideoPlayUrl(self):
         if self.vid != '':
@@ -135,13 +135,13 @@ class SohuVideoMenu(VideoMenuBase):
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         if self.homePage != "":
-            self.command.SendCommand('videoall', self.name, self.homePage)
+            self.command.AddCommand('videoall', self.name, self.homePage)
 
     # 获取所有节目列表的别一种方法，该方法备用
     def UpdateProgrameList2(self):
         for url in self.HomeUrlList:
             for page in self.engine.GetHtmlList(url):
-                self.command.SendCommand('videolist', self.name, page)
+                self.command.AddCommand('videolist', self.name, page)
 
     def UpdateHotInfo(self):
         # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3&encode=GBK
@@ -155,7 +155,7 @@ class SohuVideoMenu(VideoMenuBase):
                 sc = sc + v + '_'
         url = fmt % (v, self.number, sc)
 
-        self.command.SendCommand('albumlist_hot', self.name, url)
+        self.command.AddCommand('albumlist_hot', self.name, url)
 
     def UpdateHotInfo2(self):
         # http://so.tv.sohu.com/jsl?c=100&area=5&cate=100102_100122&o=1&encode=GBK
@@ -166,7 +166,7 @@ class SohuVideoMenu(VideoMenuBase):
                 sc += v + '_'
         url = fmt % (v, self.number, sc)
 
-        self.command.SendCommand('albumlist_hot', self.name, url)
+        self.command.AddCommand('albumlist_hot', self.name, url)
 
     # 解析热门节目
     # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3
@@ -343,7 +343,7 @@ class SohuVideoMenu(VideoMenuBase):
                         print(text)
                     elif 'PLAYLIST_ID.json' in url:
                         print(text)
-                    self.command.SendCommand("album_mvinfo", self.name, url, js['source'])
+                    self.command.AddCommand("album_mvinfo", self.name, url, js['source'])
                 tv.SaveToDB(self.engine.album_table)
                 tv.UpdateFullInfoCommand()
                 tv.UpdateScoreCommand()
@@ -1195,13 +1195,13 @@ class test_case:
         print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_videopage(self):
-        url = 'http://tv.sohu.com/20130517/n376295917.shtml'
-        url = 'http://tv.sohu.com/20110222/n279464056.shtml'
-        url = 'http://tv.sohu.com/s2011/1663/s322643386/'
+        #url = 'http://tv.sohu.com/20130517/n376295917.shtml'
+        #url = 'http://tv.sohu.com/20110222/n279464056.shtml'
     #    url = 'http://v.tv.sohu.com/20100618/n272893884.shtml'
     #    url = 'http://tv.sohu.com/20101124/n277876671.shtml'
     #    url = 'http://tv.sohu.com/s2010/72jzk/'
     #    url = 'http://tv.sohu.com/s2011/7film/'
+        url = 'http://tv.sohu.com/s2011/1663/s322643386/'
         _, _, _, response = fetch(url)
         a = re.findall('var (playlistId|pid|vid|PLAYLIST_ID)\s*=\s*\W*(.+?)"*', response)
         print(a)
@@ -1262,7 +1262,7 @@ class test_case:
 
     def test_playlist(self):
         url = "http://hot.vrs.sohu.com/vrs_flash.action?vid=899609"
-        status, _, _, response = fetch(url)
+        _, _, _, response = fetch(url)
 
         a = json.loads(response.decode())
         print(json.dumps(a, ensure_ascii=False, indent=4))

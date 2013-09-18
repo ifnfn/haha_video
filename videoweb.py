@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from urllib.parse import unquote
 import sys
 import traceback
 import tornado.ioloop
@@ -12,12 +11,19 @@ from tornado.options import define, options
 # from tornado import httpclient
 # from tornado.escape import json_encode
 
+from pymongo import Connection
 import redis
 import json
 import logging
+import random
+import hashlib
 # import re
 from basehandle import BaseHandler#, JSONPHandler
 from kolatv import Kolatv
+
+
+MAINSERVER_HOST = 'http://127.0.0.1:9991'
+
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -41,8 +47,6 @@ class VideoListHandler(BaseHandler):
         self.finish(json.dumps(js, indent=4, ensure_ascii=False))
 
     def post(self):
-        self.check()
-
         argument = {}
         menu = self.get_argument('menu', '')
 
@@ -50,7 +54,7 @@ class VideoListHandler(BaseHandler):
         argument['size'] = int(self.get_argument('size', 20))
 
         if self.request.body:
-            body = unquote(self.request.body.decode())
+            body = self.request.body.decode()
             try:
                 umap = json.loads(body)
 #                 argument['filter'] = {}
@@ -67,7 +71,7 @@ class VideoListHandler(BaseHandler):
 
 class UrlMapHandler(BaseHandler):
     def post(self):
-        body = unquote(self.request.body.decode())
+        body = self.request.body.decode()
         if body and len(body) > 0:
             try:
                 umap = json.loads(body)
@@ -82,9 +86,7 @@ class GetPlayerHandler(BaseHandler):
     def get(self):
         pass
     def post(self):
-        self.check()
-
-        body = unquote(self.request.body.decode())
+        body = self.request.body.decode()
         if body and len(body) > 0:
             step = self.get_argument('step', "1",)
             text = tv.GetRealPlayer(body, step)
@@ -118,17 +120,87 @@ class UploadHandler(BaseHandler):
         pass
 
     def post(self):
-        self.check()
-
-        body = unquote(self.request.body.decode())
+        body = self.request.body.decode()
         if body and len(body) > 0:
             tv.AddTask(body)
 
+def getRandomStr(n):
+    st = ''
+    while len(st) < n:
+        temp = chr(97 + random.randint(0,25))
+        st = st.join(['',temp])
+    return st
+
+class LoginHandler(tornado.web.RequestHandler):
+    def check_user_id(self):
+        self.user_id = ''
+        self.status = 'NO'
+        self.con = Connection('localhost', 27017)
+        self.db = self.con.kola
+        user_table = self.db.users
+        db = redis.Redis(host='127.0.0.1', port=6379, db=1)
+
+        user_id = self.get_argument('user_id')
+
+        json = user_table.find_one({'user_id' : user_id})
+        if json:
+            self.user_id = json['user_id']
+            self.status = json['status']
+        else:
+            user_table.insert({'user_id' : user_id, 'status' : 'YES'})
+
+        if self.status == 'NO':
+            raise tornado.web.HTTPError(401, "Missing key %s" % self.user_id)
+
+        if not db.exists(self.user_id): # 如果没有登录，生成随机 KEY
+            key = (self.user_id + getRandomStr(32) + self.request.remote_ip).encode()
+            key = hashlib.md5(key).hexdigest().upper()
+            db.set(self.user_id, key)
+            db.set(key, self.request.remote_ip)
+#            db.expire(self.user_id, 60) # 十秒过期
+#            db.expire(key, 60) # 十秒过期
+        else:
+            key = db.get(self.user_id).decode()
+
+        return key
+
+    def get(self):
+        key = self.check_user_id()
+        ret = {
+            'key': 'None',
+            'command': [],
+            'server' : MAINSERVER_HOST,
+            'next': 10   # 下次登录时间
+        }
+
+        ret['key'] = key
+        cmd = tv.engine.command.GetCommandNext()
+        if cmd:
+            ret['command'].append(cmd)
+
+        self.finish(json.dumps(ret))
+
+    def post(self):
+        self.finish('OK')
+
+class AddCommandHandler(BaseHandler):
+    def get(self):
+        pass
+
+    def post(self):
+        body = self.request.body.decode()
+        if body:
+            db = redis.Redis(host='127.0.0.1', port=6379, db=1)
+            db.rpush('command', body)
+            #data =json.loads(body)
+
+        return
 define('port', default=9991, help='run on the given port', type=int)
 class Application(tornado.web.Application):
     def __init__(self):
         settings = dict(
             debug = False,
+            gzip = True,
             login_url = "/login",
             cookie_secret = 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To=',
             #xsrf_cookies = True,
@@ -141,6 +213,8 @@ class Application(tornado.web.Application):
             (r'/video/getplayer',         GetPlayerHandler),       # 得到下载地位
             (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
             (r'/video/getmenu',           GetMenupHandler),        # 后台管理，增加网址映射
+            (r'/login',                   LoginHandler),         # 登录认证
+            (r'/addcommand',              AddCommandHandler),    # 增加命令
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -148,7 +222,7 @@ class Application(tornado.web.Application):
 def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)
     db.flushdb()
-    tv.UpdateAlbumList()
+#    tv.UpdateAlbumList()
 
     tornado.options.parse_command_line()
     http_server = Application()

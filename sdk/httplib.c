@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <stdarg.h>
+#include <zlib.h>
 
 #include "httplib.h"
 
@@ -52,6 +53,7 @@ struct http_client_ {
 	int m_connection_close;
 	int m_content_len_received;
 	int m_transfer_encoding_chunked;
+	int m_gzip_encoding;
 	uint32_t m_content_len;
 	http_resp_t *m_resp;
 
@@ -196,6 +198,49 @@ static char *convert_url(const char *to_convert)
 	}
 	*p++ = *to_convert; // final \0
 	return ret;
+}
+
+/* HTTP gzip decompress */
+static int httpgzdecompress(Byte *zdata, uLong nzdata, Byte *data, uLong *ndata)
+{
+	int err = 0;
+	z_stream d_stream; /* decompression stream */
+	static char dummy_head[2] = {
+		0x8 + 0x7 * 0x10,
+		(((0x8 + 0x7 * 0x10) * 0x100 + 30) / 31 * 31) & 0xFF,
+	};
+	d_stream.zalloc = (alloc_func)0;
+	d_stream.zfree = (free_func)0;
+	d_stream.opaque = (voidpf)0;
+	d_stream.next_in  = zdata;
+	d_stream.avail_in = 0;
+	d_stream.next_out = data;
+	if(inflateInit2(&d_stream, 47) != Z_OK) {
+		return -1;
+	}
+	while (d_stream.total_out < *ndata && d_stream.total_in < nzdata) {
+		d_stream.avail_in = d_stream.avail_out = 1; /* force small buffers */
+		if((err = inflate(&d_stream, Z_NO_FLUSH)) == Z_STREAM_END) {
+			break;
+		}
+		if(err != Z_OK ) {
+			if(err == Z_DATA_ERROR) {
+				d_stream.next_in = (Bytef*) dummy_head;
+				d_stream.avail_in = sizeof(dummy_head);
+				if( (err = inflate(&d_stream, Z_NO_FLUSH)) != Z_OK) {
+					return -1;
+				}
+			} else {
+				return -1;
+			}
+		}
+	}
+	if(inflateEnd(&d_stream) != Z_OK) {
+		return -1;
+	}
+	*ndata = d_stream.total_out;
+
+	return 0;
 }
 
 /*
@@ -349,6 +394,7 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 				return 0;
 		}
 	} while (more == 0);
+
 	return ret;
 }
 
@@ -684,12 +730,11 @@ int http_build_header (char *buffer,
 			 *cptr->m_resource != '/')) {
 		SNPRINTF_CHECK("%s", cptr->m_content_location);
 	}
-	SNPRINTF_CHECK("%s HTTP/1.1\r\n",
-			cptr->m_resource);
-	SNPRINTF_CHECK("Host: %s\r\n",
-			cptr->m_host);
-	SNPRINTF_CHECK("User-Agent: %s\r\n", user_agent);
-	SNPRINTF_CHECK("Connection: Keep-Alive%s", "\r\n");
+	SNPRINTF_CHECK("%s HTTP/1.1\r\n"         , cptr->m_resource);
+	SNPRINTF_CHECK("Host: %s\r\n"            , cptr->m_host);
+	SNPRINTF_CHECK("User-Agent: %s\r\n"      , user_agent);
+	SNPRINTF_CHECK("Connection: %s\r\n"      , "Kepp-Alive");
+	SNPRINTF_CHECK("Accept-Encoding: %s\r\n" , "gzip");
 	if (add_header != NULL) {
 		SNPRINTF_CHECK("%s\r\n", add_header);
 	}
@@ -906,6 +951,18 @@ HTTP_CMD_DECODE_FUNC(http_cmd_transfer_encoding)
 	} while (*lptr != '\0');
 }
 
+HTTP_CMD_DECODE_FUNC(http_cmd_gzip_encoding)
+{
+	do {
+		if (strncasecmp(lptr, "gzip", strlen("gzip")) == 0) {
+			cptr->m_gzip_encoding = 1;
+			return;
+		}
+		while ((*lptr != '\0') && (*lptr != ';')) lptr++;
+		ADV_SPACE(lptr);
+	} while (*lptr != '\0');
+}
+
 static struct {
 	const char *val;
 	uint32_t val_length;
@@ -918,6 +975,8 @@ static struct {
 	HEAD_TYPE("content-type", http_cmd_content_type),
 	HEAD_TYPE("location", http_cmd_location),
 	HEAD_TYPE("transfer-encoding", http_cmd_transfer_encoding),
+	HEAD_TYPE("Content-Encoding" , http_cmd_gzip_encoding),
+
 	{NULL, 0, NULL },
 };
 
@@ -1002,6 +1061,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 	cptr->m_offset_on = 0;
 	cptr->m_buffer_len = 0;
 	cptr->m_transfer_encoding_chunked = 0;
+	cptr->m_gzip_encoding = 0;
 
 	/*
 	 * Get the first line and process it
@@ -1171,6 +1231,28 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 		cptr->m_resp->body[cptr->m_resp->body_len] = '\0';
 
 	}
+
+	if (cptr->m_gzip_encoding != 0) {
+		int multiple = 4;
+		uLong ndata;
+		Byte *data = NULL;
+		while (multiple < 20) {
+			ndata = cptr->m_resp->body_len * multiple;
+			data = (Byte*)calloc(1, ndata);
+			if (httpgzdecompress((Byte*)cptr->m_resp->body, cptr->m_resp->body_len, data, &ndata) == 0)
+				break;
+			multiple++;
+			free(data);
+			data = NULL;
+		}
+
+		if (data) {
+			FREE_CHECK(cptr->m_resp, body);
+			cptr->m_resp->body = (char*)data;
+			cptr->m_resp->body_len = (uint32_t)data;
+		}
+	}
+
 	return 0;
 }
 

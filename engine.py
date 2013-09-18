@@ -7,25 +7,23 @@ import sys
 import json
 import configparser
 from pymongo import Connection
-
-from fetchTools import fetch_httplib2 as fetch
+import redis
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
 
-COMMAND_HOST = 'http://127.0.0.1:9990/addcommand'
-PARSER_HOST = 'http://127.0.0.1:9991/video/upload'
+PARSER_HOST  = 'http://127.0.0.1:9991/video/upload'
 
 # 命令管理器
 class Commands:
-    def __init__(self, host):
+    def __init__(self):
         self.cmdlist = {}
         self.urlmap = {}
-        self.commandHost = host
 
         self.con = Connection('localhost', 27017)
         self.db = self.con.kola
         self.map_table = self.db.urlmap
+        self.db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
         maps = self.map_table.find()
         for url in maps:
@@ -49,7 +47,7 @@ class Commands:
     def AddTemplate(self, m):
         self.cmdlist[m['name']] = m
 
-    def SendCommand(self, name, menu, url, *private_data):
+    def AddCommand(self, name, menu, url, *private_data):
         if name in self.cmdlist:
             #print("Add Command: ", url)
             cmd = self.cmdlist[name]
@@ -57,16 +55,21 @@ class Commands:
             cmd['menu'] = menu
             if private_data:
                 cmd['privdate_data'] = private_data
-            _, _, _, response = fetch(self.commandHost, 'POST', json.dumps(cmd))
-            return response == ""
-        return False
+
+            self.db.rpush('command', json.dumps(cmd))
+
+    def GetCommandNext(self):
+        cmd = self.db.lpop('command')
+        if cmd:
+            return json.loads(cmd.decode())
+
+        return None
 
 def autostr(i):
     if type(i) == int:
         return str(i)
     else:
         return i
-
 
 # 每个 Video 表示一个可以播放视频
 class VideoBase:
@@ -442,16 +445,10 @@ class VideoEngine:
     def __init__(self):
         self.engine_name = 'EngineBase'
         self.config = configparser.ConfigParser()
-        self.cmd_host = COMMAND_HOST
         self.parser_host = PARSER_HOST
         try:
             self.config.read("/etc/engine.conf")
             if self.config.has_section('global'):
-                if self.config.has_option('global', 'command_host'):
-                    host = self.config.get('global', 'command_host')
-                    if host != '':
-                        self.cmd_host = host
-
                 if self.config.has_option('global', 'parser_host'):
                     host = self.config.get('global', 'parser_host')
                     if host == '':
@@ -460,7 +457,7 @@ class VideoEngine:
             t, v, tb = sys.exc_info()
             log.error("VideoEngine.__init__:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
-        self.command = Commands(self.cmd_host)
+        self.command = Commands()
         self.con = Connection('localhost', 27017)
         self.db = self.con.kola
         self.album_table = self.db.album

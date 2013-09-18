@@ -183,18 +183,6 @@ class LoginHandler(tornado.web.RequestHandler):
     def post(self):
         self.finish('OK')
 
-class AddCommandHandler(BaseHandler):
-    def get(self):
-        pass
-
-    def post(self):
-        body = self.request.body.decode()
-        if body:
-            db = redis.Redis(host='127.0.0.1', port=6379, db=1)
-            db.rpush('command', body)
-            #data =json.loads(body)
-
-        return
 define('port', default=9991, help='run on the given port', type=int)
 class Application(tornado.web.Application):
     def __init__(self):
@@ -213,8 +201,7 @@ class Application(tornado.web.Application):
             (r'/video/getplayer',         GetPlayerHandler),       # 得到下载地位
             (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
             (r'/video/getmenu',           GetMenupHandler),        # 后台管理，增加网址映射
-            (r'/login',                   LoginHandler),         # 登录认证
-            (r'/addcommand',              AddCommandHandler),    # 增加命令
+            (r'/login',                   LoginHandler),           # 登录认证
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

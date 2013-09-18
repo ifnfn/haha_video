@@ -1233,14 +1233,16 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 	}
 
 	if (cptr->m_gzip_encoding != 0) {
-		int multiple = 4;
+		int multiple = 8;
 		uLong ndata;
 		Byte *data = NULL;
-		while (multiple < 20) {
+		while (multiple < 32) {
 			ndata = cptr->m_resp->body_len * multiple;
 			data = (Byte*)calloc(1, ndata);
-			if (httpgzdecompress((Byte*)cptr->m_resp->body, cptr->m_resp->body_len, data, &ndata) == 0)
-				break;
+			if (httpgzdecompress((Byte*)cptr->m_resp->body, cptr->m_resp->body_len, data, &ndata) == 0) {
+				if (ndata < cptr->m_resp->body_len * multiple)
+					break;
+			}
 			multiple++;
 			free(data);
 			data = NULL;
@@ -1249,7 +1251,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 		if (data) {
 			FREE_CHECK(cptr->m_resp, body);
 			cptr->m_resp->body = (char*)data;
-			cptr->m_resp->body_len = (uint32_t)data;
+			cptr->m_resp->body_len = (uint32_t)ndata;
 		}
 	}
 

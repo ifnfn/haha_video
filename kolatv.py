@@ -79,6 +79,7 @@ class Kolatv:
     def UpdateTop200(self):
         print("UpdateTop200")
         pass
+
     # 发起全网更新
     def UpdateAll(self):
         # 更新所有菜单最增节目
@@ -89,9 +90,9 @@ class Kolatv:
         #    2. 更新前200部节目最新数据(每12小时一次）
         #    3. 更新所有节目的最新数据(每天一次）
         print("UpdateAll")
-        #for (_, menu) in self.MenuList.items():
-        #    menu.UpdateAlbumList()         # 重新获得所有节目列表
-        #    menu.UpdateAllAlbumFullInfo()  # 更新节目详细信息
+        for (_, menu) in self.MenuList.items():
+            menu.UpdateAlbumList()         # 重新获得所有节目列表
+            #menu.UpdateAllAlbumFullInfo()  # 更新节目详细信息
 
     def GetRealPlayer(self, text, step):
         if step == '1':

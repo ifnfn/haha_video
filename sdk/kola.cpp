@@ -115,7 +115,6 @@ KolaMenu::KolaMenu(json_t *js)
 
 	client = &KolaClient::Instance();
 
-#if 1
 	if (filter) {
 		const char *key;
 		json_t *values;
@@ -124,12 +123,9 @@ KolaMenu::KolaMenu(json_t *js)
 			std::string list;
 			json_array_foreach(values, v)
 				list = list + json_string_value(v) + ",";
-			Filter.filterKey.insert(std::pair<std::string, ValueArray>(key, ValueArray(list)));
-			printf("%s = [%s]\n", key, list.c_str());
-			Filter[key] = Filter[key][0];
+			Filter.filterKey.insert(std::pair<std::string, FilterValue>(key, FilterValue(list)));
 		}
 	}
-#endif
 
 	printf("cid = %d, name = %s\n", cid, name.c_str());
 }
@@ -140,6 +136,7 @@ KolaMenu::KolaMenu(const KolaMenu &m) {
 	PageSize = m.PageSize;
 	PageId = m.PageId;
 	client = m.client;
+	Filter = m.Filter;
 //	client = &KolaClient::Instance();
 }
 
@@ -290,8 +287,8 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 static std::string gzip_base64(const char *data, int ndata)
 {
 	std::string ret;
-	Byte *zdata = (Byte*)malloc(ndata);
-	uLong nzdata = ndata;
+	Byte *zdata = (Byte*)malloc(ndata * 2);
+	uLong nzdata = ndata * 2;
 
 	if (gzcompress((Bytef *)data, (uLong)ndata, zdata, &nzdata) == 0) {
 		data = (const char*)zdata;
@@ -466,6 +463,7 @@ bool KolaClient::UpdateMenu(void)
 		return false;
 	}
 
+//	std::cout << text << std::endl;
 	menuMap.clear();
 	js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
 

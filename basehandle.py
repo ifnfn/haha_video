@@ -30,6 +30,7 @@ class BaseHandler(tornado.web.RequestHandler):
             body = base64.decodebytes(body.encode())             # BASE64_Decode
             decompress = zlib.decompressobj(-zlib.MAX_WBITS)     # ZLIB Decompress
             self.request.body = decompress.decompress(body)
+            self.request.body += decompress.flush()
 
     def check_cookie(self):
         key = self.get_cookie('key')

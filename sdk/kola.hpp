@@ -163,20 +163,18 @@ class StringList: public std::vector<std::string> {
 		}
 };
 
-class ValueArray: public StringList {
+class FilterValue: public StringList {
 	public:
-		ValueArray(void) { }
-		ValueArray(const std::string items);
-		~ValueArray() {}
-		virtual void Add(std::string v) {
-//			if (Find(v))
-				value = v;
+		FilterValue(const std::string items);
+		FilterValue() {}
+		~FilterValue() {}
+		bool Set(std::string v) {
+			value = v;
 		}
-		virtual void Remove(std:: string v) {
-			value = "";
+		std::string Get(void) {
+			return value;
 		}
-		void LoadValue(const std::string items);
-//	private:
+	private:
 		std::string value;
 };
 
@@ -188,24 +186,17 @@ class KolaFilter {
 		void KeyAdd(std::string key, std::string value);
 		void KeyRemove(std::string key, std::string value);
 		std::string GetJsonStr(void);
-		ValueArray& operator[] (std::string key);
+		FilterValue& operator[] (std::string key);
 //	private:
-		std::map<std::string, ValueArray> filterKey;
+		std::map<std::string, FilterValue> filterKey;
 };
 
-class KolaSort: public ValueArray {
+class KolaSort: public FilterValue {
 	public:
-		virtual void Add(std::string v) {
-			clear();
-			ValueArray::Add(v);
-		}
-		virtual void Remove(std:: string v) {
-			clear();
-		}
 		std::string GetJsonStr(void) {
 			std::string ret = ToString();
 			if (ret != "")
-				ret = "\"filter\": \"" + ret + "\"";
+				ret = "\"sort\": \"" + ret + "\"";
 
 			return ret;
 		}

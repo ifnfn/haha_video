@@ -289,6 +289,9 @@ class VideoMenuBase:
 
         return ret
 
+    def ConverFilterJson(self, f):
+        return f
+
     def Reset(self):
         self.HotList = []
 
@@ -320,7 +323,8 @@ class VideoMenuBase:
             _filter['playlistid'] = {'$exists' : True}
             _filter['vid']        = {'$exists' : True}
             if 'filter' in arg:
-                _filter.update(arg['filter'])
+                f = self.ConverFilterJson(arg['filter'])
+                _filter.update(f)
 
             if 'fields' in arg:
                 fields = arg['fields']
@@ -343,12 +347,12 @@ class VideoMenuBase:
     # 更新该菜单下所有节目完全信息
     def UpdateAllAlbumFullInfo(self):
         pgs = self.engine.album_table.find({'cid': self.cid},
-                                                    fields = {'albumName': True,
-                                                              'albumPageUrl': True,
-                                                              'PId': True,
-                                                              'vid': True,
-                                                              'playlistid': True}
-                                                    )
+                                           fields = {'albumName': True,
+                                                     'albumPageUrl': True,
+                                                     'PId': True,
+                                                     'vid': True,
+                                                     'playlistid': True}
+                                          )
         for p in pgs:
             album = self.albumClass(self)
             album.LoadFromJson(p)

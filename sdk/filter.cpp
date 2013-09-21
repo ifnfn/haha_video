@@ -7,26 +7,25 @@ void split(const std::string &s, std::string delim, std::vector< std::string > *
 {
 	size_t last = 0;
 	size_t index=s.find_first_of(delim, last);
-	while (index!=std::string::npos)
-	{
+
+	while (index!=std::string::npos) {
 		ret->push_back(s.substr(last,index-last));
-		last=index+1;
+		last = index + 1;
 		index=s.find_first_of(delim, last);
 	}
-	if (index-last>0)
-	{
+	if (index - last > 0)
 		ret->push_back(s.substr(last,index-last));
-	}
 }
 
 void KolaFilter::KeyAdd(std::string key, std::string value)
 {
-	(*this)[key].Add(value);
+	FilterValue &v = (*this)[key];
+	v.Set(value);
 }
 
 void KolaFilter::KeyRemove(std::string key, std::string value)
 {
-	(*this)[key].Remove(value);
+	filterKey.erase(key);
 }
 
 std::string KolaFilter::GetJsonStr(void)
@@ -37,27 +36,27 @@ std::string KolaFilter::GetJsonStr(void)
 	foreach(filterKey, i) {
 		int v_count = 0;
 
-		if (i->second.value != "") {
-			filter += "\"" + i->first + "\" : \"" + i->second.value + "\", ";
+		if (i->second.Get() != "") {
+			filter += "\"" + i->first + "\" : \"" + i->second.Get() + "\", ";
 			count++;
 		}
 	}
 	if (count > 0) {
 		filter.erase(filter.end() - 2);
 		filter += "}";
-		filter = "\"filter\" : { " + filter;
+		filter = "{\"filter\" : { " + filter + "}";
 	}
 	std::cout << filter << std::endl;
 
 	return filter;
 }
 
-ValueArray& KolaFilter::operator[] (std::string key)
+FilterValue& KolaFilter::operator[] (std::string key)
 {
-	std::map<std::string, ValueArray>::iterator it = filterKey.find(key);
+	std::map<std::string, FilterValue>::iterator it = filterKey.find(key);
 
 	if (it == filterKey.end()) {
-		filterKey.insert(std::pair<std::string, ValueArray>(key, ValueArray()));
+		filterKey.insert(std::pair<std::string, FilterValue>(key, FilterValue()));
 		it = filterKey.end();
 		it--;
 	}
@@ -70,6 +69,11 @@ void KolaFilter::LoadFromJson(json_t *js)
 
 }
 
+FilterValue::FilterValue(const std::string items)
+{
+	split(items, ",", this);
+}
+#if 0
 ValueArray::ValueArray(const std::string items)
 {
 	split(items, ",", this);
@@ -79,3 +83,5 @@ void ValueArray::LoadValue(const std::string items)
 {
 	split(items, ",", this);
 }
+
+#endif

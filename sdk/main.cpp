@@ -8,19 +8,19 @@ void filter_test(void)
 {
 	KolaFilter filter;
 
-	filter.KeyAdd("aa", "a1");
+	filter.KeyAdd("a1", "a1");
 	filter.GetJsonStr();
-	filter.KeyAdd("aa", "a2");
+	filter.KeyAdd("a1", "a2");
 	filter.GetJsonStr();
-	filter.KeyAdd("aa", "a3");
+	filter.KeyAdd("a1", "a3");
 	filter.GetJsonStr();
-	filter.KeyAdd("aa", "a4");
+	filter.KeyAdd("a1", "a4");
 	filter.GetJsonStr();
-	filter.KeyAdd("bb", "b1");
+	filter.KeyAdd("b1", "b1");
 	filter.GetJsonStr();
-	filter.KeyAdd("bb", "b2");
+	filter.KeyAdd("b1", "b2");
 	filter.GetJsonStr();
-	filter.KeyAdd("bb", "b3");
+	filter.KeyAdd("b1", "b3");
 	filter.GetJsonStr();
 	filter.KeyAdd("bb", "b4");
 	filter.GetJsonStr();
@@ -29,7 +29,7 @@ void filter_test(void)
 
 	filter["aa"].Add("aaaaaa");
 	filter["aa"] << "1231231231";
-	ValueArray keys = filter["aa"];
+	FilterValue keys = filter["aa"];
 	foreach(keys, i)
 		printf("aa --> %s\n", i->c_str());
 
@@ -87,6 +87,15 @@ int main(int argc, char **argv)
 
 	m = kola.GetMenuByName("电影");
 	std::cout << "GetMenuByName(\"电影\"):" << m.name << std::endl;
+#if 1
+	foreach(m.Filter.filterKey, i) {
+		std::cout << i->first << ": ";
+		foreach(i->second, j)
+			std::cout << "\t" << *j << std::endl;
+	}
+#endif
+
+	m.Filter.KeyAdd("类型", "爱情片");
 	m.GetPage(0);
 	for (std::vector<KolaAlbum>::iterator it = m.begin(); it != m.end(); it++) {
 		std::string play_url;

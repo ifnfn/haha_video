@@ -107,7 +107,7 @@ KolaMenu::KolaMenu() {
 
 KolaMenu::KolaMenu(json_t *js)
 {
-	PageSize = 10;
+	PageSize = 20;
 	PageId   = -1;
 	name = json_gets(js, "name", "");
 	cid = json_geti(js, "cid" , -1);
@@ -144,8 +144,21 @@ KolaMenu::KolaMenu(const KolaMenu &m) {
 bool KolaMenu::GetPage(int page)
 {
 	char url[256];
+	int count = 0;
 	std::string text;
-	std::string body = Filter.GetJsonStr();
+	std::string body("{");
+	std::string filter = Filter.GetJsonStr();
+	std::string sort = Sort.GetJsonStr();
+	if (filter.size() > 0) {
+		count++;
+		body = body + filter;
+	}
+	if (sort.size() > 0) {
+		if (count)
+			body = body + ",";
+		body = body + sort;
+	}
+	body = body + "}";
 
 	std::cout << "Filter Body: " << body << std::endl;
 
@@ -213,7 +226,7 @@ KolaClient::~KolaClient(void)
 	Quit();
 }
 
-bool KolaClient::UrlGet(const char *url, std::string &ret, const char *home_url, int times)
+bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url, int times)
 {
 	bool ok = false;
 	int rc;
@@ -229,14 +242,14 @@ bool KolaClient::UrlGet(const char *url, std::string &ret, const char *home_url,
 
 	http_client = http_init_connection(home_url);
 	if (http_client == NULL) {
-		printf("no client: %s\n", url);
+		printf("no client: %s\n", url.c_str());
 		return false;
 	}
 	LOCK(lock);
 	cookie = loginKeyCookie;
 	UNLOCK(lock);
 
-	rc = http_get(http_client, url, &http_resp, cookie.c_str());
+	rc = http_get(http_client, url.c_str(), &http_resp, cookie.c_str());
 	if (rc && http_resp && http_resp->body) {
 		if (http_resp->xsrf_cookie)
 			xsrf_cookie = http_resp->xsrf_cookie;
@@ -400,8 +413,8 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 	if (text.size() == 0)
 		return false;
 
-	json_t *regular = json_object_get(cmd, "regular");
-	if (json_is_array(regular)) {
+	json_t *regular = json_geto(cmd, "regular");
+	if (regular && json_is_array(regular)) {
 		json_t *value;
 
 		json_array_foreach(regular, value) {
@@ -410,6 +423,34 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 		}
 
 		text = pcre.MatchAll(text.c_str());
+	}
+
+	json_t *json_filter = json_geto(cmd, "json");
+	if (json_filter && json_is_array(json_filter)) {
+		json_error_t error;
+		json_t *js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
+		json_t *newjs = json_object();
+		json_t *value;
+
+		json_array_foreach(json_filter, value) {
+			json_t *p_js = js;
+			std::string key;
+			std::vector<std::string> vlist;
+			std::string v = json_string_value(value);
+
+			split(v, ".", &vlist);
+			foreach(vlist, i) {
+				key = *i;
+				p_js = json_geto(p_js, key.c_str());
+				if (p_js == NULL)
+					break;
+			}
+			if (p_js)
+				json_seto(newjs, key.c_str(), p_js);
+		}
+		text = json_dumps(newjs, 2);
+		json_delete(newjs);
+		json_delete(js);
 	}
 
 	int in_size = text.size();

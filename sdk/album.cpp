@@ -25,6 +25,12 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	largeVerPicUrl = json_gets(js, "largeVerPicUrl", "");
 	smallVerPicUrl = json_gets(js, "smallVerPicUrl", "");
 
+	dailyPlayNum    =json_geti   (js , "dailyPlayNum"    , 0);   // 每日播放次数
+	weeklyPlayNum   =json_geti   (js , "weeklyPlayNum"   , 0);   // 每周播放次数
+	monthlyPlayNum  =json_geti   (js , "monthlyPlayNum"  , 0);   // 每月播放次数
+	totalPlayNum    =json_geti   (js , "totalPlayNum"    , 0);   // 总播放资料
+	dailyIndexScore =json_getreal(js , "dailyIndexScore" , 0.0); // 每日指数
+
 	//directors = json_gets(js, "directors", "");
 	//actors = json_gets(js, "actors", "");
 	//mainActors = json_gets(js, "mainActors", "");

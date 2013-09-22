@@ -30,13 +30,13 @@ def getlist(menuName, argument):
 
 class VideoListHandler(BaseHandler):
     def get(self):
-        js = {}
-        page = self.get_argument('page', 0)
-        size = self.get_argument('size', 20)
+        argument = {}
+        argument['page'] = int(self.get_argument('page', 0))
+        argument['size'] = int(self.get_argument('size', 20))
         menu = self.get_argument('menu', '')
 
-        js['result'] = getlist(menu, int(page), int(size))
-        self.finish(json.dumps(js, indent=4, ensure_ascii=False))
+        argument['result'] = getlist(menu, argument)
+        self.finish(json.dumps(argument, indent=4, ensure_ascii=False))
 
     def post(self):
         argument = {}
@@ -112,6 +112,17 @@ class UploadHandler(BaseHandler):
         if body and len(body) > 0:
             tv.AddTask(body)
 
+class UpdateScoreHandle(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        data = tv.UpdateAllScore()
+        self.finish("".join(data))
+
+    def post(self):
+        pass
+
 class LoginHandler(BaseHandler):
     def initialize(self):
         pass
@@ -139,24 +150,23 @@ class LoginHandler(BaseHandler):
             redis_db.set(user_id, key)
             redis_db.set(key, self.request.remote_ip)
         else:
-            key = redis_db.get(self.user_id).decode()
-#        redis_db.expire(user_id, 60) # 十秒过期
-#        redis_db.expire(key, 60) # 十秒过期
+            key = redis_db.get(user_id).decode()
+        redis_db.expire(user_id, 60) # 一分钟过期
+        redis_db.expire(key, 60) # 一分钟过期
 
         return key
 
     def get(self):
-        key = self.check_user_id()
         ret = {
-            'key': 'None',
+            'key': self.check_user_id(),
             'command': [],
-            'server' : 'http://' + self.request.host + ':9991',
-            'next': 10   # 下次登录时间
+            'server' : self.request.protocol + '://' + self.request.host,
+            'next': 30   # 下次登录时间
         }
 
-        ret['key'] = key
         cmd = tv.engine.command.GetCommandNext()
         if cmd:
+            cmd['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
             ret['command'].append(cmd)
 
         self.finish(json.dumps(ret))
@@ -184,6 +194,7 @@ class Application(tornado.web.Application):
             (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
             (r'/video/getmenu',           GetMenuHandler),         # 后台管理，增加网址映射
             (r'/login',                   LoginHandler),           # 登录认证
+            (r'/video/updatescore',       UpdateScoreHandle)
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

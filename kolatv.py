@@ -81,6 +81,21 @@ class Kolatv:
         print("UpdateTop200")
         pass
 
+    def UpdateAllScore(self):
+        print("UpdateAll")
+        ret = []
+        for (_, menu) in self.MenuList.items():
+            argument = {}
+            #argument['fields'] = {'playlistid':True}
+            data = menu.GetAlbumList(argument)
+            for r in  data:
+                playlistid = r['playlistid']
+                url = 'http://index.tv.sohu.com/index/switch-aid/%s' % playlistid
+                ret.append(url)
+                self.engine.command.AddCommandPipe('album_score', menu.name, url)
+        self.engine.command.CommandExecute()
+        return ret
+
     # 发起全网更新
     def UpdateAll(self):
         # 更新所有菜单最增节目

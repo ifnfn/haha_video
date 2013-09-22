@@ -715,14 +715,12 @@ int http_build_header (char *buffer,
 		const char *content_body)
 {
 	int ret;
-#define SNPRINTF_CHECK(fmt, value) \
-	if (value) { \
-		ret = snprintf(buffer + *at, maxlen - *at, (fmt), value); \
-		if (ret == -1) { \
-			return -1; \
-		}\
-		*at += ret; \
-	}
+#define SNPRINTF_CHECK(fmt, ...) \
+	ret = snprintf(buffer + *at, maxlen - *at, (fmt), __VA_ARGS__); \
+	if (ret == -1) { \
+		return -1; \
+	}\
+	*at += ret;
 
 	SNPRINTF_CHECK("%s ", method);
 	if (cptr->m_content_location != NULL &&
@@ -731,7 +729,7 @@ int http_build_header (char *buffer,
 		SNPRINTF_CHECK("%s", cptr->m_content_location);
 	}
 	SNPRINTF_CHECK("%s HTTP/1.1\r\n"         , cptr->m_resource);
-	SNPRINTF_CHECK("Host: %s\r\n"            , cptr->m_host);
+	SNPRINTF_CHECK("Host: %s:%d\r\n"         , cptr->m_host, cptr->m_port);
 	SNPRINTF_CHECK("User-Agent: %s\r\n"      , user_agent);
 	SNPRINTF_CHECK("Connection: %s\r\n"      , "Kepp-Alive");
 	SNPRINTF_CHECK("Accept-Encoding: %s\r\n" , "gzip");

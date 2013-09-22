@@ -1,9 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import sys, traceback
 import logging
-import traceback
-import sys
 import json
 import configparser
 import tornado.escape
@@ -13,13 +12,12 @@ from pymongo import Connection
 logging.basicConfig()
 log = logging.getLogger("crawler")
 
-PARSER_HOST  = 'http://127.0.0.1:9991/video/upload'
-
 # 命令管理器
 class Commands:
     def __init__(self):
         self.cmdlist = {}
         self.urlmap = {}
+        self.pipe = None
 
         self.con = Connection('localhost', 27017)
         self.db = self.con.kola
@@ -58,6 +56,23 @@ class Commands:
                 cmd['privdate_data'] = private_data
 
             self.db.rpush('command', json.dumps(cmd))
+
+    def AddCommandPipe(self, name, menu, url, *private_data):
+        if name in self.cmdlist:
+            #print("Add Command: ", url)
+            cmd = self.cmdlist[name]
+            cmd['source'] = self.GetUrl(url)
+            cmd['menu'] = menu
+            if private_data:
+                cmd['privdate_data'] = private_data
+            if self.pipe == None:
+                self.pipe = self.db.pipeline()
+            self.pipe.rpush('command', json.dumps(cmd))
+
+    def CommandExecute(self):
+        if self.pipe:
+            self.pipe.execute()
+            self.pipe = None
 
     def GetCommandNext(self):
         cmd = self.db.lpop('command')
@@ -176,16 +191,14 @@ class AlbumBase:
         if self.smallVerPicUrl != '' : ret['smallVerPicUrl'] = self.smallVerPicUrl
 
         if self.mainActors != []     : ret['mainActors'] = self.mainActors
-        if self.actors != []         : ret['actors'] = self.actors
-        if self.directors != []      : ret['directors'] = self.directors
+        if self.actors != []         : ret['actors']     = self.actors
+        if self.directors != []      : ret['directors']  = self.directors
 
-        ret['index'] = {
-            'dailyPlayNum'  : self.dailyPlayNum,     # 每日播放次数
-            'weeklyPlayNum' : self.weeklyPlayNum,    # 每周播放次数
-            'monthlyPlayNum': self.monthlyPlayNum,   # 每月播放次数
-            'totalPlayNum'  : self.totalPlayNum,     # 总播放资料
-            'totalPlayNum'  : self.dailyIndexScore,  # 每日指数
-        }
+        ret['dailyPlayNum']   = self.dailyPlayNum     # 每日播放次数
+        ret['weeklyPlayNum']  = self.weeklyPlayNum    # 每周播放次数
+        ret['monthlyPlayNum'] = self.monthlyPlayNum   # 每月播放次数
+        ret['totalPlayNum']   = self.totalPlayNum     # 总播放资料
+        ret['dailyIndexScore']= self.dailyIndexScore  # 每日指数
 
         return ret
 
@@ -229,6 +242,12 @@ class AlbumBase:
         if 'mainActors' in json     : self.mainActors = json['mainActors']
         if 'actors' in json         : self.actors = json['actors']
         if 'directors' in json      : self.directors = json['directors']
+
+        if 'dailyPlayNum' in json   : self.dailyPlayNum    = json['dailyPlayNum']    # 每日播放次数
+        if 'weeklyPlayNum' in json  : self.weeklyPlayNum   = json['weeklyPlayNum']   # 每周播放次数
+        if 'monthlyPlayNum' in json : self.monthlyPlayNum  = json['monthlyPlayNum']  # 每月播放次数
+        if 'totalPlayNum' in json   : self.totalPlayNum    = json['totalPlayNum']    # 总播放资料
+        if 'dailyIndexScore' in json: self.dailyIndexScore = json['dailyIndexScore'] # 每日指数
 
         if 'index' in json:
             index = json['index']
@@ -318,9 +337,6 @@ class VideoMenuBase:
     def GetAlbumList(self, arg):
         ret = []
         try:
-            page = arg['page']
-            size = arg['size']
-
             _filter = {}
             _filter['cid']        = self.cid
             _filter['playlistid'] = {'$exists' : True}
@@ -337,13 +353,21 @@ class VideoMenuBase:
             cursor = self.engine.album_table.find(_filter, fields = fields)
 
             if 'sort' in arg:
-                cursor = cursor.sort(arg['sort'])
+                s = self.ConvertSortJson(arg['sort'])
+                if s:
+                    cursor = cursor.sort(s)
 
-            for x in cursor.skip( page * size).limit(size):
+            if 'page' in arg and 'size' in arg:
+                page = arg['page']
+                size = arg['size']
+                cursor = cursor.skip( page * size).limit(size)
+
+            for x in cursor:
                 del x['_id']
                 ret.append(x)
         except:
-            pass
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
         return ret
 
@@ -453,17 +477,6 @@ class VideoEngine:
     def __init__(self):
         self.engine_name = 'EngineBase'
         self.config = configparser.ConfigParser()
-        self.parser_host = PARSER_HOST
-        try:
-            self.config.read("/etc/engine.conf")
-            if self.config.has_section('global'):
-                if self.config.has_option('global', 'parser_host'):
-                    host = self.config.get('global', 'parser_host')
-                    if host == '':
-                        self.parser_host = host
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("VideoEngine.__init__:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
         self.command = Commands()
         self.con = Connection('localhost', 27017)

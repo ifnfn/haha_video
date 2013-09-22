@@ -2,11 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys, os
-f_path = os.path.dirname(__file__)
-if len(f_path) < 1: f_path = "."
-sys.path.append(f_path)
-sys.path.append(f_path + "/..")
-
 import traceback
 import json
 import base64, zlib
@@ -22,12 +17,11 @@ HOST = 'http://127.0.0.1:9991'
 HOST = 'http://192.168.188.135:9991'
 #HOST = 'http://121.199.20.175'
 #HOST = 'http://www.kolatv.com'
+
 MAX_TRY = 3
 
 class KolaClient:
     def __init__(self):
-        self.rsa_public_key = ''
-        self.rsa = None
         self.menuList = []
         self.key = ''
 
@@ -42,7 +36,8 @@ class KolaClient:
         response = ''
 
         key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
-        filename = f_path + '/cache/' + key
+
+        filename = './cache/' + key
         if os.path.exists(filename):
             f = open(filename, 'rb')
             response = f.read()
@@ -105,6 +100,19 @@ class KolaClient:
                     text = response.decode(coding)
 
                 response = self.RegularMatch(cmd['regular'], text).encode(coding)
+            if 'json' in cmd:
+                data = tornado.escape.json_decode(response)
+
+                ret = {}
+                for kv in  cmd['json']:
+                    if kv == "":
+                        break
+                    d = data
+                    for v in kv.split('.'):
+                        d = d[v]
+                    if d:
+                        ret[v] = d
+                response = json.dumps(ret).encode()
 
             if response:
                 cmd['data'] = base64.encodebytes(response).decode()
@@ -130,7 +138,7 @@ class KolaClient:
             if data:
                 data = tornado.escape.json_decode(data)
                 self.key = data['key']
-                print(self.key)
+                #print(self.key)
                 if len(data['command']) > 0:
                     for cmd in data['command']:
                         self.ProcessCommand(cmd)
@@ -157,7 +165,7 @@ def main_loop():
         while True:
             if haha.Login() == False:
                 break
-        time.sleep(3600)
+        time.sleep(10)
 
 def main_thread():
     thread_pool = ThreadPool(10)
@@ -166,5 +174,5 @@ def main_thread():
 
 if __name__ == "__main__":
     #main_thread()
-    main_one()
-    #main_loop()
+    #main_one()
+    main_loop()

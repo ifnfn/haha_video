@@ -128,6 +128,11 @@ class SohuVideoMenu(VideoMenuBase):
             '年龄' : '',
             '范围' : '',
             '语言' : '',
+            '周播放最多' : 'weeklyPlayNum',
+            '日播放最多' : 'dailyPlayNum',
+            '总播放最多' : 'totalPlayNum',
+            '最新发布'   : 'publishYear',
+            '评分最高'   : 'dailyIndexScore'
         }
 
     def GetFilterJson(self):
@@ -152,9 +157,12 @@ class SohuVideoMenu(VideoMenuBase):
                 del f[key]
         return f
 
-    def ConvertSortJson(self, f):
-        return f
-
+    def ConvertSortJson(self, v):
+        if v in self.fieldMapping:
+            newkey = self.fieldMapping[v]
+            return [(newkey, -1)]
+        else:
+            return [(v, -1)]
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
@@ -387,18 +395,13 @@ class SohuVideoMenu(VideoMenuBase):
     def CmdParserAlbumScore(self, js):
         ret = []
         try:
-            text = js['data'].decode()
-            x = re.search('(.*?),"asudIncomes', text)
-            if x and x.lastindex > 0:
-                text = x.group(1) + '}'
-            else:
-                return []
-
-            data = tornado.escape.json_decode(text)
+            data = tornado.escape.json_decode(js['data'])
             if 'album' in data:
                 album = data['album']
                 if album:
                     playlistid   = 'id' in album and album['id'] or ''
+                    if playlistid in ['5770420']:
+                        print(playlistid)
                     albumName    = 'albumName' in album and album['albumName'] or ''
                     albumPageUrl = 'playUrl' in album and album['playUrl'] or ''
 
@@ -407,7 +410,7 @@ class SohuVideoMenu(VideoMenuBase):
                         return ret
                     tv.albumName = album['albumName']
 
-                    if 'album' in data:
+                    if 'index' in data:
                         index = data['index']
                         if index:
                             tv.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
@@ -822,7 +825,6 @@ class SohuEngine(VideoEngine):
             'name'    : 'videoall',
             'source'  : 'http://tv.sohu.com/tvall',
             'menu'    : '电影',
-            'dest'    : self.parser_host,
         })
 
         # 搜狐节目列表(过时的)
@@ -830,7 +832,6 @@ class SohuEngine(VideoEngine):
             'name'    : 'videolist',
             'source'  : 'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html',
             'menu'    : '电影',
-            'dest'    : self.parser_host,
             'regular' : [
                 '(<a class="pic" target="_blank" title=".+/></a>)',
                 '(<p class="tit tit-p">.+</a>)'
@@ -842,7 +843,6 @@ class SohuEngine(VideoEngine):
             'name'    : 'album',
             'source'  : 'http://tv.sohu.com/20110222/n279464056.shtml',
             'menu'    : '电影',
-            'dest'    : self.parser_host,
             'regular' : [
                 'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
             ],
@@ -853,10 +853,13 @@ class SohuEngine(VideoEngine):
             'name'    : 'album_score',
             'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
             'menu'    : '电影',
-            'dest'    : self.parser_host,
-            'regular' : [
-                '({"index":\S+?),"asudIncomes'
+            'json'    : [
+                         'attachment.album',
+                         'attachment.index'
             ],
+            #'regular' : [
+            #    '({"index":\S+?),"asudIncomes'
+            #],
         })
 
         # 更新热门节目信息
@@ -864,7 +867,6 @@ class SohuEngine(VideoEngine):
             'name'    : 'albumlist_hot',
             'source'  : 'http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3',
             'menu'    : '电影',
-            'dest'    : self.parser_host,
         })
 
         # 更新节目的完整信息
@@ -872,7 +874,6 @@ class SohuEngine(VideoEngine):
             'name'    : 'album_fullinfo',
             'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241',
             'menu'    : '电影',
-            'dest'    : self.parser_host,
         })
 
         # 更新节目的完整信息
@@ -880,7 +881,6 @@ class SohuEngine(VideoEngine):
             'name'    : 'album_mvinfo',
             'source'  : 'http://search.vrs.sohu.com/mv_i1268037.json',
             'menu'    : '电影',
-            'dest'    : self.parser_host,
         })
 
     def GetMenu(self, times=0):
@@ -1264,7 +1264,7 @@ class test_case:
     def test_switch_aid(self):
         url = 'http://index.tv.sohu.com/index/switch-aid/' + self.playlistid
         _, _, _, response = fetch(url)
-        a = json.loads(response)
+        a = json.loads(response.decode())
         print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_list(self):
@@ -1308,12 +1308,14 @@ class test_case:
 
 def test():
     t = test_case()
-    t.test_playlist()
+#    t.test_playlist()
 #    t.test_videopage()
-    return
-    t.playlistid = '1005485'
-    t.vid = '460464'
+#    return
+    t.playlistid = '5770420'
+    t.vid = '1181239'
     t.pid = '322963713'
+    t.test_switch_aid()
+    return
 
     t.playlistid = '1002050'
     t.vid = '460464'

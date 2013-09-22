@@ -54,16 +54,13 @@ void filter_test(void)
 
 int main(int argc, char **argv)
 {
-#if 1
-	filter_test();
+//	filter_test(); return 0;
 
-//	return 0;
 	int count = 30;
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();
 #if 1
-	printf("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n");
 	KolaMenu m;
 
 #if 0
@@ -95,17 +92,17 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	m.Filter.KeyAdd("类型", "爱情片");
+//	m.Filter.KeyAdd("类型", "爱情片");
+	m.Sort.Set("周播放最多");
+//	m.Sort.Set("评分最高");
 	m.GetPage(0);
 	for (std::vector<KolaAlbum>::iterator it = m.begin(); it != m.end(); it++) {
 		std::string play_url;
-		std::cout << it->albumName << std::endl;
-		it->GetVideo();
-		if (it->video.GetPlayerUrl(0, play_url))
-			std::cout << play_url << std::endl;
+		printf("[%s] %s (%d)\n", it->playlistid.c_str(), it->albumName.c_str(), it->weeklyPlayNum);
+//		it->GetVideo();
+//		if (it->video.GetPlayerUrl(0, play_url))
+//			std::cout << play_url << std::endl;
 	}
-#endif
-
 #endif
 	return 0;
 }

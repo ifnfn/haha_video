@@ -44,9 +44,8 @@ std::string KolaFilter::GetJsonStr(void)
 	if (count > 0) {
 		filter.erase(filter.end() - 2);
 		filter += "}";
-		filter = "{\"filter\" : { " + filter + "}";
+		filter = "\"filter\" : { " + filter;
 	}
-	std::cout << filter << std::endl;
 
 	return filter;
 }

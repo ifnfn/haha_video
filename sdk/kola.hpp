@@ -99,6 +99,7 @@ class KolaAlbum {
 		std::string directors;
 		KolaVideo video;
 		std::vector<KolaAlbum> subAlbum; // 子集
+		std::string playlistid;
 
 		bool GetVideo(void);
 		bool GetPicture(enum PicType type, void **data, int *size); // 得到图片
@@ -108,7 +109,6 @@ class KolaAlbum {
 
 		std::string pid;
 		std::string vid;
-		std::string playlistid;
 
 		std::string videoPlayUrl;
 		std::string largePicUrl;      // 大图片网址
@@ -194,7 +194,7 @@ class KolaFilter {
 class KolaSort: public FilterValue {
 	public:
 		std::string GetJsonStr(void) {
-			std::string ret = ToString();
+			std::string ret = Get();
 			if (ret != "")
 				ret = "\"sort\": \"" + ret + "\"";
 
@@ -246,7 +246,7 @@ class KolaClient {
 		std::map<std::string, KolaMenu> menuMap;
 		int nextLoginSec;
 
-		bool UrlGet(const char *url, std::string &ret, const char *home_url = NULL, int times = 0);
+		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL, int times = 0);
 		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
 		void GetKey(void);
 		bool Login(void);
@@ -261,3 +261,5 @@ class KolaClient {
 		friend KolaAlbum;
 		friend KolaVideo;
 };
+
+void split(const std::string &s, std::string delim, std::vector< std::string > *ret);

@@ -1,10 +1,6 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
-'''
-Created on 2012-8-3
 
-@author: wangwf
-'''
 import httplib2
 
 global headers
@@ -12,7 +8,7 @@ global headers
 socket_timeout = 20
 
 headers = {
-    'User-Agent'     : 'BFDSpider_INIT_A',
+    'User-Agent'     : 'Kolatv',
     'Accept'         : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-us,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate',
@@ -23,8 +19,6 @@ headers = {
 }
 
 def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, referer=None, acceptencoding=None):
-#    if method == 'GET' and (data or data != 'none'):
-#        data = None
     if cookies and cookies != 'none':
         header['Cookie'] = cookies
     if referer:
@@ -35,7 +29,6 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
         header['Accept-Encoding'] = acceptencoding
 
     if method == 'POST':
-#        header['Content-Type'] = 'multipart/form-data'
         header['Content-Type'] = 'application/x-www-form-urlencoded'
     conn = httplib2.Http(timeout=socket_timeout)
     conn.follow_redirects = True

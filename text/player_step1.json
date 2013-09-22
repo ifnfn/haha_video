@@ -1,0 +1,165 @@
+{
+	"totalDuration": 7035.252,
+	"width": 640,
+	"totalBlocks": 24,
+	"height": 272,
+	"totalBytes": 426586343,
+	"fps": 25
+	"clipsDuration": [
+		296.542,
+		296.843,
+		294.893,
+		294.683,
+		299.142,
+		294.847,
+		280.38,
+		292.502,
+		298.167,
+		290.248,
+		294.568,
+		298.003,
+		282.842,
+		293.5,
+		289.853,
+		290.527,
+		299.003,
+		298.445,
+		295.497,
+		296.937,
+		298.98,
+		297.54,
+		282.215,
+		279.08
+		],
+	"sets": [
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-e898ac90-87cb-4310-ac03-c7b7d77ae2cf.mp4&new=/186/6/RUy7fVNPHEf6N9ndRZ35r3.mp4",
+			"new": "/186/6/RUy7fVNPHEf6N9ndRZ35r3.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-66a0bcd9-7b97-4505-9b9a-92db829fe421.mp4&new=/191/180/4Vm78ZqTfIBWakGHAEm2K.mp4",
+			"new": "/191/180/4Vm78ZqTfIBWakGHAEm2K.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-cd957d9a-7033-4c44-908e-a4a8455ad5b4.mp4&new=/112/95/8q1yRcFikGQi1WQ2r439l.mp4",
+			"new": "/112/95/8q1yRcFikGQi1WQ2r439l.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-783f1354-4899-475b-8950-38a99a5b3604.mp4&new=/115/231/R608J5hKk9jmVfRFYWYSW5.mp4",
+			"new": "/115/231/R608J5hKk9jmVfRFYWYSW5.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-2451097b-378c-44c8-b73b-a84b73afbd19.mp4&new=/79/37/CH1nGKSWy5K8ZWp9OLm1M2.mp4",
+			"new": "/79/37/CH1nGKSWy5K8ZWp9OLm1M2.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-948c80b0-2476-4711-8961-b11d6b1d45c0.mp4&new=/196/143/i373Uu7Mx0kWCEveDu0mI6.mp4",
+			"new": "/196/143/i373Uu7Mx0kWCEveDu0mI6.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-055f572a-362d-460c-997e-004dc1bd16ae.mp4&new=/198/23/GeCXP4nHUtyaJa9JCzq9U4.mp4",
+			"new": "/198/23/GeCXP4nHUtyaJa9JCzq9U4.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-3a3c7166-0080-41b1-bffe-7d1c7aa0f4e6.mp4&new=/134/202/Dksb2VRQK3zXYe97nICni.mp4",
+			"new": "/134/202/Dksb2VRQK3zXYe97nICni.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-0b6b4067-c24e-4b33-ab28-ea3da8256d6a.mp4&new=/217/57/FQwJdAMirjsNeh63BaWSx1.mp4",
+			"new": "/217/57/FQwJdAMirjsNeh63BaWSx1.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-3c59970e-2f5e-4d4d-ada4-a1ca69d9bff7.mp4&new=/126/167/6IcVFAllkVmXhZdQnusuk.mp4",
+			"new": "/126/167/6IcVFAllkVmXhZdQnusuk.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-7fde6a53-39fc-44bf-ac1e-fad829fdc56b.mp4&new=/96/234/aXzemSgNe58tU86GxcHHK7.mp4",
+			"new": "/96/234/aXzemSgNe58tU86GxcHHK7.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-b420efa1-7395-4bf2-b20e-b45d106d9194.mp4&new=/157/145/AKJQIOA5fszIOgvAur2VE5.mp4",
+			"new": "/157/145/AKJQIOA5fszIOgvAur2VE5.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-be329c71-77ab-4dd6-a130-524805d35366.mp4&new=/163/234/Z92KX1R6XrJHc7CFF4znu1.mp4",
+			"new": "/163/234/Z92KX1R6XrJHc7CFF4znu1.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-077483c3-b6e2-44f6-b5d0-a743c1c8e2d3.mp4&new=/146/228/FmZB91KAyrfrA4nEOHEGU.mp4",
+			"new": "/146/228/FmZB91KAyrfrA4nEOHEGU.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-e236910f-a9ad-4691-85f6-9aa68e995ca1.mp4&new=/71/124/QWjGEXRJOZkpcyn1ZJM7y2.mp4",
+			"new": "/71/124/QWjGEXRJOZkpcyn1ZJM7y2.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-536cbd58-b8dc-454a-8fcd-3c2ef52d40ef.mp4&new=/145/245/UHSh0GN9mF8MtLuLNms3n7.mp4",
+			"new": "/145/245/UHSh0GN9mF8MtLuLNms3n7.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-9086f819-8131-4208-b3cc-ad6d8f833de3.mp4&new=/39/92/d66sMk0k3vdcKEngNsDTH2.mp4",
+			"new": "/39/92/d66sMk0k3vdcKEngNsDTH2.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-661e3cb1-d2c8-4a07-a6c8-ffb9c53e3691.mp4&new=/51/97/HZKNGjkC94EuzOgMNYoZG5.mp4",
+			"new": "/51/97/HZKNGjkC94EuzOgMNYoZG5.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-fc4c3731-5b1b-45ff-adf5-50f692ba2e2c.mp4&new=/124/151/yUd8EtjIOn2LEln3zN8qv.mp4",
+			"new": "/124/151/yUd8EtjIOn2LEln3zN8qv.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-37c55fba-70ac-4545-8581-2f36f7951e95.mp4&new=/102/254/JYNFX9IALkE9TDkGi4r77.mp4",
+			"new": "/102/254/JYNFX9IALkE9TDkGi4r77.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-e0c84d3f-ed39-44d8-a735-bef986a75369.mp4&new=/207/24/xTAS9ZlkGqqKOKCmk5D8S6.mp4",
+			"new": "/207/24/xTAS9ZlkGqqKOKCmk5D8S6.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-429afc1a-7b0c-44fa-8b89-3becef430660.mp4&new=/80/22/vrHZ8uoY6jhnJjFPGBISI7.mp4",
+			"new": "/80/22/vrHZ8uoY6jhnJjFPGBISI7.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-1362e4bf-2b8b-496c-b345-02191236eb3a.mp4&new=/86/42/Ya7CUhSg4rhDIUHQ3yrqa3.mp4",
+			"new": "/86/42/Ya7CUhSg4rhDIUHQ3yrqa3.mp4"
+		},
+		{
+			"url": "http://220.181.61.212/?prot=2&file=http://data.vod.itc.cn/tv/20121212/691151-899609-4f573cc6-a0a8-4f06-abb1-5ecb9e9803b1.mp4&new=/17/100/QTfaOKHhsdz9zTUOTOIbf7.mp4",
+			"new": "/17/100/QTfaOKHhsdz9zTUOTOIbf7.mp4"
+		}
+	],
+	"scap": [
+		{
+			"cpath": "http://tv.sohu.com/upload/srt/5106509_chs_79ad8cbe-89ff-4635-a9fb-7eaba5ec9e5e.srt",
+			"ver": 1
+		}
+	],
+}
+
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}

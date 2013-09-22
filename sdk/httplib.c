@@ -963,6 +963,24 @@ HTTP_CMD_DECODE_FUNC(http_cmd_gzip_encoding)
 	} while (*lptr != '\0');
 }
 
+HTTP_CMD_DECODE_FUNC(http_cmd_set_cookie)
+{
+	do {
+		if (strncasecmp(lptr, "_xsrf", strlen("_xsrf")) == 0) {
+			const char *p = (char *)strstr(lptr, ";");
+			if (p) {
+				cptr->m_resp->xsrf_cookie = (const char*)calloc(1, p - lptr + 1);
+
+				memcpy((void*)cptr->m_resp->xsrf_cookie, (void*)lptr, p - lptr);
+				printf("%s: %s\n", cptr->m_host, cptr->m_resp->xsrf_cookie);
+				return;
+			}
+		}
+		while (*lptr != '\0') lptr++;
+		ADV_SPACE(lptr);
+	} while (*lptr != '\0');
+}
+
 static struct {
 	const char *val;
 	uint32_t val_length;
@@ -976,6 +994,7 @@ static struct {
 	HEAD_TYPE("location", http_cmd_location),
 	HEAD_TYPE("transfer-encoding", http_cmd_transfer_encoding),
 	HEAD_TYPE("Content-Encoding" , http_cmd_gzip_encoding),
+	HEAD_TYPE("set-cookie", http_cmd_set_cookie),
 
 	{NULL, 0, NULL },
 };
@@ -1266,6 +1285,7 @@ void http_resp_clear (http_resp_t *rptr)
 	FREE_CHECK(rptr, body);
 	FREE_CHECK(rptr, content_type);
 	FREE_CHECK(rptr, resp_phrase);
+	FREE_CHECK(rptr, xsrf_cookie);
 }
 
 /*

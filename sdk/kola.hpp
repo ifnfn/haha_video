@@ -247,7 +247,7 @@ class KolaClient {
 		int nextLoginSec;
 
 		bool UrlGet(const char *url, std::string &ret, const char *home_url = NULL, int times = 0);
-		bool UrlPost(const char *url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
+		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
 		void GetKey(void);
 		bool Login(void);
 		char *Run(const char *cmd);

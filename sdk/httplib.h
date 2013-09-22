@@ -15,6 +15,7 @@ typedef struct http_resp_t {
 	int ret_code;
 	const char *content_type;
 	const char *resp_phrase; // After the response code, a phrase may occur
+	const char *xsrf_cookie;
 	char *body;
 	uint32_t body_len;
 } http_resp_t;

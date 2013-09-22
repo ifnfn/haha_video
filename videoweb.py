@@ -6,24 +6,16 @@ import traceback
 import tornado.ioloop
 import tornado.web
 import tornado.options
-from tornado.options import define, options
-# from tornado import gen
-# from tornado import httpclient
-# from tornado.escape import json_encode
-
-from pymongo import Connection
 import redis
 import json
 import logging
-import random
+import uuid
 import hashlib
-# import re
-from basehandle import BaseHandler#, JSONPHandler
+
+from tornado.options import define, options
+from pymongo import Connection
+from basehandle import BaseHandler
 from kolatv import Kolatv
-
-
-#MAINSERVER_HOST = 'http://127.0.0.1:9991'
-MAINSERVER_HOST = 'http://112.124.60.152:9991'
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -120,54 +112,45 @@ class UploadHandler(BaseHandler):
         if body and len(body) > 0:
             tv.AddTask(body)
 
-def getRandomStr(n):
-    st = ''
-    while len(st) < n:
-        temp = chr(97 + random.randint(0,25))
-        st = st.join(['',temp])
-    return st
-
 class LoginHandler(BaseHandler):
-    def check_user_id(self):
-        self.user_id = ''
-        self.status = 'NO'
-        self.con = Connection('localhost', 27017)
-        self.db = self.con.kola
-        user_table = self.db.users
-        db = redis.Redis(host='127.0.0.1', port=6379, db=1)
+    def initialize(self):
+        pass
 
+    def check_user_id(self):
         user_id = self.get_argument('user_id')
+        status = 'YES'
+        con = Connection('localhost', 27017)
+        user_table = con.kola.users
 
         json = user_table.find_one({'user_id' : user_id})
         if json:
-            self.user_id = json['user_id']
-            self.status = json['status']
+            status = json['status']
         else:
             user_table.insert({'user_id' : user_id, 'status' : 'YES'})
 
-        if self.status == 'NO':
-            raise tornado.web.HTTPError(401, "Missing key %s" % self.user_id)
+        if status == 'NO' or user_id == None or user_id == '':
+            raise tornado.web.HTTPError(401, 'Missing key %s' % user_id)
 
-        if not db.exists(self.user_id): # 如果没有登录，生成随机 KEY
-            key = (self.user_id + getRandomStr(32) + self.client_ip).encode()
+        # 登录检查，生成随机 KEY
+        redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
+        if not redis_db.exists(user_id):
+            key = (user_id + uuid.uuid4().__str__() + self.request.remote_ip).encode()
             key = hashlib.md5(key).hexdigest().upper()
-            db.set(self.user_id, key)
-            db.set(key, self.client_ip)
-#            db.expire(self.user_id, 60) # 十秒过期
-#            db.expire(key, 60) # 十秒过期
+            redis_db.set(user_id, key)
+            redis_db.set(key, self.request.remote_ip)
         else:
-            key = db.get(self.user_id).decode()
+            key = redis_db.get(self.user_id).decode()
+#        redis_db.expire(user_id, 60) # 十秒过期
+#        redis_db.expire(key, 60) # 十秒过期
 
         return key
-    def prepare(self):
-        pass
 
     def get(self):
         key = self.check_user_id()
         ret = {
             'key': 'None',
             'command': [],
-            'server' : MAINSERVER_HOST,
+            'server' : 'http://' + self.request.host + ':9991',
             'next': 10   # 下次登录时间
         }
 
@@ -191,6 +174,7 @@ class Application(tornado.web.Application):
             cookie_secret = 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To=',
             #xsrf_cookies = True,
             autoescape = None,
+            autoreload = True
         )
 
         handlers = [
@@ -207,11 +191,11 @@ class Application(tornado.web.Application):
 def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)
     db.flushdb()
-#    tv.UpdateAlbumList()
+    tv.UpdateAlbumList()
 
     tornado.options.parse_command_line()
     http_server = Application()
-    http_server.listen(options.port)
+    http_server.listen(options.port, xheaders = True)
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':

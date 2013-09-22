@@ -289,7 +289,10 @@ class VideoMenuBase:
 
         return ret
 
-    def ConverFilterJson(self, f):
+    def ConvertFilterJson(self, f):
+        return f
+
+    def ConvertSortJson(self, f):
         return f
 
     def Reset(self):
@@ -323,7 +326,7 @@ class VideoMenuBase:
             _filter['playlistid'] = {'$exists' : True}
             _filter['vid']        = {'$exists' : True}
             if 'filter' in arg:
-                f = self.ConverFilterJson(arg['filter'])
+                f = self.ConvertFilterJson(arg['filter'])
                 _filter.update(f)
 
             if 'fields' in arg:

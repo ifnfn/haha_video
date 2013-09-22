@@ -143,13 +143,18 @@ class SohuVideoMenu(VideoMenuBase):
             ret.append(k)
 
         return ret
-    def ConverFilterJson(self, f):
+
+    def ConvertFilterJson(self, f):
         for key in f:
             if key in self.fieldMapping:
                 newkey = self.fieldMapping[key]
                 f[newkey] = { "$in" : [f[key]]}
                 del f[key]
         return f
+
+    def ConvertSortJson(self, f):
+        return f
+
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):

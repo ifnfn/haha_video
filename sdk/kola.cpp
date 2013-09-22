@@ -26,6 +26,7 @@
 
 static std::string loginKey;
 static std::string loginKeyCookie;
+static std::string xsrf_cookie;
 
 #if 1
 #define LOCK(lock)   pthread_mutex_lock(&lock)
@@ -237,6 +238,8 @@ bool KolaClient::UrlGet(const char *url, std::string &ret, const char *home_url,
 
 	rc = http_get(http_client, url, &http_resp, cookie.c_str());
 	if (rc && http_resp && http_resp->body) {
+		if (http_resp->xsrf_cookie)
+			xsrf_cookie = http_resp->xsrf_cookie;
 		ret = http_resp->body;
 		ok = true;
 	}
@@ -307,7 +310,7 @@ static std::string gzip_base64(const char *data, int ndata)
 	return ret;
 }
 
-bool KolaClient::UrlPost(const char *url, const char *body, std::string &ret, const char *home_url, int times)
+bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, const char *home_url, int times)
 {
 	bool ok = false;
 	int rc;
@@ -323,16 +326,25 @@ bool KolaClient::UrlPost(const char *url, const char *body, std::string &ret, co
 
 	http_client = http_init_connection(home_url);
 	if (http_client == NULL) {
-		printf("no client: %s\n", url);
+		printf("no client: %s\n", url.c_str());
 		return false;
 	}
 
 	LOCK(lock);
 	cookie = loginKeyCookie;
+#if 0
+	if (xsrf_cookie.size() > 0 && times == 0) {
+		if (url.find("?") != std::string::npos)
+			url = url + "&" + xsrf_cookie;
+		else
+			url = url + "?" + xsrf_cookie;
+	}
+#endif
+
 	UNLOCK(lock);
 
 	new_body = gzip_base64(body, strlen(body));
-	rc = http_post(http_client, url, &http_resp, new_body.c_str(), cookie.c_str());
+	rc = http_post(http_client, url.c_str(), &http_resp, new_body.c_str(), cookie.c_str());
 	if (rc && http_resp && http_resp->body) {
 		ret = http_resp->body;
 		ok = true;

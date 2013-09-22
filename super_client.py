@@ -13,12 +13,15 @@ import base64, zlib
 import re
 import time
 import hashlib
+import tornado.escape
 
 from fetchTools import fetch_httplib2 as fetch
 from ThreadPool import ThreadPool
 
 HOST = 'http://127.0.0.1:9991'
-HOST = 'http://121.199.20.175'
+HOST = 'http://192.168.188.135:9991'
+#HOST = 'http://121.199.20.175'
+#HOST = 'http://www.kolatv.com'
 MAX_TRY = 3
 
 class KolaClient:
@@ -123,9 +126,9 @@ class KolaClient:
         playurl = HOST + '/login?user_id=000001'
 
         try:
-            data = json.loads(self.GetUrl(playurl).decode())
-
+            data = self.GetUrl(playurl)
             if data:
+                data = tornado.escape.json_decode(data)
                 self.key = data['key']
                 print(self.key)
                 if len(data['command']) > 0:
@@ -163,5 +166,5 @@ def main_thread():
 
 if __name__ == "__main__":
     #main_thread()
-    #main_one()
-    main_loop()
+    main_one()
+    #main_loop()

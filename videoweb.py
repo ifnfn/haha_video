@@ -77,7 +77,7 @@ class GetPlayerHandler(BaseHandler):
         body = self.request.body.decode()
         if body and len(body) > 0:
             step = self.get_argument('step', "1",)
-            text = tv.GetRealPlayer(body, step)
+            text = tv.engine.GetRealPlayer(body, step)
             self.finish(text)
         else:
             raise tornado.web.HTTPError(404)
@@ -110,15 +110,21 @@ class UploadHandler(BaseHandler):
     def post(self):
         body = self.request.body.decode()
         if body and len(body) > 0:
-            tv.AddTask(body)
+            tv.ParserHtml(body)
+            #tv.AddTask(body)
 
-class UpdateScoreHandle(BaseHandler):
+class UpdateCommandHandle(BaseHandler):
     def initialize(self):
         pass
 
     def get(self):
-        data = tv.UpdateAllScore()
-        self.finish("".join(data))
+        command = self.get_argument('user_id', '')
+        if command == 'score':
+            tv.UpdateAllScore()
+        elif command == 'fullinfo':
+            tv.UpdateAllFullInfo()
+
+        self.finish('OK')
 
     def post(self):
         pass
@@ -194,7 +200,7 @@ class Application(tornado.web.Application):
             (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
             (r'/video/getmenu',           GetMenuHandler),         # 后台管理，增加网址映射
             (r'/login',                   LoginHandler),           # 登录认证
-            (r'/video/updatescore',       UpdateScoreHandle)
+            (r'/video/update',            UpdateCommandHandle)
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

@@ -81,20 +81,17 @@ class Kolatv:
         print("UpdateTop200")
         pass
 
+    # 更新所有节目的排名数据
     def UpdateAllScore(self):
-        print("UpdateAll")
-        ret = []
+        print("UpdateAllScore")
         for (_, menu) in self.MenuList.items():
-            argument = {}
-            #argument['fields'] = {'playlistid':True}
-            data = menu.GetAlbumList(argument)
-            for r in  data:
-                playlistid = r['playlistid']
-                url = 'http://index.tv.sohu.com/index/switch-aid/%s' % playlistid
-                ret.append(url)
-                self.engine.command.AddCommandPipe('album_score', menu.name, url)
-        self.engine.command.CommandExecute()
-        return ret
+            menu.UpdateAllFullInfo()
+
+    # 更新所有节目的完全信息
+    def UpdateAllFullInfo(self):
+        print("UpdateAllFullInfo")
+        for (_, menu) in self.MenuList.items():
+            menu.UpdateAllScore()
 
     # 发起全网更新
     def UpdateAll(self):
@@ -108,15 +105,6 @@ class Kolatv:
         print("UpdateAll")
         for (_, menu) in self.MenuList.items():
             menu.UpdateAlbumList()         # 重新获得所有节目列表
-            #menu.UpdateAllAlbumFullInfo()  # 更新节目详细信息
-
-    def GetRealPlayer(self, text, step):
-        if step == '1':
-            res = self.engine.ParserRealUrlStep1(text)
-        else:
-            res = self.engine.ParserRealUrlStep2(text)
-
-        return json.dumps(res, indent=4, ensure_ascii=False)
 
     def FindMenu(self, name):
         if name in self.MenuList:
@@ -139,8 +127,6 @@ def main():
 
     tv = Kolatv()
     tv.UpdateAlbumList()  # 更所有菜单的节目列表
-    for (_, m) in list(tv.MenuList.items()):
-        m.UpdateAllAlbumFullInfo()
 
 if __name__ == '__main__':
     main()

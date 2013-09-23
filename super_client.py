@@ -14,7 +14,7 @@ from fetchTools import fetch_httplib2 as fetch
 from ThreadPool import ThreadPool
 
 HOST = 'http://127.0.0.1:9991'
-HOST = 'http://192.168.188.135:9991'
+#HOST = 'http://192.168.188.135:9991'
 #HOST = 'http://121.199.20.175'
 #HOST = 'http://www.kolatv.com'
 
@@ -166,6 +166,7 @@ def main_loop():
             if haha.Login() == False:
                 break
         time.sleep(10)
+        print("Loop")
 
 def main_thread():
     thread_pool = ThreadPool(10)

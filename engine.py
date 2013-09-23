@@ -28,8 +28,8 @@ class Commands:
         for url in maps:
             self.AddUrlMap(url['source'], url['dest'])
 
-        #self.AddUrlMap('http://tv.sohu.com/s2011/fengsheng/', 'http://tv.sohu.com/20121109/n268282527.shtml')
-        #self.AddUrlMap('http://tv.sohu.com/s2011/nrb/', 'http://tv.sohu.com/20111023/n323122692.shtml')
+        # self.AddUrlMap('http://tv.sohu.com/s2011/fengsheng/', 'http://tv.sohu.com/20121109/n268282527.shtml')
+        # self.AddUrlMap('http://tv.sohu.com/s2011/nrb/', 'http://tv.sohu.com/20111023/n323122692.shtml')
 
     def AddUrlMap(self, oldurl, newurl):
         self.urlmap[oldurl] = newurl
@@ -48,18 +48,7 @@ class Commands:
 
     def AddCommand(self, name, menu, url, *private_data):
         if name in self.cmdlist:
-            #print("Add Command: ", url)
-            cmd = self.cmdlist[name]
-            cmd['source'] = self.GetUrl(url)
-            cmd['menu'] = menu
-            if private_data:
-                cmd['privdate_data'] = private_data
-
-            self.db.rpush('command', json.dumps(cmd))
-
-    def AddCommandPipe(self, name, menu, url, *private_data):
-        if name in self.cmdlist:
-            #print("Add Command: ", url)
+            # print("Add Command: ", url)
             cmd = self.cmdlist[name]
             cmd['source'] = self.GetUrl(url)
             cmd['menu'] = menu
@@ -68,8 +57,9 @@ class Commands:
             if self.pipe == None:
                 self.pipe = self.db.pipeline()
             self.pipe.rpush('command', json.dumps(cmd))
+        return self
 
-    def CommandExecute(self):
+    def Execute(self):
         if self.pipe:
             self.pipe.execute()
             self.pipe = None
@@ -136,6 +126,9 @@ class AlbumBase:
         self.largeVerPicUrl = ''
         self.smallVerPicUrl = ''
 
+        self.playLength = 0.0
+        self.publishTime = ''
+
         self.albumDesc = ""
         self.videoScore = ""
 
@@ -194,6 +187,9 @@ class AlbumBase:
         if self.actors != []         : ret['actors']     = self.actors
         if self.directors != []      : ret['directors']  = self.directors
 
+        ret['playLength'] = self.playLength
+        ret['publishTime'] = self.publishTime
+
         ret['dailyPlayNum']   = self.dailyPlayNum     # 每日播放次数
         ret['weeklyPlayNum']  = self.weeklyPlayNum    # 每周播放次数
         ret['monthlyPlayNum'] = self.monthlyPlayNum   # 每月播放次数
@@ -229,6 +225,9 @@ class AlbumBase:
 
         if 'defaultPageUrl' in json : self.defaultPageUrl = json['defaultPageUrl']
 
+        if 'playLength' in json : self.playLength = json['playLength']
+        if 'publishTime' in json : self.publishTime = json['publishTime']
+
         # 图片
         if 'largeHorPicUrl' in json : self.largeHorPicUrl = json['largeHorPicUrl']
         if 'smallHorPicUrl' in json : self.smallHorPicUrl = json['smallHorPicUrl']
@@ -249,26 +248,18 @@ class AlbumBase:
         if 'totalPlayNum' in json   : self.totalPlayNum    = json['totalPlayNum']    # 总播放资料
         if 'dailyIndexScore' in json: self.dailyIndexScore = json['dailyIndexScore'] # 每日指数
 
-        if 'index' in json:
-            index = json['index']
-            if index:
-                if 'dailyPlayNum' in index   : self.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
-                if 'weeklyPlayNum' in index  : self.weeklyPlayNum   = index['weeklyPlayNum']   # 每周播放次数
-                if 'monthlyPlayNum' in index : self.monthlyPlayNum  = index['monthlyPlayNum']  # 每月播放次数
-                if 'totalPlayNum' in index   : self.totalPlayNum    = index['totalPlayNum']    # 总播放资料
-                if 'dailyIndexScore' in index: self.dailyIndexScore = index['dailyIndexScore'] # 每日指数
-
-        # 如果有视频数据
-        if 'videos' in json:
-            self.videos = []
-            for v in json['videos']:
-                video = self.VideoClass(v)
-                self.videos.append(video)
-            del json['videos']
         self.data.update(json)
 
     # 发送节目信息更新命令
     def UpdateAllCommand(self):
+        pass
+
+    # 更新节目完整信息
+    def UpdateFullInfoCommand(self):
+        pass
+
+    # 更新节目指数信息
+    def UpdateScoreCommand(self):
         pass
 
     def SaveToDB(self, db):
@@ -360,7 +351,7 @@ class VideoMenuBase:
             if 'page' in arg and 'size' in arg:
                 page = arg['page']
                 size = arg['size']
-                cursor = cursor.skip( page * size).limit(size)
+                cursor = cursor.skip(page * size).limit(size)
 
             for x in cursor:
                 del x['_id']
@@ -372,18 +363,36 @@ class VideoMenuBase:
         return ret
 
     # 更新该菜单下所有节目完全信息
-    def UpdateAllAlbumFullInfo(self):
-        pgs = self.engine.album_table.find({'cid': self.cid},
-                                           fields = {'albumName': True,
-                                                     'albumPageUrl': True,
-                                                     'PId': True,
-                                                     'vid': True,
-                                                     'playlistid': True}
-                                          )
+    def UpdateAllFullInfo(self):
+        argument = {}
+        argument['fields'] = {'albumName': True,
+                              'albumPageUrl': True,
+                              'PId': True,
+                              'vid': True,
+                              'playlistid': True}
+        pgs = self.GetAlbumList(argument)
+
         for p in pgs:
             album = self.albumClass(self)
             album.LoadFromJson(p)
-            album.UpdateAllCommand()
+            album.UpdateFullInfoCommand()
+        self.command.Execute()
+
+    # 更新所有节目的完全信息
+    def UpdateAllScore(self):
+        argument = {}
+        argument['fields'] = {'albumName': True,
+                              'albumPageUrl': True,
+                              'PId': True,
+                              'vid': True,
+                              'playlistid': True}
+        pgs = self.GetAlbumList(argument)
+
+        for p in pgs:
+            album = self.albumClass(self)
+            album.LoadFromJson(p)
+            album.UpdateScoreCommand()
+        self.command.Execute()
 
     # 更新热门节目表
     def UpdateHotList(self):
@@ -402,7 +411,8 @@ class VideoMenuBase:
 
         return ret
 
-    def GetAlbum(self, playlistid = '', albumName = '', albumPageUrl= '', auto = False):
+    # 从数据库中找到album
+    def GetAlbumFormDB(self, playlistid='', albumName='', albumPageUrl='', auto=False):
         playlistid = autostr(playlistid)
         if playlistid == '' and albumName == '' and albumPageUrl == '':
             return None
@@ -434,45 +444,6 @@ class VideoMenuBase:
 
         return tv
 
-    # 根据 ID 从数据库中加载节目
-    def GetAlbumById(self, playlistid, auto = False):
-        tv = None
-        if type(playlistid) == int:
-            playlistid = str(playlistid)
-        json = self.engine.album_table.find_one({'playlistid': playlistid})
-        if json:
-            tv = self.albumClass(self)
-            tv.LoadFromJson(json)
-        elif auto:
-            tv = self.albumClass(self)
-            tv.playlistid = playlistid
-
-        return tv
-
-    def GetAlbumByUrl(self, url, auto = False):
-        tv = None
-        json = self.engine.album_table.find_one({'albumPageUrl': url})
-        if json:
-            tv = self.albumClass(self)
-            tv.LoadFromJson(json)
-        elif auto:
-            tv = self.albumClass(self)
-            tv.albumPageUrl = url
-
-        return tv
-
-    def GetAlbumByName(self, albumName, auto = False):
-        tv = None
-        json = self.engine.album_table.find_one({'albumName': albumName})
-        if json:
-            tv = self.albumClass(self)
-            tv.LoadFromJson(json)
-        elif auto:
-            tv = self.albumClass(self)
-            tv.albumName = albumName
-
-        return tv
-
 class VideoEngine:
     def __init__(self):
         self.engine_name = 'EngineBase'
@@ -484,26 +455,9 @@ class VideoEngine:
         self.album_table = self.db.album
 
     # 获取节目一级菜单, 返回分类列表
-    def GetMenu(self, times = 0):
+    def GetMenu(self, times=0):
         return []
 
-    # 生成所有分页网址, 返回网址列表
-    def GetHtmlList(self, playurl, times = 0):
-        return []
-
-    # 获取真实播放节目源地址
-    def GetRealPlayUrl(self, playurl, times = 0):
-        return []
-
-    # 更新一级菜单首页热门节目表
-    def UpdateHotList(self, menu, times = 0):
-        pass
-
-    # 获取节目的播放列表
-    def GetAlbumPlayList(self, album, times = 0):
-        pass
-
-    # 将 BeautifulSoup的节目 tag 转成节目单
-    def ParserAlbum(self, tag, album):
-        return False
-
+    # 得到真实播放地址
+    def GetRealPlayer(self, text, step):
+        return ''

@@ -89,19 +89,29 @@ class Kolatv:
     def UpdateAllScore(self):
         print("UpdateAllScore")
         for (_, menu) in self.MenuList.items():
-            menu.UpdateAllFullInfo()
+            menu.UpdateAllScore()
 
     # 更新所有节目的完全信息
     def UpdateAllFullInfo(self):
         print("UpdateAllFullInfo")
         for (_, menu) in self.MenuList.items():
-            menu.UpdateAllScore()
+            menu.UpdateAllFullInfo()
 
     # 更新所有节目（增加新的节目）
     def UpdateAllAlbumList(self):
         for (_, menu) in list(self.MenuList.items()):
             menu.UpdateAlbumList()
 
+    # 更新所有节目的播放信息
     def UpdateAllPlayInfo(self):
         for (_, menu) in list(self.MenuList.items()):
-            menu.UpdatePlayInfo()
+            menu.UpdateAllPlayInfo()
+
+    # 更新所有节目主页
+    def UpdateAllAlbumPage(self):
+        for (_, menu) in list(self.MenuList.items()):
+            menu.UpdateAllHomePage()
+
+    def UpdateAllHotList(self):
+        for (_, menu) in list(self.MenuList.items()):
+            menu.UpdateHotList()

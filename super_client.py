@@ -176,4 +176,5 @@ def main_thread():
 if __name__ == "__main__":
     #main_thread()
     #main_one()
-    main_loop()
+    main()
+    #main_loop()

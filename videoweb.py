@@ -119,17 +119,18 @@ class UpdateCommandHandle(BaseHandler):
         pass
 
     def get(self):
-        command = self.get_argument('user_id', '')
-        if command == 'score':
-            tv.UpdateAllScore()
-        elif command == 'fullinfo':
-            tv.UpdateAllFullInfo()
-        elif command == 'playinfo':
-            tv.UpdateAllPlayInfo()
-        elif command == 'all':
-            tv.UpdateAllAlbumList()
+        cmdlist = {}
+        cmdlist['score']    = tv.UpdateAllScore
+        cmdlist['fullinfo'] = tv.UpdateAllFullInfo
+        cmdlist['playinfo'] = tv.UpdateAllPlayInfo
+        cmdlist['home']     = tv.UpdateAllAlbumPage
+        cmdlist['list']     = tv.UpdateAllAlbumList
 
-        self.finish('OK')
+        command = self.get_argument('cmd', '')
+        if command in cmdlist:
+            cmdlist[command]()
+
+        self.finish('OK\n')
 
     def post(self):
         pass

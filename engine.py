@@ -148,16 +148,16 @@ class AlbumBase:
     def SaveToJson(self):
         ret = {}
         ret['cid'] = self.cid
+        ret['playlistid'] = self.playlistid
+        ret['vid'] = self.vid
 
         url = self.GetVideoPlayUrl()
         if url != '':
             ret['videoPlayUrl'] = url
 
-        if self.playlistid != ''     : ret['playlistid'] = self.playlistid
         if self.albumName != ''      : ret['albumName'] = self.albumName
         if self.albumPageUrl != ''   : ret['albumPageUrl'] = self.albumPageUrl
         if self.pid != ''            : ret['pid'] = self.pid
-        if self.vid != ''            : ret['vid'] = self.vid
         if self.isHigh != ''         : ret['isHigh'] = self.isHigh
 
         if self.area != ''           : ret['area'] = self.area
@@ -309,113 +309,7 @@ class VideoMenuBase:
     def Reset(self):
         self.HotList = []
 
-    # 得到节目列表
-    # arg参数：
-    # {
-    #    "page" : 0,
-    #    "size" : 20,
-    #    "filter" : {                 # 过滤字段
-    #        "cid":2,
-    #        "playlistid":"123123",
-    #    },
-    #    "fields" : {                 # 显示字段
-    #        "albumName" : True,
-    #        "playlistid" : True
-    #    },
-    #    "sort" : {                   # 排序字段
-    #        "albumName": 1,
-    #        "vid": -1
-    #    }
-    def GetAlbumList(self, arg):
-        ret = []
-        try:
-            _filter = {}
-            _filter['cid']        = self.cid
-            _filter['playlistid'] = {'$exists' : True}
-            _filter['vid']        = {'$exists' : True}
-            if 'filter' in arg:
-                f = self.ConvertFilterJson(arg['filter'])
-                _filter.update(f)
-
-            if 'fields' in arg:
-                fields = arg['fields']
-            else:
-                fields = None
-
-            cursor = self.engine.album_table.find(_filter, fields = fields)
-
-            if 'sort' in arg:
-                s = self.ConvertSortJson(arg['sort'])
-                if s:
-                    cursor = cursor.sort(s)
-
-            if 'page' in arg and 'size' in arg:
-                page = arg['page']
-                size = arg['size']
-                cursor = cursor.skip(page * size).limit(size)
-
-            for x in cursor:
-                del x['_id']
-                ret.append(x)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-        return ret
-
-    # 更新该菜单下所有节目完全信息
-    def UpdateAllFullInfo(self):
-        argument = {}
-        argument['fields'] = {'albumName': True,
-                              'albumPageUrl': True,
-                              'PId': True,
-                              'vid': True,
-                              'playlistid': True}
-        pgs = self.GetAlbumList(argument)
-
-        for p in pgs:
-            album = self.albumClass(self)
-            album.LoadFromJson(p)
-            album.UpdateFullInfoCommand()
-        self.command.Execute()
-
-    # 更新所有节目的完全信息
-    def UpdateAllScore(self):
-        argument = {}
-        argument['fields'] = {'albumName': True,
-                              'albumPageUrl': True,
-                              'PId': True,
-                              'vid': True,
-                              'playlistid': True}
-        pgs = self.GetAlbumList(argument)
-
-        for p in pgs:
-            album = self.albumClass(self)
-            album.LoadFromJson(p)
-            album.UpdateScoreCommand()
-        self.command.Execute()
-
-    def UpdatePlayInfo(self):
-        argument = {}
-        argument['fields'] = {'albumName': True,
-                              'albumPageUrl': True,
-                              'PId': True,
-                              'vid': True,
-                              'playlistid': True}
-        pgs = self.GetAlbumList(argument)
-
-        for p in pgs:
-            album = self.albumClass(self)
-            album.LoadFromJson(p)
-            album.UpdateAlbumPlayInfoCommand()
-        self.command.Execute()
-
-    # 更新热门节目表
-    def UpdateHotList(self):
-        self.HotList = []
-        self.engine.UpdateHotList(self)
-
-        # 解析菜单网页解析
+    # 解析菜单网页解析
     def ParserHtml(self, name, js):
         ret = []
         if name in self.parserList:
@@ -455,6 +349,129 @@ class VideoMenuBase:
             tv.albumPageUrl = albumPageUrl
 
         return tv
+
+    # 得到节目列表
+    # arg参数：
+    # {
+    #    "page" : 0,
+    #    "size" : 20,
+    #    "filter" : {                 # 过滤字段
+    #        "cid":2,
+    #        "playlistid":"123123",
+    #    },
+    #    "fields" : {                 # 显示字段
+    #        "albumName" : True,
+    #        "playlistid" : True
+    #    },
+    #    "sort" : {                   # 排序字段
+    #        "albumName": 1,
+    #        "vid": -1
+    #    }
+    def GetAlbumList(self, arg, All=False):
+        ret = []
+        try:
+            _filter = {}
+            _filter['cid']        = self.cid
+            if All == False:
+                _filter['playlistid'] = {'$ne' : ''}
+                _filter['vid']        = {'$ne' : ''}
+
+            if 'filter' in arg:
+                f = self.ConvertFilterJson(arg['filter'])
+                _filter.update(f)
+
+            if 'fields' in arg:
+                fields = arg['fields']
+            else:
+                fields = None
+
+            cursor = self.engine.album_table.find(_filter, fields = fields)
+
+            if 'sort' in arg:
+                s = self.ConvertSortJson(arg['sort'])
+                if s:
+                    cursor = cursor.sort(s)
+
+            if 'page' in arg and 'size' in arg:
+                page = arg['page']
+                size = arg['size']
+                cursor = cursor.skip(page * size).limit(size)
+
+            for x in cursor:
+                del x['_id']
+                ret.append(x)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    # 更新该菜单下所有节目列表
+    def UpdateAlbumList(self):
+        pass
+
+    # 更新该菜单下所有节目完全信息
+    def UpdateAllFullInfo(self):
+        argument = {}
+        argument['fields'] = {'albumName': True,
+                              'albumPageUrl': True,
+                              'vid': True,
+                              'playlistid': True}
+        pgs = self.GetAlbumList(argument)
+
+        for p in pgs:
+            album = self.albumClass(self)
+            album.LoadFromJson(p)
+            album.UpdateFullInfoCommand()
+        self.command.Execute()
+
+    # 更新所有节目的完全信息
+    def UpdateAllScore(self):
+        argument = {}
+        argument['fields'] = {'albumName': True,
+                              'albumPageUrl': True,
+                              'vid': True,
+                              'playlistid': True}
+        pgs = self.GetAlbumList(argument)
+
+        for p in pgs:
+            album = self.albumClass(self)
+            album.LoadFromJson(p)
+            album.UpdateScoreCommand()
+        self.command.Execute()
+
+    # 更新所有节目播放信息
+    def UpdateAllPlayInfo(self):
+        argument = {}
+        argument['fields'] = {'albumName': True,
+                              'albumPageUrl': True,
+                              'vid': True,
+                              'playlistid': True}
+        pgs = self.GetAlbumList(argument)
+
+        for p in pgs:
+            album = self.albumClass(self)
+            album.LoadFromJson(p)
+            album.UpdateAlbumPlayInfoCommand()
+        self.command.Execute()
+
+    # 更新所有节目主页
+    def UpdateAllHomePage(self):
+        argument = {}
+        argument['fields'] = {'albumName': True,
+                              'albumPageUrl': True}
+        pgs = self.GetAlbumList(argument, All=True)
+
+        for p in pgs:
+            album = self.albumClass(self)
+            album.LoadFromJson(p)
+            album.UpdateAlbumPageCommand()
+        self.command.Execute()
+
+    # 更新热门节目表
+    def UpdateHotList(self):
+        pass
+
 
 class VideoEngine:
     def __init__(self):

@@ -1,12 +1,6 @@
 #! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-'''
-Created on 2013-9-7
-
-@author: zhuzhg
-'''
-
 import logging
 import traceback
 import sys
@@ -79,14 +73,15 @@ class SohuVideoMenu(VideoMenuBase):
         self.homePage = ''
         self.number = 0
         self.parserList = {
-                   'videolist'     : self._CmdParserVideoList,
-                   'album'         : self._CmdParserAlbum,
-                   'album_score'   : self._CmdParserAlbumScore,
-                   'videoall'      : self._CmdParserAlbumList,
-                   'albumlist_hot' : self._CmdParserHotInfoByIapi,
-                   'album_fullinfo': self._CmdParserAlbumFullInfo,
-                   'album_mvinfo'  : self._CmdParserAlbumMvInfo,
-                   'album_playinfo': self._CmdParserVrsFlash,
+                   'viddeolist_page' : self._CmdParserVidoListPage,
+                   'videolist'       : self._CmdParserVideoList,
+                   'album'           : self._CmdParserAlbumPage,
+                   'album_score'     : self._CmdParserAlbumScore,
+                   'videoall'        : self._CmdParserAlbumList,
+                   'albumlist_hot'   : self._CmdParserHotInfoByIapi,
+                   'album_fullinfo'  : self._CmdParserAlbumFullInfo,
+                   'album_mvinfo'    : self._CmdParserAlbumMvInfo,
+                   'album_playinfo'  : self._CmdParserAlbumPlayInfo,
         }
         self.albumClass = SohuAlbum
         self.filter_year = {
@@ -169,7 +164,48 @@ class SohuVideoMenu(VideoMenuBase):
         if self.homePage != "":
             self.command.AddCommand('videoall', self.name, self.homePage).Execute()
 
-    def UpdateHotInfo(self):
+    # 获取所有节目列表的别一种方法，该方法备用
+    def UpdateProgrameList2(self):
+        for url in self.HomeUrlList:
+            for page in self._GetHtmlList(url):
+                self.command.AddCommand('videolist', self.name, page)
+
+    def _GetHtmlList(self, playurl, times=0):
+        ret = []
+        count = 0
+        if times > MAX_TRY:
+            return ret
+        try:
+            print(playurl)
+            _, _, _, response = fetch(playurl)
+
+            soup = bs(response)
+            data = soup.findAll('span', {'class' : 'c-red'})
+            if data and len(data) > 1:
+                count = int(data[1].contents[0])
+                count = (count + 20 - 1) / 20
+                if count > 200:
+                    count = 200
+
+            current_page = 0
+            g = re.search('p10(\d+)', playurl)
+            if g:
+                current_page = int(g.group(1))
+
+            for i in range(1, count + 1):
+                if i != current_page:
+                    link = re.compile('p10\d+')
+                    newurl = re.sub(link, 'p10%d' % i, playurl)
+                    print(newurl)
+                    ret.append(newurl)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error('SohuEngine.GetHtmlList:  %s, %s,%s,%s' % (playurl, t, v, traceback.format_tb(tb)))
+            return self.GetHtmlList(playurl, times + 1)
+
+        return ret;
+
+    def UpdateHotList(self):
         # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3&encode=GBK
         fmt = 'http://so.tv.sohu.com/iapi?v=%d&c=%d&sc=%s&o=3'
         v = 4
@@ -183,7 +219,7 @@ class SohuVideoMenu(VideoMenuBase):
 
         self.command.AddCommand('albumlist_hot', self.name, url).Execute()
 
-    def UpdateHotInfo2(self):
+    def UpdateHotList2(self):
         # http://so.tv.sohu.com/jsl?c=100&area=5&cate=100102_100122&o=1&encode=GBK
         fmt = 'http://so.tv.sohu.com/jsl?c=%d&cate=%s&o=1'
         sc = ''
@@ -349,12 +385,7 @@ class SohuVideoMenu(VideoMenuBase):
                         self._save_update_append(ret, tv)
 
                         # 获取更多的信息
-                        if tv.playlistid != '':
-                            tv.UpdateFullInfoCommand()
-                            tv.UpdateScoreCommand()
-                        else: #　如果没有 playlistid
-                            tv.UpdateAlbumPageCommand()
-                        self.command.Execute()
+                        #tv.UpdateAlbumPageCommand().Execute()
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
@@ -364,7 +395,7 @@ class SohuVideoMenu(VideoMenuBase):
     # 主要要拿到节目的playlistid、vid、pid，如果没有找到playlistid，则通过 mv_i继续找
     # http://tv.sohu.com/20120517/n343417005.shtml
     # album
-    def _CmdParserAlbum(self, js):
+    def _CmdParserAlbumPage(self, js):
         ret = []
         try:
             text = js['data'].decode()
@@ -393,8 +424,8 @@ class SohuVideoMenu(VideoMenuBase):
                         print(text)
                     self.command.AddCommand("album_mvinfo", self.name, url, js['source']).Execute()
                 tv.SaveToDB(self.engine.album_table)
-                tv.UpdateFullInfoCommand()
-                tv.UpdateScoreCommand()
+                #tv.UpdateFullInfoCommand().Execute()
+                #tv.UpdateScoreCommand().Execute()
             else:
                 db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
                 db.rpush('urls', js['source'])
@@ -455,7 +486,7 @@ class SohuVideoMenu(VideoMenuBase):
     # 解析节目播放信息
     # 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s
     # album_playinfo
-    def _CmdParserVrsFlash(self, js):
+    def _CmdParserAlbumPlayInfo(self, js):
                 'data.highVid',
                 'data.norVid',
                 'data.oriVid',
@@ -518,11 +549,41 @@ class SohuVideoMenu(VideoMenuBase):
             log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
         return ret
 
+    def _CmdParserVidoListPage(self, js):
+        ret = []
+        text = js['data']
+        playurl = js['source']
+        soup = bs(text)
+        try:
+            data = soup.findAll('span', {'class' : 'c-red'})
+            if data and len(data) > 1:
+                count = int(data[1].contents[0])
+                count = (count + 20 - 1) / 20
+                if count > 200:
+                    count = 200
+
+            current_page = 0
+            g = re.search('p10(\d+)', playurl)
+            if g:
+                current_page = int(g.group(1))
+
+            for i in range(1, count + 1):
+                if i != current_page:
+                    link = re.compile('p10\d+')
+                    newurl = re.sub(link, 'p10%d' % i, playurl)
+                    print(newurl)
+                    ret.append(newurl)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error('SohuEngine.GetHtmlList:  %s, %s,%s,%s' % (playurl, t, v, traceback.format_tb(tb)))
+
+        return ret;
 # 电影
 class SohuMovie(SohuVideoMenu):
     def __init__(self, name, engine, url):
         SohuVideoMenu.__init__(self, name, engine, url)
         self.HomeUrlList = [
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p4_p5_p6_p73_p80_p9_2d1_p101_p11.html',
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p42013_p5_p6_p73_p80_p9_2d0_p101_p11.html',
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p42012_p5_p6_p73_p80_p9_2d0_p101_p11.html',
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p42011_p5_p6_p73_p80_p9_2d0_p101_p11.html',
@@ -530,7 +591,7 @@ class SohuMovie(SohuVideoMenu):
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p411_p5_p6_p73_p80_p9_2d0_p101_p11.html',
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p490_p5_p6_p73_p80_p9_2d0_p101_p11.html',
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p480_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html'
+            #'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html'
         ]
         self.number = 100
         self.cid = 1
@@ -892,6 +953,13 @@ class SohuEngine(VideoEngine):
         self.command.AddTemplate({
             'name'    : 'videoall',
             'source'  : 'http://tv.sohu.com/tvall',
+            'menu'    : '电影',
+        })
+
+        # 解析节目列表首页中页号，并生成所有网页
+        self.command.AddTemplate({
+            'name'    : 'viddeolist_page',
+            'source'  : 'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html',
             'menu'    : '电影',
         })
 

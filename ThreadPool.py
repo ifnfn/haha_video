@@ -19,8 +19,6 @@ h = NullHandler()
 logging.getLogger('threadpool').addHandler(h)
 logging.getLogger('threadpool.worker').addHandler(h)
 
-
-
 class ThreadPoolMixIn:
     """Mix-in class to handle each request in a new thread from the ThreadPool."""
 

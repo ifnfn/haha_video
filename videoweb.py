@@ -77,7 +77,8 @@ class GetPlayerHandler(BaseHandler):
         body = self.request.body.decode()
         if body and len(body) > 0:
             step = self.get_argument('step', "1",)
-            text = tv.engine.GetRealPlayer(body, step)
+            definition = self.get_argument('hd', '0')
+            text = tv.engine.GetRealPlayer(body, definition, step)
             self.finish(text)
         else:
             raise tornado.web.HTTPError(404)
@@ -93,7 +94,7 @@ class GetMenuHandler(BaseHandler):
         name  = self.get_argument('name', '')
         if cid != '':
             cid = cid.split(',')
-            ret = tv.GetMenuJsonInfoByCid(cid)
+            ret = tv.GetMenuJsonInfoById(cid)
         elif name != '':
             name = name.split(',')
             ret =  tv.GetMenuJsonInfoByName(name)
@@ -123,6 +124,10 @@ class UpdateCommandHandle(BaseHandler):
             tv.UpdateAllScore()
         elif command == 'fullinfo':
             tv.UpdateAllFullInfo()
+        elif command == 'playinfo':
+            tv.UpdateAllPlayInfo()
+        elif command == 'all':
+            tv.UpdateAllAlbumList()
 
         self.finish('OK')
 
@@ -157,8 +162,8 @@ class LoginHandler(BaseHandler):
             redis_db.set(key, self.request.remote_ip)
         else:
             key = redis_db.get(user_id).decode()
-        redis_db.expire(user_id, 60) # 一分钟过期
-        redis_db.expire(key, 60) # 一分钟过期
+        #redis_db.expire(user_id, 60) # 一分钟过期
+        #redis_db.expire(key, 60) # 一分钟过期
 
         return key
 
@@ -200,7 +205,7 @@ class Application(tornado.web.Application):
             (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
             (r'/video/getmenu',           GetMenuHandler),         # 后台管理，增加网址映射
             (r'/login',                   LoginHandler),           # 登录认证
-            (r'/video/update',            UpdateCommandHandle)
+            (r'/manage/update',           UpdateCommandHandle)
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -208,7 +213,6 @@ class Application(tornado.web.Application):
 def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)
     db.flushdb()
-    tv.UpdateAlbumList()
 
     tornado.options.parse_command_line()
     http_server = Application()

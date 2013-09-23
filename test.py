@@ -1,8 +1,9 @@
 #! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, os
-
+import json
+from fetchTools import fetch_httplib2 as fetch
+from bs4 import BeautifulSoup as bs
 from pymongo import Connection
 import re
 from super_client import KolaClient
@@ -164,6 +165,130 @@ def test_album():
         print(x)
 
     return
+
+class test_case:
+    def __init__(self):
+        self.vid = ''
+        self.pid = ''
+        self.playlistid = ''
+
+    def test_avs_i(self):
+        url = 'http://search.vrs.sohu.com/avs_i%s_pr%s_o2_n_p1000_chltv.sohu.com.json' % (self.vid, self.pid)
+        _, _, _, response = fetch(url)
+        oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
+        a = json.loads(oflvo)
+
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
+    def test_v(self):
+        # url ='http://search.vrs.sohu.com/v?id=1268036&pageSize=200000&pageNum=1'
+        url = 'http://search.vrs.sohu.com/v?id=1268037&pid=5497903&pageNum=1&pageSize=50&isgbk=true&var=video_similar_search_result'
+        _, _, _, response = fetch(url)
+        oflvo = re.search('var video_similar_search_result=(\{.*.\})', response).group(1)
+        a = json.loads(oflvo)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
+    def test_videopage(self):
+        #url = 'http://tv.sohu.com/20130517/n376295917.shtml'
+        #url = 'http://tv.sohu.com/20110222/n279464056.shtml'
+    #    url = 'http://v.tv.sohu.com/20100618/n272893884.shtml'
+    #    url = 'http://tv.sohu.com/20101124/n277876671.shtml'
+    #    url = 'http://tv.sohu.com/s2010/72jzk/'
+    #    url = 'http://tv.sohu.com/s2011/7film/'
+        url = 'http://tv.sohu.com/s2011/1663/s322643386/'
+        _, _, _, response = fetch(url)
+        a = re.findall('var (playlistId|pid|vid|PLAYLIST_ID)\s*=\s*\W*(.+?)"*', response)
+        print(a)
+
+    def test_mvi(self):
+        url = 'http://search.vrs.sohu.com/mv_i%s.json' % self.vid
+        _, _, _, response = fetch(url)
+        oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
+        a = json.loads(oflvo)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
+    def test_allvideo(self):
+        url = 'http://tv.sohu.com/tvall'
+        _, _, _, response = fetch(url)
+        soup = bs(response)
+        playlist = soup.findAll('li')
+        for a in playlist:
+            xx = re.findall('<a href="(\S*)"\s+target="_blank">\s*(\S*)\s*</a>', a.prettify())
+            if xx:
+                print(xx[0][0], xx[0][1])
+
+    def test_videolist(self):
+        url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlistid
+        _, _, _, response = fetch(url)
+        a = json.loads(response)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
+    def test_iapi(self):
+        url = 'http://so.tv.sohu.com/iapi?v=2&c=100'
+        _, _, _, response = fetch(url)
+        a = json.loads(response)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
+    def test_switch_aid(self):
+        url = 'http://index.tv.sohu.com/index/switch-aid/' + self.playlistid
+        _, _, _, response = fetch(url)
+        a = json.loads(response.decode())
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
+    def test_list(self):
+        url = 'http://so.tv.sohu.com/list_p1101_p2_p3_p4_p5_p6_p7_p8_p9.html'
+        _, _, _, response = fetch(url)
+        x = re.findall('(<a class="pic" target="_blank" title=".+/></a>)', response)
+        for a in x:
+            print(a)
+        x = re.findall('(<p class="tit tit-p">.+</a>)', response)
+        for a in x:
+            print(a)
+        return
+        x.extend(re.findall('<p class="tit tit-p">', response))
+        print(str(x))
+
+    def test_jsl(self):
+        url = 'http://so.tv.sohu.com/jsl?c=100&cate=100100_100107&o=1&pageSize=1'
+        _, _, _, response = fetch(url)
+        a = json.loads(response)
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
+    def test_playlist(self):
+        url = "http://hot.vrs.sohu.com/vrs_flash.action?vid=899609"
+        _, _, _, response = fetch(url)
+
+        a = json.loads(response.decode())
+        print(json.dumps(a, ensure_ascii=False, indent=4))
+
+    def test_all(self):
+        self.test_videolist()
+        return
+
+        self.test_all()
+        self.test_avs_i()
+        self.test_v()
+        self.test_videopage()
+        self.test_iapi()
+        self.test_switch_aid()
+        self.test_jsl()
+        self.test_list()
+
+def test_run():
+    t = test_case()
+#    t.test_playlist()
+#    t.test_videopage()
+#    return
+    t.playlistid = '5770420'
+    t.vid = '1181239'
+    t.pid = '322963713'
+    t.test_switch_aid()
+    return
+
+    t.playlistid = '1002050'
+    t.vid = '460464'
+    t.pid = '322963713'
+    t.test_videolist()
 
 def test():
     haha = KolaClient()

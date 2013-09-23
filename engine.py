@@ -97,10 +97,6 @@ class VideoBase:
         }
         self.vid = ""
 
-    # 获得播放视频源列表，返回m3u8
-    def GetRealUrl(self, playurl):
-        return ""
-
 # 一个节目，表示一部电影、电视剧集
 class AlbumBase:
     def __init__(self, parent):
@@ -148,9 +144,6 @@ class AlbumBase:
 
         self.data = {}
         self.videos = []
-
-    def GetVideoPlayUrl(self):
-        pass
 
     def SaveToJson(self):
         ret = {}
@@ -250,9 +243,12 @@ class AlbumBase:
 
         self.data.update(json)
 
-    # 发送节目信息更新命令
-    def UpdateAllCommand(self):
-        pass
+    def SaveToDB(self, db):
+        if self.albumName != "" and self.albumPageUrl != "":
+            js = self.SaveToJson()
+            db.update({'albumName': self.albumName},
+                      {"$set" : js},
+                      upsert=True, multi=True)
 
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
@@ -262,12 +258,17 @@ class AlbumBase:
     def UpdateScoreCommand(self):
         pass
 
-    def SaveToDB(self, db):
-        if self.albumName != "" and self.albumPageUrl != "":
-            js = self.SaveToJson()
-            db.update({'albumName': self.albumName},
-                      {"$set" : js},
-                      upsert=True, multi=True)
+    # 更新节目主页
+    def UpdateAlbumPageCommand(self):
+        pass
+
+    # 更新节目播放信息
+    def UpdateAlbumPlayInfoCommand(self):
+        pass
+
+    # 得到节目的地址
+    def GetVideoPlayUrl(self):
+        pass
 
 # 一级分类菜单
 class VideoMenuBase:
@@ -394,16 +395,27 @@ class VideoMenuBase:
             album.UpdateScoreCommand()
         self.command.Execute()
 
+    def UpdatePlayInfo(self):
+        argument = {}
+        argument['fields'] = {'albumName': True,
+                              'albumPageUrl': True,
+                              'PId': True,
+                              'vid': True,
+                              'playlistid': True}
+        pgs = self.GetAlbumList(argument)
+
+        for p in pgs:
+            album = self.albumClass(self)
+            album.LoadFromJson(p)
+            album.UpdateAlbumPlayInfoCommand()
+        self.command.Execute()
+
     # 更新热门节目表
     def UpdateHotList(self):
         self.HotList = []
         self.engine.UpdateHotList(self)
 
-    # 更新本菜单节目网址，并提交命令服务器
-    def UploadAlbumList(self):
-        pass
-
-    # 解析菜单网页解析
+        # 解析菜单网页解析
     def ParserHtml(self, name, js):
         ret = []
         if name in self.parserList:
@@ -459,5 +471,5 @@ class VideoEngine:
         return []
 
     # 得到真实播放地址
-    def GetRealPlayer(self, text, step):
+    def GetRealPlayer(self, text, definition, step):
         return ''

@@ -298,5 +298,17 @@ def test():
 #    haha.ProcessCommand(cmd_test4)
 
 if __name__ == "__main__":
-    test()
+#    test()
+    t = '''
+<a class="pic" href="http://tv.sohu.com/20130923/n387074614.shtml" target="_blank" title="http://photocdn.sohu.com/20130923/vrsb972533.jpg">
+      <img height="160" src="http://photocdn.sohu.com/20130923/vrsb972533.jpeg" title="生死猜拳" width="120"/>
+</a>
+      '''
 
+    x = re.findall('(vrsab_ver|vrsb)([0-9]+).(jpg|jpeg)"', t)
+    print(x)
+    x =  re.findall('<img.*title="(\S+)"', t)
+    print(x)
+
+    x = re.findall('(href|title)="(\S+)"', t)
+    print(x)

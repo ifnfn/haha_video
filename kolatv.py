@@ -100,8 +100,8 @@ class Kolatv:
     # 更新所有节目（增加新的节目）
     def UpdateAllAlbumList(self):
         for (_, menu) in list(self.MenuList.items()):
-            menu.UpdateAlbumList()
-            #menu.UpdateAlbumList2()
+            #menu.UpdateAlbumList()
+            menu.UpdateAlbumList2()
 
     # 更新所有节目的播放信息
     def UpdateAllPlayInfo(self):

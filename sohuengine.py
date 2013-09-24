@@ -31,7 +31,7 @@ class TemplateVideoAll(Template):
         }
         super().__init__(menu.command, cmd)
 
-# 搜狐节目列表(过时的)
+# 搜狐节目列表
 class TemplateVideoList(Template):
     def __init__(self, menu, url):
         cmd = {
@@ -181,17 +181,19 @@ class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name, engine):
         VideoMenuBase.__init__(self, name, engine)
         self.homePage = ''
-        self.number = 0
+        self.HomeUrlList = []
+        if hasattr(self, 'number'):
+            self.HomeUrlList = ['http://so.tv.sohu.com/list_p1%d_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html' % self.number]
+
         self.parserList = {
-                   'viddeolist_page' : self._CmdParserVidoListPage,
-                   'videolist'       : self._CmdParserVideoList,
-                   'album'           : self._CmdParserAlbumPage,
-                   'album_score'     : self._CmdParserAlbumScore,
-                   'videoall'        : self._CmdParserAlbumList,
-                   'albumlist_hot'   : self._CmdParserHotInfoByIapi,
-                   'album_fullinfo'  : self._CmdParserAlbumFullInfo,
-                   'album_mvinfo'    : self._CmdParserAlbumMvInfo,
-                   'album_playinfo'  : self._CmdParserAlbumPlayInfo,
+                   'videolist'      : self._CmdParserVideoList,
+                   'album'          : self._CmdParserAlbumPage,
+                   'album_score'    : self._CmdParserAlbumScore,
+                   'videoall'       : self._CmdParserAlbumList,
+                   'albumlist_hot'  : self._CmdParserHotInfoByIapi,
+                   'album_fullinfo' : self._CmdParserAlbumFullInfo,
+                   'album_mvinfo'   : self._CmdParserAlbumMvInfo,
+                   'album_playinfo' : self._CmdParserAlbumPlayInfo,
         }
         self.albumClass = SohuAlbum
         self.filter_year = {
@@ -278,9 +280,8 @@ class SohuVideoMenu(VideoMenuBase):
     # 获取所有节目列表的别一种方法，该方法备用
     def UpdateAlbumList2(self):
         for url in self.HomeUrlList:
-            for page in self._GetHtmlList(url):
-                TemplateVideoList(self, page).Execute()
-                #self.command.AddCommand('videolist', self.name, page)
+            TemplateVideoList(self, url).Execute()
+            #self.command.AddCommand('videolist', self.name, page)
 
     def _GetHtmlList(self, playurl, times=0):
         ret = []
@@ -622,107 +623,63 @@ class SohuVideoMenu(VideoMenuBase):
 
         return ret
 
-    # use by CmdParserVideoList
-    def _ParserAlbum(self, tag, album):
-        ret = False
-        if tag == None or album == None:
-            return False
-
-        x = tag.findNext('a', {'class' : 'pic'})
-        if x:
-            # 取节目的 playlist_id, pid, vid
-            urls = re.findall('(href|img src)="(\S+)"', x.prettify())
-            for u in urls:
-                if u[0] == 'href':
-                    album.albumPageUrl = u[1]
-                    try:
-                        ids = re.search('(\d+)_(\d+)', u[1])
-                        if ids:
-                            album.pid = ids.group(1)
-                            album.vid = ids.group(2)
-                            ret = True
-                    except:
-                        t, v, tb = sys.exc_info()
-                        log.error('SohuGetVideoList:  %s, %s,%s,%s' % (album.albumPageUrl, t, v, traceback.format_tb(tb)))
-                elif u[0] == 'img src':
-                    newid = re.findall('(vrsab_ver|vrsab)([0-9]+)', u[1])
-                    if len(newid) > 0:
-                        album.playlistid = newid[0][1]
-                        ret = True
-
-            # 取节目的标题
-            x = tag.findNext('p', {'class' : 'tit tit-p'}).contents[0]
-            if x:
-                album.albumName = x.contents[0]
-
-        return ret
-
-    # 从分页的页面上解析该页上的节目 （过时的）
+    # 从分页的页面上解析该页上的节目
     def _CmdParserVideoList(self, js):
         ret = []
         try:
+            g = re.search('p10(\d+)', js['source'])
+            if g:
+                current_page = int(g.group(1))
+                link = re.compile('p10\d+')
+                newurl = re.sub(link, 'p10%d' % (current_page + 1), js['source'])
+                TemplateVideoList(self, newurl).Execute()
+
             text = js['data']
             soup = bs(text)
             playlist = soup.findAll('a')
 
             for tag in playlist:
                 tv = self.albumClass(self)
-                if self._ParserAlbum(tag, tv):
-                    self._save_update_append(ret, tv)
-                elif tv.albumPageUrl != "":
-                    # 如果无法直接解析出节目信息，则进入详细页面解析, 重新解析
-                    print("No Found:", tv.albumPageUrl)
-                    tv.UpdateAlbumPageCommand()
+                text = tag.prettify()
+
+                urls = re.findall('(href|title)="(\S+)"', text)
+                for u in urls:
+                    if u[0] == 'href':
+                        tv.albumPageUrl = u[1]
+                        try:
+                            ids = re.search('(\d+)_(\d+)', u[1])
+                            if ids:
+                                tv.pid = ids.group(1)
+                                tv.vid = ids.group(2)
+                        except:
+                            t, v, tb = sys.exc_info()
+                            log.error('SohuGetVideoList:  %s, %s,%s,%s' % (tv.albumPageUrl, t, v, traceback.format_tb(tb)))
+                    elif u[0] == 'title':
+                        newid = re.findall('(vrsab_ver|vrsab)([0-9]+).(jpg|jpeg)', u[1])
+                        if len(newid) > 0:
+                            tv.playlistid = newid[0][1]
+
+                # 取节目的标题
+                x = re.findall('<img.*title="(\S+)"', text)
+                if x:
+                    tv.albumName = x[0]
+
+                self._save_update_append(ret, tv)
+                # 获取更多的信息
+                #tv.UpdateAlbumPageCommand().Execute()
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
         return ret
 
-    def _CmdParserVidoListPage(self, js):
-        ret = []
-        text = js['data']
-        playurl = js['source']
-        soup = bs(text)
-        try:
-            data = soup.findAll('span', {'class' : 'c-red'})
-            if data and len(data) > 1:
-                count = int(data[1].contents[0])
-                count = (count + 20 - 1) / 20
-                if count > 200:
-                    count = 200
-
-            current_page = 0
-            g = re.search('p10(\d+)', playurl)
-            if g:
-                current_page = int(g.group(1))
-
-            for i in range(1, count + 1):
-                if i != current_page:
-                    link = re.compile('p10\d+')
-                    newurl = re.sub(link, 'p10%d' % i, playurl)
-                    print(newurl)
-                    ret.append(newurl)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error('SohuEngine.GetHtmlList:  %s, %s,%s,%s' % (playurl, t, v, traceback.format_tb(tb)))
-
-        return ret;
 # 电影
 class SohuMovie(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
-        self.HomeUrlList = [
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42013_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42012_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42011_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p42010_p5_p6_p73_p80_p9_2d0_p101_p11.html'
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p411_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p490_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p480_p5_p6_p73_p80_p9_2d0_p101_p11.html',
-            #'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html'
-        ]
         self.number = 100
+        SohuVideoMenu.__init__(self, name, engine)
+#        self.HomeUrlList = [
+#            'http://so.tv.sohu.com/list_p1100_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html',
+#        ]
         self.cid = 1
         self.homePage = 'http://tv.sohu.com/movieall/'
         self.filter = {
@@ -780,9 +737,12 @@ class SohuMovie(SohuVideoMenu):
 # 电视
 class SohuTV(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
         self.number = 101
+        SohuVideoMenu.__init__(self, name, engine)
         self.cid = 2
+#        self.HomeUrlList = [
+#            'http://so.tv.sohu.com/list_p1101_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html'
+#        ]
         self.homePage = 'http://tv.sohu.com/tvall/'
         self.filter = {
             '年份' : self.filter_year,
@@ -833,8 +793,8 @@ class SohuTV(SohuVideoMenu):
 # 动漫
 class SohuComic(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
         self.number = 115
+        SohuVideoMenu.__init__(self, name, engine)
         self.homePage = 'http://tv.sohu.com/comicall/'
         self.filter = {
             '年份' : self.filter_year,
@@ -897,8 +857,8 @@ class SohuComic(SohuVideoMenu):
 # 综艺
 class SohuShow(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
         self.number = 106
+        SohuVideoMenu.__init__(self, name, engine)
         self.homePage = ''
         self.filter = {
             '类型' : {
@@ -933,8 +893,8 @@ class SohuShow(SohuVideoMenu):
 # 记录片
 class SohuDocumentary(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
         self.number = 107
+        SohuVideoMenu.__init__(self, name, engine)
         self.homePage = ''
         self.filter = {
             '类型': {
@@ -960,8 +920,8 @@ class SohuDocumentary(SohuVideoMenu):
 # 教育
 class SohuEdu(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
         self.number = 119
+        SohuVideoMenu.__init__(self, name, engine)
         self.homePage = ''
         self.filter = {
             '类型': {
@@ -983,8 +943,8 @@ class SohuEdu(SohuVideoMenu):
 # 新闻
 class SohuNew(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
         self.number = 122
+        SohuVideoMenu.__init__(self, name, engine)
         self.filter = {
             '类型':[
                 {'国内':'122204'},
@@ -1009,8 +969,8 @@ class SohuNew(SohuVideoMenu):
 # 娱乐
 class SohuYule(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
         self.number = 112
+        SohuVideoMenu.__init__(self, name, engine)
         self.filter = {
             '类型':[
                 {'明星':'112103'},
@@ -1035,8 +995,8 @@ class SohuYule(SohuVideoMenu):
 # 旅游
 class SohuTour(SohuVideoMenu):
     def __init__(self, name, engine):
-        SohuVideoMenu.__init__(self, name, engine)
         self.number = 131
+        SohuVideoMenu.__init__(self, name, engine)
         self.filter = {
             '类型': [
                 {'自驾游':'131100'},

@@ -25,11 +25,19 @@ class KolaClient:
         self.menuList = []
         self.key = ''
 
-    def GetUrl(self, url):
-        status, _, _, response = fetch(url)
-        if status != '200':
-            print(response)
-            return ""
+    def GetUrl(self, url, times = 0):
+        if times > MAX_TRY:
+            return False
+        try:
+            status, _, _, response = fetch(url)
+            if status != '200':
+                print(response)
+                return ""
+        except:
+            t, v, tb = sys.exc_info()
+            print("ProcessCommand playurl: %s %s, %s, %s" % (cmd['source'], t, v, traceback.format_tb(tb)))
+            return self.GetUrl(url, times + 1)
+
         return response
 
     def GetCacheUrl(self, url):
@@ -43,8 +51,9 @@ class KolaClient:
             response = f.read()
             f.close()
         else:
-            ret, _, _, response = fetch(url)
-            if ret == '200':
+            print("Download: ", url)
+            response = self.GetUrl(url)
+            if response != '':
                 f = open(filename, 'wb')
                 f.write(response)
                 f.close()

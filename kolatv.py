@@ -20,6 +20,7 @@ class Kolatv:
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=2)
         self.thread_pool = ThreadPool(POOLSIZE)
         self.MenuList = self.engine.GetMenu()
+
         self.sched = Scheduler()
         self.sched.start()
         self.sched.add_interval_job(self.UpdateNewest, hours=1)
@@ -45,6 +46,14 @@ class Kolatv:
 
         return ret
 
+    def GetMenuAlbumListByName(self, menuName, argument):
+        data = {}
+        m = self.FindMenu(menuName)
+        if m:
+            data = self.engine.GetAlbumListJson(argument, m.cid)
+
+        return data
+
     def ParserHtml(self, data):
         js = tornado.escape.json_decode(data)
         if (js == None) or ('data' not in js):
@@ -56,11 +65,8 @@ class Kolatv:
         text = base64.decodebytes(js['data'].encode())
         if text:
             js['data'] = text
-            menuName = js['menu']
-            menu = self.FindMenu(menuName)
-            if menu:
-                name = js['name']
-                menu.ParserHtml(name, js)
+            name = js['name']
+            self.engine.ParserHtml(name, js)
 
         return True
 
@@ -85,34 +91,48 @@ class Kolatv:
         print("UpdateTop200")
         pass
 
+    def _get(self, All=False):
+        argument = {}
+        argument['fields'] = {'albumName': True,
+                              'albumPageUrl': True,
+                              'vid': True,
+                              'playlistid': True}
+        return self.engine.GetAlbumListJson(argument, All=All)
+        
     # 更新所有节目的排名数据
     def UpdateAllScore(self):
         print("UpdateAllScore")
-        for (_, menu) in self.MenuList.items():
-            menu.UpdateAllScore()
+
+        for p in self._get():
+            self.engine.NewAlbum(p).UpdateScoreCommand()
+        self.engine.command.Execute()
 
     # 更新所有节目的完全信息
     def UpdateAllFullInfo(self):
         print("UpdateAllFullInfo")
-        for (_, menu) in self.MenuList.items():
-            menu.UpdateAllFullInfo()
+
+        for p in self._get():
+            self.engine.NewAlbum(p).UpdateFullInfoCommand()
+        self.engine.command.Execute()
+
+    # 更新所有节目的播放信息
+    def UpdateAllPlayInfo(self):
+        for p in self._get():
+            self.engine.NewAlbum(p).UpdateAlbumPlayInfoCommand()
+        self.engine.command.Execute()
+
+    # 更新所有节目主页
+    def UpdateAllAlbumPage(self):
+        for p in self._get(All=True):
+            self.engine.NewAlbum(p).UpdateAlbumPageCommand()
+        self.engine.command.Execute()
+
+    def UpdateAllHotList(self):
+        for (_, menu) in list(self.MenuList.items()):
+            menu.UpdateHotList()
 
     # 更新所有节目（增加新的节目）
     def UpdateAllAlbumList(self):
         for (_, menu) in list(self.MenuList.items()):
             #menu.UpdateAlbumList()
             menu.UpdateAlbumList2()
-
-    # 更新所有节目的播放信息
-    def UpdateAllPlayInfo(self):
-        for (_, menu) in list(self.MenuList.items()):
-            menu.UpdateAllPlayInfo()
-
-    # 更新所有节目主页
-    def UpdateAllAlbumPage(self):
-        for (_, menu) in list(self.MenuList.items()):
-            menu.UpdateAllHomePage()
-
-    def UpdateAllHotList(self):
-        for (_, menu) in list(self.MenuList.items()):
-            menu.UpdateHotList()

@@ -11,7 +11,6 @@ import base64
 import tornado.escape
 
 from bs4 import BeautifulSoup as bs
-from fetchTools import fetch_httplib2 as fetch
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
 
 logging.basicConfig()
@@ -26,7 +25,6 @@ class TemplateVideoAll(Template):
     def __init__(self, menu):
         cmd = {
             'name' : 'videoall',
-            'menu': menu.name,
             'source': menu.homePage
         }
         super().__init__(menu.command, cmd)
@@ -36,7 +34,6 @@ class TemplateVideoList(Template):
     def __init__(self, menu, url):
         cmd = {
             'name': 'videolist',
-            'menu': menu.name,
             'source': url,
             'regular': [
                     '(<a class="pic" target="_blank" title=".+/></a>)',
@@ -52,9 +49,8 @@ class TemplateAlbum(Template):
         cmd = {
             'name'    : 'album',
             'source'  : album.albumPageUrl,
-            'menu'    : album.parent.name,
             'regular' : [
-                'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
+                'var (playlistId|pid|vid|PLAYLIST_ID|cid)\s*=\W*([\d,]+)'
             ],
         }
         super().__init__(album.command, cmd)
@@ -66,7 +62,6 @@ class TemplateAlbumScore(Template):
         cmd = {
             'name'    : 'album_score',
             'source'  : 'http://index.tv.sohu.com/index/switch-aid/' + album.playlistid,
-            'menu'    : '电影',
             'json'    : [
                          'attachment.album',
                          'attachment.index'
@@ -75,13 +70,24 @@ class TemplateAlbumScore(Template):
         super().__init__(album.command, cmd)
         #self.command = album.command.AddCommand2(cmd)
 
+# 总播放次数，(如果没有指数的话）
+class TemplateAlbumTotalPlayNum(Template):
+    def __init__(self, album):
+        cmd = {
+            'name'    : 'album_total_playnum',
+            'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=' + album.vid + ',' ,
+        }
+        super().__init__(album.command, cmd)
+        #self.command = album.command.AddCommand2(cmd)
+
+
+#http://count.vrs.sohu.com/count/query.action?videoId=1268037
 # 更新热门节目信息
 class TemplateAlbumHotList(Template):
     def __init__(self, menu, url):
         cmd = {
             'name'    : 'albumlist_hot',
             'source'  : url, #'http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3',
-            'menu'    : menu.name,
         }
         super().__init__(menu.command, cmd)
 
@@ -90,7 +96,6 @@ class TemplateAlbumFullInfo(Template):
     def __init__(self, album):
         cmd = {
             'name' : 'album_fullinfo',
-            'menu' : album.parent.name,
             'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % album.playlistid
         }
         super().__init__(album.command, cmd)
@@ -101,9 +106,8 @@ class TemplateAlbumMvInfo(Template):
     def __init__(self, album, source_url):
         cmd = {
             'name'    : 'album_mvinfo',
-            'menu'    : album.parent.name,
             'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
-            'privdate_data' : source_url
+            'homePage': source_url
         }
         super().__init__(album.command, cmd)
 
@@ -113,7 +117,6 @@ class TemplateAlbumPlayInfo(Template):
         cmd = {
             'name'    : 'album_playinfo',
             'source'  : url, #'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s',
-            'menu'    : album.parent.name,
             'json' : [
                 'data.highVid',
                 'data.norVid',
@@ -140,8 +143,6 @@ class SohuAlbum(AlbumBase):
 
         if ret:
             TemplateAlbumFullInfo(self)
-            #url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlistid
-            #self.command.AddCommand('album_fullinfo', self.parent.name, url)
 
         return ret
 
@@ -150,22 +151,19 @@ class SohuAlbum(AlbumBase):
         ret = self.playlistid != ""
         if ret:
             TemplateAlbumScore(self).Execute()
-            #url = 'http://index.tv.sohu.com/index/switch-aid/%s' % self.playlistid
-            #self.command.AddCommand('album_score', self.parent.name, url)
+
         return ret
 
     # 更新节目主页
     def UpdateAlbumPageCommand(self):
         if self.albumPageUrl != '':
             TemplateAlbum(self).Execute()
-            #self.command.AddCommand('album', self.parent.name, self.albumPageUrl)
 
     # 更新节目播放信息
     def UpdateAlbumPlayInfoCommand(self):
         url = self.GetVideoPlayUrl()
         if url != '':
             TemplateAlbumPlayInfo(self, url)
-            #self.command.AddCommand('album_playinfo', self.parent.name, url)
 
     # 得到节目的地址
     def GetVideoPlayUrl(self, definition=0):
@@ -185,16 +183,6 @@ class SohuVideoMenu(VideoMenuBase):
         if hasattr(self, 'number'):
             self.HomeUrlList = ['http://so.tv.sohu.com/list_p1%d_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html' % self.number]
 
-        self.parserList = {
-                   'videolist'      : self._CmdParserVideoList,
-                   'album'          : self._CmdParserAlbumPage,
-                   'album_score'    : self._CmdParserAlbumScore,
-                   'videoall'       : self._CmdParserAlbumList,
-                   'albumlist_hot'  : self._CmdParserHotInfoByIapi,
-                   'album_fullinfo' : self._CmdParserAlbumFullInfo,
-                   'album_mvinfo'   : self._CmdParserAlbumMvInfo,
-                   'album_playinfo' : self._CmdParserAlbumPlayInfo,
-        }
         self.albumClass = SohuAlbum
         self.filter_year = {
             '2013' : '',
@@ -226,22 +214,6 @@ class SohuVideoMenu(VideoMenuBase):
             '评分最高'   : 4
         }
 
-        self.fieldMapping = {
-            '类型' : 'categories',
-            '产地' : 'area',
-            '地区' : 'area', # Music
-            '年份' : 'publishYear',
-            '篇幅' : '',
-            '年龄' : '',
-            '范围' : '',
-            '语言' : '',
-            '周播放最多' : 'weeklyPlayNum',
-            '日播放最多' : 'dailyPlayNum',
-            '总播放最多' : 'totalPlayNum',
-            '最新发布'   : 'publishTime',
-            '评分最高'   : 'dailyIndexScore'
-        }
-
     def GetFilterJson(self):
         ret = {}
         for k,v in list(self.filter.items()):
@@ -256,67 +228,15 @@ class SohuVideoMenu(VideoMenuBase):
 
         return ret
 
-    def ConvertFilterJson(self, f):
-        for key in f:
-            if key in self.fieldMapping:
-                newkey = self.fieldMapping[key]
-                f[newkey] = { "$in" : [f[key]]}
-                del f[key]
-        return f
-
-    def ConvertSortJson(self, v):
-        if v in self.fieldMapping:
-            newkey = self.fieldMapping[v]
-            return [(newkey, -1)]
-        else:
-            return [(v, -1)]
-
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         if self.homePage != "":
             TemplateVideoAll(self).Execute()
-            #self.command.AddCommand('videoall', self.name, self.homePage).Execute()
 
     # 获取所有节目列表的别一种方法，该方法备用
     def UpdateAlbumList2(self):
         for url in self.HomeUrlList:
             TemplateVideoList(self, url).Execute()
-            #self.command.AddCommand('videolist', self.name, page)
-
-    def _GetHtmlList(self, playurl, times=0):
-        ret = []
-        count = 0
-        if times > MAX_TRY:
-            return ret
-        try:
-            print(playurl)
-            _, _, _, response = fetch(playurl)
-
-            soup = bs(response)
-            data = soup.findAll('span', {'class' : 'c-red'})
-            if data and len(data) > 1:
-                count = int(data[1].contents[0])
-                count = (count + 20 - 1) / 20
-                if count > 200:
-                    count = 200
-
-            current_page = 0
-            g = re.search('p10(\d+)', playurl)
-            if g:
-                current_page = int(g.group(1))
-
-            for i in range(1, count + 1):
-                if i != current_page:
-                    link = re.compile('p10\d+')
-                    newurl = re.sub(link, 'p10%d' % i, playurl)
-                    print(newurl)
-                    ret.append(newurl)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error('SohuEngine.GetHtmlList:  %s, %s,%s,%s' % (playurl, t, v, traceback.format_tb(tb)))
-            return self.GetHtmlList(playurl, times + 1)
-
-        return ret;
 
     def UpdateHotList(self):
         # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3&encode=GBK
@@ -343,334 +263,6 @@ class SohuVideoMenu(VideoMenuBase):
         url = fmt % (v, self.number, sc)
 
         TemplateAlbumHotList(self, url).Execute()
-        #self.command.AddCommand('albumlist_hot', self.name, url).Execute()
-
-    def _save_update_append(self, sets, tv):
-        if tv:
-            tv.SaveToDB(self.engine.album_table)
-            sets.append(tv)
-
-    # 解析热门节目
-    # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3
-    # albumlist_hot
-    def _CmdParserHotInfoByIapi(self, js):
-        ret = []
-        try:
-            js = tornado.escape.json_decode(js['data'])
-
-            tv = None
-            if 'r' in js:
-                for p in js['r']:
-                    if 'url' in p:
-                        tv = self.GetAlbumFormDB(albumPageUrl = p['url'])
-                    elif 'aurl' in p:
-                        tv = self.GetAlbumFormDB(albumPageUrl = p['aurl'])
-            self._save_update_append(ret, tv)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-    # 通过 vid 获得节目更多的信息
-    # http://search.vrs.sohu.com/mv_i1268037.json
-    # album_mvinfo
-    def _CmdParserAlbumMvInfo(self, js):
-        ret = []
-        try:
-            text = js['data'].decode()
-            g = re.search('var video_album_videos_result=(\{.*.\})', text)
-            if g:
-                playlistid = ''
-                albumName = ''
-                albumPageUrl = ''
-                a = tornado.escape.json_decode(g.group(1))
-                if 'playlistId' in a:
-                    playlistid = str(a['playlistId'])
-
-                if 'videos' in a and len(a['videos']) > 0:
-                    tv = None
-                    video = a['videos'][0]
-                    if 'videoAlbumName' in video:
-                        albumName = video['videoAlbumName']
-                    if tv == None and 'privdate_data' in js:
-                        albumPageUrl = js['privdate_data']
-
-                    tv = self.GetAlbumFormDB(playlistid, albumName, albumPageUrl)
-
-                    if tv == None:
-                        return []
-
-                    if 'isHigh' in video          : tv.isHigh = str(video['isHigh'])
-                    if 'albumDesc' in video       : tv.albumDesc = video['albumDesc']
-
-                    if 'AlbumYear' in video       : tv.publishYear = str(video['AlbumYear'])
-                    if 'videoScore' in video      : tv.videoScore = str(video['videoScore'])
-                    if 'videoArea' in video       : tv.area = video['videoArea']
-                    if 'videoMainActor' in video  : tv.mainActors = video['videoMainActor'].split(';') # 主演
-                    if 'videoActor' in video      : tv.actors = video['videoActor'].split(';') # 演员
-                    if 'videoDirector' in video   : tv.directors = video['videoDirector'].split(';') # 导演
-
-                    if 'videoAlbumContCategory' in video:
-                        tv.categories = video['videoAlbumContCategory'].split(';')
-
-                    self._save_update_append(ret, tv)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbumMvInfo: %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-        return ret
-
-    # 解析节目的完全信息
-    # http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241
-    # album_fullinfo
-    def _CmdParserAlbumFullInfo(self, js):
-        ret = []
-        try:
-            js = tornado.escape.json_decode(js['data'])
-
-            playlistid = js['playlistid']
-            albumName = ''
-            albumPageUrl = ''
-
-            if 'albumName' in js:
-                albumName = js['albumName']
-
-            if 'albumPageUrl' in js:
-                albumPageUrl = js['albumPageUrl']
-
-            p = self.GetAlbumFormDB(playlistid, albumName, albumPageUrl)
-            if p:
-                if 'videos' in js:
-                    if 'vid' in js:
-                        vid = js['vid']
-                    else:
-                        vid = -1
-
-                    for video in js['videos']:
-                        if 'vid' in video and video['vid'] == vid and vid != -1:
-                            if 'playLength' in video: p.playLength =  video['playLength']
-                            if 'publishTime' in video: p.publishTime = video['publishTime']
-
-                        video = p.VideoClass(video)
-                        p.videos.append(video)
-                del js['videos']
-
-                p.LoadFromJson(js)
-                p.SaveToDB(self.engine.album_table)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbumFullInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-        return ret
-
-    # 解析所有节目列表：
-    # 拿到菜单下所有节目的 albumName、albumPageUrl
-    # http://tv.sohu.com/tvall/
-    # videoall
-    def _CmdParserAlbumList(self, js):
-        ret = []
-
-        try:
-            text = js['data']
-            soup = bs(text)#, from_encoding = 'GBK')
-            playlist = soup.findAll('li')
-            for a in playlist:
-                text = re.findall('<a href="(\S*)"\s+target="_blank">\s*(\S*)\s*</a>', a.prettify())
-                if text:
-                    (url, album) = text[0]
-
-                    if url != "" and album != "":
-#                        test = [
-#                                'http://tv.sohu.com/s2011/1663/s322643386/',
-#                                 'http://tv.sohu.com/s2011/ajyh/',
-#                                 'http://tv.sohu.com/20110426/n306486856.shtml',
-#                                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
-#                                 'http://tv.sohu.com/20120517/n343417005.shtml',
-#                                 'http://tv.sohu.com/s2012/zlyeye/',
-#                                 'http://store.tv.sohu.com/5009508/706684_1772.html',
-#                                ]
-#                        if url in test:
-#                            pass
-#                        else:
-#                            continue
-
-                        tv = self.albumClass(self)
-                        if tv.albumName == "":
-                            tv.albumName = album
-                        tv.albumPageUrl = url
-                        self._save_update_append(ret, tv)
-
-                        # 获取更多的信息
-                        #tv.UpdateAlbumPageCommand().Execute()
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-        return ret
-
-    # 解析节目基本信息：
-    # 主要要拿到节目的playlistid、vid、pid，如果没有找到playlistid，则通过 mv_i继续找
-    # http://tv.sohu.com/20120517/n343417005.shtml
-    # album
-    def _CmdParserAlbumPage(self, js):
-        ret = []
-        try:
-            text = js['data'].decode()
-            tv = self.GetAlbumFormDB(albumPageUrl=js['source'], auto=False)
-            if tv == None:
-                return []
-
-            t = re.findall('var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)', text)
-            if t:
-                for u in t:
-                    if u[0] == 'pid':
-                        tv.pid = u[1]
-                    elif u[0] == 'vid':
-                        tv.vid = u[1]
-                    elif u[0] == 'playlistId' or u[0] == 'PLAYLIST_ID':
-                        tv.playlistid = u[1]
-
-                if tv.vid == '-1' or tv.vid == '' or tv.vid == '1':
-                    return ret
-                # 如果得不到 playlistId 的话
-                if tv.playlistid == "" and tv.vid != "":
-                    TemplateAlbumMvInfo(tv, js['source']).Execute()
-#                     url = 'http://search.vrs.sohu.com/mv_i%s.json' % tv.vid
-#                     if 'pid.json' in url:
-#                         print(text)
-#                     elif 'PLAYLIST_ID.json' in url:
-#                         print(text)
-#                     self.command.AddCommand("album_mvinfo", self.name, url, js['source']).Execute()
-                tv.SaveToDB(self.engine.album_table)
-                #tv.UpdateFullInfoCommand().Execute()
-                #tv.UpdateScoreCommand().Execute()
-            else:
-                db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
-                db.rpush('urls', js['source'])
-
-                print("ERROR: ", js['source'])
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbum:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-        return ret
-
-    # 解析节目指数信息
-    # http://index.tv.sohu.com/index/switch-aid/1012657
-    # album_score
-    def _CmdParserAlbumScore(self, js):
-        ret = []
-        try:
-            data = tornado.escape.json_decode(js['data'])
-            if 'album' in data:
-                album = data['album']
-                if album:
-                    playlistid   = 'id' in album and album['id'] or ''
-                    albumName    = 'albumName' in album and album['albumName'] or ''
-                    albumPageUrl = 'playUrl' in album and album['playUrl'] or ''
-
-                    tv = self.GetAlbumFormDB(playlistid, albumName, albumPageUrl)
-                    if tv == None:
-                        return ret
-                    tv.albumName = album['albumName']
-
-                    if 'index' in data:
-                        index = data['index']
-                        if index:
-                            if 'dailyPlayNum' in index:
-                                tv.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
-                            if 'weeklyPlayNum' in index:
-                                tv.weeklyPlayNum   = index['weeklyPlayNum']   # 每周播放次数
-                            if 'monthlyPlayNum' in index:
-                                tv.monthlyPlayNum  = index['monthlyPlayNum']  # 每月播放次数
-                            if 'totalPlayNum' in index:
-                                tv.totalPlayNum    = index['totalPlayNum']    # 总播放资料
-                            if 'dailyIndexScore' in index:
-                                tv.dailyIndexScore = index['dailyIndexScore'] # 每日指数
-                            if playlistid in ['5770420', '308122']:
-                                print(playlistid, ": weeklyPlayNum=", tv.weeklyPlayNum)
-
-
-                    tv.SaveToDB(self.engine.album_table)
-                    ret.append(tv)
-
-        except:
-            print(js['source'])
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-        return ret
-
-    # 解析节目播放信息
-    # 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s
-    # album_playinfo
-    def _CmdParserAlbumPlayInfo(self, js):
-        ret = []
-        try:
-            data = tornado.escape.json_decode(js['data'])
-            vid = data['id']
-            tv = self.GetAlbumFormDB(vid=vid)
-            if tv:
-                if 'highVid' in data: tv.highVid = data['highVid']
-                if 'norVid' in data: tv.norVid = data['norVid']
-                if 'oriVid' in data: tv.oriVid = data['oriVid']
-                if 'superVid' in data: tv.superVid = data['superVid']
-                if 'relativeId' in data: tv.relativeId = data['relativeId']
-                tv.SaveToDB(self.engine.album_table)
-                ret.append(tv)
-        except:
-            print(js['source'])
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-        return ret
-
-    # 从分页的页面上解析该页上的节目
-    def _CmdParserVideoList(self, js):
-        ret = []
-        try:
-            g = re.search('p10(\d+)', js['source'])
-            if g:
-                current_page = int(g.group(1))
-                link = re.compile('p10\d+')
-                newurl = re.sub(link, 'p10%d' % (current_page + 1), js['source'])
-                TemplateVideoList(self, newurl).Execute()
-
-            text = js['data']
-            soup = bs(text)
-            playlist = soup.findAll('a')
-
-            for tag in playlist:
-                tv = self.albumClass(self)
-                text = tag.prettify()
-
-                urls = re.findall('(href|title)="(\S+)"', text)
-                for u in urls:
-                    if u[0] == 'href':
-                        tv.albumPageUrl = u[1]
-                        try:
-                            ids = re.search('(\d+)_(\d+)', u[1])
-                            if ids:
-                                tv.pid = ids.group(1)
-                                tv.vid = ids.group(2)
-                        except:
-                            t, v, tb = sys.exc_info()
-                            log.error('SohuGetVideoList:  %s, %s,%s,%s' % (tv.albumPageUrl, t, v, traceback.format_tb(tb)))
-                    elif u[0] == 'title':
-                        newid = re.findall('(vrsab_ver|vrsab)([0-9]+).(jpg|jpeg)', u[1])
-                        if len(newid) > 0:
-                            tv.playlistid = newid[0][1]
-
-                # 取节目的标题
-                x = re.findall('<img.*title="(\S+)"', text)
-                if x:
-                    tv.albumName = x[0]
-
-                self._save_update_append(ret, tv)
-                # 获取更多的信息
-                #tv.UpdateAlbumPageCommand().Execute()
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-        return ret
 
 # 电影
 class SohuMovie(SohuVideoMenu):
@@ -740,9 +332,7 @@ class SohuTV(SohuVideoMenu):
         self.number = 101
         SohuVideoMenu.__init__(self, name, engine)
         self.cid = 2
-#        self.HomeUrlList = [
-#            'http://so.tv.sohu.com/list_p1101_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html'
-#        ]
+
         self.homePage = 'http://tv.sohu.com/tvall/'
         self.filter = {
             '年份' : self.filter_year,
@@ -1023,7 +613,22 @@ class SohuEngine(VideoEngine):
         VideoEngine.__init__(self)
 
         self.engine_name = 'SohuEngine'
-        self.base_url = 'http://so.tv.sohu.com'
+        self.albumClass = SohuAlbum
+        self.fieldMapping = {
+            '类型' : 'categories',
+            '产地' : 'area',
+            '地区' : 'area', # Music
+            '年份' : 'publishYear',
+            '篇幅' : '',
+            '年龄' : '',
+            '范围' : '',
+            '语言' : '',
+            '周播放最多' : 'weeklyPlayNum',
+            '日播放最多' : 'dailyPlayNum',
+            '总播放最多' : 'totalPlayNum',
+            '最新发布'   : 'publishTime',
+            '评分最高'   : 'dailyIndexScore'
+        }
 
         # 引擎主菜单
         self.menu = {
@@ -1038,41 +643,58 @@ class SohuEngine(VideoEngine):
             '新闻'   : None,  # SohuNew
         }
 
+        self.parserList = {
+                   'videolist'           : self._CmdParserVideoList,
+                   'album'               : self._CmdParserAlbumPage,
+                   'album_score'         : self._CmdParserAlbumScore,
+                   'videoall'            : self._CmdParserAlbumList,
+                   'albumlist_hot'       : self._CmdParserHotInfoByIapi,
+                   'album_fullinfo'      : self._CmdParserAlbumFullInfo,
+                   'album_mvinfo'        : self._CmdParserAlbumMvInfo,
+                   'album_playinfo'      : self._CmdParserAlbumPlayInfo,
+                   'album_total_playnum' : self._CmdParserAlbumTotalPlayNum
+        }
+
+    def NewAlbum(self, js=None):
+        album = SohuAlbum(self)
+        if js and album:
+            album.LoadFromJson(js)
+            
+        return album
+
+    def ConvertFilterJson(self, f):
+        for key in f:
+            if key in self.fieldMapping:
+                newkey = self.fieldMapping[key]
+                f[newkey] = { "$in" : [f[key]]}
+                del f[key]
+        return f
+
+    def ConvertSortJson(self, v):
+        if v in self.fieldMapping:
+            newkey = self.fieldMapping[v]
+            return [(newkey, -1)]
+        else:
+            return [(v, -1)]
+
+    def _save_update_append(self, sets, tv):
+        if tv:
+            tv.SaveToDB(self.album_table)
+            sets.append(tv)
+
     def GetMenu(self):
         ret = {}
         for m, cls in list(self.menu.items()):
             if cls:
                 ret[m] = cls(m, self)
         return ret
-
-    def GetMenu2(self, times=0):
-        ret = {}
-        playurl = 'http://tv.sohu.com'
-
-        if times > MAX_TRY:
-            return ret
-
-        try:
-            _, _, _, response = fetch(playurl)
-            soup = bs(response)
-            playlist = soup.findAll('dt')
-            for a in playlist:
-                urls = re.findall('(href|title)="(\S+)"', a.prettify())
-                if len(urls) > 1:
-                    menu_name = urls[1][1]
-                    if (menu_name in self.menu):
-                        u = urls[0][1]
-
-                        if self.menu[menu_name]:
-                            t = self.menu[menu_name](menu_name, self)
-                            ret[menu_name] = t
-                            #ret[menu_name.decode('utf-8')] = t
-        except:
-            t, v, tb = sys.exc_info()
-            log.error('SohuEngine.GetMenu:  %s, %s,%s, %s' % (playurl, t, v, traceback.format_tb(tb)))
-            return self.GetMenu(times + 1)
-
-        return ret
+    
+    # 解析菜单网页解析
+    def ParserHtml(self, name, js):
+        ret = []
+        if name in self.parserList:
+            ret = self.parserList[name](js)
+        return ret    
 
     def GetRealPlayer(self, text, definition, step):
         if step == '1':
@@ -1156,3 +778,342 @@ class SohuEngine(VideoEngine):
 
         return ret
 
+    # 解析热门节目
+    # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3
+    # albumlist_hot
+    def _CmdParserHotInfoByIapi(self, js):
+        ret = []
+        try:
+            js = tornado.escape.json_decode(js['data'])
+
+            tv = None
+            if 'r' in js:
+                for p in js['r']:
+                    if 'url' in p:
+                        tv = self.GetAlbumFormDB(albumPageUrl = p['url'])
+                    elif 'aurl' in p:
+                        tv = self.GetAlbumFormDB(albumPageUrl = p['aurl'])
+            self._save_update_append(ret, tv)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+    # 通过 vid 获得节目更多的信息
+    # http://search.vrs.sohu.com/mv_i1268037.json
+    # album_mvinfo
+    def _CmdParserAlbumMvInfo(self, js):
+        ret = []
+        try:
+            text = js['data'].decode()
+            g = re.search('var video_album_videos_result=(\{.*.\})', text)
+            if g:
+                playlistid = ''
+                albumName = ''
+                albumPageUrl = ''
+                a = tornado.escape.json_decode(g.group(1))
+                if 'playlistId' in a:
+                    playlistid = str(a['playlistId'])
+
+                if playlistid in ['1319960']:
+                    print(playlistid)
+
+                if 'videos' in a and len(a['videos']) > 0:
+                    tv = None
+                    video = a['videos'][0]
+                    if 'videoAlbumName' in video:
+                        albumName = video['videoAlbumName']
+                    if tv == None and 'homePage' in js:
+                        albumPageUrl = js['homePage']
+
+                    tv = self.GetAlbumFormDB(playlistid, albumName, albumPageUrl)
+
+                    if tv == None:
+                        return []
+
+                    if 'isHigh' in video          : tv.isHigh = str(video['isHigh'])
+                    if 'albumDesc' in video       : tv.albumDesc = video['albumDesc']
+
+                    if 'AlbumYear' in video       : tv.publishYear = str(video['AlbumYear'])
+                    if 'videoScore' in video      : tv.videoScore = str(video['videoScore'])
+                    if 'videoArea' in video       : tv.area = video['videoArea']
+                    if 'videoMainActor' in video  : tv.mainActors = video['videoMainActor'].split(';') # 主演
+                    if 'videoActor' in video      : tv.actors = video['videoActor'].split(';') # 演员
+                    if 'videoDirector' in video   : tv.directors = video['videoDirector'].split(';') # 导演
+
+                    if 'videoAlbumContCategory' in video:
+                        tv.categories = video['videoAlbumContCategory'].split(';')
+
+                    self._save_update_append(ret, tv)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserAlbumMvInfo: %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    # 解析节目的完全信息
+    # http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241
+    # album_fullinfo
+    def _CmdParserAlbumFullInfo(self, js):
+        ret = []
+        try:
+            js = tornado.escape.json_decode(js['data'])
+
+            playlistid = js['playlistid']
+            albumName = ''
+            albumPageUrl = ''
+
+            if 'albumName' in js:    albumName = js['albumName']
+            if 'albumPageUrl' in js: albumPageUrl = js['albumPageUrl']
+
+            tv = self.GetAlbumFormDB(playlistid, albumName, albumPageUrl)
+            if tv:
+                if 'cid' in js:
+                    tv.cid = js['cid']
+                if 'videos' in js:
+                    if 'vid' in js:
+                        vid = js['vid']
+                    else:
+                        vid = -1
+
+                    for video in js['videos']:
+                        if 'vid' in video and video['vid'] == vid and vid != -1:
+                            if 'playLength' in video: tv.playLength =  video['playLength']
+                            if 'publishTime' in video: tv.publishTime = video['publishTime']
+
+                        video = tv.VideoClass(video)
+                        tv.videos.append(video)
+                del js['videos']
+
+                tv.LoadFromJson(js)
+                self._save_update_append(ret, tv)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserAlbumFullInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    # 解析所有节目列表：
+    # 拿到菜单下所有节目的 albumName、albumPageUrl
+    # http://tv.sohu.com/tvall/
+    # videoall
+    def _CmdParserAlbumList(self, js):
+        ret = []
+
+        try:
+            text = js['data']
+            soup = bs(text)#, from_encoding = 'GBK')
+            playlist = soup.findAll('li')
+            for a in playlist:
+                text = re.findall('<a href="(\S*)"\s+target="_blank">\s*(\S*)\s*</a>', a.prettify())
+                if text:
+                    (url, album) = text[0]
+
+                    if url != "" and album != "":
+#                        test = [
+#                                'http://tv.sohu.com/s2011/1663/s322643386/',
+#                                 'http://tv.sohu.com/s2011/ajyh/',
+#                                 'http://tv.sohu.com/20110426/n306486856.shtml',
+#                                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
+#                                 'http://tv.sohu.com/20120517/n343417005.shtml',
+#                                 'http://tv.sohu.com/s2012/zlyeye/',
+#                                 'http://store.tv.sohu.com/5009508/706684_1772.html',
+#                                ]
+#                        if url in test:
+#                            pass
+#                        else:
+#                            continue
+
+                        tv = self.albumClass(self)
+                        if tv.albumName == "":
+                            tv.albumName = album
+                        tv.albumPageUrl = url
+                        self._save_update_append(ret, tv)
+
+                        # 访问该节目主页，获取playlistid 和 vid等重要信息
+                        #tv.UpdateAlbumPageCommand().Execute()
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+        return ret
+
+    # 解析节目基本信息：
+    # 主要要拿到节目的playlistid、vid、pid，如果没有找到playlistid，则通过 mv_i继续找
+    # http://tv.sohu.com/20120517/n343417005.shtml
+    # album
+    def _CmdParserAlbumPage(self, js):
+        ret = []
+        try:
+            text = js['data'].decode()
+            tv = self.GetAlbumFormDB(albumPageUrl=js['source'], auto=False)
+            if tv == None:
+                return []
+
+            t = re.findall('var (playlistId|pid|vid|PLAYLIST_ID|cid)\s*=\W*([\d,]+)', text)
+            if t:
+                for u in t:
+                    if u[0] == 'pid':
+                        tv.pid = u[1]
+                    elif u[0] == 'vid':
+                        tv.vid = u[1]
+                    elif u[0] == 'playlistId' or u[0] == 'PLAYLIST_ID':
+                        tv.playlistid = u[1]
+                    elif u[0] == 'cid':
+                        tv.cid = u[1]
+
+                if tv.vid == '-1' or tv.vid == '' or tv.vid == '1':
+                    return ret
+                # 如果得不到 playlistId 的话
+                if tv.playlistid == "" and tv.vid != "":
+                    TemplateAlbumMvInfo(tv, js['source']).Execute()
+                self._save_update_append(ret, tv)
+                #tv.UpdateFullInfoCommand().Execute()
+                #tv.UpdateScoreCommand().Execute()
+            else:
+                db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
+                db.rpush('urls', js['source'])
+
+                print("ERROR: ", js['source'])
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserAlbum:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    # album_total_playnum
+    def _CmdParserAlbumTotalPlayNum(self, js):
+        ret = []
+        try:
+            data = tornado.escape.to_basestring(js['data'])
+            text = re.findall('var count=(\S+?);', data)
+            if text:
+                data = tornado.escape.json_decode(text[0])
+                for v in data['videos']:
+                    vid = v['videoid']
+                    tv = self.GetAlbumFormDB(vid=vid, auto=False)
+                    if tv == None:
+                        return []
+
+                    tv.totalPlayNum = tv['count']
+                    self._save_update_append(ret, tv)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu._CmdParserAlbumTotalPlayNum:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    # 解析节目指数信息
+    # http://index.tv.sohu.com/index/switch-aid/1012657
+    # album_score
+    def _CmdParserAlbumScore(self, js):
+        ret = []
+        try:
+            data = tornado.escape.json_decode(js['data'])
+            if 'album' in data:
+                album = data['album']
+                if album:
+                    playlistid   = 'id' in album and album['id'] or ''
+                    albumName    = 'albumName' in album and album['albumName'] or ''
+                    albumPageUrl = 'playUrl' in album and album['playUrl'] or ''
+
+                    tv = self.GetAlbumFormDB(playlistid, albumName, albumPageUrl)
+                    if tv == None:
+                        return ret
+                    tv.albumName = album['albumName']
+
+                    if 'index' in data:
+                        index = data['index']
+                        if index:
+                            if 'dailyPlayNum' in index:
+                                tv.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
+                            if 'weeklyPlayNum' in index:
+                                tv.weeklyPlayNum   = index['weeklyPlayNum']   # 每周播放次数
+                            if 'monthlyPlayNum' in index:
+                                tv.monthlyPlayNum  = index['monthlyPlayNum']  # 每月播放次数
+                            if 'totalPlayNum' in index:
+                                tv.totalPlayNum    = index['totalPlayNum']    # 总播放资料
+                            if 'dailyIndexScore' in index:
+                                tv.dailyIndexScore = index['dailyIndexScore'] # 每日指数
+                            if playlistid in ['5770420', '308122', '5028814']:
+                                print(playlistid, ": weeklyPlayNum=", tv.weeklyPlayNum)
+
+                    self._save_update_append(ret, tv)
+        except:
+            print(js['source'])
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    # 解析节目播放信息
+    # 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s
+    # album_playinfo
+    def _CmdParserAlbumPlayInfo(self, js):
+        ret = []
+        try:
+            data = tornado.escape.json_decode(js['data'])
+            vid = data['id']
+            tv = self.GetAlbumFormDB(vid=vid)
+            if tv:
+                if 'highVid' in data: tv.highVid = data['highVid']
+                if 'norVid' in data: tv.norVid = data['norVid']
+                if 'oriVid' in data: tv.oriVid = data['oriVid']
+                if 'superVid' in data: tv.superVid = data['superVid']
+                if 'relativeId' in data: tv.relativeId = data['relativeId']
+                self._save_update_append(ret, tv)
+        except:
+            print(js['source'])
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    # 从分页的页面上解析该页上的节目
+    def _CmdParserVideoList(self, js):
+        ret = []
+        try:
+            g = re.search('p10(\d+)', js['source'])
+            if g:
+                current_page = int(g.group(1))
+                link = re.compile('p10\d+')
+                newurl = re.sub(link, 'p10%d' % (current_page + 1), js['source'])
+                TemplateVideoList(self, newurl).Execute()
+
+            text = js['data']
+            soup = bs(text)
+            playlist = soup.findAll('a')
+
+            for tag in playlist:
+                tv = self.albumClass(self)
+                text = tag.prettify()
+
+                urls = re.findall('(href|title)="(\S+)"', text)
+                for u in urls:
+                    if u[0] == 'href':
+                        tv.albumPageUrl = u[1]
+                        try:
+                            ids = re.search('(\d+)_(\d+)', u[1])
+                            if ids:
+                                tv.pid = ids.group(1)
+                                tv.vid = ids.group(2)
+                        except:
+                            t, v, tb = sys.exc_info()
+                            log.error('SohuGetVideoList:  %s, %s,%s,%s' % (tv.albumPageUrl, t, v, traceback.format_tb(tb)))
+                    elif u[0] == 'title':
+                        newid = re.findall('(vrsab_ver|vrsab)([0-9]+).(jpg|jpeg)', u[1])
+                        if len(newid) > 0:
+                            tv.playlistid = newid[0][1]
+
+                # 取节目的标题
+                x = re.findall('<img.*title="(\S+)"', text)
+                if x:
+                    tv.albumName = x[0]
+
+                self._save_update_append(ret, tv)
+                # 如果没有拿到节目的 playlistid 和 vid，则访问该节目主页，获取更多的信息
+                #if tv.playlistid == '' or tv.vid == '':
+                #    tv.UpdateAlbumPageCommand().Execute()
+
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+        return ret

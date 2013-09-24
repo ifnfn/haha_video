@@ -19,7 +19,7 @@ cmd_list = [
     {
         'name'    : 'album_score',
         'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
-        'menu'    : '电影',
+        'menu'    : 'movie',
         'dest'    : PARSER_HOST,
         'regular' : [
             '({"index":\S+?),"asudIncomes'
@@ -28,13 +28,13 @@ cmd_list = [
     {
         'name'    : 'videoall',
         'source'  : 'http://tv.sohu.com/movieall/',
-        'menu'    : '电影',
+        'menu'    : 'movie',
         'dest'    : PARSER_HOST,
     },
     {
         'name'    : 'album',
         'source'  : 'http://store.tv.sohu.com/view_content/movie/1008522_577560.html',
-        'menu'    : '电影',
+        'menu'    : 'movie',
         'dest'    : PARSER_HOST,
         'regular' : [
             'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
@@ -43,13 +43,13 @@ cmd_list = [
 #    {
 #        'name'    : 'album',
 #        'source'  : 'http://tv.sohu.com/s2011/ajyh/',
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #    },
 #    {
 #        'name'    : 'album',
 #        'source'  : 'http://tv.sohu.com/s2011/ajyh/',
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
 #            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
@@ -58,7 +58,7 @@ cmd_list = [
 #    {
 #        'name'    : 'album',
 #        'source'  : 'http://tv.sohu.com/s2012/zlyeye/',
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
 #            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
@@ -67,7 +67,7 @@ cmd_list = [
 #    {
 #        'name'    : 'album',
 #        'source'  : 'http://tv.sohu.com/20120517/n343417005.shtml',
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
 #            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
@@ -76,7 +76,7 @@ cmd_list = [
 #    {
 #        'name'    : 'album',
 #        'source'  : 'http://store.tv.sohu.com/5009508/706684_1772.html',
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
 #            'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
@@ -85,37 +85,37 @@ cmd_list = [
 #    {
 #        'name'    : 'album_mvinfo',
 #        'source'  : 'http://search.vrs.sohu.com/mv_i4746.json', # http://tv.sohu.com/s2011/ajyh/
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #    },
 #    {
 #        'name'    : 'album_mvinfo',
 #        'source'  : 'http://search.vrs.sohu.com/mv_i704321.json', # http://store.tv.sohu.com/view_content/movie/5008825_704321.html
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #    },
 #    {
 #        'name'    : 'album_mvinfo',
 #        'source'  : 'http://search.vrs.sohu.com/mv_i662182.json', # http://tv.sohu.com/20120517/n343417005.shtml
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #    },
 #    {
 #        'name'    : 'album_fullinfo',
 #        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=1012657', # http://tv.sohu.com/20120517/n343417005.shtml
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #    },
 #    {
 #        'name'    : 'album_fullinfo',
 #        'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=228', # http://tv.sohu.com/s2011/ajyh/
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #    },
 #    {
 #        'name'    : 'album_score',
 #        'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
-#        'menu'    : '电影',
+#        'menu'    : 'movie',
 #        'dest'    : PARSER_HOST,
 #        'regular' : [
 #            '({"index":\S+?),"asudIncomes'
@@ -126,7 +126,7 @@ cmd_list = [
 cmd_test1 = {
     'name'    : 'albumlist_hot',
     'source'  : 'http://so.tv.sohu.com/iapi?v=2&c=100&o=3',
-    'menu'    : '电影',
+    'menu'    : 'movie',
     'dest'    : PARSER_HOST,
 }
 
@@ -203,8 +203,9 @@ class test_case:
     def test_mvi(self):
         url = 'http://search.vrs.sohu.com/mv_i%s.json' % self.vid
         _, _, _, response = fetch(url)
-        oflvo = re.search('var video_album_videos_result=(\{.*.\})', response).group(1)
+        oflvo = re.search('var video_album_videos_result=(\{.*.\})', response.decode()).group(1)
         a = json.loads(oflvo)
+        print(url)
         print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_allvideo(self):
@@ -233,6 +234,7 @@ class test_case:
         url = 'http://index.tv.sohu.com/index/switch-aid/' + self.playlistid
         _, _, _, response = fetch(url)
         a = json.loads(response.decode())
+        print(url)
         print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_list(self):
@@ -276,18 +278,13 @@ class test_case:
 
 def test_run():
     t = test_case()
-#    t.test_playlist()
-#    t.test_videopage()
-#    return
-    t.playlistid = '5770420'
-    t.vid = '1181239'
-    t.pid = '322963713'
+    t.playlistid = '5028814'
+    t.vid = '728329'
+    t.pid = '349795922'
     t.test_switch_aid()
+    t.test_mvi()
     return
 
-    t.playlistid = '1002050'
-    t.vid = '460464'
-    t.pid = '322963713'
     t.test_videolist()
 
 def test():
@@ -298,17 +295,5 @@ def test():
 #    haha.ProcessCommand(cmd_test4)
 
 if __name__ == "__main__":
-#    test()
-    t = '''
-<a class="pic" href="http://tv.sohu.com/20130923/n387074614.shtml" target="_blank" title="http://photocdn.sohu.com/20130923/vrsb972533.jpg">
-      <img height="160" src="http://photocdn.sohu.com/20130923/vrsb972533.jpeg" title="生死猜拳" width="120"/>
-</a>
-      '''
+    test_run()
 
-    x = re.findall('(vrsab_ver|vrsb)([0-9]+).(jpg|jpeg)"', t)
-    print(x)
-    x =  re.findall('<img.*title="(\S+)"', t)
-    print(x)
-
-    x = re.findall('(href|title)="(\S+)"', t)
-    print(x)

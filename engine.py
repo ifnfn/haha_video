@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, traceback
+import sys, traceback, time
 import logging
 import json
 import configparser
@@ -24,6 +24,7 @@ class Template:
 # 命令管理器
 class Commands:
     def __init__(self):
+        self.time = time.time()
         self.urlmap = {}
         self.pipe = None
 
@@ -51,7 +52,7 @@ class Commands:
             return url
 
     def AddCommand(self, cmd):
-        if 'source' in cmd and 'name' in cmd and 'menu' in cmd:
+        if 'source' in cmd and 'name' in cmd:
             cmd['source'] = self.GetUrl(cmd['source'])
             if self.pipe == None:
                 self.pipe = self.db.pipeline()
@@ -63,10 +64,13 @@ class Commands:
             self.pipe.execute()
             self.pipe = None
 
-    def GetCommandNext(self):
-        cmd = self.db.lpop('command')
-        if cmd:
-            return tornado.escape.json_decode(cmd)
+    def GetCommandNext(self, timeout = 0):
+        if time.time() - self.time > timeout: # 命令不要拿得太快，否则几百万个客户端同时跑来，服务器受不了
+            print(time.time() - self.time)
+            self.time = time.time()
+            cmd = self.db.lpop('command')
+            if cmd:
+                return tornado.escape.json_decode(cmd)
 
         return None
 
@@ -98,11 +102,11 @@ class VideoBase:
 
 # 一个节目，表示一部电影、电视剧集
 class AlbumBase:
-    def __init__(self, parent):
-        self.parent = parent
-        self.command = parent.command
+    def __init__(self, engine):
+        self.engine = engine
+        self.command = engine.command
         self.VideoClass = VideoBase
-        self.cid = parent.cid
+        self.cid = ''
 
         self.albumName = ''
         self.albumPageUrl = ''
@@ -265,7 +269,18 @@ class AlbumBase:
     def SaveToDB(self, db):
         if self.albumName != "" and self.albumPageUrl != "":
             js = self.SaveToJson()
-            db.update({'albumName': self.albumName},
+            upert = []
+            if self.albumName != '':
+                upert.append( {'albumName': self.albumName})
+            if self.albumPageUrl != '':
+                upert.append({'albumPageUrl': self.albumPageUrl})
+            if self.playlistid != '':
+                upert.append({'playlistid' : self.playlistid})
+            if self.vid != '':
+                upert.append({'vid' : self.vid})
+
+            db.update(
+                      {"$or" : upert},
                       {"$set" : js},
                       upsert=True, multi=True)
 
@@ -296,7 +311,6 @@ class VideoMenuBase:
         self.filter = {}
         self.name = name
         self.homePage = ''
-        self.HotList = []
         self.engine = engine
         self.parserList = {}
         self.albumClass = AlbumBase
@@ -319,20 +333,92 @@ class VideoMenuBase:
 
         return ret
 
+    # 更新该菜单下所有节目列表
+    def UpdateAlbumList(self):
+        pass
+
+    # 更新热门节目表
+    def UpdateHotList(self):
+        pass
+
+class VideoEngine:
+    def __init__(self):
+        self.engine_name = 'EngineBase'
+        self.config = configparser.ConfigParser()
+
+        self.command = Commands()
+        self.con = Connection('localhost', 27017)
+        self.db = self.con.kola
+        self.album_table = self.db.album
+
     def ConvertFilterJson(self, f):
         return f
 
     def ConvertSortJson(self, f):
         return f
 
-    def Reset(self):
-        self.HotList = []
+    # 获取节目一级菜单, 返回分类列表
+    def GetMenu(self, times=0):
+        return []
 
-    # 解析菜单网页解析
-    def ParserHtml(self, name, js):
+    # 得到真实播放地址
+    def GetRealPlayer(self, text, definition, step):
+        return ''
+
+    # 得到节目列表
+    # arg参数：
+    # {
+    #    "page" : 0,
+    #    "size" : 20,
+    #    "filter" : {                 # 过滤字段
+    #        "cid":2,
+    #        "playlistid":"123123",
+    #    },
+    #    "fields" : {                 # 显示字段
+    #        "albumName" : True,
+    #        "playlistid" : True
+    #    },
+    #    "sort" : {                   # 排序字段
+    #        "albumName": 1,
+    #        "vid": -1
+    #    }
+    def GetAlbumListJson(self, arg, cid=-1,All=False):
         ret = []
-        if name in self.parserList:
-            ret = self.parserList[name](js)
+        try:
+            _filter = {}
+            if cid != -1:
+                _filter['cid']        = cid
+            if All == False:
+                _filter['playlistid'] = {'$ne' : ''}
+                _filter['vid']        = {'$ne' : ''}
+
+            if 'filter' in arg:
+                f = self.ConvertFilterJson(arg['filter'])
+                _filter.update(f)
+
+            if 'fields' in arg:
+                fields = arg['fields']
+            else:
+                fields = None
+
+            cursor = self.album_table.find(_filter, fields = fields)
+
+            if 'sort' in arg:
+                s = self.ConvertSortJson(arg['sort'])
+                if s:
+                    cursor = cursor.sort(s)
+
+            if 'page' in arg and 'size' in arg:
+                page = arg['page']
+                size = arg['size']
+                cursor = cursor.skip(page * size).limit(size)
+
+            for x in cursor:
+                del x['_id']
+                ret.append(x)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
         return ret
 
@@ -354,7 +440,7 @@ class VideoMenuBase:
         if vid != '':
             f.append({'vid' : vid})
 
-        json = self.engine.album_table.find_one({"$or" : f})
+        json = self.album_table.find_one({"$or" : f})
         if json:
             tv = self.albumClass(self)
             tv.LoadFromJson(json)
@@ -371,145 +457,3 @@ class VideoMenuBase:
             tv.albumPageUrl = albumPageUrl
 
         return tv
-
-    # 得到节目列表
-    # arg参数：
-    # {
-    #    "page" : 0,
-    #    "size" : 20,
-    #    "filter" : {                 # 过滤字段
-    #        "cid":2,
-    #        "playlistid":"123123",
-    #    },
-    #    "fields" : {                 # 显示字段
-    #        "albumName" : True,
-    #        "playlistid" : True
-    #    },
-    #    "sort" : {                   # 排序字段
-    #        "albumName": 1,
-    #        "vid": -1
-    #    }
-    def GetAlbumList(self, arg, All=False):
-        ret = []
-        try:
-            _filter = {}
-            _filter['cid']        = self.cid
-            if All == False:
-                _filter['playlistid'] = {'$ne' : ''}
-                _filter['vid']        = {'$ne' : ''}
-
-            if 'filter' in arg:
-                f = self.ConvertFilterJson(arg['filter'])
-                _filter.update(f)
-
-            if 'fields' in arg:
-                fields = arg['fields']
-            else:
-                fields = None
-
-            cursor = self.engine.album_table.find(_filter, fields = fields)
-
-            if 'sort' in arg:
-                s = self.ConvertSortJson(arg['sort'])
-                if s:
-                    cursor = cursor.sort(s)
-
-            if 'page' in arg and 'size' in arg:
-                page = arg['page']
-                size = arg['size']
-                cursor = cursor.skip(page * size).limit(size)
-
-            for x in cursor:
-                del x['_id']
-                ret.append(x)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-        return ret
-
-    # 更新该菜单下所有节目列表
-    def UpdateAlbumList(self):
-        pass
-
-    # 更新该菜单下所有节目完全信息
-    def UpdateAllFullInfo(self):
-        argument = {}
-        argument['fields'] = {'albumName': True,
-                              'albumPageUrl': True,
-                              'vid': True,
-                              'playlistid': True}
-        pgs = self.GetAlbumList(argument)
-
-        for p in pgs:
-            album = self.albumClass(self)
-            album.LoadFromJson(p)
-            album.UpdateFullInfoCommand()
-        self.command.Execute()
-
-    # 更新所有节目的完全信息
-    def UpdateAllScore(self):
-        argument = {}
-        argument['fields'] = {'albumName': True,
-                              'albumPageUrl': True,
-                              'vid': True,
-                              'playlistid': True}
-        pgs = self.GetAlbumList(argument)
-
-        for p in pgs:
-            album = self.albumClass(self)
-            album.LoadFromJson(p)
-            album.UpdateScoreCommand()
-        self.command.Execute()
-
-    # 更新所有节目播放信息
-    def UpdateAllPlayInfo(self):
-        argument = {}
-        argument['fields'] = {'albumName': True,
-                              'albumPageUrl': True,
-                              'vid': True,
-                              'playlistid': True}
-
-        pgs = self.GetAlbumList(argument)
-
-        for p in pgs:
-            album = self.albumClass(self)
-            album.LoadFromJson(p)
-            album.UpdateAlbumPlayInfoCommand()
-        self.command.Execute()
-
-    # 更新所有节目主页
-    def UpdateAllHomePage(self):
-        argument = {}
-        argument['fields'] = {'albumName': True,
-                              'albumPageUrl': True}
-        pgs = self.GetAlbumList(argument, All=True)
-
-        for p in pgs:
-            album = self.albumClass(self)
-            album.LoadFromJson(p)
-            album.UpdateAlbumPageCommand()
-        self.command.Execute()
-
-    # 更新热门节目表
-    def UpdateHotList(self):
-        pass
-
-
-class VideoEngine:
-    def __init__(self):
-        self.engine_name = 'EngineBase'
-        self.config = configparser.ConfigParser()
-
-        self.command = Commands()
-        self.con = Connection('localhost', 27017)
-        self.db = self.con.kola
-        self.album_table = self.db.album
-
-    # 获取节目一级菜单, 返回分类列表
-    def GetMenu(self, times=0):
-        return []
-
-    # 得到真实播放地址
-    def GetRealPlayer(self, text, definition, step):
-        return ''

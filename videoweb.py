@@ -21,13 +21,6 @@ logging.basicConfig()
 log = logging.getLogger("crawler")
 tv = Kolatv()
 
-def getlist(menuName, argument):
-    data = {}
-    m = tv.FindMenu(menuName)
-    if m:
-        data = m.GetAlbumList(argument)
-    return data
-
 class VideoListHandler(BaseHandler):
     def get(self):
         argument = {}
@@ -35,7 +28,7 @@ class VideoListHandler(BaseHandler):
         argument['size'] = int(self.get_argument('size', 20))
         menu = self.get_argument('menu', '')
 
-        argument['result'] = getlist(menu, argument)
+        argument['result'] = tv.GetMenuAlbumListByName(menu, argument)
         self.finish(json.dumps(argument, indent=4, ensure_ascii=False))
 
     def post(self):
@@ -57,7 +50,7 @@ class VideoListHandler(BaseHandler):
                 log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
-        argument['result'] = getlist(menu, argument)
+        argument['result'] = tv.GetMenuAlbumListByName(menu, argument)
         self.finish(json.dumps(argument, indent=4, ensure_ascii=False))
 
 class UrlMapHandler(BaseHandler):
@@ -121,10 +114,10 @@ class UpdateCommandHandle(BaseHandler):
     def get(self):
         cmdlist = {}
         cmdlist['list']     = tv.UpdateAllAlbumList
-        cmdlist['score']    = tv.UpdateAllScore
-        cmdlist['fullinfo'] = tv.UpdateAllFullInfo
-        cmdlist['playinfo'] = tv.UpdateAllPlayInfo
         cmdlist['home']     = tv.UpdateAllAlbumPage
+        cmdlist['fullinfo'] = tv.UpdateAllFullInfo
+        cmdlist['score']    = tv.UpdateAllScore
+        cmdlist['playinfo'] = tv.UpdateAllPlayInfo
 
         command = self.get_argument('cmd', '')
         for cmd in command.split(','):
@@ -141,29 +134,29 @@ class LoginHandler(BaseHandler):
         pass
 
     def check_user_id(self):
-        user_id = self.get_argument('user_id')
+        self.user_id = self.get_argument('user_id')
         status = 'YES'
         con = Connection('localhost', 27017)
         user_table = con.kola.users
 
-        json = user_table.find_one({'user_id' : user_id})
+        json = user_table.find_one({'user_id' : self.user_id})
         if json:
             status = json['status']
         else:
-            user_table.insert({'user_id' : user_id, 'status' : 'YES'})
+            user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
 
-        if status == 'NO' or user_id == None or user_id == '':
-            raise tornado.web.HTTPError(401, 'Missing key %s' % user_id)
+        if status == 'NO' or self.user_id == None or self.user_id == '':
+            raise tornado.web.HTTPError(401, 'Missing key %s' % self.user_id)
 
         # 登录检查，生成随机 KEY
         redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
-        if not redis_db.exists(user_id):
-            key = (user_id + uuid.uuid4().__str__() + self.request.remote_ip).encode()
+        if not redis_db.exists(self.user_id):
+            key = (self.user_id + uuid.uuid4().__str__() + self.request.remote_ip).encode()
             key = hashlib.md5(key).hexdigest().upper()
-            redis_db.set(user_id, key)
+            redis_db.set(self.user_id, key)
             redis_db.set(key, self.request.remote_ip)
         else:
-            key = redis_db.get(user_id).decode()
+            key = redis_db.get(self.user_id).decode()
         #redis_db.expire(user_id, 60) # 一分钟过期
         #redis_db.expire(key, 60) # 一分钟过期
 
@@ -171,13 +164,17 @@ class LoginHandler(BaseHandler):
 
     def get(self):
         ret = {
-            'key': self.check_user_id(),
+            'key'    : self.check_user_id(),
             'command': [],
             'server' : self.request.protocol + '://' + self.request.host,
-            'next': 30   # 下次登录时间
+            'next'   : 30   # 下次登录时间
         }
 
-        cmd = tv.engine.command.GetCommandNext()
+        if self.user_id == '000001':
+            timeout = 0
+        else:
+            timeout = 0.3
+        cmd = tv.engine.command.GetCommandNext(timeout)
         if cmd:
             cmd['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
             ret['command'].append(cmd)

@@ -12,10 +12,18 @@ from pymongo import Connection
 logging.basicConfig()
 log = logging.getLogger("crawler")
 
+class Template:
+    def __init__(self, command=None, cmd=None):
+        self.command = command
+        command.AddCommand(cmd)
+
+    def Execute(self):
+        if self.command:
+            self.command.Execute()
+
 # 命令管理器
 class Commands:
     def __init__(self):
-        self.cmdlist = {}
         self.urlmap = {}
         self.pipe = None
 
@@ -42,18 +50,9 @@ class Commands:
         else:
             return url
 
-    # 注册解析器
-    def AddTemplate(self, m):
-        self.cmdlist[m['name']] = m
-
-    def AddCommand(self, name, menu, url, *private_data):
-        if name in self.cmdlist:
-            # print("Add Command: ", url)
-            cmd = self.cmdlist[name]
-            cmd['source'] = self.GetUrl(url)
-            cmd['menu'] = menu
-            if private_data:
-                cmd['privdate_data'] = private_data
+    def AddCommand(self, cmd):
+        if 'source' in cmd and 'name' in cmd and 'menu' in cmd:
+            cmd['source'] = self.GetUrl(cmd['source'])
             if self.pipe == None:
                 self.pipe = self.db.pipeline()
             self.pipe.rpush('command', json.dumps(cmd))
@@ -105,18 +104,23 @@ class AlbumBase:
         self.VideoClass = VideoBase
         self.cid = parent.cid
 
-        self.albumName = ""
-        self.albumPageUrl = ""
-        self.pid = ""
-        self.vid = ""
-        self.playlistid  = ""
-        self.area = ""            # 地区
+        self.albumName = ''
+        self.albumPageUrl = ''
+        self.pid = ''
+        self.playlistid  = ''
+        self.vid = ''
+        self.norVid = ''
+        self.highVid = ''
+        self.supverVid = ''
+        self.oriVid = ''
+        self.relativeId = ''
+        self.area = ''            # 地区
         self.categories = []      # 类型
-        self.publishYear = ""     # 发布年份
+        self.publishYear = ''     # 发布年份
         self.isHigh      = 0      # 是否是高清
 
-        self.largePicUrl = ""     # 大图片网址
-        self.smallPicUrl = ""     # 小图片网址
+        self.largePicUrl = ''     # 大图片网址
+        self.smallPicUrl = ''     # 小图片网址
         self.largeHorPicUrl = ''
         self.smallHorPicUrl = ''
         self.largeVerPicUrl = ''
@@ -124,14 +128,15 @@ class AlbumBase:
 
         self.playLength = 0.0
         self.publishTime = ''
+        self.videoPlayUrl = ''
 
-        self.albumDesc = ""
-        self.videoScore = ""
+        self.albumDesc = ''
+        self.videoScore = ''
 
-        self.defaultPageUrl  = "" # 当前播放集
-        self.filmType        = "" # "TV" or ""
-        self.totalSet        = "" # 总集数
-        self.updateSet       = "" # 当前更新集
+        self.defaultPageUrl  = '' # 当前播放集
+        self.filmType        = '' # "TV" or ""
+        self.totalSet        = '' # 总集数
+        self.updateSet       = '' # 当前更新集
         self.dailyPlayNum    = 0  # 每日播放次数
         self.weeklyPlayNum   = 0  # 每周播放次数
         self.monthlyPlayNum  = 0  # 每月播放次数
@@ -150,6 +155,11 @@ class AlbumBase:
         ret['cid'] = self.cid
         ret['playlistid'] = self.playlistid
         ret['vid'] = self.vid
+        ret['norVid'] = self.norVid
+        ret['highVid'] = self.highVid
+        ret['supverVid'] = self.supverVid
+        ret['oriVid'] = self.oriVid
+        ret['relativeId'] = self.relativeId
 
         url = self.GetVideoPlayUrl()
         if url != '':
@@ -193,9 +203,18 @@ class AlbumBase:
 
     def LoadFromJson(self, json):
         # From DataBase
-        if 'vid' in json            : self.vid = autostr(json['vid'])
         if 'cid' in json            : self.cid = json['cid']
         if 'albumName' in json      : self.albumName = json['albumName']
+
+        if 'vid' in json            : self.vid        = autostr(json['vid'])
+        if 'norVid' in json         : self.norVid     = autostr(json['norVid'])
+        if 'highVid' in json        : self.highVid    = autostr(json['highVid'])
+        if 'supverVid' in json      : self.supverVid  = autostr(json['supverVid'])
+        if 'oriVid' in json         : self.oriVid     = autostr(json['oriVid'])
+        if 'relativeId' in json     : self.relativeId = autostr(json['relativeId'])
+
+        if 'videoPlayUrl' in json and json['videoPlayUrl'] != '':
+            self.videoPlayUrl = json['videoPlayUrl']
 
         if 'albumPageUrl' in json and json['albumPageUrl'] != '':
             self.albumPageUrl = json['albumPageUrl']
@@ -272,11 +291,11 @@ class AlbumBase:
 
 # 一级分类菜单
 class VideoMenuBase:
-    def __init__(self, name, engine, url):
+    def __init__(self, name, engine):
         self.command = engine.command
         self.filter = {}
         self.name = name
-        self.url = url
+        self.homePage = ''
         self.HotList = []
         self.engine = engine
         self.parserList = {}
@@ -318,9 +337,10 @@ class VideoMenuBase:
         return ret
 
     # 从数据库中找到album
-    def GetAlbumFormDB(self, playlistid='', albumName='', albumPageUrl='', auto=False):
+    def GetAlbumFormDB(self, playlistid='', albumName='', albumPageUrl='', vid='', auto=False):
         playlistid = autostr(playlistid)
-        if playlistid == '' and albumName == '' and albumPageUrl == '':
+        vid = autostr(vid)
+        if playlistid == '' and albumName == '' and albumPageUrl == '' and vid == '':
             return None
 
         tv = None
@@ -331,6 +351,8 @@ class VideoMenuBase:
             f.append({'albumName' : albumName})
         if albumPageUrl != '':
             f.append({'albumPageUrl' : albumPageUrl})
+        if vid != '':
+            f.append({'vid' : vid})
 
         json = self.engine.album_table.find_one({"$or" : f})
         if json:
@@ -447,6 +469,7 @@ class VideoMenuBase:
                               'albumPageUrl': True,
                               'vid': True,
                               'playlistid': True}
+
         pgs = self.GetAlbumList(argument)
 
         for p in pgs:

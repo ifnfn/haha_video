@@ -96,7 +96,7 @@ class KolaClient:
                 try:
                     text = response.decode(coding)
                 except:
-                    coding = 'GBK'
+                    coding = 'GB18030'
                     text = response.decode(coding)
 
                 response = self.RegularMatch(cmd['regular'], text).encode(coding)
@@ -105,11 +105,14 @@ class KolaClient:
 
                 ret = {}
                 for kv in  cmd['json']:
-                    if kv == "":
+                    if kv == '':
                         break
                     d = data
                     for v in kv.split('.'):
-                        d = d[v]
+                        if v in d: d = d[v]
+                        else: d = None
+                        if d == None:
+                            break
                     if d:
                         ret[v] = d
                 response = json.dumps(ret).encode()

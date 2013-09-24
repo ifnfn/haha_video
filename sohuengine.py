@@ -12,7 +12,7 @@ import tornado.escape
 
 from bs4 import BeautifulSoup as bs
 from fetchTools import fetch_httplib2 as fetch
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine
+from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -20,6 +20,110 @@ log = logging.getLogger("crawler")
 #================================= 以下是搜狐视频的搜索引擎 =======================================
 SOHU_HOST = 'tv.sohu.com'
 MAX_TRY = 3
+
+# 搜狐节目列表
+class TemplateVideoAll(Template):
+    def __init__(self, menu):
+        cmd = {
+            'name' : 'videoall',
+            'menu': menu.name,
+            'source': menu.homePage
+        }
+        super().__init__(menu.command, cmd)
+
+# 搜狐节目列表(过时的)
+class TemplateVideoList(Template):
+    def __init__(self, menu, url):
+        cmd = {
+            'name': 'videolist',
+            'menu': menu.name,
+            'source': url,
+            'regular': [
+                    '(<a class="pic" target="_blank" title=".+/></a>)',
+                    '(<p class="tit tit-p">.+</a>)'
+                ]
+        }
+        super().__init__(menu.command, cmd)
+        #self.command = menu.command.AddCommand2(cmd)
+
+# 搜狐节目
+class TemplateAlbum(Template):
+    def __init__(self, album):
+        cmd = {
+            'name'    : 'album',
+            'source'  : album.albumPageUrl,
+            'menu'    : album.parent.name,
+            'regular' : [
+                'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
+            ],
+        }
+        super().__init__(album.command, cmd)
+        #self.command = album.command.AddCommand2(cmd)
+
+# 搜狐节目指数
+class TemplateAlbumScore(Template):
+    def __init__(self, album):
+        cmd = {
+            'name'    : 'album_score',
+            'source'  : 'http://index.tv.sohu.com/index/switch-aid/' + album.playlistid,
+            'menu'    : '电影',
+            'json'    : [
+                         'attachment.album',
+                         'attachment.index'
+            ],
+        }
+        super().__init__(album.command, cmd)
+        #self.command = album.command.AddCommand2(cmd)
+
+# 更新热门节目信息
+class TemplateAlbumHotList(Template):
+    def __init__(self, menu, url):
+        cmd = {
+            'name'    : 'albumlist_hot',
+            'source'  : url, #'http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3',
+            'menu'    : menu.name,
+        }
+        super().__init__(menu.command, cmd)
+
+# 更新节目的完整信息
+class TemplateAlbumFullInfo(Template):
+    def __init__(self, album):
+        cmd = {
+            'name' : 'album_fullinfo',
+            'menu' : album.parent.name,
+            'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % album.playlistid
+        }
+        super().__init__(album.command, cmd)
+        #self.command = album.command.AddCommand2(cmd)
+
+# 更新节目的完整信息
+class TemplateAlbumMvInfo(Template):
+    def __init__(self, album, source_url):
+        cmd = {
+            'name'    : 'album_mvinfo',
+            'menu'    : album.parent.name,
+            'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
+            'privdate_data' : source_url
+        }
+        super().__init__(album.command, cmd)
+
+# 更新节目的播放信息
+class TemplateAlbumPlayInfo(Template):
+    def __init__(self, album, url):
+        cmd = {
+            'name'    : 'album_playinfo',
+            'source'  : url, #'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s',
+            'menu'    : album.parent.name,
+            'json' : [
+                'data.highVid',
+                'data.norVid',
+                'data.oriVid',
+                'data.superVid',
+                'data.relativeId',
+                'id'
+            ],
+        }
+        super().__init__(album.command, cmd)
 
 class SohuVideo(VideoBase):
     def __init__(self, v):
@@ -35,8 +139,9 @@ class SohuAlbum(AlbumBase):
         ret = self.playlistid != ""
 
         if ret:
-            url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlistid
-            self.command.AddCommand('album_fullinfo', self.parent.name, url)
+            TemplateAlbumFullInfo(self)
+            #url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlistid
+            #self.command.AddCommand('album_fullinfo', self.parent.name, url)
 
         return ret
 
@@ -44,32 +149,37 @@ class SohuAlbum(AlbumBase):
     def UpdateScoreCommand(self):
         ret = self.playlistid != ""
         if ret:
-            url = 'http://index.tv.sohu.com/index/switch-aid/%s' % self.playlistid
-            self.command.AddCommand('album_score', self.parent.name, url)
+            TemplateAlbumScore(self).Execute()
+            #url = 'http://index.tv.sohu.com/index/switch-aid/%s' % self.playlistid
+            #self.command.AddCommand('album_score', self.parent.name, url)
         return ret
 
     # 更新节目主页
     def UpdateAlbumPageCommand(self):
         if self.albumPageUrl != '':
-            self.command.AddCommand('album', self.parent.name, self.albumPageUrl)
+            TemplateAlbum(self).Execute()
+            #self.command.AddCommand('album', self.parent.name, self.albumPageUrl)
 
     # 更新节目播放信息
     def UpdateAlbumPlayInfoCommand(self):
-        url = self.fGetVideoPlayUrl()
+        url = self.GetVideoPlayUrl()
         if url != '':
-            self.command.AddCommand('album_playinfo', self.parent.name, url)
+            TemplateAlbumPlayInfo(self, url)
+            #self.command.AddCommand('album_playinfo', self.parent.name, url)
 
     # 得到节目的地址
-    def GetPlayerUrl(self, definition=0):
+    def GetVideoPlayUrl(self, definition=0):
         maplist = self.vid,self.norVid,self.highVid,self.supverVid,self.oriVid,self.relativeId
         if definition < len(maplist):
-            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % maplist[definition]
-        else:
-            return ''
+            vid = maplist[definition]
+            if vid != '':
+                return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
+
+        return ''
 
 class SohuVideoMenu(VideoMenuBase):
-    def __init__(self, name, engine, url):
-        VideoMenuBase.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        VideoMenuBase.__init__(self, name, engine)
         self.homePage = ''
         self.number = 0
         self.parserList = {
@@ -162,13 +272,15 @@ class SohuVideoMenu(VideoMenuBase):
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         if self.homePage != "":
-            self.command.AddCommand('videoall', self.name, self.homePage).Execute()
+            TemplateVideoAll(self).Execute()
+            #self.command.AddCommand('videoall', self.name, self.homePage).Execute()
 
     # 获取所有节目列表的别一种方法，该方法备用
-    def UpdateProgrameList2(self):
+    def UpdateAlbumList2(self):
         for url in self.HomeUrlList:
             for page in self._GetHtmlList(url):
-                self.command.AddCommand('videolist', self.name, page)
+                TemplateVideoList(self, page).Execute()
+                #self.command.AddCommand('videolist', self.name, page)
 
     def _GetHtmlList(self, playurl, times=0):
         ret = []
@@ -217,7 +329,8 @@ class SohuVideoMenu(VideoMenuBase):
                 sc = sc + v + '_'
         url = fmt % (v, self.number, sc)
 
-        self.command.AddCommand('albumlist_hot', self.name, url).Execute()
+        TemplateAlbumHotList(self, url).Execute()
+        #self.command.AddCommand('albumlist_hot', self.name, url).Execute()
 
     def UpdateHotList2(self):
         # http://so.tv.sohu.com/jsl?c=100&area=5&cate=100102_100122&o=1&encode=GBK
@@ -228,7 +341,8 @@ class SohuVideoMenu(VideoMenuBase):
                 sc += v + '_'
         url = fmt % (v, self.number, sc)
 
-        self.command.AddCommand('albumlist_hot', self.name, url).Execute()
+        TemplateAlbumHotList(self, url).Execute()
+        #self.command.AddCommand('albumlist_hot', self.name, url).Execute()
 
     def _save_update_append(self, sets, tv):
         if tv:
@@ -277,7 +391,7 @@ class SohuVideoMenu(VideoMenuBase):
                     if 'videoAlbumName' in video:
                         albumName = video['videoAlbumName']
                     if tv == None and 'privdate_data' in js:
-                        albumPageUrl = js['privdate_data'][0]
+                        albumPageUrl = js['privdate_data']
 
                     tv = self.GetAlbumFormDB(playlistid, albumName, albumPageUrl)
 
@@ -417,12 +531,13 @@ class SohuVideoMenu(VideoMenuBase):
                     return ret
                 # 如果得不到 playlistId 的话
                 if tv.playlistid == "" and tv.vid != "":
-                    url = 'http://search.vrs.sohu.com/mv_i%s.json' % tv.vid
-                    if 'pid.json' in url:
-                        print(text)
-                    elif 'PLAYLIST_ID.json' in url:
-                        print(text)
-                    self.command.AddCommand("album_mvinfo", self.name, url, js['source']).Execute()
+                    TemplateAlbumMvInfo(tv, js['source']).Execute()
+#                     url = 'http://search.vrs.sohu.com/mv_i%s.json' % tv.vid
+#                     if 'pid.json' in url:
+#                         print(text)
+#                     elif 'PLAYLIST_ID.json' in url:
+#                         print(text)
+#                     self.command.AddCommand("album_mvinfo", self.name, url, js['source']).Execute()
                 tv.SaveToDB(self.engine.album_table)
                 #tv.UpdateFullInfoCommand().Execute()
                 #tv.UpdateScoreCommand().Execute()
@@ -487,11 +602,25 @@ class SohuVideoMenu(VideoMenuBase):
     # 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s
     # album_playinfo
     def _CmdParserAlbumPlayInfo(self, js):
-                'data.highVid',
-                'data.norVid',
-                'data.oriVid',
-                'data.superVid',
-                'data.relativeId'
+        ret = []
+        try:
+            data = tornado.escape.json_decode(js['data'])
+            vid = data['id']
+            tv = self.GetAlbumFormDB(vid=vid)
+            if tv:
+                if 'highVid' in data: tv.highVid = data['highVid']
+                if 'norVid' in data: tv.norVid = data['norVid']
+                if 'oriVid' in data: tv.oriVid = data['oriVid']
+                if 'superVid' in data: tv.superVid = data['superVid']
+                if 'relativeId' in data: tv.relativeId = data['relativeId']
+                tv.SaveToDB(self.engine.album_table)
+                ret.append(tv)
+        except:
+            print(js['source'])
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
 
     # use by CmdParserVideoList
     def _ParserAlbum(self, tag, album):
@@ -580,10 +709,10 @@ class SohuVideoMenu(VideoMenuBase):
         return ret;
 # 电影
 class SohuMovie(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.HomeUrlList = [
-            'http://so.tv.sohu.com/list_p1100_p20_p3_p4_p5_p6_p73_p80_p9_2d1_p101_p11.html',
+            'http://so.tv.sohu.com/list_p1100_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html',
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p42013_p5_p6_p73_p80_p9_2d0_p101_p11.html',
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p42012_p5_p6_p73_p80_p9_2d0_p101_p11.html',
             #'http://so.tv.sohu.com/list_p1100_p20_p3_p42011_p5_p6_p73_p80_p9_2d0_p101_p11.html',
@@ -650,8 +779,8 @@ class SohuMovie(SohuVideoMenu):
 
 # 电视
 class SohuTV(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.number = 101
         self.cid = 2
         self.homePage = 'http://tv.sohu.com/tvall/'
@@ -703,8 +832,8 @@ class SohuTV(SohuVideoMenu):
 
 # 动漫
 class SohuComic(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.number = 115
         self.homePage = 'http://tv.sohu.com/comicall/'
         self.filter = {
@@ -767,8 +896,8 @@ class SohuComic(SohuVideoMenu):
 
 # 综艺
 class SohuShow(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.number = 106
         self.homePage = ''
         self.filter = {
@@ -803,8 +932,8 @@ class SohuShow(SohuVideoMenu):
 
 # 记录片
 class SohuDocumentary(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.number = 107
         self.homePage = ''
         self.filter = {
@@ -830,8 +959,8 @@ class SohuDocumentary(SohuVideoMenu):
 
 # 教育
 class SohuEdu(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.number = 119
         self.homePage = ''
         self.filter = {
@@ -853,8 +982,8 @@ class SohuEdu(SohuVideoMenu):
 
 # 新闻
 class SohuNew(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.number = 122
         self.filter = {
             '类型':[
@@ -879,8 +1008,8 @@ class SohuNew(SohuVideoMenu):
 
 # 娱乐
 class SohuYule(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.number = 112
         self.filter = {
             '类型':[
@@ -905,8 +1034,8 @@ class SohuYule(SohuVideoMenu):
 
 # 旅游
 class SohuTour(SohuVideoMenu):
-    def __init__(self, name, engine, url):
-        SohuVideoMenu.__init__(self, name, engine, url)
+    def __init__(self, name, engine):
+        SohuVideoMenu.__init__(self, name, engine)
         self.number = 131
         self.filter = {
             '类型': [
@@ -949,89 +1078,14 @@ class SohuEngine(VideoEngine):
             '新闻'   : None,  # SohuNew
         }
 
-        # 搜狐节目列表
-        self.command.AddTemplate({
-            'name'    : 'videoall',
-            'source'  : 'http://tv.sohu.com/tvall',
-            'menu'    : '电影',
-        })
+    def GetMenu(self):
+        ret = {}
+        for m, cls in list(self.menu.items()):
+            if cls:
+                ret[m] = cls(m, self)
+        return ret
 
-        # 解析节目列表首页中页号，并生成所有网页
-        self.command.AddTemplate({
-            'name'    : 'viddeolist_page',
-            'source'  : 'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html',
-            'menu'    : '电影',
-        })
-
-        # 搜狐节目列表(过时的)
-        self.command.AddTemplate({
-            'name'    : 'videolist',
-            'source'  : 'http://so.tv.sohu.com/list_p1100_p20_p3_p41_p5_p6_p73_p80_p9_2d0_p103_p11.html',
-            'menu'    : '电影',
-            'regular' : [
-                '(<a class="pic" target="_blank" title=".+/></a>)',
-                '(<p class="tit tit-p">.+</a>)'
-            ],
-        })
-
-        # 搜狐节目
-        self.command.AddTemplate({
-            'name'    : 'album',
-            'source'  : 'http://tv.sohu.com/20110222/n279464056.shtml',
-            'menu'    : '电影',
-            'regular' : [
-                'var (playlistId|pid|vid|PLAYLIST_ID)\s*=\W*([\d,]+)'
-            ],
-        })
-
-        # 搜狐节目指数
-        self.command.AddTemplate({
-            'name'    : 'album_score',
-            'source'  : 'http://index.tv.sohu.com/index/switch-aid/1012657',
-            'menu'    : '电影',
-            'json'    : [
-                         'attachment.album',
-                         'attachment.index'
-            ],
-        })
-
-        # 更新热门节目信息
-        self.command.AddTemplate({
-            'name'    : 'albumlist_hot',
-            'source'  : 'http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3',
-            'menu'    : '电影',
-        })
-
-        # 更新节目的完整信息
-        self.command.AddTemplate({
-            'name'    : 'album_fullinfo',
-            'source'  : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241',
-            'menu'    : '电影',
-        })
-
-        # 更新节目的完整信息
-        self.command.AddTemplate({
-            'name'    : 'album_mvinfo',
-            'source'  : 'http://search.vrs.sohu.com/mv_i1268037.json',
-            'menu'    : '电影',
-        })
-
-        # 更新节目的播放信息
-        self.command.AddTemplate({
-            'name'    : 'album_playinfo',
-            'source'  : 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s',
-            'menu'    : '电影',
-            'json' : [
-                'data.highVid',
-                'data.norVid',
-                'data.oriVid',
-                'data.superVid',
-                'data.relativeId',
-                'id'
-            ],
-        })
-
-    def GetMenu(self, times=0):
+    def GetMenu2(self, times=0):
         ret = {}
         playurl = 'http://tv.sohu.com'
 
@@ -1050,7 +1104,7 @@ class SohuEngine(VideoEngine):
                         u = urls[0][1]
 
                         if self.menu[menu_name]:
-                            t = self.menu[menu_name](menu_name, self, u)
+                            t = self.menu[menu_name](menu_name, self)
                             ret[menu_name] = t
                             #ret[menu_name.decode('utf-8')] = t
         except:

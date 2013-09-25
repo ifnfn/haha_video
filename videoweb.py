@@ -157,8 +157,9 @@ class LoginHandler(BaseHandler):
             redis_db.set(key, self.request.remote_ip)
         else:
             key = redis_db.get(self.user_id).decode()
-        #redis_db.expire(user_id, 60) # 一分钟过期
-        #redis_db.expire(key, 60) # 一分钟过期
+            redis_db.set(key, self.request.remote_ip)
+        redis_db.expire(self.user_id, 60) # 一分钟过期
+        redis_db.expire(key, 60) # 一分钟过期
 
         return key
 

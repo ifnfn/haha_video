@@ -129,8 +129,8 @@ class TemplateAlbumPlayInfo(Template):
         super().__init__(album.command, cmd)
 
 class SohuVideo(VideoBase):
-    def __init__(self, v):
-        pass
+    def __init__(self, js = None):
+        super().__init__(js)
 
 class SohuAlbum(AlbumBase):
     def __init__(self, parent):
@@ -142,6 +142,7 @@ class SohuAlbum(AlbumBase):
         ret = self.playlistid != ""
 
         if ret:
+            TemplateAlbumMvInfo(self, self.albumPageUrl)
             TemplateAlbumFullInfo(self)
 
         return ret
@@ -659,7 +660,7 @@ class SohuEngine(VideoEngine):
         album = SohuAlbum(self)
         if js and album:
             album.LoadFromJson(js)
-            
+
         return album
 
     def ConvertFilterJson(self, f):
@@ -679,7 +680,7 @@ class SohuEngine(VideoEngine):
 
     def _save_update_append(self, sets, tv):
         if tv:
-            tv.SaveToDB(self.album_table)
+            self.db.SaveAlbum(tv)
             sets.append(tv)
 
     def GetMenu(self):
@@ -688,13 +689,13 @@ class SohuEngine(VideoEngine):
             if cls:
                 ret[m] = cls(m, self)
         return ret
-    
+
     # 解析菜单网页解析
     def ParserHtml(self, name, js):
         ret = []
         if name in self.parserList:
             ret = self.parserList[name](js)
-        return ret    
+        return ret
 
     def GetRealPlayer(self, text, definition, step):
         if step == '1':
@@ -843,6 +844,14 @@ class SohuEngine(VideoEngine):
                     if 'videoAlbumContCategory' in video:
                         tv.categories = video['videoAlbumContCategory'].split(';')
 
+                    for video in a['videos']:
+                        #vJson = self.db.FindVideoJson(tv.playlistid)
+                        v = tv.VideoClass()
+                        v.playlistid = tv.playlistid
+                        v.pid = tv.pid
+                        v.LoadFromJson(video)
+
+                        tv.videos.append(v)
                     self._save_update_append(ret, tv)
         except:
             t, v, tb = sys.exc_info()
@@ -867,8 +876,7 @@ class SohuEngine(VideoEngine):
 
             tv = self.GetAlbumFormDB(playlistid, albumName, albumPageUrl)
             if tv:
-                if 'cid' in js:
-                    tv.cid = js['cid']
+                tv.LoadFromJson(js)
                 if 'videos' in js:
                     if 'vid' in js:
                         vid = js['vid']
@@ -880,11 +888,13 @@ class SohuEngine(VideoEngine):
                             if 'playLength' in video: tv.playLength =  video['playLength']
                             if 'publishTime' in video: tv.publishTime = video['publishTime']
 
-                        video = tv.VideoClass(video)
-                        tv.videos.append(video)
-                del js['videos']
+                        #vJson = self.db.FindVideoJson(tv.playlistid)
+                        v = tv.VideoClass()
+                        v.playlistid = tv.playlistid
+                        v.pid = tv.pid
+                        v.LoadFromJson(video)
+                        tv.videos.append(v)
 
-                tv.LoadFromJson(js)
                 self._save_update_append(ret, tv)
         except:
             t, v, tb = sys.exc_info()

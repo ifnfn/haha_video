@@ -96,7 +96,7 @@ class KolaClient:
 
     def ProcessCommand(self, cmd, times = 0):
         ret = False
-        if times > MAX_TRY:
+        if times > MAX_TRY or type(cmd) != dict:
             return False
         try:
             response = self.GetCacheUrl(cmd['source'])

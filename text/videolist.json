@@ -1,5 +1,76 @@
 playlistId="5211206"; 电影
 
+'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5824021'
+{
+    "smallHorPicUrl": "http://photocdn.sohu.com/20120606/vrsas_hor1013184.jpg",
+    "largePicUrl": "http://photocdn.sohu.com/20121203/vrsab_ver1013184.jpg",
+    "smallVerPicUrl": "http://photocdn.sohu.com/20121203/vrsas_ver1013184.jpg",
+    "isdl": 0,
+    "publishYear": 2012,
+    "actors": [
+        "凯丽·华盛顿",
+        "劳拉·凯洛蒂",
+        "杰米·福克斯",
+        "莱昂纳多·迪卡普里奥",
+        "詹姆斯·拉索",
+        "克里斯托弗·瓦尔兹",
+        "塞缪尔·杰克逊",
+        "唐·约翰逊",
+        "丹尼斯·克里斯托弗"
+    ],
+    "cid": 1,
+    "vid": 1306038,
+    "largeHorPicUrl": "http://photocdn.sohu.com/20120606/vrsab_hor1013184.jpg",
+    "playlistid": 5824021,
+    "area": "美国",
+    "updateSet": 1,
+    "smallPicUrl": "http://photocdn.sohu.com/20121203/vrsas_ver1013184.jpg",
+    "order": 0,
+    "albumPageUrl": "http://store.tv.sohu.com/view_content/movie/5580611_1231016.html",
+    "copyright": "",
+    "largeVerPicUrl": "http://photocdn.sohu.com/20121203/vrsab_ver1013184.jpg",
+    "albumDesc": "1858年，美国南北战争前两年。德国赏金猎人金·舒尔茨（克里斯托弗·瓦尔兹 饰）从贩奴商人手中买下黑奴姜戈（杰米·福克斯 饰），让其重获自由。舒尔茨实则是要把姜戈培养成无法无天的赏金猎人，为其缉拿各种通缉犯以换取报酬。姜戈的唯一条件是：从暴虐的糖果庄园主卡尔文·坎迪（莱昂纳多·迪卡普里奥 饰）手中解救出自己的妻子布鲁姆希尔达（凯丽·华盛顿 饰）……",
+    "updateNotification": "",
+    "currentPage": 1,
+    "mainActors": [
+        "杰米·福克斯",
+        "莱昂纳多·迪卡普里奥",
+        "塞缪尔·杰克逊",
+        "沃特·戈金斯"
+    ],
+    "updateTime": 1379669700189,
+    "size": 1,
+    "videos": [
+        {
+            "largePicUrl": "http://photocdn.sohu.com/20130905/vrsb952678.jpg",
+            "publishTime": "2013-09-05",
+            "name": "被解放的姜戈",
+            "subName": "",
+            "vid": 1306038,
+            "playLength": 9922.90400000001,
+            "singerIds": "",
+            "showDate": "",
+            "showName": "被解放的姜戈",
+            "smallPicUrl": "http://photocdn.sohu.com/20130905/vrss952678.jpg",
+            "order": "1",
+            "pageUrl": "http://store.tv.sohu.com/5824021/1306038_2456.html",
+            "singerName": ""
+        }
+    ],
+    "hosts": [],
+    "totalSet": 1,
+    "defaultPageUrl": "http://store.tv.sohu.com/5824021/1306038_2456.html",
+    "albumName": "被解放的姜戈（高清）",
+    "pid": 0,
+    "categories": [
+        "动作片",
+        "剧情片"
+    ],
+    "fee": 1,
+    "directors": [
+        "昆汀·塔伦蒂诺"
+    ]
+}
 
 
 http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5211206

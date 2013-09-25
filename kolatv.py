@@ -54,6 +54,9 @@ class Kolatv:
 
         return data
 
+    def GetVideoListByPid(self, playlistid, argument):
+        return self.engine.db.GetVideoListJson(playlistid=playlistid, arg=argument)
+
     def ParserHtml(self, data):
         js = tornado.escape.json_decode(data)
         if (js == None) or ('data' not in js):
@@ -98,7 +101,7 @@ class Kolatv:
                               'vid': True,
                               'playlistid': True}
         return self.engine.GetAlbumListJson(argument, All=All)
-        
+
     # 更新所有节目的排名数据
     def UpdateAllScore(self):
         print("UpdateAllScore")

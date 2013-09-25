@@ -82,23 +82,86 @@ def autostr(i):
 
 # 每个 Video 表示一个可以播放视频
 class VideoBase:
-    def __init__(self):
+    def __init__(self, js=None):
+        '''
         self.data = {
-            "smallPicUrl": "http://photocdn.sohu.com/20121119/vrss671283.jpg",
-            "name": "十诫",
-            "vid": 871321,
-            "singerName": "",
-            "playLength": 5749.6,
-            "largePicUrl": "http://photocdn.sohu.com/20121119/vrsb671283.jpg",
-            "publishTime": "2013-08-28",
-            "pageUrl": "http://tv.sohu.com/20130828/n385287051.shtml",
-            "subName": "",
-            "singerIds": "",
+            'pid' : '371214851',
+            "name": "花非花雾非雾第1集",
+            "vid": 1268037,
             "order": "1",
-            "showName": "十诫",
-            "showDate": ""
+            "playLength": 1935.051,
+            "showName": "第1集",
+            "publishTime": "2013-08-06",
+            "videoDesc": "多年以来，雪祭的画面一直在齐远脑海里浮现，可是现实中却不是这个样子，他在心里向安琪道歉，因为安琪是那样全心全意的对待自己，而自己却负了她。家丁向齐远说早安，齐远吩咐他们，要注意的事情一定要注意，有事给自己的打招呼。",
+            "isHigh": 1,
+
+            "videoPlayCount": 18435401,
+            "videoScore": 9.385957,
+
+            "largePicUrl": "http://photocdn.sohu.com/20130806/vrsb924544.jpg",
+            "smallPicUrl": "http://photocdn.sohu.com/20130806/vrss924544.jpg",
+            "pageUrl": "http://tv.sohu.com/20130806/n383534504.shtml",
         }
-        self.vid = ""
+        '''
+
+        self.playlistid = ''  # 所属 ablum
+        self.pid = ''
+        self.name = ''
+        self.vid = ''
+        self.order = -1
+        self.playLength = 0.0
+        self.showName = ''
+        self.publishTime = ''
+        self.videoDesc = ''
+        self.isHigh = -1
+
+        self.videoPlayCount = 0
+        self.videoScore = 0.0
+
+        self.smallPicUrl = ''
+        self.largePicUrl = ''
+        self.pageUrl = ''
+        if js:
+            self.LoadFromJson(js)
+
+    def SaveToJson(self):
+        ret = {}
+
+        if self.playlistid != ''     : ret['playlistid'] = self.playlistid
+        if self.pid != ''            : ret['pid'] = self.pid
+        if self.name != ''           : ret['name'] = self.name
+        if self.vid != ''            : ret['vid'] = self.vid
+        if self.order != -1          : ret['order'] = self.order
+        if self.playLength != 0.0    : ret['playLength'] = self.playLength
+        if self.showName != ''       : ret['showName'] = self.showName
+        if self.publishTime != ''    : ret['publishTime'] = self.publishTime
+        if self.videoDesc != ''      : ret['videoDesc'] = self.videoDesc
+        if self.isHigh != -1         : ret['isHigh'] = self.isHigh
+        if self.videoPlayCount == 0  : ret['videoPlayCount'] = self.videoPlayCount
+        if self.videoScore <= 0.0    : ret['videoScore'] = self.videoScore
+        if self.largePicUrl != ''    : ret['largePicUrl'] = self.largePicUrl
+        if self.smallPicUrl != ''    : ret['smallPicUrl'] = self.smallPicUrl
+        if self.pageUrl != ''        : ret['pageUrl'] = self.pageUrl
+
+        return ret
+
+    def LoadFromJson(self, json):
+        if 'playlistid' in json     : self.playlistid = json['playlistid']
+        if 'pid' in json            : self.pid = json['pid']
+        if 'name' in json           : self.name = json['name']
+        if 'videoName' in json      : self.name = json['videoName']
+        if 'vid' in json            : self.vid = json['vid']
+        if 'order' in json          : self.order = json['order']
+        if 'playLength' in json     : self.playLength = json['playLength']
+        if 'showName' in json       : self.showName = json['showName']
+        if 'publishTime' in json    : self.publishTime = json['publishTime']
+        if 'videoDesc' in json      : self.videoDesc = json['videoDesc']
+        if 'isHigh' in json         : self.isHigh = json['isHigh']
+        if 'videoPlayCount' in json : self.videoPlayCount = json['videoPlayCount']
+        if 'videoScore' in json     : self.videoScore = json['videoScore']
+        if 'largePicUrl' in json    : self.largePicUrl = json['largePicUrl']
+        if 'smallPicUrl' in json    : self.smallPicUrl = json['smallPicUrl']
+        if 'pageUrl' in json        : self.pageUrl = json['pageUrl']
 
 # 一个节目，表示一部电影、电视剧集
 class AlbumBase:
@@ -151,7 +214,6 @@ class AlbumBase:
         self.actors = []
         self.directors = []
 
-        self.data = {}
         self.videos = []
 
     def SaveToJson(self):
@@ -264,26 +326,6 @@ class AlbumBase:
         if 'totalPlayNum' in json   : self.totalPlayNum    = json['totalPlayNum']    # 总播放资料
         if 'dailyIndexScore' in json: self.dailyIndexScore = json['dailyIndexScore'] # 每日指数
 
-        self.data.update(json)
-
-    def SaveToDB(self, db):
-        if self.albumName != "" and self.albumPageUrl != "":
-            js = self.SaveToJson()
-            upert = []
-            if self.albumName != '':
-                upert.append( {'albumName': self.albumName})
-            if self.albumPageUrl != '':
-                upert.append({'albumPageUrl': self.albumPageUrl})
-            if self.playlistid != '':
-                upert.append({'playlistid' : self.playlistid})
-            if self.vid != '':
-                upert.append({'vid' : self.vid})
-
-            db.update(
-                      {"$or" : upert},
-                      {"$set" : js},
-                      upsert=True, multi=True)
-
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
         pass
@@ -327,7 +369,7 @@ class VideoMenuBase:
 
         ret['name'] = self.name
         ret['cid'] = self.cid
-        ret['count'] = self.engine.album_table.find({'cid': self.cid}).count()
+        ret['count'] = self.engine.db.GetMenuAlbumCount(self.cid)
         ret['filter'] = self.GetFilterJson()
         ret['sort'] = self.GetSortJson()
 
@@ -341,29 +383,65 @@ class VideoMenuBase:
     def UpdateHotList(self):
         pass
 
-class VideoEngine:
+class DB:
     def __init__(self):
-        self.engine_name = 'EngineBase'
-        self.config = configparser.ConfigParser()
-
-        self.command = Commands()
         self.con = Connection('localhost', 27017)
         self.db = self.con.kola
         self.album_table = self.db.album
+        self.videos_table = self.db.videos
 
-    def ConvertFilterJson(self, f):
-        return f
+    def SaveVideo(self, video):
+        if video.pid != '' or video.vid != '' or video.playlistid != '':
+            js = video.SaveToJson()
+            upert = []
+            if video.playlistid != '':
+                upert.append({'playlistid' : video.playlistid})
+            if video.pid != '':
+                upert.append({'pid' : video.pid})
+            if video.vid != '':
+                upert.append({'vid' : video.vid})
 
-    def ConvertSortJson(self, f):
-        return f
+            self.videos_table.update(
+                      {'$or' : upert},
+                      {'$set' : js},
+                      upsert=True, multi=True)
 
-    # 获取节目一级菜单, 返回分类列表
-    def GetMenu(self, times=0):
-        return []
+    def SaveAlbum(self, album):
+        if album.albumName != "" and album.albumPageUrl != "":
+            js = album.SaveToJson()
+            upert = []
+            if album.albumName != '':
+                upert.append( {'albumName': album.albumName})
+            if album.albumPageUrl != '':
+                upert.append({'albumPageUrl': album.albumPageUrl})
+            if album.playlistid != '':
+                upert.append({'playlistid' : album.playlistid})
+            if album.vid != '':
+                upert.append({'vid' : album.vid})
 
-    # 得到真实播放地址
-    def GetRealPlayer(self, text, definition, step):
-        return ''
+            self.album_table.update(
+                      {"$or" : upert},
+                      {"$set" : js},
+                      upsert=True, multi=True)
+
+            for v in album.videos:
+                self.SaveVideo(v)
+
+    # 从数据库中找到album
+    def FindAlbumJson(self, playlistid='', albumName='', albumPageUrl='', vid='', auto=False):
+        playlistid = autostr(playlistid)
+        vid = autostr(vid)
+        if playlistid == '' and albumName == '' and albumPageUrl == '' and vid == '':
+            return None
+
+        f = []
+        if playlistid != '':   f.append({'playlistid' : playlistid})
+        if albumName != '':    f.append({'albumName' : albumName})
+        if albumPageUrl != '': f.append({'albumPageUrl' : albumPageUrl})
+        if vid != '':          f.append({'vid' : vid})
+
+        return self.album_table.find_one({"$or" : f})
+
 
     # 得到节目列表
     # arg参数：
@@ -393,8 +471,7 @@ class VideoEngine:
                 _filter['vid']        = {'$ne' : ''}
 
             if 'filter' in arg:
-                f = self.ConvertFilterJson(arg['filter'])
-                _filter.update(f)
+                _filter.update(arg['filter'])
 
             if 'fields' in arg:
                 fields = arg['fields']
@@ -404,9 +481,7 @@ class VideoEngine:
             cursor = self.album_table.find(_filter, fields = fields)
 
             if 'sort' in arg:
-                s = self.ConvertSortJson(arg['sort'])
-                if s:
-                    cursor = cursor.sort(s)
+                cursor = cursor.sort(arg['sort'])
 
             if 'page' in arg and 'size' in arg:
                 page = arg['page']
@@ -422,30 +497,107 @@ class VideoEngine:
 
         return ret
 
-    # 从数据库中找到album
-    def GetAlbumFormDB(self, playlistid='', albumName='', albumPageUrl='', vid='', auto=False):
+    def FindVideoJson(self, playlistid='', pid='', vid=''):
         playlistid = autostr(playlistid)
+        pid = autostr(pid)
         vid = autostr(vid)
-        if playlistid == '' and albumName == '' and albumPageUrl == '' and vid == '':
+        if pid == '' and vid == '' and playlistid == '':
             return None
 
-        tv = None
         f = []
-        if playlistid != '':
-            f.append({'playlistid' : playlistid})
-        if albumName != '':
-            f.append({'albumName' : albumName})
-        if albumPageUrl != '':
-            f.append({'albumPageUrl' : albumPageUrl})
-        if vid != '':
-            f.append({'vid' : vid})
+        if playlistid != '': f.append({'playlistid' : playlistid})
+        if pid != ''       : f.append({'pid' : pid})
+        if vid != ''       : f.append({'vid' : vid})
 
-        json = self.album_table.find_one({"$or" : f})
+        return self.videos_table.find_one({"$or" : f})
+
+    def GetVideoListJson(self, playlistid, pid='', arg={}):
+        ret = []
+        playlistid = autostr(playlistid)
+        pid = autostr(pid)
+        try:
+            _filter = {}
+            if pid != '':
+                _filter['pid'] = pid
+
+            if playlistid != '':
+                _filter['playlistid'] = playlistid
+
+            if 'filter' in arg:
+                _filter.update(arg['filter'])
+
+            if 'fields' in arg:
+                fields = arg['fields']
+            else:
+                fields = None
+
+            cursor = self.videos_table.find(_filter, fields = fields)
+
+            if 'sort' in arg:
+                cursor = cursor.sort(arg['sort'])
+            else:
+                cursor = cursor.sort([('order', 1)])
+
+            if 'page' in arg and 'size' in arg:
+                page = arg['page']
+                size = arg['size']
+                cursor = cursor.skip(page * size).limit(size)
+
+            for x in cursor:
+                del x['_id']
+                ret.append(x)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    def GetMenuAlbumCount(self, cid):
+        return self.db.album_table.find({'cid': cid}).count()
+
+class VideoEngine:
+    def __init__(self):
+        self.engine_name = 'EngineBase'
+        self.config = configparser.ConfigParser()
+
+        self.command = Commands()
+        self.db = DB()
+
+    def ConvertFilterJson(self, f):
+        return f
+
+    def ConvertSortJson(self, f):
+        return f
+
+    # 获取节目一级菜单, 返回分类列表
+    def GetMenu(self, times=0):
+        return []
+
+    # 得到真实播放地址
+    def GetRealPlayer(self, text, definition, step):
+        return ''
+
+    # 转换 Filter 及 Sort 字段
+    def GetAlbumListJson(self, arg, cid=-1,All=False):
+        if 'filter' in arg:
+            arg['filter'] = self.ConvertFilterJson(arg['filter'])
+        if 'sort' in arg:
+            arg['sort'] = self.ConvertSortJson(arg['sort'])
+
+        return self.db.GetAlbumListJson(arg, cid, All)
+
+    # 从数据库中找到album
+    def GetAlbumFormDB(self, playlistid='', albumName='', albumPageUrl='', vid='', auto=False):
+        tv = None
+        json = self.db.FindAlbumJson(playlistid, albumName, albumPageUrl, vid, auto)
         if json:
             tv = self.albumClass(self)
             tv.LoadFromJson(json)
         elif auto:
             tv = self.albumClass(self)
+
+        if tv == None:
+            return tv
 
         if playlistid != '':
             tv.playlistid = playlistid

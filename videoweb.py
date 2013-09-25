@@ -21,37 +21,66 @@ logging.basicConfig()
 log = logging.getLogger("crawler")
 tv = Kolatv()
 
-class VideoListHandler(BaseHandler):
-    def get(self):
-        argument = {}
-        argument['page'] = int(self.get_argument('page', 0))
-        argument['size'] = int(self.get_argument('size', 20))
-        menu = self.get_argument('menu', '')
+class AlbumListHandler(BaseHandler):
+    def argument(self):
+        args = {}
+        args['page'] = int(self.get_argument('page', 0))
+        args['size'] = int(self.get_argument('size', 20))
 
-        argument['result'] = tv.GetMenuAlbumListByName(menu, argument)
-        self.finish(json.dumps(argument, indent=4, ensure_ascii=False))
+        return args, self.get_argument('menu', '')
+
+    def get(self):
+        args, menu = self.argument()
+
+        args['result'] = tv.GetMenuAlbumListByName(menu, args)
+        self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
-        argument = {}
-        menu = self.get_argument('menu', '')
-
-        argument['page'] = int(self.get_argument('page', 0))
-        argument['size'] = int(self.get_argument('size', 20))
+        args, menu = self.argument()
 
         if self.request.body:
             try:
                 umap = tornado.escape.json_decode(self.request.body)
-#                 argument['filter'] = {}
-#                 argument['fields'] = {}
-#                 argument['sort'] = {}
-                argument.update(umap)
+                args.update(umap)
             except:
                 t, v, tb = sys.exc_info()
                 log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
-        argument['result'] = tv.GetMenuAlbumListByName(menu, argument)
-        self.finish(json.dumps(argument, indent=4, ensure_ascii=False))
+        args['result'] = tv.GetMenuAlbumListByName(menu, args)
+        self.finish(json.dumps(args, indent=4, ensure_ascii=False))
+
+class VideoListHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def argument(self):
+        args = {}
+        args['page'] = int(self.get_argument('page', 0))
+        args['size'] = int(self.get_argument('size', 20))
+
+        return args, self.get_argument('pid', '')
+
+    def get(self):
+        args, pid = self.argument()
+
+        args['result'] = tv.GetVideoListByPid(pid, args)
+        self.finish(json.dumps(args, indent=4, ensure_ascii=False))
+
+    def post(self):
+        args, pid = self.argument()
+
+        if self.request.body:
+            try:
+                umap = tornado.escape.json_decode(self.request.body)
+                args.update(umap)
+            except:
+                t, v, tb = sys.exc_info()
+                log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+                raise tornado.web.HTTPError(400)
+
+        args['result'] = tv.GetVideoListByPid(pid, args)
+        self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
 class UrlMapHandler(BaseHandler):
     def post(self):
@@ -66,6 +95,7 @@ class UrlMapHandler(BaseHandler):
 class GetPlayerHandler(BaseHandler):
     def get(self):
         pass
+
     def post(self):
         body = self.request.body.decode()
         if body and len(body) > 0:
@@ -199,7 +229,8 @@ class Application(tornado.web.Application):
         )
 
         handlers = [
-            (r'/video/list',              VideoListHandler),
+            (r'/video/list',              AlbumListHandler),
+            (r'/video/video',             VideoListHandler),
             (r'/video/upload',            UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',         GetPlayerHandler),       # 得到下载地位
             (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射

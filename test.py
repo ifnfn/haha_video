@@ -221,13 +221,13 @@ class test_case:
     def test_videolist(self):
         url = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % self.playlistid
         _, _, _, response = fetch(url)
-        a = json.loads(response)
+        a = json.loads(response.decode())
         print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_iapi(self):
         url = 'http://so.tv.sohu.com/iapi?v=2&c=100'
         _, _, _, response = fetch(url)
-        a = json.loads(response)
+        a = json.loads(response.decode())
         print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_switch_aid(self):
@@ -253,7 +253,7 @@ class test_case:
     def test_jsl(self):
         url = 'http://so.tv.sohu.com/jsl?c=100&cate=100100_100107&o=1&pageSize=1'
         _, _, _, response = fetch(url)
-        a = json.loads(response)
+        a = json.loads(response.decode())
         print(json.dumps(a, ensure_ascii=False, indent=4))
 
     def test_playlist(self):
@@ -281,6 +281,8 @@ def test_run():
     t.playlistid = '5028814'
     t.vid = '728329'
     t.pid = '349795922'
+    t.test_videolist()
+    return
     t.test_switch_aid()
     t.test_mvi()
     return

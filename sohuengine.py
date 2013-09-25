@@ -663,7 +663,16 @@ class SohuEngine(VideoEngine):
 
         return album
 
-    def ConvertFilterJson(self, f):
+
+    def ConvertJson(self, arg):
+        if 'filter' in arg:
+            arg['filter'] = self._ConvertFilterJson(arg['filter'])
+        if 'sort' in arg:
+            arg['sort'] = self._ConvertSortJson(arg['sort'])
+
+        return arg
+    
+    def _ConvertFilterJson(self, f):
         for key in f:
             if key in self.fieldMapping:
                 newkey = self.fieldMapping[key]
@@ -671,17 +680,12 @@ class SohuEngine(VideoEngine):
                 del f[key]
         return f
 
-    def ConvertSortJson(self, v):
+    def _ConvertSortJson(self, v):
         if v in self.fieldMapping:
             newkey = self.fieldMapping[v]
             return [(newkey, -1)]
         else:
             return [(v, -1)]
-
-    def _save_update_append(self, sets, tv):
-        if tv:
-            self.db.SaveAlbum(tv)
-            sets.append(tv)
 
     def GetMenu(self):
         ret = {}
@@ -1127,3 +1131,8 @@ class SohuEngine(VideoEngine):
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
         return ret
+
+    def _save_update_append(self, sets, tv):
+        if tv:
+            self.db.SaveAlbum(tv)
+            sets.append(tv)

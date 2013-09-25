@@ -563,10 +563,7 @@ class VideoEngine:
         self.command = Commands()
         self.db = DB()
 
-    def ConvertFilterJson(self, f):
-        return f
-
-    def ConvertSortJson(self, f):
+    def ConvertJson(self, f):
         return f
 
     # 获取节目一级菜单, 返回分类列表
@@ -579,10 +576,7 @@ class VideoEngine:
 
     # 转换 Filter 及 Sort 字段
     def GetAlbumListJson(self, arg, cid=-1,All=False):
-        if 'filter' in arg:
-            arg['filter'] = self.ConvertFilterJson(arg['filter'])
-        if 'sort' in arg:
-            arg['sort'] = self.ConvertSortJson(arg['sort'])
+        self.ConvertJson(arg)
 
         return self.db.GetAlbumListJson(arg, cid, All)
 

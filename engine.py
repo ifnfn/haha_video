@@ -7,7 +7,7 @@ import json
 import configparser
 import tornado.escape
 import redis
-from pymongo import Connection
+from pymongo import Connection, ASCENDING, DESCENDING
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -403,6 +403,10 @@ class DB:
         self.db = self.con.kola
         self.album_table = self.db.album
         self.videos_table = self.db.videos
+        self.album_table.drop_indexes()
+        self.album_table.create_index([('albumPageUrl', ASCENDING)])
+        self.album_table.create_index([('vid', ASCENDING)])
+        self.album_table.create_index([('cid', ASCENDING)])
 
     def SaveVideo(self, video):
         if video.pid or video.vid or video.playlistid:

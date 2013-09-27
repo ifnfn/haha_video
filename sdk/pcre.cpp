@@ -11,13 +11,15 @@ Pcre::Pcre()
 
 Pcre::~Pcre()
 {
-	for(int i=0; i<re_arr.size(); i++)
+	for(size_t i=0; i<re_arr.size(); i++)
 		pcre_free(re_arr[i]);
 }
 
 //Add a regrex patten and compile it.
 int Pcre::AddRule(const string &patten)
 {
+	const char *error;
+	int erroffset;
 	pcre *re = pcre_compile(
 			patten.c_str(), /* the pattern                  */
 			0,              /* default options              */
@@ -32,12 +34,14 @@ int Pcre::AddRule(const string &patten)
 	else {
 		re_arr.push_back(re);
 	}
+
+	return 0;
 }
 
 //clear all the rule
 void Pcre::ClearRules()
 {
-	for(int i=0; i<re_arr.size(); i++)
+	for(size_t i=0; i<re_arr.size(); i++)
 		pcre_free(re_arr[i]);
 
 	re_arr.clear();
@@ -47,13 +51,11 @@ void Pcre::ClearRules()
 string Pcre::MatchAll(const char *content)
 {
 	int length = strlen(content);
-	char buf[512];
 	string result = "";
 
-	for(int i=0; i<re_arr.size(); i++) {
+	for(size_t i=0; i<re_arr.size(); i++) {
 		int offset = 0;
 		int rc;
-		int outlen = 0;
 		while(offset < length && (rc = pcre_exec(re_arr[i], NULL, content, length, offset, PCRE_NOTEMPTY, ovector, VECSIZE)) >= 0) {
 			result.append(content, ovector[0], ovector[1] - ovector[0]);
 			result = result + "\n";

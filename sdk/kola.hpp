@@ -18,12 +18,16 @@ class KolaAlbum;
 
 class VideoSegment {
 	public:
-		VideoSegment() {}
+		VideoSegment() {
+			duration = 0;
+			size = 0;
+
+		}
 		VideoSegment(json_t *js) {
 			LoadFromJson(js);
 		}
 		VideoSegment(std::string u, std::string n, double d, size_t s) {
-			url = url;
+			url = u;
 			newfile = n;
 			duration = d;
 			size = s;
@@ -46,7 +50,10 @@ class VideoSegment {
 
 class KolaVideo: public std::vector<VideoSegment> {
 	public:
-		KolaVideo() {}
+		KolaVideo() {
+			width = height = fps = totalBytes = totalBlocks = 0;
+			totalDuration = 0.0;
+		}
 		~KolaVideo() {}
 
 		int width;
@@ -60,7 +67,21 @@ class KolaVideo: public std::vector<VideoSegment> {
 
 		std::string GetM3U8(void);
 		std::string GetSubtitle(const char *lang);
-		bool GetPlayerUrl(int index, std::string &url);
+		bool GetPlayerUrl(size_t index, std::string &url);
+};
+
+class Picture {
+public:
+	Picture(std::string fileName);
+	Picture();
+	~Picture();
+	void *data;
+	size_t size;
+	std::string fileName;
+	bool inCache;
+	void Caching(void);
+	bool wget();
+private:
 };
 
 class KolaAlbum {
@@ -102,8 +123,9 @@ class KolaAlbum {
 		std::string playlistid;
 
 		bool GetVideo(void);
-		bool GetPicture(enum PicType type, void **data, int *size); // 得到图片
-		bool GetPlayUrl(void **data, int *size);                    // 得到播放列表
+		void CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
+		bool GetPicture(enum PicType type, Picture &pic); // 得到图片
+		bool GetPlayUrl(void **data, int *size);          // 得到播放列表
 	private:
 		bool LoadFromJson(json_t *js);
 
@@ -125,6 +147,8 @@ class KolaAlbum {
 
 class StringList: public std::vector<std::string> {
 	public:
+		StringList() {}
+		virtual ~StringList() {}
 		virtual void Add(std::string v) {
 			StringList::iterator iter = find(begin(), end(), v);
 			if (iter == end())
@@ -168,7 +192,7 @@ class FilterValue: public StringList {
 		FilterValue(const std::string items);
 		FilterValue() {}
 		~FilterValue() {}
-		bool Set(std::string v) {
+		void Set(std::string v) {
 			value = v;
 		}
 		std::string Get(void) {
@@ -244,22 +268,26 @@ class KolaClient {
 		KolaClient(void);
 		std::string baseUrl;
 		std::map<std::string, KolaMenu> menuMap;
+		std::map<std::string, Picture> picCache;
 		int nextLoginSec;
+		void *threadPool;
 
-		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL, int times = 0);
+		bool UrlGet(std::string url, const char *home_url, void **http_resp, int times = 0);
+		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL);
 		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
 		void GetKey(void);
 		bool Login(void);
 		char *Run(const char *cmd);
-		bool ProcessCommand(json_t *cmd);
+		bool ProcessCommand(json_t *cmd, const char *dest);
 		bool running;
 		pthread_t thread;
 		pthread_mutex_t lock;
 
 		friend void *kola_login_thread(void *arg);
-		friend KolaMenu;
-		friend KolaAlbum;
-		friend KolaVideo;
+		friend class KolaMenu;
+		friend class KolaAlbum;
+		friend class KolaVideo;
+		friend class Picture;
 };
 
 void split(const std::string &s, std::string delim, std::vector< std::string > *ret);

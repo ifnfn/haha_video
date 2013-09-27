@@ -27,18 +27,17 @@ class KolaClient:
 
     def GetUrl(self, url, times = 0):
         if times > MAX_TRY:
-            return False
+            return ''
         try:
             status, _, _, response = fetch(url)
             if status != '200':
                 print(response)
-                return ""
+                return ''
+            return response
         except:
             t, v, tb = sys.exc_info()
-            print("ProcessCommand playurl: %s %s, %s, %s" % (cmd['source'], t, v, traceback.format_tb(tb)))
+            print("KolaClient.GetUrl: %s %s, %s, %s" % (url, t, v, traceback.format_tb(tb)))
             return self.GetUrl(url, times + 1)
-
-        return response
 
     def GetCacheUrl(self, url):
         response = ''
@@ -53,7 +52,7 @@ class KolaClient:
         else:
             print("Download: ", url)
             response = self.GetUrl(url)
-            if response != '':
+            if response:
                 f = open(filename, 'wb')
                 f.write(response)
                 f.close()
@@ -94,7 +93,7 @@ class KolaClient:
                     x += i.group(0) + '\n'
         return x
 
-    def ProcessCommand(self, cmd, times = 0):
+    def ProcessCommand(self, cmd, dest, times = 0):
         ret = False
         if times > MAX_TRY or type(cmd) != dict:
             return False
@@ -127,17 +126,17 @@ class KolaClient:
                 response = json.dumps(ret).encode()
 
             if response:
-                cmd['data'] = base64.encodebytes(response).decode()
+                cmd['data'] = response.decode()
             else:
                 print("[WARNING] Data is empty: ", cmd['source'])
             body = json.dumps(cmd) #, ensure_ascii = False)
-            ret = self.PostUrl(cmd['dest'], body) != None
+            ret = self.PostUrl(dest, body) != None
         except:
             t, v, tb = sys.exc_info()
             print("ProcessCommand playurl: %s %s, %s, %s" % (cmd['source'], t, v, traceback.format_tb(tb)))
-            return self.ProcessCommand(cmd, times + 1)
+            return self.ProcessCommand(cmd, dest, times + 1)
 
-        print((ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', cmd['dest'])
+        print((ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', dest)
         return ret
 
     def Login(self):
@@ -150,10 +149,10 @@ class KolaClient:
             if data:
                 data = tornado.escape.json_decode(data)
                 self.key = data['key']
-                #print(self.key)
-                if len(data['command']) > 0:
+                dest = data['dest']
+                if len(data['command']) > 0 and dest:
                     for cmd in data['command']:
-                        self.ProcessCommand(cmd)
+                        self.ProcessCommand(cmd, dest)
                     ret = True
         except:
             t, v, tb = sys.exc_info()

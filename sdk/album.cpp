@@ -37,6 +37,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	//categories = json_gets(js, "categories", "");
 
 //	std::cout << "KolaAlbum:" << albumName << std::endl;
+	return true;
 }
 
 bool KolaAlbum::GetVideo(void)
@@ -60,6 +61,57 @@ bool KolaAlbum::GetVideo(void)
 	json_decref(js);
 
 	return ret;
+}
+
+void KolaAlbum::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
+{
+	std::string &fileName = this->smallPicUrl;;
+	KolaClient *client =& KolaClient::Instance();
+
+	switch (type) {
+	case PIC_LARGE:
+		fileName = this->largePicUrl; break;
+	case PIC_SMALL:
+		fileName = this->smallPicUrl; break;
+	case PIC_LARGE_HOR:
+		fileName = this->largeHorPicUrl; break;
+	case PIC_SMALL_HOR:
+		fileName = this->smallHorPicUrl; break;
+	case PIC_LARGE_VER:
+		fileName = this->largeVerPicUrl; break;
+	case PIC_SMALL_VER:
+		fileName = this->smallVerPicUrl; break;
+	default:
+		return;
+	}
+
+	client->picCache.insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
+}
+
+bool KolaAlbum::GetPicture(enum PicType type, Picture &pic) // 得到图片
+{
+	std::string &fileName = this->smallPicUrl;;
+	KolaClient *client =& KolaClient::Instance();
+
+	switch (type){
+	case PIC_LARGE:
+		fileName = this->largePicUrl; break;
+	case PIC_SMALL:
+		fileName = this->smallPicUrl; break;
+	case PIC_LARGE_HOR:
+		fileName = this->largeHorPicUrl; break;
+	case PIC_SMALL_HOR:
+		fileName = this->smallHorPicUrl; break;
+	case PIC_LARGE_VER:
+		fileName = this->largeVerPicUrl; break;
+	case PIC_SMALL_VER:
+		fileName = this->smallVerPicUrl; break;
+	default:
+		return false;
+	}
+
+	pic = client->picCache[fileName];
+	return pic.inCache;
 }
 
 bool VideoSegment::LoadFromJson(json_t *js)
@@ -112,7 +164,7 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	return true;
 }
 
-bool KolaVideo::GetPlayerUrl(int index, std::string &url)
+bool KolaVideo::GetPlayerUrl(size_t index, std::string &url)
 {
 	KolaClient *client =& KolaClient::Instance();
 	std::string text;

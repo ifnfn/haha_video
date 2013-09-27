@@ -51,7 +51,7 @@ inline const char *json_gets(json_t *js, const char *key, const char *def)
 inline void json_sets(json_t *js, const char *key, const char *value)
 {
 	json_object_del(js, key);
-	json_object_set_new(js, key, json_string(value));
+	json_object_set_new(js, key, json_string_nocheck(value));
 }
 
 inline json_t *json_geto(json_t *js, const char *key)

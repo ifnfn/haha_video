@@ -12,9 +12,13 @@ def a():
             'categories': {'$in': ['爱情片']},
             'cid': 1}
 
-        t = album_table.find(_filter)#.limit(10)
+        #t = album_table.find(_filter)#.limit(10)
+        t = album_table.find()
         for x in t:
-            print(x['albumName'], x['categories'])
+            if 'albumName' in x:
+                print(x['albumName']),
+            if 'albumPageUrl' in x:
+                print(x['albumPageUrl'])
 
 if __name__ == '__main__':
     a()

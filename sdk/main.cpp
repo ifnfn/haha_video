@@ -56,7 +56,6 @@ int main(int argc, char **argv)
 {
 //	filter_test(); return 0;
 
-	int count = 30;
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();
@@ -99,10 +98,12 @@ int main(int argc, char **argv)
 	for (std::vector<KolaAlbum>::iterator it = m.begin(); it != m.end(); it++) {
 		std::string play_url;
 		printf("[%s] %s (%d)\n", it->playlistid.c_str(), it->albumName.c_str(), it->weeklyPlayNum);
+		it->CachePicture(KolaAlbum::PIC_LARGE);
 //		it->GetVideo();
 //		if (it->video.GetPlayerUrl(0, play_url))
 //			std::cout << play_url << std::endl;
 	}
 #endif
+	while(1) sleep(3);
 	return 0;
 }

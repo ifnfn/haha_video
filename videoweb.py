@@ -198,17 +198,21 @@ class LoginHandler(BaseHandler):
             'key'    : self.check_user_id(),
             'command': [],
             'server' : self.request.protocol + '://' + self.request.host,
-            'next'   : 30   # 下次登录时间
+            'next'   : 30,   # 下次登录时间
+            'dest'   : ''
         }
 
         if self.user_id == '000001':
             timeout = 0
         else:
             timeout = 0.3
-        cmd = tv.engine.command.GetCommandNext(timeout)
+
+        count = self.get_argument('count', 1)
+
+        cmd = tv.engine.command.GetCommand(timeout, count)
         if cmd:
-            cmd['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
-            ret['command'].append(cmd)
+            ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
+            ret['command'] = cmd
 
         self.finish(json.dumps(ret))
 
@@ -229,14 +233,14 @@ class Application(tornado.web.Application):
         )
 
         handlers = [
-            (r'/video/list',              AlbumListHandler),
-            (r'/video/video',             VideoListHandler),
-            (r'/video/upload',            UploadHandler),          # 接受客户端上网的需要解析的网页文本
-            (r'/video/getplayer',         GetPlayerHandler),       # 得到下载地位
-            (r'/video/urlmap',            UrlMapHandler),          # 后台管理，增加网址映射
-            (r'/video/getmenu',           GetMenuHandler),         # 后台管理，增加网址映射
-            (r'/login',                   LoginHandler),           # 登录认证
-            (r'/manage/update',           UpdateCommandHandle)
+            (r'/video/list',       AlbumListHandler),
+            (r'/video/getvideo',   VideoListHandler),
+            (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
+            (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
+            (r'/video/urlmap',     UrlMapHandler),          # 后台管理，增加网址映射
+            (r'/video/getmenu',    GetMenuHandler),         # 后台管理，增加网址映射
+            (r'/login',            LoginHandler),           # 登录认证
+            (r'/manage/update',    UpdateCommandHandle)
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

@@ -22,8 +22,6 @@ class Pcre {
 		//match all the regrex, also return all the string match to every regrex
 		std::string MatchAll(const char *content);
 	private:
-		const char *error;
-		int erroffset;
 		int ovector[VECSIZE];
 		std::vector<pcre*> re_arr;
 };

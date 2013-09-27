@@ -16,15 +16,16 @@
 #include "base64.hpp"
 #include "kola.hpp"
 #include "pcre.hpp"
+#include "threadpool.hpp"
 
-#define SERVER_HOST "127.0.0.1"
+//#define SERVER_HOST "127.0.0.1"
 //#define SERVER_HOST "121.199.20.175"
 //#define SERVER_HOST "112.124.60.152"
-#define PORT 9991
-//#define SERVER_HOST "www.kolatv.com"
-//#define PORT 80
+//#define PORT 9991
+#define SERVER_HOST "www.kolatv.com"
+#define PORT 80
 
-
+#define MAX_THREAD_POOL_SIZE 8
 #define TRY_TIMES 3
 
 static std::string loginKey;
@@ -100,6 +101,116 @@ static char *ReadStringFile(FILE *fp)
 	return s;
 }
 
+/* Compress gzip data */
+static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
+{
+	z_stream c_stream;
+	int err = 0;
+
+	if(data && ndata > 0)
+	{
+		c_stream.zalloc = Z_NULL;
+		c_stream.zfree = Z_NULL;
+		c_stream.opaque = Z_NULL;
+		if(deflateInit2(&c_stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
+					-MAX_WBITS, 8, Z_DEFAULT_STRATEGY) != Z_OK) return -1;
+		c_stream.next_in  = data;
+		c_stream.avail_in  = ndata;
+		c_stream.next_out = zdata;
+		c_stream.avail_out  = *nzdata;
+		while (c_stream.avail_in != 0 && c_stream.total_out < *nzdata)
+		{
+			if(deflate(&c_stream, Z_NO_FLUSH) != Z_OK) return -1;
+		}
+		if(c_stream.avail_in != 0) return c_stream.avail_in;
+		for (;;) {
+			if((err = deflate(&c_stream, Z_FINISH)) == Z_STREAM_END) break;
+			if(err != Z_OK) return -1;
+		}
+		if(deflateEnd(&c_stream) != Z_OK) return -1;
+		*nzdata = c_stream.total_out;
+		return 0;
+	}
+	return -1;
+}
+
+static std::string gzip_base64(const char *data, int ndata)
+{
+	std::string ret;
+	Byte *zdata = (Byte*)malloc(ndata * 2);
+	uLong nzdata = ndata * 2;
+
+	if (gzcompress((Bytef *)data, (uLong)ndata, zdata, &nzdata) == 0) {
+		data = (const char*)zdata;
+		ndata = nzdata;
+	}
+	int out_size = BASE64_SIZE(ndata) + 1;
+
+	char *out_buffer = (char *)calloc(1, out_size);
+	base64encode((unsigned char *)data, ndata, (unsigned char*)out_buffer, out_size);
+
+	ret = out_buffer;
+
+	delete out_buffer;
+	delete zdata;
+
+	return ret;
+}
+
+Picture::Picture(std::string fileName) {
+	data = NULL;
+	size = 0;
+	inCache = false;
+	Caching();
+}
+
+Picture::Picture() {
+	data = NULL;
+	size = 0;
+	inCache = false;
+}
+
+Picture::~Picture() {
+	if (data)
+		free(data);
+}
+
+static void *download_thread(void *arg) {
+	Picture *pic = (Picture*) pic;
+	pic->wget();
+
+	return NULL;
+}
+
+bool Picture::wget()
+{
+	if (inCache)
+		return inCache;
+	KolaClient *client = &KolaClient::Instance();
+
+	bool ok = false;
+	http_resp_t *http_resp = NULL;
+
+	if (client->UrlGet(fileName, "", (void**)&http_resp)) {
+		size = http_resp->body_len;
+		data = malloc(size);
+		memcpy(data, http_resp->body, size);
+		inCache = true;
+		ok = true;
+		printf("size=%d, data=%p\n", size, data);
+	}
+	http_resp_free(http_resp);
+
+	return ok;
+}
+
+// 加入线程池
+void Picture::Caching()
+{
+	KolaClient *client = &KolaClient::Instance();
+	pool_add_worker((thread_pool_t)client->threadPool, download_thread, this);
+}
+
 KolaMenu::KolaMenu() {
 	cid = -1;
 	PageId = -1;
@@ -114,7 +225,6 @@ KolaMenu::KolaMenu(json_t *js)
 	PageId   = -1;
 	name = json_gets(js, "name", "");
 	cid = json_geti(js, "cid" , -1);
-	const char *key;
 	json_t *filter = json_geto(js, "filter");
 
 	client = &KolaClient::Instance();
@@ -191,6 +301,8 @@ bool KolaMenu::GetPage(int page)
 			json_delete(js);
 		}
 	}
+
+	return true;
 }
 
 void *kola_login_thread(void *arg);
@@ -207,6 +319,8 @@ KolaClient::KolaClient(void)
 
 	nextLoginSec = 3;
 	running = true;
+
+	threadPool = (void*)pool_create(MAX_THREAD_POOL_SIZE);
 
 	pthread_mutex_init(&lock, NULL);
 	Login();
@@ -226,15 +340,16 @@ KolaClient::~KolaClient(void)
 	if (rsa)
 		RSA_free(rsa);
 #endif
+	pool_free((thread_pool_t)threadPool);
 	Quit();
 }
 
-bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url, int times)
+bool KolaClient::UrlGet(std::string url, const char *home_url, void **resp, int times)
 {
 	bool ok = false;
 	int rc;
 	http_client_t *http_client;
-	http_resp_t *http_resp = NULL;
+	http_resp_t **http_resp = (http_resp_t **)resp;
 	std::string cookie;
 
 	if (times > TRY_TIMES)
@@ -252,78 +367,36 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url,
 	cookie = loginKeyCookie;
 	UNLOCK(lock);
 
-	rc = http_get(http_client, url.c_str(), &http_resp, cookie.c_str());
-	if (rc && http_resp && http_resp->body) {
-		if (http_resp->xsrf_cookie)
-			xsrf_cookie = http_resp->xsrf_cookie;
-		ret = http_resp->body;
+	rc = http_get(http_client, url.c_str(), http_resp, cookie.c_str());
+	if (rc && *http_resp && (*http_resp)->body) {
+		if ((*http_resp)->xsrf_cookie)
+			xsrf_cookie = (*http_resp)->xsrf_cookie;
 		ok = true;
 	}
 
-	http_resp_free(http_resp);
 	http_free_connection(http_client);
 
-	if (ok == false)
-		return UrlGet(url, ret, home_url, times + 1);
+	if (ok == false) {
+		http_resp_free(*http_resp);
+		return UrlGet(url, home_url, resp, times + 1);
+	}
 	else
 		return ok;
 }
 
-
-/* Compress gzip data */
-static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
+bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url)
 {
-	z_stream c_stream;
-	int err = 0;
+	bool ok = false;
+	http_resp_t *http_resp = NULL;
 
-	if(data && ndata > 0)
-	{
-		c_stream.zalloc = Z_NULL;
-		c_stream.zfree = Z_NULL;
-		c_stream.opaque = Z_NULL;
-		if(deflateInit2(&c_stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
-					-MAX_WBITS, 8, Z_DEFAULT_STRATEGY) != Z_OK) return -1;
-		c_stream.next_in  = data;
-		c_stream.avail_in  = ndata;
-		c_stream.next_out = zdata;
-		c_stream.avail_out  = *nzdata;
-		while (c_stream.avail_in != 0 && c_stream.total_out < *nzdata)
-		{
-			if(deflate(&c_stream, Z_NO_FLUSH) != Z_OK) return -1;
-		}
-		if(c_stream.avail_in != 0) return c_stream.avail_in;
-		for (;;) {
-			if((err = deflate(&c_stream, Z_FINISH)) == Z_STREAM_END) break;
-			if(err != Z_OK) return -1;
-		}
-		if(deflateEnd(&c_stream) != Z_OK) return -1;
-		*nzdata = c_stream.total_out;
-		return 0;
+	if (UrlGet(url, home_url, (void**)&http_resp)) {
+		ret = http_resp->body;
+		ok = true;
+
 	}
-	return -1;
-}
+	http_resp_free(http_resp);
 
-static std::string gzip_base64(const char *data, int ndata)
-{
-	std::string ret;
-	Byte *zdata = (Byte*)malloc(ndata * 2);
-	uLong nzdata = ndata * 2;
-
-	if (gzcompress((Bytef *)data, (uLong)ndata, zdata, &nzdata) == 0) {
-		data = (const char*)zdata;
-		ndata = nzdata;
-	}
-	int out_size = BASE64_SIZE(ndata) + 1;
-
-	char *out_buffer = (char *)calloc(1, out_size);
-	base64encode((unsigned char *)data, ndata, (unsigned char*)out_buffer, out_size);
-
-	ret = out_buffer;
-
-	delete out_buffer;
-	delete zdata;
-
-	return ret;
+	return ok;
 }
 
 bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, const char *home_url, int times)
@@ -397,14 +470,12 @@ char *KolaClient::Run(const char *cmd)
 	return s;
 }
 
-bool KolaClient::ProcessCommand(json_t *cmd)
+bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 {
-	int ret = -1;
 	std::string text;
 	Pcre pcre;
 	const char *name = json_gets(cmd, "name", "");
 	const char *source = json_gets(cmd, "source", "");
-	const char *dest = json_gets(cmd, "dest", "");
 
 //	name = "album";
 //	source = "http://tv.sohu.com/s2012/azhx/";
@@ -465,7 +536,7 @@ bool KolaClient::ProcessCommand(json_t *cmd)
 	char *body = json_dumps(cmd, 2);
 
 	UrlPost("", body, text, dest);
-out:
+
 	delete body;
 	delete out_buffer;
 
@@ -491,11 +562,11 @@ bool KolaClient::Login(void)
 		std::cout << loginKey << std::endl;
 		baseUrl = json_gets(js, "server", baseUrl.c_str());
 		json_t *cmd = json_geto(js, "command");
-		if (cmd && json_is_array(cmd)) {
+		const char *dest = json_gets(js, "dest", NULL);
+		if (cmd && dest && json_is_array(cmd)) {
 			json_t *value;
-			json_array_foreach(cmd, value) {
-				ProcessCommand(value);
-			}
+			json_array_foreach(cmd, value)
+				ProcessCommand(value, dest);
 		}
 
 		nextLoginSec = json_geti(js, "next", nextLoginSec);
@@ -509,7 +580,6 @@ bool KolaClient::UpdateMenu(void)
 {
 	json_error_t error;
 	json_t *js;
-	int count;
 	std::string text;
 
 	if ( UrlGet("/video/getmenu", text) == false)
@@ -563,10 +633,6 @@ KolaMenu KolaClient::GetMenuByCid(int cid)
 
 KolaMenu KolaClient::GetMenuByName(const char *menuName)
 {
-	json_error_t error;
-	json_t *js;
-	int count;
-	const char *html;
 	KolaMenu ret;
 	std::map<std::string, KolaMenu>::iterator it;
 

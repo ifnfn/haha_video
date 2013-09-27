@@ -23,10 +23,10 @@ std::string base64encode(const std::string input)
 	return ret;
 }
 
-unsigned int base64encode(const unsigned char *input, unsigned int input_length, unsigned char *output, int output_length)
+size_t base64encode(const unsigned char *input, size_t input_length, unsigned char *output, size_t output_length)
 {
-  unsigned int i = 0, j = 0;
-  unsigned int pad;
+	size_t i = 0, j = 0;
+	size_t pad;
 
 	ASSERT(output_length >= (input_length * 4 / 3));
 
@@ -68,9 +68,9 @@ static unsigned char index_64[128] = {
 
 #define char64(c)  ((c > 127) ? 0xff : index_64[(c)])
 
-unsigned int base64decode(const unsigned char *input, unsigned int input_length, unsigned char *output, int output_length)
+size_t base64decode(const unsigned char *input, size_t input_length, unsigned char *output, size_t output_length)
 {
-	int i = 0, j = 0, pad;
+	size_t i = 0, j = 0, pad;
 	unsigned char c[4];
 
 	ASSERT(output_length >= (input_length * 3 / 4));

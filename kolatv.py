@@ -47,7 +47,7 @@ class Kolatv:
         return ret
 
     def GetMenuAlbumListByName(self, menuName, argument):
-        data = {}
+        data = []
         m = self.FindMenu(menuName)
         if m:
             data = self.engine.GetAlbumListJson(argument, m.cid)
@@ -65,11 +65,7 @@ class Kolatv:
             print("Error:", js['source'])
             return False
 
-        text = base64.decodebytes(js['data'].encode())
-        if text:
-            js['data'] = text
-            name = js['name']
-            self.engine.ParserHtml(name, js)
+        self.engine.ParserHtml(js)
 
         return True
 
@@ -94,7 +90,7 @@ class Kolatv:
         print("UpdateTop200")
         pass
 
-    def _get(self, All=False):
+    def _get_data(self, All=False):
         argument = {}
         argument['fields'] = {'albumName': True,
                               'albumPageUrl': True,
@@ -106,7 +102,7 @@ class Kolatv:
     def UpdateAllScore(self):
         print("UpdateAllScore")
 
-        for p in self._get():
+        for p in self._get_data(True):
             self.engine.NewAlbum(p).UpdateScoreCommand()
         self.engine.command.Execute()
 
@@ -114,19 +110,19 @@ class Kolatv:
     def UpdateAllFullInfo(self):
         print("UpdateAllFullInfo")
 
-        for p in self._get():
+        for p in self._get_data(True):
             self.engine.NewAlbum(p).UpdateFullInfoCommand()
         self.engine.command.Execute()
 
     # 更新所有节目的播放信息
     def UpdateAllPlayInfo(self):
-        for p in self._get():
+        for p in self._get_data():
             self.engine.NewAlbum(p).UpdateAlbumPlayInfoCommand()
         self.engine.command.Execute()
 
     # 更新所有节目主页
     def UpdateAllAlbumPage(self):
-        for p in self._get(All=True):
+        for p in self._get_data(All=True):
             self.engine.NewAlbum(p).UpdateAlbumPageCommand()
         self.engine.command.Execute()
 

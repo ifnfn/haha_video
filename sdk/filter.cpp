@@ -34,13 +34,12 @@ std::string KolaFilter::GetJsonStr(void)
 	std::string filter;
 
 	foreach(filterKey, i) {
-		int v_count = 0;
-
 		if (i->second.Get() != "") {
 			filter += "\"" + i->first + "\" : \"" + i->second.Get() + "\", ";
 			count++;
 		}
 	}
+
 	if (count > 0) {
 		filter.erase(filter.end() - 2);
 		filter += "}";

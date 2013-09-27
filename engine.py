@@ -73,7 +73,16 @@ class Commands:
             for _ in range(count):
                 cmd = self.db.lpop('command')
                 if cmd:
-                    ret.append(tornado.escape.json_decode(cmd))
+                    js = tornado.escape.json_decode(cmd)
+                    if js['source'] in [
+        #                        'http://store.tv.sohu.com/1009726/600898_1116.html',
+        #                        'http://store.tv.sohu.com/1010496/616845_1191.html',
+                                'http://tv.sohu.com/20090930/n267111286.shtml',
+                                'http://tv.sohu.com/20111023/n323122692.shtml'
+                                           ]:
+                        print(js['source'])
+
+                    ret.append(js)
                 else:
                     break
             return ret
@@ -416,27 +425,24 @@ class DB:
         album.vid = autostr(album.vid)
         if album.albumName or album.albumPageUrl or album.playlistid or album.vid:
             js = album.SaveToJson()
-            _filter = {}
+
+            if not key:
+                if album.vid:
+                    key = {'vid' : album.vid}
+                elif album.albumPageUrl:
+                    key = {'albumPageUrl': album.albumPageUrl}
+                elif album.albumName:
+                    key = {'albumName': album.albumName}
+                elif album.playlistid:
+                    key = {'playlistid' : album.playlistid}
 
             if key:
-                _filter = key
-            else:
-                if album.albumPageUrl:
-                    _filter = {'albumPageUrl': album.albumPageUrl}
-                elif album.albumName:
-                    _filter = {'albumName': album.albumName}
-                elif album.playlistid:
-                    _filter = {'playlistid' : album.playlistid}
-                elif album.vid:
-                    _filter = {'vid' : album.vid}
+                self.album_table.update(key,
+                                        {"$set" : js},
+                                        upsert=upsert, multi=True)
 
-            self.album_table.update(_filter,
-#                      {"$and" : upert},
-                      {"$set" : js},
-                      upsert=upsert, multi=True)
-
-            for v in album.videos:
-                self.SaveVideo(v)
+                for v in album.videos:
+                    self.SaveVideo(v)
 
     # 从数据库中找到album
     def FindAlbumJson(self, playlistid='', albumName='', albumPageUrl='', vid='', auto=False):

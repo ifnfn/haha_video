@@ -90,7 +90,7 @@ class KolaClient:
             res = re.finditer(r, text)
             if (res):
                 for i in res:
-                    x += i.group(0) + '\n'
+                    x += i.group(1) + '\n'
         return x
 
     def ProcessCommand(self, cmd, dest, times = 0):
@@ -185,6 +185,17 @@ def main_thread():
         thread_pool.add_job(main)
 
 if __name__ == "__main__":
+    #haha = KolaClient()
+    #a = haha.RegularMatchUrl('http://tv.sohu.com/20120517/n343417005.shtml',
+    #                         'var ((playlistId|pid|vid|PLAYLIST_ID|cid|playAble)\s*=\W*([\d,]+))'.encode())
+    #print(a)
+    #a = haha.RegularMatchUrl("http://search.vrs.sohu.com/mv_i1268037.json",
+    #                         '("playlistId":\w+)'.encode())
+    #print(a)
+    #a = haha.RegularMatchUrl('http://so.tv.sohu.com/list_p1100_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html',
+    #                         '<p class="tit tit-p"><a target="_blank"\s*(.+)>.*</a>'.encode())
+    #                         #'var video_album_videos_result=(\{.*.\})'.encode())
+    #print(a)
     #main_thread()
     #main_one()
     main()

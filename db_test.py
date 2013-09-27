@@ -15,10 +15,9 @@ def a():
         #t = album_table.find(_filter)#.limit(10)
         t = album_table.find()
         for x in t:
-            if 'albumName' in x:
-                print(x['albumName']),
-            if 'albumPageUrl' in x:
-                print(x['albumPageUrl'])
+            print(x['albumName'],x['albumPageUrl'])
+#            if 'albumPageUrl' in x:
+#                print(x['albumPageUrl'])
 
 if __name__ == '__main__':
     a()

@@ -18,12 +18,12 @@
 #include "pcre.hpp"
 #include "threadpool.hpp"
 
-//#define SERVER_HOST "127.0.0.1"
+#define SERVER_HOST "127.0.0.1"
 //#define SERVER_HOST "121.199.20.175"
 //#define SERVER_HOST "112.124.60.152"
-//#define PORT 9991
-#define SERVER_HOST "www.kolatv.com"
-#define PORT 80
+#define PORT 9991
+//#define SERVER_HOST "www.kolatv.com"
+//#define PORT 80
 
 #define MAX_THREAD_POOL_SIZE 8
 #define TRY_TIMES 3
@@ -378,6 +378,7 @@ bool KolaClient::UrlGet(std::string url, const char *home_url, void **resp, int 
 
 	if (ok == false) {
 		http_resp_free(*http_resp);
+		*resp = NULL;
 		return UrlGet(url, home_url, resp, times + 1);
 	}
 	else

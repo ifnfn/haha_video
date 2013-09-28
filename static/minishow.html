@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title> 详情页 - 视频搜索 </title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="Author" content="xiewulong" />
+<meta name="Keywords" content="" />
+<meta name="Description" content="" />
+<link rel="stylesheet" type="text/css" href="css/public.css" />
+<link rel="stylesheet" type="text/css" href="css/main.css" />
+<script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
+<script type="text/javascript" src="js/jquery.tinyscrollbar.min.js"></script>
+<!--[if IE 6]>
+<script src="js/DD_belatedPNG.js"></script>
+<script src="js/png.js"></script>
+<![endif]-->
+</head>
+
+<body>
+
+<div id="scrollbar" class="scrollbar">
+
+<div class="w760 mrla">
+
+	<div class="wdj_xwl_show">
+		<h1><span></span></h1>
+		<div class="info">
+			<div class="thumb"><img id="thumb" /></div>
+			<div id="info" class="auto">
+				<p><span>导演：</span><em></em></p>
+				<p><span>主演：</span><em></em></p>
+				<p><span>类型：</span><em></em></p>
+				<p><span>地区：</span><em></em></p>
+				<p><span>片长：</span><em></em></p>
+				<p><span>评分：</span><em></em></p>
+				<p><span>来源：</span><em></em></p>
+			</div>
+		</div>
+		<div id="shows"></div>
+		<h3 style="margin-top:10px;">剧情介绍</h3>
+		<div id="desc" class="desc"></div>
+		<h3 style="margin-top:10px;">安装「<em id="appname">搜狐视频</em>」到手机</h3>
+		<div class="wdj_xwl_flinks" id="wdj_xwl_flinks"></div>
+	</div>
+
+	<div class="footer" style="border-top:1px solid #CCC;font-size:12px;margin:30px 0 20px;">
+		<p style="color:#666;margin:10px">&copy; 2010 - 2013 豌豆实验室 </p>
+	 <p style="color:#999;margin-left:10px;">除非特别注明，视频资源由第三方视频服务商提供，豌豆荚仅根据您的指令提供搜索结果链接，与出处无关，详情请参阅<a class="link" target="_default" href="http://www.wandoujia.com/intellectual_property">知识产权保护声明</a></p> 
+	</div>
+
+</div>
+
+</div>
+
+<script type="text/javascript" src="js/main.js"></script>
+<script type="text/javascript">
+(function(){
+	var url=location.href;
+	if(url.indexOf('?')==-1)return false;
+	var vid=url.substring(url.indexOf('?')+1);
+	//alert('http://video.wandoujia.com/api/detail/'+vid+'?jsonp=?');
+	$.getJSON('http://video.wandoujia.com/api/detail/'+vid+'?jsonp=?',function(d){
+		$('h1').html(d.title).append('<span>'+d.year+'</span>');
+		$('#desc').html(d.info);
+		$('#thumb').attr('src','http://video.wandoujia.com/api/img/'+d.id);
+		var director=d.director;
+		var actor=d.actor;
+		var cate=d.cate;
+		var html_info='<p><span>导演：</span><em>';
+		for(var i=0;i<director.length;i++){
+			if(i>0)html_info+=' / ';
+			html_info+=director[i];
+		}
+		html_info+='</em></p><p><span>主演：</span><em>';
+		for(var i=0;i<actor.length;i++){
+			if(i>0)html_info+=' / ';
+			html_info+=actor[i];
+		}
+		html_info+='</em></p><p><span>类型：</span><em>';
+		for(var i=0;i<cate.length;i++){
+			if(i>0)html_info+=' / ';
+			html_info+=cate[i];
+		}
+		html_info+='</em></p>';
+		if(d.area)html_info+='<p><span>地区：</span><em>'+d.area+'</em></p>';
+		if(d.time)html_info+='<p><span>片长：</span><em>'+d.time+'</em></p>';
+		if(d.score)html_info+='<p><span>评分：</span><em>'+d.score+'</em></p>';
+		if(d.from){
+			var from_a={
+				'搜狐视频':'http://tv.sohu.com/drama/',
+				'乐视':'http://www.letv.com/',
+				'PPTV':'http://www.pptv.com/'
+			};
+			var from_a1={
+				'搜狐视频':'<a href="http://mini.wandoujia.com/apps/com.sohu.sohuvideo"><img src="images/sohutv.png"></a>',
+				'乐视':'<a href="http://mini.wandoujia.com/apps/com.letv.android.client"><img src="images/letv.png"></a>',
+				'PPTV':'<a href="http://mini.wandoujia.com/apps/com.pplive.androidphone"><img src="images/pptv.png"></a>'
+			};
+			html_info+='<p><span>来源：</span><em><a href="'+from_a[d.from]+'" target="_default">'+d.from+'</a></em></p>';
+			$('#appname').html(d.from);
+			$('#wdj_xwl_flinks').html(from_a1[d.from]);
+		}
+		if(d.size){
+			var vsize=Math.floor(d.size/1024/1024);
+			html_info+='<p><span>大小：</span><em>'+vsize+'MB</em></p>';
+		}
+		if(d.type=='tv'){
+			var shows=d.show;
+			var l=d.show.length;
+			var size=20;
+			var n=l%size==0?l/size:Math.floor(l/size)+1;
+			var html_shows='<h3  style="display:inline;">下载到手机<span id="wdj_xwl_show_vlist_tab">';
+			for(var i=0;i<n;i++){
+				if(i>0)html_shows+='<em>|</em>';
+				var min=i*size+1;
+				var max=l%size>0&&i+1==n?min+l%size-1:(i+1)*size;
+				html_shows+='<a href="javascript:;" class="on">'+min+'-'+max+'</a>';
+			}
+			html_shows+='</span></h3><a href="http://apps.wandoujia.com/games/special/mini_player.html" class="howplay">安装视频播放器</a>';
+			for(var i=0;i<l;i++){
+				var title=shows[i].title;
+				title=title.indexOf('：')==-1?title:title.substring(0,title.indexOf('：'));
+				if(i%size==0)html_shows+='<div class="vlist">';
+				html_shows+='<a href="http://video.wandoujia.com/api/down/'+shows[i].id+'#name='+d.title+title+'.mp4&content-type=video" download=""';
+				if(i%10==9)html_shows+=' class="nomr" hidefocus="true"';
+				html_shows+='>'+title+'<i></i></a>';
+				if(i%size==19)html_shows+='</div>';
+			}
+			$('#shows').html(html_shows);
+			setWdjXwlShowVlist();
+		}else{
+			html_info+='<div class="fix"><a href="http://apps.wandoujia.com/games/special/mini_player.html" class="howplay">安装视频播放器</a><a href="http://video.wandoujia.com/api/down/'+d.id+'#name='+d.title+'.mp4&content-type=video" download="" class="down" hidefocus="true"></a></div>';
+		}
+		$('#info').html(html_info);
+	});
+
+	function setWdjXwlShowVlist(){
+		$('#wdj_xwl_show_vlist_tab a').each(function(i){
+			$(this).click(function(){
+				$('#wdj_xwl_show_vlist_tab a').removeClass('on');
+				$(this).addClass('on');
+				$('.wdj_xwl_show .vlist').hide().eq(i).show();
+			});
+		}).removeClass('on').eq(0).addClass('on');
+		$('.wdj_xwl_show .vlist').hide().eq(0).show();
+
+		if(!-[1,]&&!window.XMLHttpRequest){
+			$('.wdj_xwl_show .vlist a').hover(function(){
+				$(this).children('i').show();
+			},function(){
+				$(this).children('i').hide();
+			});
+		}
+	}
+
+})();
+</script>
+<script>var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-15790641-32']);
+  _gaq.push(['_trackPageview']);
+  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+</script>
+
+
+</body>
+</html>

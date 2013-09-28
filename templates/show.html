@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title> 详情页 - 视频搜索 </title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="Author" content="xiewulong" />
+<meta name="Keywords" content="" />
+<meta name="Description" content="" />
+<link rel="stylesheet" type="text/css" href="/static/css/public.css" />
+<link rel="stylesheet" type="text/css" href="/static/css/main.css" />
+<script type="text/javascript" src="/static/js/jquery-1.8.3.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.tinyscrollbar.min.js"></script>
+<!--[if IE 6]>
+<script src="/static/js/DD_belatedPNG.js"></script>
+<script src="/static/js/png.js"></script>
+<![endif]-->
+</head>
+
+<body>
+
+<div id="scrollbar" class="scrollbar">
+
+<div class="w760 mrla">
+
+	<div class="wdj_xwl_show">
+		<h1><span></span></h1>
+		<div class="info">
+			<div class="thumb"><img src="{{ alubm['pic'] }}" /></div>
+			<div id="info" class="auto">
+				<p><span>片名：</span><em>{{ alubm['albumName'] }}</em></p>
+				<p><span>片长：</span><em>{{ alubm['playLength'] }}</em></p>
+				<p><span>次数：</span><em>{{ alubm['totalPlayNum'] }}</em></p>
+				<p><span>评分：</span><em>{{ alubm['videoScore'] }}</em></p>
+				<p><span>导演：</span><em>{{ alubm['directors'] }}</em></p>
+				<p><span>主演：</span><em>{{ alubm['mainActors'] }}</em></p>
+				<p><span>类型：</span><em>{{ alubm['type'] }}</em></p>
+				<p><span>地区：</span><em>{{ alubm['area'] }}</em></p>
+			</div>
+		</div>
+		<div id="shows"></div>
+		<h3 style="margin-top:10px;">剧情介绍</h3>
+		<div id="desc" class="desc">
+			<p><span>导演：</span><em>{{ alubm['albumDesc'] }}</em></p>		
+		</div>
+		<div class="wdj_xwl_flinks" id="wdj_xwl_flinks"></div>
+	</div>
+
+</div>
+
+</div>
+
+<script type="text/javascript" src="js/main.js"></script>
+
+</body>
+</html>

@@ -7,7 +7,7 @@ import json
 import configparser
 import tornado.escape
 import redis
-from pymongo import Connection, ASCENDING, DESCENDING
+import pymongo
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -23,14 +23,12 @@ class Template:
 
 # 命令管理器
 class Commands:
-    def __init__(self):
+    def __init__(self, map_table):
         self.time = time.time()
         self.urlmap = {}
         self.pipe = None
 
-        self.con = Connection('localhost', 27017)
-        self.db = self.con.kola
-        self.map_table = self.db.urlmap
+        self.map_table = map_table
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
         maps = self.map_table.find()
@@ -73,16 +71,7 @@ class Commands:
             for _ in range(count):
                 cmd = self.db.lpop('command')
                 if cmd:
-                    js = tornado.escape.json_decode(cmd)
-                    if js['source'] in [
-        #                        'http://store.tv.sohu.com/1009726/600898_1116.html',
-        #                        'http://store.tv.sohu.com/1010496/616845_1191.html',
-                                'http://tv.sohu.com/20090930/n267111286.shtml',
-                                'http://tv.sohu.com/20111023/n323122692.shtml'
-                                           ]:
-                        print(js['source'])
-
-                    ret.append(js)
+                    ret.append(tornado.escape.json_decode(cmd))
                 else:
                     break
             return ret
@@ -91,6 +80,12 @@ class Commands:
 def autostr(i):
     if type(i) == int:
         return str(i)
+    else:
+        return i
+
+def autoint(i):
+    if type(i) == str:
+        return int(i)
     else:
         return i
 
@@ -209,6 +204,7 @@ class AlbumBase:
 
         self.playLength = 0.0
         self.publishTime = ''
+        self.updateTime = 0
         self.videoPlayUrl = ''
 
         self.albumDesc = ''
@@ -272,6 +268,7 @@ class AlbumBase:
 
         if self.playLength :      ret['playLength']  = self.playLength
         if self.publishTime :     ret['publishTime'] = self.publishTime
+        if self.updateTime :      ret['updateTime'] = self.updateTime
 
         if self.dailyPlayNum :    ret['dailyPlayNum']   = self.dailyPlayNum     # 每日播放次数
         if self.weeklyPlayNum :   ret['weeklyPlayNum']  = self.weeklyPlayNum    # 每周播放次数
@@ -286,28 +283,18 @@ class AlbumBase:
         if 'cid' in json            : self.cid = json['cid']
         if 'albumName' in json      : self.albumName = json['albumName']
 
+        if 'pid' in json            : self.pid = autostr(json['pid'])
+        if 'playlistid' in json     : self.playlistid = autostr(json['playlistid'])
         if 'vid' in json            : self.vid        = autostr(json['vid'])
+
         if 'norVid' in json         : self.norVid     = autostr(json['norVid'])
         if 'highVid' in json        : self.highVid    = autostr(json['highVid'])
         if 'supverVid' in json      : self.supverVid  = autostr(json['supverVid'])
         if 'oriVid' in json         : self.oriVid     = autostr(json['oriVid'])
         if 'relativeId' in json     : self.relativeId = autostr(json['relativeId'])
 
-        if 'videoPlayUrl' in json and json['videoPlayUrl']:
-            self.videoPlayUrl = json['videoPlayUrl']
-
-        if 'albumPageUrl' in json and json['albumPageUrl']:
-            self.albumPageUrl = json['albumPageUrl']
-
-        if 'pid' in json:
-                self.pid = autostr(json['pid'])
-        elif 'PId' in json:
-                self.pid = autostr(json['PId'])
-
-        if 'playlist_id' in json:
-            self.playlistid = autostr(json['playlist_id'])
-        elif 'playlistid' in json:
-            self.playlistid = autostr(json['playlistid'])
+        if 'videoPlayUrl' in json   : self.videoPlayUrl = json['videoPlayUrl']
+        if 'albumPageUrl' in json   : self.albumPageUrl = json['albumPageUrl']
 
         if 'isHigh' in json         : self.isHigh = json['isHigh']
 
@@ -317,8 +304,9 @@ class AlbumBase:
 
         if 'defaultPageUrl' in json : self.defaultPageUrl = json['defaultPageUrl']
 
-        if 'playLength' in json  : self.playLength = json['playLength']
-        if 'publishTime' in json : self.publishTime = json['publishTime']
+        if 'playLength' in json     : self.playLength = json['playLength']
+        if 'publishTime' in json    : self.publishTime = json['publishTime']
+        if 'updateTime' in json     : self.updateTime = json['updateTime']
 
         # 图片
         if 'largeHorPicUrl' in json : self.largeHorPicUrl = json['largeHorPicUrl']
@@ -399,14 +387,15 @@ class VideoMenuBase:
 
 class DB:
     def __init__(self):
-        self.con = Connection('localhost', 27017)
+        self.con = pymongo.Connection('localhost', 27017)
         self.db = self.con.kola
-        self.album_table = self.db.album
+        self.album_table  = self.db.album
         self.videos_table = self.db.videos
+        self.map_table    = self.db.urlmap
         self.album_table.drop_indexes()
-        self.album_table.create_index([('albumPageUrl', ASCENDING)])
-        self.album_table.create_index([('vid', ASCENDING)])
-        self.album_table.create_index([('cid', ASCENDING)])
+#         self.album_table.create_index([('albumPageUrl', pymongo.ASCENDING)])
+#         self.album_table.create_index([('vid', pymongo.ASCENDING)])
+#         self.album_table.create_index([('cid', pymongo.ASCENDING)])
 
     def SaveVideo(self, video):
         if video.pid or video.vid or video.playlistid:
@@ -580,8 +569,8 @@ class VideoEngine:
         self.engine_name = 'EngineBase'
         self.config = configparser.ConfigParser()
 
-        self.command = Commands()
         self.db = DB()
+        self.command = Commands(self.db.map_table)
 
     def ConvertJson(self, f):
         return f

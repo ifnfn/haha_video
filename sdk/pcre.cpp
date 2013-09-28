@@ -57,7 +57,7 @@ string Pcre::MatchAll(const char *content)
 		int offset = 0;
 		int rc;
 		while(offset < length && (rc = pcre_exec(re_arr[i], NULL, content, length, offset, PCRE_NOTEMPTY, ovector, VECSIZE)) >= 0) {
-			result.append(content, ovector[0], ovector[1] - ovector[0]);
+			result.append(content, ovector[1], ovector[2] - ovector[1]);
 			result = result + "\n";
 
 			offset = ovector[2 * rc - 1];

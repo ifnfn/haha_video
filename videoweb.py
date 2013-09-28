@@ -137,6 +137,47 @@ class UploadHandler(BaseHandler):
             tv.ParserHtml(body)
             #tv.AddTask(body)
 
+class ShowHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        vid = self.get_argument('vid')
+        album = tv.engine.db.FindAlbumJson(albumName='', vid=vid, auto=False)
+
+        if 'largeVerPicUrl' in album:
+            album['pic'] = album['largeVerPicUrl']
+        elif 'largeHorPicUrl' in album:
+            album['pic'] = album['largeHorPicUrl']
+        elif 'smallVerPicUrl' in album:
+            album['pic'] = album['smallVerPicUrl']
+        elif 'smallVerPicUrl' in album:
+            album['pic'] = album['smallVerPicUrl']
+        else:
+            album['pic'] = ''
+        if 'directors' in album:
+            album['directors'] = ', '.join(album['directors'])
+        else:
+            album['directors'] = ''
+        if 'mainActors' in album:
+            album['mainActors'] = ', '.join(album['mainActors'])
+        else:
+            album['mainActors'] = ''
+        if 'playLength' not in album: album['playLength'] = 0
+        if 'albumDesc' not in album: album['albumDesc'] = ''
+        if 'totalPlayNum' not in album: album['totalPlayNum'] = ''
+
+
+        if album['cid'] == 1:
+            album['type'] = '电影'
+        elif album['cid'] == 2:
+            album['type'] = '电视剧'
+        else:
+            album['type'] = ''
+
+        self.render("show.html", alubm=album)
+        pass
+
 class UpdateCommandHandle(BaseHandler):
     def initialize(self):
         pass
@@ -219,6 +260,111 @@ class LoginHandler(BaseHandler):
     def post(self):
         self.finish('OK')
 
+class IndexHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        args = {}
+        args['page'] = 0
+        args['size'] = 20
+
+        _items = tv.GetMenuAlbumListByName('电视剧', args)
+        newtv = []
+        for i in _items:
+            id = i
+
+            _item = {}
+            _item['id'] = i['vid']
+            _item['title'] = i['albumName']
+            _item['time'] = i['publishYear']
+#            _item['time'] = _item['time'].replace("集更新", "集|更新至")
+#            if "更新" in _item['time']:
+#                _item['time'] = "更"+ _item['time'].split("更")[1]
+            if 'smallVerPicUrl' in i:
+                _item['pic'] = i['smallVerPicUrl']
+            elif 'smallVerPicUrl' in i:
+                _item['pic'] = i['smallVerPicUrl']
+            elif 'largeHorPicUrl' in i:
+                _item['pic'] = i['largeHorPicUrl']
+            elif 'largeVerPicUrl' in i:
+                _item['pic'] = i['largeVerPicUrl']
+            else:
+                _item['pic'] = ''
+            newtv.append(_item)
+
+        toptv = []
+        x = 0
+        for i in _items:
+            id = i
+            _item = {}
+            if x == 0:
+                _item['info'] = i['albumName']
+            x += 1
+            _item['id'] = i['vid']
+            _item['title'] = i['albumName']
+            _item['score'] = '1'
+            if 'smallVerPicUrl' in i:
+                _item['pic'] = i['smallVerPicUrl']
+            elif 'smallVerPicUrl' in i:
+                _item['pic'] = i['smallVerPicUrl']
+            elif 'largeHorPicUrl' in i:
+                _item['pic'] = i['largeHorPicUrl']
+            elif 'largeVerPicUrl' in i:
+                _item['pic'] = i['largeVerPicUrl']
+            else:
+                _item['pic'] = ''
+            toptv.append(_item)
+
+        _items = tv.GetMenuAlbumListByName('电影', args)
+        newmovie = []
+        for i in _items:
+            id = i
+            _item = {}
+            _item['id'] = i['vid']
+            _item['title'] = i['albumName']
+            _item['time'] = i['publishYear']
+#            _item['time'] = _item['time'].replace("集更新", "集|更新至")
+#            if "更新" in _item['time']:
+#                _item['time'] = "更"+ _item['time'].split("更")[1]
+            if 'smallVerPicUrl' in i:
+                _item['pic'] = i['smallVerPicUrl']
+            elif 'smallVerPicUrl' in i:
+                _item['pic'] = i['smallVerPicUrl']
+            elif 'largeHorPicUrl' in i:
+                _item['pic'] = i['largeHorPicUrl']
+            elif 'largeVerPicUrl' in i:
+                _item['pic'] = i['largeVerPicUrl']
+            else:
+                _item['pic'] = ''
+            newmovie.append(_item)
+
+        topmovie = []
+        x = 0
+        for i in _items:
+            id = i
+            _item = {}
+            if x == 0:
+                _item['info'] = i['albumName']
+            x += 1
+            _item['id'] = i['vid']
+            _item['title'] = i['albumName']
+            _item['score'] = '11'
+            if 'smallVerPicUrl' in i:
+                _item['pic'] = i['smallVerPicUrl']
+            elif 'smallVerPicUrl' in i:
+                _item['pic'] = i['smallVerPicUrl']
+            elif 'largeHorPicUrl' in i:
+                _item['pic'] = i['largeHorPicUrl']
+            elif 'largeVerPicUrl' in i:
+                _item['pic'] = i['largeVerPicUrl']
+            else:
+                _item['pic'] = ''
+            topmovie.append(_item)
+
+
+        self.render("index.html",newtv=newtv,toptv=toptv,topmovie=topmovie,newmovie=newmovie)
+
 define('port', default=9991, help='run on the given port', type=int)
 class Application(tornado.web.Application):
     def __init__(self):
@@ -226,6 +372,7 @@ class Application(tornado.web.Application):
             debug = False,
             gzip = True,
             login_url = "/login",
+            template_path = "templates",
             cookie_secret = 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To=',
             #xsrf_cookies = True,
             autoescape = None,
@@ -240,7 +387,10 @@ class Application(tornado.web.Application):
             (r'/video/urlmap',     UrlMapHandler),          # 后台管理，增加网址映射
             (r'/video/getmenu',    GetMenuHandler),         # 后台管理，增加网址映射
             (r'/login',            LoginHandler),           # 登录认证
-            (r'/manage/update',    UpdateCommandHandle)
+            (r'/manage/update',    UpdateCommandHandle),
+            (r'/',                 IndexHandler),
+            (r'/show',             ShowHandler),
+            (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

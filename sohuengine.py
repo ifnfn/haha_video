@@ -631,7 +631,7 @@ class SohuEngine(VideoEngine):
             '日播放最多' : 'dailyPlayNum',
             '总播放最多' : 'totalPlayNum',
             '最新发布'   : 'publishTime',
-            '评分最高'   : 'dailyIndexScore'
+            '评分最高'   : 'videoScore'
         }
 
         # 引擎主菜单
@@ -666,30 +666,6 @@ class SohuEngine(VideoEngine):
             album.LoadFromJson(js)
 
         return album
-
-
-    def ConvertJson(self, arg):
-        if 'filter' in arg:
-            arg['filter'] = self._ConvertFilterJson(arg['filter'])
-        if 'sort' in arg:
-            arg['sort'] = self._ConvertSortJson(arg['sort'])
-
-        return arg
-
-    def _ConvertFilterJson(self, f):
-        for key in f:
-            if key in self.fieldMapping:
-                newkey = self.fieldMapping[key]
-                f[newkey] = { "$in" : [f[key]]}
-                del f[key]
-        return f
-
-    def _ConvertSortJson(self, v):
-        if v in self.fieldMapping:
-            newkey = self.fieldMapping[v]
-            return [(newkey, -1)]
-        else:
-            return [(v, -1)]
 
     def GetMenu(self):
         ret = {}
@@ -887,7 +863,7 @@ class SohuEngine(VideoEngine):
 
             if 'videos' in json:
                 for video in json['videos']:
-                    if 'vid' in video and video['vid'] == tv.vid and tv.vid:
+                    if 'vid' in video and video['vid'] == int(tv.vid) and tv.vid:
                         if 'playLength' in video  : tv.playLength =  video['playLength']
                         if 'publishTime' in video : tv.publishTime = video['publishTime']
 

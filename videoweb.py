@@ -16,6 +16,7 @@ from tornado.options import define, options
 from pymongo import Connection
 from basehandle import BaseHandler
 from kolatv import Kolatv
+from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autostr, autoint
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -163,10 +164,20 @@ class ShowHandler(BaseHandler):
             album['mainActors'] = ', '.join(album['mainActors'])
         else:
             album['mainActors'] = ''
-        if 'playLength' not in album: album['playLength'] = 0
-        if 'albumDesc' not in album: album['albumDesc'] = ''
+        if 'playLength'   not in album: album['playLength'] = 0
+        if 'albumDesc'    not in album: album['albumDesc'] = ''
         if 'totalPlayNum' not in album: album['totalPlayNum'] = ''
+        if 'videoScore'   not in album: album['videoScore'] = 0
 
+        totalPlayNum = autoint(album['totalPlayNum'])
+        if totalPlayNum > 100000000:
+            album['totalPlayNum'] = '%.4f 亿次' % (totalPlayNum / 100000000)
+        elif totalPlayNum > 10000:
+            album['totalPlayNum'] = '%.2f 万次' % (totalPlayNum / 10000)
+        else:
+            album['totalPlayNum'] = '%d次' % (totalPlayNum)
+
+        album['playLength'] = '%.2f 分钟' % (album['playLength'] / 60.0)
 
         if album['cid'] == 1:
             album['type'] = '电影'
@@ -268,16 +279,20 @@ class IndexHandler(BaseHandler):
         args = {}
         args['page'] = 0
         args['size'] = 20
+        args['sort'] = '周播放最多'
 
         _items = tv.GetMenuAlbumListByName('电视剧', args)
         newtv = []
         for i in _items:
-            id = i
-
             _item = {}
             _item['id'] = i['vid']
             _item['title'] = i['albumName']
-            _item['time'] = i['publishYear']
+            if 'publishTime' in i:
+                _item['time'] = i['publishTime']
+            elif 'publishYear' in i:
+                _item['time'] = i['publishYear']
+            else:
+                _item['time'] = ''
 #            _item['time'] = _item['time'].replace("集更新", "集|更新至")
 #            if "更新" in _item['time']:
 #                _item['time'] = "更"+ _item['time'].split("更")[1]
@@ -295,15 +310,23 @@ class IndexHandler(BaseHandler):
 
         toptv = []
         x = 0
+        args['page'] = 0
+        args['size'] = 20
+        args['sort'] = '评分最高'
+
+        _items = tv.GetMenuAlbumListByName('电视剧', args)
         for i in _items:
-            id = i
             _item = {}
             if x == 0:
                 _item['info'] = i['albumName']
             x += 1
             _item['id'] = i['vid']
             _item['title'] = i['albumName']
-            _item['score'] = '1'
+            if 'videoScore' in i:
+                _item['score'] = '%.2f' % (float(i['videoScore']))
+            else:
+                _item['score'] = ''
+
             if 'smallVerPicUrl' in i:
                 _item['pic'] = i['smallVerPicUrl']
             elif 'smallVerPicUrl' in i:
@@ -316,14 +339,21 @@ class IndexHandler(BaseHandler):
                 _item['pic'] = ''
             toptv.append(_item)
 
+        args['page'] = 0
+        args['size'] = 20
+        args['sort'] = '周播放最多'
         _items = tv.GetMenuAlbumListByName('电影', args)
         newmovie = []
         for i in _items:
-            id = i
             _item = {}
             _item['id'] = i['vid']
             _item['title'] = i['albumName']
-            _item['time'] = i['publishYear']
+            if 'publishTime' in i:
+                _item['time'] = i['publishTime']
+            elif 'publishYear' in i:
+                _item['time'] = i['publishYear']
+            else:
+                _item['time'] = ''
 #            _item['time'] = _item['time'].replace("集更新", "集|更新至")
 #            if "更新" in _item['time']:
 #                _item['time'] = "更"+ _item['time'].split("更")[1]
@@ -341,15 +371,24 @@ class IndexHandler(BaseHandler):
 
         topmovie = []
         x = 0
+        args['page'] = 0
+        args['size'] = 20
+        args['sort'] = '评分最高'
+
+        _items = tv.GetMenuAlbumListByName('电影', args)
         for i in _items:
-            id = i
             _item = {}
             if x == 0:
                 _item['info'] = i['albumName']
             x += 1
             _item['id'] = i['vid']
             _item['title'] = i['albumName']
-            _item['score'] = '11'
+
+            if 'videoScore' in i:
+                _item['score'] = '%.2f' % (float(i['videoScore']))
+            else:
+                _item['score'] = ''
+
             if 'smallVerPicUrl' in i:
                 _item['pic'] = i['smallVerPicUrl']
             elif 'smallVerPicUrl' in i:
@@ -361,7 +400,6 @@ class IndexHandler(BaseHandler):
             else:
                 _item['pic'] = ''
             topmovie.append(_item)
-
 
         self.render("index.html",newtv=newtv,toptv=toptv,topmovie=topmovie,newmovie=newmovie)
 

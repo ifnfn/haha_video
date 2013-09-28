@@ -85,7 +85,7 @@ def autostr(i):
 
 def autoint(i):
     if type(i) == str:
-        return int(i)
+        return i and int(i) or 0
     else:
         return i
 
@@ -566,14 +566,35 @@ class DB:
 
 class VideoEngine:
     def __init__(self):
+        self.fieldMapping = {}
         self.engine_name = 'EngineBase'
         self.config = configparser.ConfigParser()
 
         self.db = DB()
         self.command = Commands(self.db.map_table)
 
-    def ConvertJson(self, f):
+    def ConvertJson(self, arg):
+        if 'filter' in arg:
+            arg['filter'] = self._ConvertFilterJson(arg['filter'])
+        if 'sort' in arg:
+            arg['sort'] = self._ConvertSortJson(arg['sort'])
+
+        return arg
+
+    def _ConvertFilterJson(self, f):
+        for key in f:
+            if key in self.fieldMapping:
+                newkey = self.fieldMapping[key]
+                f[newkey] = { "$in" : [f[key]]}
+                del f[key]
         return f
+
+    def _ConvertSortJson(self, v):
+        if v in self.fieldMapping:
+            newkey = self.fieldMapping[v]
+            return [(newkey, -1)]
+        else:
+            return [(v, -1)]
 
     # 获取节目一级菜单, 返回分类列表
     def GetMenu(self, times=0):

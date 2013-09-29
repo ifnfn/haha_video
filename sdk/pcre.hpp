@@ -6,8 +6,6 @@
 #include <vector>
 #include <string.h>
 
-#define VECSIZE 300
-
 class Pcre {
 	public:
 		Pcre();
@@ -22,7 +20,6 @@ class Pcre {
 		//match all the regrex, also return all the string match to every regrex
 		std::string MatchAll(const char *content);
 	private:
-		int ovector[VECSIZE];
 		std::vector<pcre*> re_arr;
 };
 #endif

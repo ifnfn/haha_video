@@ -75,13 +75,13 @@ class TemplateAlbumTotalPlayNum(Template):
         }
         super().__init__(album.command, cmd)
 
-#http://count.vrs.sohu.com/count/query.action?videoId=1268037
+# http://count.vrs.sohu.com/count/query.action?videoId=1268037
 # 更新热门节目信息
 class TemplateAlbumHotList(Template):
     def __init__(self, menu, url):
         cmd = {
             'name'    : 'albumlist_hot',
-            'source'  : url, #'http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3',
+            'source'  : url,
         }
         super().__init__(menu.command, cmd)
 
@@ -105,7 +105,7 @@ class TemplateAlbumMvInfo(Template):
         }
         super().__init__(album.command, cmd)
 
-# 更新节目的完整信息, 只是通过vid 拿playlistid
+# 更新节目的完整信息, 只是通过vid 拿到 playlistid
 class TemplateAlbumMvInfoMini(Template):
     def __init__(self, album, source_url):
         cmd = {
@@ -1065,6 +1065,8 @@ class SohuEngine(VideoEngine):
     def _CmdParserVideoList(self, js):
         ret = []
         try:
+            if not js['data']:
+                return ret
             g = re.search('p10(\d+)', js['source'])
             if g:
                 current_page = int(g.group(1))

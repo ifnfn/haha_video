@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
 	m = kola.GetMenuByName("电影");
 	std::cout << "GetMenuByName(\"电影\"):" << m.name << std::endl;
-#if 1
+#if 0
 	foreach(m.Filter.filterKey, i) {
 		std::cout << i->first << ": ";
 		foreach(i->second, j)

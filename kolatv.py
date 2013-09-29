@@ -1,14 +1,12 @@
 #! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import base64
 import redis
 import logging
 import tornado.escape
 import sohuengine as eg
 
 from ThreadPool import ThreadPool
-from apscheduler.scheduler import Scheduler
 
 POOLSIZE = 10
 
@@ -20,13 +18,6 @@ class Kolatv:
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=2)
         self.thread_pool = ThreadPool(POOLSIZE)
         self.MenuList = self.engine.GetMenu()
-
-        self.sched = Scheduler()
-        self.sched.start()
-        self.sched.add_interval_job(self.UpdateNewest, hours=1)
-        self.sched.add_interval_job(self.UpdateHottest, hours=4)
-        self.sched.add_interval_job(self.UpdateTop200, hours=12)
-        self.sched.add_interval_job(self.UpdateAllAlbumList, hours=2, seconds= 10)
 
     def GetMenuJsonInfoById(self, cid_list):
         ret = []

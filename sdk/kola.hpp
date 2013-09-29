@@ -71,17 +71,17 @@ class KolaVideo: public std::vector<VideoSegment> {
 };
 
 class Picture {
-public:
-	Picture(std::string fileName);
-	Picture();
-	~Picture();
-	void *data;
-	size_t size;
-	std::string fileName;
-	bool inCache;
-	void Caching(void);
-	bool wget();
-private:
+	public:
+		Picture(std::string fileName);
+		Picture();
+		~Picture();
+		void *data;
+		size_t size;
+		std::string fileName;
+		bool inCache;
+		void Caching(void);
+		bool wget();
+	private:
 };
 
 class KolaAlbum {
@@ -99,7 +99,7 @@ class KolaAlbum {
 			LoadFromJson(js);
 		}
 		~KolaAlbum() {
-//			printf("~KolaAlbum %s\n", albumName.c_str());
+			//printf("~KolaAlbum %s\n", albumName.c_str());
 		}
 
 		std::string albumName;
@@ -123,7 +123,7 @@ class KolaAlbum {
 		std::string playlistid;
 
 		bool GetVideo(void);
-		void CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
+		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
 		bool GetPicture(enum PicType type, Picture &pic); // 得到图片
 		bool GetPlayUrl(void **data, int *size);          // 得到播放列表
 	private:
@@ -247,11 +247,7 @@ class KolaMenu :public std::vector<KolaAlbum> {
 
 class KolaClient {
 	public:
-		static KolaClient& Instance(void) {
-			static KolaClient m_kola;
-
-			return m_kola;
-		}
+		static KolaClient& Instance(void);
 		~KolaClient(void);
 
 		void Quit(void);
@@ -274,9 +270,10 @@ class KolaClient {
 
 		bool UrlGet(std::string url, const char *home_url, void **http_resp, int times = 0);
 		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL);
+		bool UrlGetCache(std::string url, std::string &ret, const char *home_url = NULL);
 		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
 		void GetKey(void);
-		bool Login(void);
+		bool Login(bool quick=false);
 		char *Run(const char *cmd);
 		bool ProcessCommand(json_t *cmd, const char *dest);
 		bool running;

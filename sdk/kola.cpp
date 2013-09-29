@@ -4,12 +4,16 @@
 #include <string.h>
 #include <pcre.h>
 #include <iostream>
+#include <fstream>
+#include <ios>
+#include <sstream>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <zlib.h>
+#include <openssl/md5.h>
 
 #include "json.h"
 #include "httplib.h"
@@ -66,6 +70,28 @@ int Encrypt(int flen, const unsigned char *in, int in_size, unsigned char *out, 
 	//	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
 }
 #endif
+
+static std::string chipKey(void)
+{
+	return "000001";
+}
+
+static std::string MD5STR(const char *data)
+{
+	MD5_CTX ctx;
+	unsigned char md[16];
+	char buf[33]={'\0'};
+
+	MD5_Init(&ctx);
+	MD5_Update(&ctx, data,strlen(data));
+	MD5_Final(md,&ctx);
+
+	for(int i=0; i<16; i++ ){
+		sprintf(buf+ i * 2,"%02X", md[i]);
+	}
+
+	return std::string(buf);
+}
 
 static char *GetIP(const char *hostp)
 {
@@ -129,8 +155,10 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 		}
 		if(deflateEnd(&c_stream) != Z_OK) return -1;
 		*nzdata = c_stream.total_out;
+
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -323,7 +351,7 @@ KolaClient::KolaClient(void)
 	threadPool = (void*)pool_create(MAX_THREAD_POOL_SIZE);
 
 	pthread_mutex_init(&lock, NULL);
-	Login();
+	Login(true);
 	pthread_create(&thread, NULL, kola_login_thread, this);
 }
 
@@ -400,6 +428,41 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url)
 	return ok;
 }
 
+bool KolaClient::UrlGetCache(std::string url, std::string &ret, const char *home_url)
+{
+	bool rc = false;
+	std::string key = MD5STR(home_url);
+	char filename[128];
+	sprintf(filename, "../cache/%s", key.c_str());
+
+	std::ifstream in(filename);
+
+	if (in.is_open()) {
+		printf("Find cache : %s\n", filename);
+		std::istreambuf_iterator<char> beg(in), end;
+		ret = std::string(beg, end);
+
+		in.close();
+		return true;
+	}
+	else {
+		printf("download ... %s", home_url);
+		fflush(stdout);
+
+		rc = UrlGet(url, ret, home_url);
+		if (rc) {
+			printf("OK\n");
+			std::ofstream out(filename);
+			out << ret;
+			out.close();
+		}
+		else
+			printf("fail\n");
+
+		return rc;
+	}
+}
+
 bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, const char *home_url, int times)
 {
 	bool ok = false;
@@ -435,8 +498,9 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 
 	new_body = gzip_base64(body, strlen(body));
 	rc = http_post(http_client, url.c_str(), &http_resp, new_body.c_str(), cookie.c_str());
-	if (rc && http_resp && http_resp->body) {
-		ret = http_resp->body;
+	if (rc) {
+		if (http_resp && http_resp->body)
+			ret = http_resp->body;
 		ok = true;
 	}
 
@@ -480,9 +544,9 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 
 //	name = "album";
 //	source = "http://tv.sohu.com/s2012/azhx/";
-	printf("[%s]: %s --> %s\n", name, source, dest);
+	printf("[%s]: %s\n", name, source);
 
-	if (UrlGet("", text, source) == false)
+	if (UrlGetCache("", text, source) == false)
 		return false;
 
 	if (text.size() == 0)
@@ -528,28 +592,29 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 		json_delete(js);
 	}
 
-	int in_size = text.size();
-	int out_size = BASE64_SIZE(in_size) + 1;
-
-	char *out_buffer = (char *)calloc(1, out_size);
-	base64encode((unsigned char *)text.c_str(), in_size, (unsigned char*)out_buffer, out_size);
-	json_sets(cmd, "data", out_buffer);
+	json_sets(cmd, "data", text.c_str());
 	char *body = json_dumps(cmd, 2);
 
 	UrlPost("", body, text, dest);
 
 	delete body;
-	delete out_buffer;
 
 	return 0;
 }
 
-bool KolaClient::Login(void)
+bool KolaClient::Login(bool quick)
 {
 	json_error_t error;
 	std::string text;
+	std::string url("/login?user_id=");
 
-	if (UrlGet("/login?user_id=000001", text) == false)
+	url = url + chipKey();
+	if (quick == true)
+		url = url + "&cmd=0";
+	else
+		url = url + "&cmd=1";
+
+	if (UrlGet(url, text) == false)
 		return false;
 
 	json_t *js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
@@ -560,7 +625,6 @@ bool KolaClient::Login(void)
 		loginKeyCookie = "key=" + loginKey;
 		UNLOCK(lock);
 
-		std::cout << loginKey << std::endl;
 		baseUrl = json_gets(js, "server", baseUrl.c_str());
 		json_t *cmd = json_geto(js, "command");
 		const char *dest = json_gets(js, "dest", NULL);
@@ -665,10 +729,10 @@ void *kola_login_thread(void *arg)
 
 	pthread_cleanup_push(cancel, NULL);
 	while (client->running) {
+		pthread_testcancel();
+		client->Login(false);
+		pthread_testcancel();
 		sleep(client->nextLoginSec);
-		pthread_testcancel();
-		client->Login();
-		pthread_testcancel();
 	}
 	pthread_cleanup_pop(0);
 
@@ -677,3 +741,9 @@ void *kola_login_thread(void *arg)
 	return NULL;
 }
 
+KolaClient& KolaClient::Instance(void)
+{
+	static KolaClient m_kola;
+
+	return m_kola;
+}

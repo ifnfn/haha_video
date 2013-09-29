@@ -1,7 +1,9 @@
 #include <stdio.h>
 
+#include <iostream>
 #include "pcre.hpp"
 
+#define VECSIZE 300
 using namespace std;
 
 Pcre::Pcre()
@@ -51,13 +53,16 @@ void Pcre::ClearRules()
 string Pcre::MatchAll(const char *content)
 {
 	int length = strlen(content);
-	string result = "";
+	string result("");
+	int ovector[VECSIZE] ={'\0'};
 
 	for(size_t i=0; i<re_arr.size(); i++) {
 		int offset = 0;
 		int rc;
+
 		while(offset < length && (rc = pcre_exec(re_arr[i], NULL, content, length, offset, PCRE_NOTEMPTY, ovector, VECSIZE)) >= 0) {
-			result.append(content, ovector[1], ovector[2] - ovector[1]);
+//			printf("rc=%d\n", rc);
+			result.append(content, ovector[2], ovector[3] - ovector[2]);
 			result = result + "\n";
 
 			offset = ovector[2 * rc - 1];
@@ -65,6 +70,7 @@ string Pcre::MatchAll(const char *content)
 			//flags |= PCRE_NOTBOL;
 		}
 	}
+	//std::cout << result << std::endl;
 	return result;
 }
 

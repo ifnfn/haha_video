@@ -16,7 +16,7 @@ from tornado.options import define, options
 from pymongo import Connection
 from basehandle import BaseHandler
 from kolatv import Kolatv
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autostr, autoint
+import engine# import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autostr, autoint
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -169,7 +169,7 @@ class ShowHandler(BaseHandler):
         if 'totalPlayNum' not in album: album['totalPlayNum'] = ''
         if 'videoScore'   not in album: album['videoScore'] = 0
 
-        totalPlayNum = autoint(album['totalPlayNum'])
+        totalPlayNum = engine.autoint(album['totalPlayNum'])
         if totalPlayNum > 100000000:
             album['totalPlayNum'] = '%.4f 亿次' % (totalPlayNum / 100000000)
         elif totalPlayNum > 10000:
@@ -254,17 +254,20 @@ class LoginHandler(BaseHandler):
             'dest'   : ''
         }
 
-        if self.user_id == '000001':
-            timeout = 0
-        else:
-            timeout = 0.3
+        cmd = self.get_argument('cmd', '1')
+        if cmd == '1':
+            if self.user_id == '000001':
+                timeout = 0
+            else:
+                timeout = 0.3
+            count = self.get_argument('count', 1)
 
-        count = self.get_argument('count', 1)
-
-        cmd = tv.engine.command.GetCommand(timeout, count)
-        if cmd:
-            ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
-            ret['command'] = cmd
+            cmd = tv.engine.command.GetCommand(timeout, count)
+            if cmd:
+                ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
+                ret['command'] = cmd
+                if self.user_id == '000001':
+                    ret['next'] = 0
 
         self.finish(json.dumps(ret))
 

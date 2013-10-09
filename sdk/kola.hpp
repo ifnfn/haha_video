@@ -15,6 +15,16 @@
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
+class albumPage;
+
+enum PicType {
+	PIC_LARGE,      // 大图片网址
+	PIC_SMALL,      // 小图片网址
+	PIC_LARGE_HOR,
+	PIC_SMALL_HOR,
+	PIC_LARGE_VER,
+	PIC_SMALL_VER,
+};
 
 class VideoSegment {
 	public:
@@ -85,57 +95,34 @@ class Picture {
 	private:
 };
 
-class PictureCache: public std::map<std::string, Picture*> {
+class PictureCache: public std::map<std::string, Picture> {
 	public:
+		PictureCache(void) {
+			maxCount = 20;
+		}
 		PictureCache(int size) {
 			maxCount = size;
 		}
-		bool AddPicture(std::string fileName);
+		~PictureCache() {
+		}
+		Picture& Add(std::string fileName) {
+			std::pair<std::map<std::string, Picture>::iterator, bool> ret;
+			ret = insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
+			ret.first->second.Caching();
+		}
+
 	private:
 		int maxCount;
 };
 
 class KolaAlbum {
 	public:
-		enum PicType {
-			PIC_LARGE,      // 大图片网址
-			PIC_SMALL,      // 小图片网址
-			PIC_LARGE_HOR,
-			PIC_SMALL_HOR,
-			PIC_LARGE_VER,
-			PIC_SMALL_VER,
-		};
-
 		KolaAlbum(json_t *js) {
-			largePic    = NULL;
-			smallPic    = NULL;
-			largeHorPic = NULL;
-			smallHorPic = NULL;
-			largeVerPic = NULL;
-			smallVerPic = NULL;
-
 			LoadFromJson(js);
 		}
 
 		~KolaAlbum() {
 			//printf("~KolaAlbum %s\n", albumName.c_str());
-			if (largePic)
-				delete largePic;
-
-			if (smallPic)
-				delete smallPic;
-
-			if (largeHorPic)
-				delete largeHorPic;
-
-			if (smallHorPic)
-				delete smallHorPic;
-
-			if (largeVerPic)
-				delete largeVerPic;
-
-			if (smallVerPic)
-				delete smallVerPic;
 		}
 
 		std::string albumName;
@@ -159,21 +146,14 @@ class KolaAlbum {
 		int playlistid;
 
 		bool GetVideo(void);
-		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
-		bool GetPicture(enum PicType type, Picture &pic); // 得到图片
+		Picture *GetPicture(enum PicType type); // 得到图片
 		bool GetPlayUrl(void **data, int *size);          // 得到播放列表
+		std::string &GetPictureUrl(enum PicType type);
 	private:
 		bool LoadFromJson(json_t *js);
 
 		int pid;
 		int vid;
-
-		Picture *largePic;
-		Picture *smallPic;
-		Picture *largeHorPic;
-		Picture *smallHorPic;
-		Picture *largeVerPic;
-		Picture *smallVerPic;
 
 		std::string videoPlayUrl;
 		std::string largePicUrl;      // 大图片网址
@@ -269,7 +249,14 @@ class KolaSort: public FilterValue {
 		}
 };
 
-class KolaMenu :public std::vector<KolaAlbum> {
+class albumPage: public std::vector<KolaAlbum> {
+	public:
+		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
+	private:
+		PictureCache picCache;
+};
+
+class KolaMenu {
 	public:
 		KolaMenu(void);
 		KolaMenu(const KolaMenu& m);
@@ -278,7 +265,7 @@ class KolaMenu :public std::vector<KolaAlbum> {
 
 		std::string name;
 		int cid;
-		bool GetPage(int page = -1);
+		int GetPage(albumPage &page, int pageNo = -1);
 
 		KolaFilter Filter;
 		KolaSort   Sort;
@@ -307,7 +294,7 @@ class KolaClient {
 		KolaClient(void);
 		std::string baseUrl;
 		std::map<std::string, KolaMenu> menuMap;
-		std::map<std::string, Picture> picCache;
+
 		int nextLoginSec;
 		void *threadPool;
 

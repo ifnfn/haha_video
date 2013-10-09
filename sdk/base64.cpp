@@ -18,7 +18,7 @@ std::string base64encode(const std::string input)
 
 	ret = out_buffer;
 
-	delete out_buffer;
+	free(out_buffer);
 
 	return ret;
 }

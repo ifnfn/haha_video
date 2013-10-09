@@ -179,8 +179,8 @@ static std::string gzip_base64(const char *data, int ndata)
 
 	ret = out_buffer;
 
-	delete out_buffer;
-	delete zdata;
+	free(out_buffer);
+	free(zdata);
 
 	return ret;
 }
@@ -190,7 +190,6 @@ Picture::Picture(std::string fileName) {
 	size = 0;
 	inCache = false;
 	this->fileName = fileName;
-	Caching();
 }
 
 Picture::Picture() {
@@ -208,6 +207,17 @@ Picture::~Picture() {
 	size = 0;
 }
 
+void albumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
+{
+	KolaClient *client =& KolaClient::Instance();
+
+	for (std::vector<KolaAlbum>::iterator it = begin(); it != end(); it++) {
+		std::string &fileName = it->GetPictureUrl(type);
+		if (fileName != "")
+			picCache.Add(fileName);
+	}
+}
+
 static void *download_thread(void *arg) {
 	Picture *pic = (Picture*)arg;
 	pic->wget();
@@ -217,7 +227,7 @@ static void *download_thread(void *arg) {
 }
 
 void Picture::finish(void) {
-
+	printf("size=%d, data=%p\n", size, data);
 }
 
 bool Picture::wget()
@@ -229,7 +239,6 @@ bool Picture::wget()
 	bool ok = false;
 	http_resp_t *http_resp = NULL;
 
-	std::cout << fileName << std::endl;
 	printf("wget %s\n", fileName.c_str());
 	if (client->UrlGet("", fileName.c_str(), (void**)&http_resp)) {
 		size = http_resp->body_len;
@@ -237,7 +246,6 @@ bool Picture::wget()
 		memcpy(data, http_resp->body, size);
 		inCache = true;
 		ok = true;
-//		printf("size=%d, data=%p\n", size, data);
 	}
 	http_resp_free(http_resp);
 
@@ -294,7 +302,7 @@ KolaMenu::KolaMenu(const KolaMenu &m) {
 //	client = &KolaClient::Instance();
 }
 
-bool KolaMenu::GetPage(int page)
+int KolaMenu::GetPage(albumPage &page, int pageNo)
 {
 	char url[256];
 	int count = 0;
@@ -317,15 +325,13 @@ bool KolaMenu::GetPage(int page)
 
 	if (name == "" or cid == -1)
 		return false;
-	if (page == -1)
+	if (pageNo == -1)
 		PageId++;
 	else
-		PageId = page;
+		PageId = pageNo;
 
 	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", PageId, PageSize, name.c_str());
 	if (client->UrlPost(url, body.c_str(), text) == true) {
-		clear();
-
 		json_error_t error;
 		json_t *js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
 		if (js) {
@@ -334,11 +340,11 @@ bool KolaMenu::GetPage(int page)
 			if (results && json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value)
-					push_back(KolaAlbum(value));
+					page.push_back(KolaAlbum(value));
 			}
 
 //			std::cout << text << std::endl;
-			json_delete(js);
+			json_decref(js);
 		}
 	}
 
@@ -346,6 +352,7 @@ bool KolaMenu::GetPage(int page)
 }
 
 void *kola_login_thread(void *arg);
+
 KolaClient::KolaClient(void)
 {
 	char buffer[512];
@@ -354,7 +361,7 @@ KolaClient::KolaClient(void)
 	if (p) {
 		sprintf(buffer, "http://%s:%d", p, PORT);
 		baseUrl = buffer;
-		delete p;
+		free(p);
 	}
 
 	nextLoginSec = 3;
@@ -600,8 +607,8 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 				json_seto(newjs, key.c_str(), p_js);
 		}
 		text = json_dumps(newjs, 2);
-		json_delete(newjs);
-		json_delete(js);
+		json_decref(newjs);
+		json_decref(js);
 	}
 
 	json_sets(cmd, "data", text.c_str());
@@ -609,7 +616,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 
 	UrlPost("", body, text, dest);
 
-	delete body;
+	free(body);
 
 	return 0;
 }
@@ -647,7 +654,7 @@ bool KolaClient::Login(bool quick)
 		}
 
 		nextLoginSec = json_geti(js, "next", nextLoginSec);
-		json_delete(js);
+		json_decref(js);
 	}
 
 	return 0;
@@ -676,7 +683,7 @@ bool KolaClient::UpdateMenu(void)
 			const char *name = json_gets(value, "name", "");
 			menuMap.insert(std::pair<std::string, KolaMenu>(name, KolaMenu(value)));
 		}
-		json_delete(js);
+		json_decref(js);
 	}
 
 	return true;

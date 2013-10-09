@@ -94,16 +94,24 @@ int main(int argc, char **argv)
 //	m.Filter.KeyAdd("类型", "爱情片");
 	m.Sort.Set("周播放最多");
 //	m.Sort.Set("评分最高");
-	m.GetPage(0);
-	for (std::vector<KolaAlbum>::iterator it = m.begin(); it != m.end(); it++) {
+	albumPage page[2];
+	m.GetPage(page[0], 0);
+	m.GetPage(page[1], 1);
+	page[0].CachePicture(PIC_LARGE);
+	page[1].CachePicture(PIC_LARGE);
+	for (std::vector<KolaAlbum>::iterator it = page[0].begin(); it != page[0].end(); it++) {
 		std::string play_url;
 		printf("[%d] %s (%d)\n", it->playlistid, it->albumName.c_str(), it->weeklyPlayNum);
-		it->CachePicture(KolaAlbum::PIC_LARGE);
 //		it->GetVideo();
 //		if (it->video.GetPlayerUrl(0, play_url))
 //			std::cout << play_url << std::endl;
 	}
+//	Picture pic;
+//	if (page.waitPictureTimeout(pic, 300) == true) {
+
+//	}
 #endif
-	while(1) sleep(3);
+	sleep(3);
+//	while(1) sleep(3);
 	return 0;
 }

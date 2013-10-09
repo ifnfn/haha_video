@@ -57,6 +57,7 @@ extern "C" {
 
 	char *URLencode(const char *str);
 	char *URLdecode(char *str);
+
 #ifdef __cplusplus
 }
 #endif

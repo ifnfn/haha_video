@@ -74,14 +74,25 @@ class Picture {
 	public:
 		Picture(std::string fileName);
 		Picture();
-		~Picture();
+		virtual ~Picture();
 		void *data;
 		size_t size;
 		std::string fileName;
 		bool inCache;
 		void Caching(void);
 		bool wget();
+		virtual void finish(void);
 	private:
+};
+
+class PictureCache: public std::map<std::string, Picture*> {
+	public:
+		PictureCache(int size) {
+			maxCount = size;
+		}
+		bool AddPicture(std::string fileName);
+	private:
+		int maxCount;
 };
 
 class KolaAlbum {
@@ -96,10 +107,35 @@ class KolaAlbum {
 		};
 
 		KolaAlbum(json_t *js) {
+			largePic    = NULL;
+			smallPic    = NULL;
+			largeHorPic = NULL;
+			smallHorPic = NULL;
+			largeVerPic = NULL;
+			smallVerPic = NULL;
+
 			LoadFromJson(js);
 		}
+
 		~KolaAlbum() {
 			//printf("~KolaAlbum %s\n", albumName.c_str());
+			if (largePic)
+				delete largePic;
+
+			if (smallPic)
+				delete smallPic;
+
+			if (largeHorPic)
+				delete largeHorPic;
+
+			if (smallHorPic)
+				delete smallHorPic;
+
+			if (largeVerPic)
+				delete largeVerPic;
+
+			if (smallVerPic)
+				delete smallVerPic;
 		}
 
 		std::string albumName;
@@ -120,7 +156,7 @@ class KolaAlbum {
 		std::string directors;
 		KolaVideo video;
 		std::vector<KolaAlbum> subAlbum; // 子集
-		std::string playlistid;
+		int playlistid;
 
 		bool GetVideo(void);
 		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
@@ -129,8 +165,15 @@ class KolaAlbum {
 	private:
 		bool LoadFromJson(json_t *js);
 
-		std::string pid;
-		std::string vid;
+		int pid;
+		int vid;
+
+		Picture *largePic;
+		Picture *smallPic;
+		Picture *largeHorPic;
+		Picture *smallHorPic;
+		Picture *largeVerPic;
+		Picture *smallVerPic;
 
 		std::string videoPlayUrl;
 		std::string largePicUrl;      // 大图片网址

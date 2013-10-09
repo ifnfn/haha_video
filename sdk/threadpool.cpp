@@ -176,5 +176,6 @@ void *thread_routine(void *arg)
 		free(worker);
 		worker = NULL;
 	}
+
 	pthread_exit(NULL);
 }

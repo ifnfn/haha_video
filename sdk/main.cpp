@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	m.GetPage(0);
 	for (std::vector<KolaAlbum>::iterator it = m.begin(); it != m.end(); it++) {
 		std::string play_url;
-		printf("[%s] %s (%d)\n", it->playlistid.c_str(), it->albumName.c_str(), it->weeklyPlayNum);
+		printf("[%d] %s (%d)\n", it->playlistid, it->albumName.c_str(), it->weeklyPlayNum);
 		it->CachePicture(KolaAlbum::PIC_LARGE);
 //		it->GetVideo();
 //		if (it->video.GetPlayerUrl(0, play_url))

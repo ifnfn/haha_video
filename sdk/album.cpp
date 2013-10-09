@@ -9,9 +9,9 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 {
 	albumName      = json_gets(js, "albumName"  , "");
 	albumDesc      = json_gets(js, "albumDesc"  , "");
-	vid            = json_gets(js, "vid"        , "");
-	pid            = json_gets(js, "pid"        , "");
-	playlistid     = json_gets(js, "playlistid" , "");
+	vid            = json_geti(js, "vid"        , 0);
+	pid            = json_geti(js, "pid"        , 0);
+	playlistid     = json_geti(js, "playlistid" , 0);
 	isHigh         = json_geti(js, "isHigh"     , 0);
 	publishYear    = json_geti(js, "publishYear", 0);
 	totalSet       = json_geti(js, "totalSet"   , 0);
@@ -24,6 +24,31 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	smallHorPicUrl = json_gets(js, "smallHorPicUrl", "");
 	largeVerPicUrl = json_gets(js, "largeVerPicUrl", "");
 	smallVerPicUrl = json_gets(js, "smallVerPicUrl", "");
+
+	if (largePicUrl != "")
+		largePic    = new Picture(largePicUrl  );
+	if (smallPicUrl != "")
+		smallPic    = new Picture(smallPicUrl     );
+
+	if (largeHorPicUrl != "")
+		largeHorPic = new Picture(largeHorPicUrl);
+
+	if (smallHorPicUrl != "")
+		smallHorPic = new Picture(smallHorPicUrl);
+
+	if (largeVerPicUrl != "")
+		largeVerPic = new Picture(largeVerPicUrl);
+
+	if (smallVerPicUrl != "")
+		smallVerPic = new Picture(smallVerPicUrl);
+#if 0
+	std::cout << "largePicUrl: " << largePicUrl << std::endl;
+	std::cout << "smallPicUrl: " << smallPicUrl << std::endl;
+	std::cout << "largeHorPicUrl: " << largeHorPicUrl << std::endl;
+	std::cout << "smallHorPicUrl : " << smallHorPicUrl << std::endl;
+	std::cout << "largeVerPicUrl: " << largeVerPicUrl << std::endl;
+	std::cout << "smallVerPicUrl: " << smallVerPicUrl << std::endl;
+#endif
 
 	dailyPlayNum    =json_geti   (js , "dailyPlayNum"    , 0);   // 每日播放次数
 	weeklyPlayNum   =json_geti   (js , "weeklyPlayNum"   , 0);   // 每周播放次数
@@ -69,23 +94,24 @@ void KolaAlbum::CachePicture(enum PicType type) // 将图片加至线程队列�
 	KolaClient *client =& KolaClient::Instance();
 
 	switch (type) {
-	case PIC_LARGE:
-		fileName = this->largePicUrl; break;
-	case PIC_SMALL:
-		fileName = this->smallPicUrl; break;
-	case PIC_LARGE_HOR:
-		fileName = this->largeHorPicUrl; break;
-	case PIC_SMALL_HOR:
-		fileName = this->smallHorPicUrl; break;
-	case PIC_LARGE_VER:
-		fileName = this->largeVerPicUrl; break;
-	case PIC_SMALL_VER:
-		fileName = this->smallVerPicUrl; break;
-	default:
-		return;
+		case PIC_LARGE:
+			fileName = this->largePicUrl; break;
+		case PIC_SMALL:
+			fileName = this->smallPicUrl; break;
+		case PIC_LARGE_HOR:
+			fileName = this->largeHorPicUrl; break;
+		case PIC_SMALL_HOR:
+			fileName = this->smallHorPicUrl; break;
+		case PIC_LARGE_VER:
+			fileName = this->largeVerPicUrl; break;
+		case PIC_SMALL_VER:
+			fileName = this->smallVerPicUrl; break;
+		default:
+			return;
 	}
 
-	client->picCache.insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
+	if (fileName != "")
+		client->picCache.insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
 }
 
 bool KolaAlbum::GetPicture(enum PicType type, Picture &pic) // 得到图片

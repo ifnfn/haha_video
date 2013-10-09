@@ -58,7 +58,7 @@ class TemplateAlbumScore(Template):
     def __init__(self, album):
         cmd = {
             'name'    : 'album_score',
-            'source'  : 'http://index.tv.sohu.com/index/switch-aid/' + album.playlistid,
+            'source'  : 'http://index.tv.sohu.com/index/switch-aid/%d' % album.playlistid,
             'json'    : [
                 'attachment.album',
                 'attachment.index'
@@ -71,7 +71,7 @@ class TemplateAlbumTotalPlayNum(Template):
     def __init__(self, album):
         cmd = {
             'name'    : 'album_total_playnum',
-            'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=' + album.vid + ',' ,
+            'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=%d,' % album.vid,
         }
         super().__init__(album.command, cmd)
 
@@ -90,7 +90,7 @@ class TemplateAlbumFullInfo(Template):
     def __init__(self, album):
         cmd = {
             'name' : 'album_fullinfo',
-            'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s' % album.playlistid
+            'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%d' % album.playlistid
         }
         super().__init__(album.command, cmd)
 
@@ -99,7 +99,7 @@ class TemplateAlbumMvInfo(Template):
     def __init__(self, album, source_url):
         cmd = {
             'name'    : 'album_mvinfo',
-            'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
+            'source'  : 'http://search.vrs.sohu.com/mv_i%d.json' % album.vid,
             'homePage': source_url,
             'regular': ['var video_album_videos_result=(\{.*.\})']
         }
@@ -110,7 +110,7 @@ class TemplateAlbumMvInfoMini(Template):
     def __init__(self, album, source_url):
         cmd = {
             'name'    : 'album_mvinfo_mini',
-            'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
+            'source'  : 'http://search.vrs.sohu.com/mv_i%d.json' % album.vid,
             'homePage': source_url,
             'regular' : [
                 '("playlistId":\w+)'
@@ -803,7 +803,7 @@ class SohuEngine(VideoEngine):
                 return []
 
             if 'playlistId' in json :
-                tv.playlistid = autostr(json['playlistId'])
+                tv.playlistid = autoint(json['playlistId'])
 
             if 'videos' in json and len(json['videos']) > 0:
                 video = json['videos'][0]
@@ -838,9 +838,9 @@ class SohuEngine(VideoEngine):
             tv = self.NewAlbum()
 
             if 'cid' in json            : tv.cid            = autoint(json['cid'])
-            if 'playlistid' in json     : tv.playlistid     = autostr(json['playlistid'])
-            if 'pid' in json            : tv.pid            = autostr(json['pid'])
-            if 'vid' in json            : tv.vid            = autostr(json['vid'])
+            if 'playlistid' in json     : tv.playlistid     = autoint(json['playlistid'])
+            if 'pid' in json            : tv.pid            = autoint(json['pid'])
+            if 'vid' in json            : tv.vid            = autoint(json['vid'])
 
             if 'isHigh' in json         : tv.isHigh         = json['isHigh']
             if 'area' in json           : tv.area           = json['area']
@@ -853,6 +853,8 @@ class SohuEngine(VideoEngine):
             if 'smallHorPicUrl' in json : tv.smallHorPicUrl = json['smallHorPicUrl']
             if 'largeVerPicUrl' in json : tv.largeVerPicUrl = json['largeVerPicUrl']
             if 'smallVerPicUrl' in json : tv.smallVerPicUrl = json['smallVerPicUrl']
+            if 'largePicUrl' in json    : tv.largePicUrl    = json['largePicUrl']
+            if 'smallPicUrl' in json    : tv.smallPicUrl    = json['smallPicUrl']
 
             if 'albumDesc' in json      : tv.albumDesc      = json['albumDesc']
             if 'totalSet' in json       : tv.totalSet       = json['totalSet']
@@ -944,24 +946,24 @@ class SohuEngine(VideoEngine):
             if t:
                 for u in t:
                     if u[0] == 'pid':
-                        tv.pid = u[1]
+                        tv.pid = autoint(u[1])
                     elif u[0] == 'vid':
-                        tv.vid = u[1]
+                        if u[1] in ['-1', '', '1']:
+                            return ret
+                        tv.vid = autoint(u[1])
                     elif u[0] == 'playlistId' or u[0] == 'PLAYLIST_ID':
-                        tv.playlistid = u[1]
+                        tv.playlistid = autoint(u[1])
                     elif u[0] == 'cid':
-                        tv.cid = autostr(u[1])
+                        tv.cid = autoint(u[1])
 #                    elif u[0] == 'playAble':
 #                        if u[1] == 0:
 #                            return []
 
-                if tv.vid in ['-1', '', '1']:
-                    return ret
                 self._save_update_append(ret, tv, _filter={'albumPageUrl' : tv.albumPageUrl})#, False)
 
                 #TODO
                 # 如果得不到 playlistId 的话
-                if tv.playlistid == "":
+                if tv.playlistid == 0:
                     TemplateAlbumMvInfoMini(tv, js['source']).Execute()
                 #tv.UpdateFullInfoCommand().Execute()
                 #tv.UpdateScoreCommand().Execute()
@@ -986,7 +988,7 @@ class SohuEngine(VideoEngine):
             if text:
                 data = tornado.escape.json_decode(text[0])
                 for v in data['videos']:
-                    vid = v['videoid']
+                    vid = autoint(v['videoid'])
                     tv = self.GetAlbumFormDB(vid=vid, auto=False)
                     if tv == None:
                         return []
@@ -1011,7 +1013,7 @@ class SohuEngine(VideoEngine):
                 if album:
                     tv = self.NewAlbum()
                     if 'id' in album:
-                        tv.playlistid = album['id']
+                        tv.playlistid = autoint(album['id'])
                         if not tv.playlistid:
                             return []
 
@@ -1044,14 +1046,14 @@ class SohuEngine(VideoEngine):
         ret = []
         try:
             data = tornado.escape.json_decode(js['data'])
-            vid = data['id']
+            vid = autoint(data['id'])
             tv = self.GetAlbumFormDB(vid=vid)
             if tv:
-                if 'highVid' in data: tv.highVid = data['highVid']
-                if 'norVid' in data: tv.norVid = data['norVid']
-                if 'oriVid' in data: tv.oriVid = data['oriVid']
-                if 'superVid' in data: tv.superVid = data['superVid']
-                if 'relativeId' in data: tv.relativeId = data['relativeId']
+                if 'highVid' in data:    tv.highVid    = autoint(data['highVid'])
+                if 'norVid' in data:     tv.norVid     = autoint(data['norVid'])
+                if 'oriVid' in data:     tv.oriVid     = autoint(data['oriVid'])
+                if 'superVid' in data:   tv.superVid   = autoint(data['superVid'])
+                if 'relativeId' in data: tv.relativeId = autoint(data['relativeId'])
                 self._save_update_append(ret, tv)
         except:
             print(js['source'])

@@ -189,6 +189,7 @@ Picture::Picture(std::string fileName) {
 	data = NULL;
 	size = 0;
 	inCache = false;
+	this->fileName = fileName;
 	Caching();
 }
 
@@ -196,36 +197,47 @@ Picture::Picture() {
 	data = NULL;
 	size = 0;
 	inCache = false;
+	fileName = "";
 }
 
 Picture::~Picture() {
-	if (data)
+	if (data) {
 		free(data);
+		data = NULL;
+	}
+	size = 0;
 }
 
 static void *download_thread(void *arg) {
-	Picture *pic = (Picture*) pic;
+	Picture *pic = (Picture*)arg;
 	pic->wget();
+	pic->finish();
 
 	return NULL;
 }
 
+void Picture::finish(void) {
+
+}
+
 bool Picture::wget()
 {
-	if (inCache)
+	if (inCache == true)
 		return inCache;
 	KolaClient *client = &KolaClient::Instance();
 
 	bool ok = false;
 	http_resp_t *http_resp = NULL;
 
-	if (client->UrlGet(fileName, "", (void**)&http_resp)) {
+	std::cout << fileName << std::endl;
+	printf("wget %s\n", fileName.c_str());
+	if (client->UrlGet("", fileName.c_str(), (void**)&http_resp)) {
 		size = http_resp->body_len;
 		data = malloc(size);
 		memcpy(data, http_resp->body, size);
 		inCache = true;
 		ok = true;
-		printf("size=%d, data=%p\n", size, data);
+//		printf("size=%d, data=%p\n", size, data);
 	}
 	http_resp_free(http_resp);
 

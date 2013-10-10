@@ -248,10 +248,8 @@ class LoginHandler(BaseHandler):
     def get(self):
         ret = {
             'key'    : self.check_user_id(),
-            'command': [],
             'server' : self.request.protocol + '://' + self.request.host,
-            'next'   : 30,   # 下次登录时间
-            'dest'   : ''
+            'next'   : 5,   # 下次登录时间
         }
 
         cmd = self.get_argument('cmd', '1')

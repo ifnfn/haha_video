@@ -200,11 +200,13 @@ Picture::Picture() {
 }
 
 Picture::~Picture() {
+	Lock();
 	if (data) {
 		free(data);
 		data = NULL;
 	}
 	size = 0;
+	Unlock();
 }
 
 void albumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
@@ -220,8 +222,10 @@ void albumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 
 static void *download_thread(void *arg) {
 	Picture *pic = (Picture*)arg;
+	pic->Lock();
 	pic->wget();
 	pic->finish();
+	pic->Unlock();
 
 	return NULL;
 }
@@ -333,7 +337,7 @@ int KolaMenu::GetPage(albumPage &page, int pageNo)
 	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", PageId, PageSize, name.c_str());
 	if (client->UrlPost(url, body.c_str(), text) == true) {
 		json_error_t error;
-		json_t *js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
+		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 		if (js) {
 			json_t *results = json_geto(js, "result");
 
@@ -366,6 +370,7 @@ KolaClient::KolaClient(void)
 
 	nextLoginSec = 3;
 	running = true;
+	havecmd = true;
 
 	threadPool = (void*)pool_create(MAX_THREAD_POOL_SIZE);
 
@@ -376,6 +381,7 @@ KolaClient::KolaClient(void)
 
 void KolaClient::Quit(void)
 {
+	running = false;
 	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 	printf("KolaClient Quit: %p\n", this);
@@ -586,7 +592,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	json_t *json_filter = json_geto(cmd, "json");
 	if (json_filter && json_is_array(json_filter)) {
 		json_error_t error;
-		json_t *js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
+		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 		json_t *newjs = json_object();
 		json_t *value;
 
@@ -636,7 +642,7 @@ bool KolaClient::Login(bool quick)
 	if (UrlGet(url, text) == false)
 		return false;
 
-	json_t *js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
+	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	if (js) {
 		LOCK(lock);
@@ -646,18 +652,24 @@ bool KolaClient::Login(bool quick)
 
 		baseUrl = json_gets(js, "server", baseUrl.c_str());
 		json_t *cmd = json_geto(js, "command");
-		const char *dest = json_gets(js, "dest", NULL);
-		if (cmd && dest && json_is_array(cmd)) {
-			json_t *value;
-			json_array_foreach(cmd, value)
-				ProcessCommand(value, dest);
+		if (cmd) {
+			const char *dest = json_gets(js, "dest", NULL);
+			if (dest && json_is_array(cmd)) {
+				json_t *value;
+				json_array_foreach(cmd, value)
+					ProcessCommand(value, dest);
+			}
+		}
+		else {
+			havecmd = false;
+			printf("No found command!\n");
 		}
 
 		nextLoginSec = json_geti(js, "next", nextLoginSec);
 		json_decref(js);
 	}
 
-	return 0;
+	return true;
 }
 
 bool KolaClient::UpdateMenu(void)
@@ -675,7 +687,7 @@ bool KolaClient::UpdateMenu(void)
 
 //	std::cout << text << std::endl;
 	menuMap.clear();
-	js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
+	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	if (js) {
 		json_t *value;

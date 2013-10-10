@@ -62,7 +62,7 @@ bool KolaAlbum::GetVideo(void)
 	if (client->UrlPost("/video/getplayer", text.c_str(), text) == false)
 		return false;
 
-	js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
+	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 	if (js == NULL)
 		return false;
 
@@ -169,7 +169,7 @@ bool KolaVideo::GetPlayerUrl(size_t index, std::string &url)
 	if (client->UrlPost("/video/getplayer?step=2", text.c_str(), text) == false)
 		return false;
 
-	js = json_loads(text.c_str(), JSON_REJECT_DUPLICATES, &error);
+	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 	if (js == NULL)
 		return false;
 

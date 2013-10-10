@@ -92,7 +92,14 @@ class Picture {
 		void Caching(void);
 		bool wget();
 		virtual void finish(void);
+		void Lock() {
+			pthread_mutex_lock(&lock);
+		}
+		void Unlock() {
+			pthread_mutex_unlock(&lock);
+		}
 	private:
+		pthread_mutex_t lock;
 };
 
 class PictureCache: public std::map<std::string, Picture> {
@@ -105,6 +112,7 @@ class PictureCache: public std::map<std::string, Picture> {
 		}
 		~PictureCache() {
 		}
+
 		Picture& Add(std::string fileName) {
 			std::pair<std::map<std::string, Picture>::iterator, bool> ret;
 			ret = insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
@@ -287,9 +295,8 @@ class KolaClient {
 		bool UpdateMenu(void);
 		KolaMenu operator[] (const char *name);
 		KolaMenu operator[] (int inx);
-		int MenuCount() {
-			return menuMap.size();
-		};
+		int MenuCount() { return menuMap.size(); };
+		bool haveCommand() { return havecmd; }
 	private:
 		KolaClient(void);
 		std::string baseUrl;
@@ -309,6 +316,7 @@ class KolaClient {
 		bool running;
 		pthread_t thread;
 		pthread_mutex_t lock;
+		bool havecmd;
 
 		friend void *kola_login_thread(void *arg);
 		friend class KolaMenu;

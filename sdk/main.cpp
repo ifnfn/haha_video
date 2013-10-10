@@ -111,7 +111,9 @@ int main(int argc, char **argv)
 
 //	}
 #endif
-	sleep(3);
-//	while(1) sleep(3);
+	while (kola.haveCommand()) {
+		sleep(1);
+	}
+
 	return 0;
 }

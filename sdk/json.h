@@ -2,7 +2,7 @@
 #define __JSON_H__
 
 #include <stdbool.h>
-#include <jansson.h>
+#include "jansson.h"
 
 inline bool json_key_exists(json_t *js, const char *key)
 {

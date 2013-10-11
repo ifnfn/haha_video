@@ -15,7 +15,7 @@
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
-class albumPage;
+class AlbumPage;
 
 enum PicType {
 	PIC_LARGE,      // 大图片网址
@@ -78,6 +78,24 @@ class KolaVideo: public std::vector<VideoSegment> {
 		std::string GetM3U8(void);
 		std::string GetSubtitle(const char *lang);
 		bool GetPlayerUrl(size_t index, std::string &url);
+
+		std::string name;
+		int playlistid;  // 所属 ablum
+		int pid;
+		int vid;
+		int order;
+		int isHigh;
+		int videoPlayCount;
+		double videoScore;
+		double playLength;
+
+		std::string showName;
+		std::string publishTime;
+		std::string videoDesc;
+
+		std::string smallPicUrl;
+		std::string largePicUrl;
+		std::string pageUrl;
 };
 
 class Picture {
@@ -150,9 +168,11 @@ class KolaAlbum {
 		std::string actors;
 		std::string directors;
 		KolaVideo video;
+		std::vector<KolaVideo> videos;
 		std::vector<KolaAlbum> subAlbum; // 子集
 		int playlistid;
 
+		bool GetVideos(void);
 		bool GetVideo(void);
 		Picture *GetPicture(enum PicType type); // 得到图片
 		bool GetPlayUrl(void **data, int *size);          // 得到播放列表
@@ -257,7 +277,7 @@ class KolaSort: public FilterValue {
 		}
 };
 
-class albumPage: public std::vector<KolaAlbum> {
+class AlbumPage: public std::vector<KolaAlbum> {
 	public:
 		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
 	private:
@@ -273,10 +293,11 @@ class KolaMenu {
 
 		std::string name;
 		int cid;
-		int GetPage(albumPage &page, int pageNo = -1);
+		int GetPage(AlbumPage &page, int pageNo = -1);
 
 		KolaFilter Filter;
 		KolaSort   Sort;
+		void SetPageSize(int size) {PageSize = size;}
 	private:
 		KolaClient *client;
 		int PageSize;

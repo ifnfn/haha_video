@@ -209,7 +209,7 @@ Picture::~Picture() {
 	Unlock();
 }
 
-void albumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
+void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
 	KolaClient *client =& KolaClient::Instance();
 
@@ -230,8 +230,9 @@ static void *download_thread(void *arg) {
 	return NULL;
 }
 
-void Picture::finish(void) {
-	printf("size=%d, data=%p\n", size, data);
+void Picture::finish(void)
+{
+//	printf("size=%d, data=%p\n", size, data);
 }
 
 bool Picture::wget()
@@ -243,7 +244,7 @@ bool Picture::wget()
 	bool ok = false;
 	http_resp_t *http_resp = NULL;
 
-	printf("wget %s\n", fileName.c_str());
+//	printf("wget %s\n", fileName.c_str());
 	if (client->UrlGet("", fileName.c_str(), (void**)&http_resp)) {
 		size = http_resp->body_len;
 		data = malloc(size);
@@ -306,7 +307,7 @@ KolaMenu::KolaMenu(const KolaMenu &m) {
 //	client = &KolaClient::Instance();
 }
 
-int KolaMenu::GetPage(albumPage &page, int pageNo)
+int KolaMenu::GetPage(AlbumPage &page, int pageNo)
 {
 	char url[256];
 	int count = 0;
@@ -521,7 +522,8 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 
 	UNLOCK(lock);
 
-	new_body = gzip_base64(body, strlen(body));
+	if (body)
+		new_body = gzip_base64(body, strlen(body));
 	rc = http_post(http_client, url.c_str(), &http_resp, new_body.c_str(), cookie.c_str());
 	if (rc) {
 		if (http_resp && http_resp->body)

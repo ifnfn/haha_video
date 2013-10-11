@@ -45,8 +45,8 @@ class Kolatv:
 
         return data
 
-    def GetVideoListByPid(self, playlistid, argument):
-        return self.engine.db.GetVideoListJson(playlistid=playlistid, arg=argument)
+    def GetVideoListByPid(self, pid, argument):
+        return self.engine.db.GetVideoListJson(pid=pid, arg=argument)
 
     def ParserHtml(self, data):
         js = tornado.escape.json_decode(data)

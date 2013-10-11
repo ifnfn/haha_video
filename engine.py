@@ -155,22 +155,22 @@ class VideoBase:
         return ret
 
     def LoadFromJson(self, json):
-        if 'playlistid' in json     : self.playlistid = autoint(json['playlistid'])
-        if 'pid' in json            : self.pid = autoint(json['pid'])
-        if 'vid' in json            : self.vid = autoint(json['vid'])
-        if 'name' in json           : self.name = json['name']
-        if 'videoName' in json      : self.name = json['videoName']
-        if 'order' in json          : self.order = json['order']
-        if 'playLength' in json     : self.playLength = json['playLength']
-        if 'showName' in json       : self.showName = json['showName']
-        if 'publishTime' in json    : self.publishTime = json['publishTime']
-        if 'videoDesc' in json      : self.videoDesc = json['videoDesc']
-        if 'isHigh' in json         : self.isHigh = json['isHigh']
+        if 'playlistid' in json     : self.playlistid     = autoint(json['playlistid'])
+        if 'pid' in json            : self.pid            = autoint(json['pid'])
+        if 'vid' in json            : self.vid            = autoint(json['vid'])
+        if 'order' in json          : self.order          = autoint(json['order'])
+        if 'name' in json           : self.name           = json['name']
+        if 'videoName' in json      : self.name           = json['videoName']
+        if 'playLength' in json     : self.playLength     = json['playLength']
+        if 'showName' in json       : self.showName       = json['showName']
+        if 'publishTime' in json    : self.publishTime    = json['publishTime']
+        if 'videoDesc' in json      : self.videoDesc      = json['videoDesc']
+        if 'isHigh' in json         : self.isHigh         = autoint(json['isHigh'])
         if 'videoPlayCount' in json : self.videoPlayCount = json['videoPlayCount']
-        if 'videoScore' in json     : self.videoScore = json['videoScore']
-        if 'largePicUrl' in json    : self.largePicUrl = json['largePicUrl']
-        if 'smallPicUrl' in json    : self.smallPicUrl = json['smallPicUrl']
-        if 'pageUrl' in json        : self.pageUrl = json['pageUrl']
+        if 'videoScore' in json     : self.videoScore     = json['videoScore']
+        if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
+        if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
+        if 'pageUrl' in json        : self.pageUrl        = json['pageUrl']
 
 # 一个节目，表示一部电影、电视剧集
 class AlbumBase:
@@ -396,7 +396,7 @@ class DB:
         self.album_table  = self.db.album
         self.videos_table = self.db.videos
         self.map_table    = self.db.urlmap
-        self.album_table.drop_indexes()
+#        self.album_table.drop_indexes()
 #         self.album_table.create_index([('albumPageUrl', pymongo.ASCENDING)])
 #         self.album_table.create_index([('vid', pymongo.ASCENDING)])
 #         self.album_table.create_index([('cid', pymongo.ASCENDING)])
@@ -413,7 +413,7 @@ class DB:
                 upert.append({'vid' : video.vid})
 
             self.videos_table.update(
-                      {'$or' : upert},
+                      {'$and' : upert},
                       {'$set' : js},
                       upsert=True, multi=True)
 
@@ -524,7 +524,7 @@ class DB:
 
         return self.videos_table.find_one({"$or" : f})
 
-    def GetVideoListJson(self, playlistid, pid=0, arg={}):
+    def GetVideoListJson(self, playlistid=0, pid=0, arg={}):
         ret = []
         playlistid = autoint(playlistid)
         pid        = autoint(pid)

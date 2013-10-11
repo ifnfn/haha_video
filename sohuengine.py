@@ -11,7 +11,7 @@ import base64
 import tornado.escape
 
 from bs4 import BeautifulSoup as bs
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autostr, autoint
+from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autoint
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -686,7 +686,7 @@ class SohuEngine(VideoEngine):
         if step == '1':
             res = self._ParserRealUrlStep1(text)
         else:
-            res = self._ParserRealUrlStep1(text)
+            res = self._ParserRealUrlStep2(text)
 
         return json.dumps(res, indent=4, ensure_ascii=False)
 
@@ -805,20 +805,19 @@ class SohuEngine(VideoEngine):
             if 'playlistId' in json :
                 tv.playlistid = autoint(json['playlistId'])
 
-            if 'videos' in json and len(json['videos']) > 0:
+            if 'videos' in json and json['videos']:
                 video = json['videos'][0]
 
                 if 'isHigh' in video          : tv.isHigh = str(video['isHigh'])
                 if 'videoScore' in video      : tv.videoScore = str(video['videoScore'])
 
-#                     for video in a['videos']:
-#                         #vJson = self.db.FindVideoJson(tv.playlistid)
-#                         v = tv.VideoClass()
-#                         v.playlistid = tv.playlistid
-#                         v.pid = tv.pid
-#                         v.LoadFromJson(video)
+#                 for video in json['videos']:
+#                     v = tv.VideoClass()
+#                     v.playlistid = tv.playlistid
+#                     v.pid = tv.pid
+#                     v.LoadFromJson(video)
 #
-#                         tv.videos.append(v)
+#                     tv.videos.append(v)
             if tv.playlistid:
                 self._save_update_append(ret, tv, upsert=False)
         except:
@@ -869,12 +868,13 @@ class SohuEngine(VideoEngine):
                         if 'playLength' in video  : tv.playLength =  video['playLength']
                         if 'publishTime' in video : tv.publishTime = video['publishTime']
 
-                    #vJson = self.db.FindVideoJson(tv.playlistid)
-#                         v = tv.VideoClass()
-#                         v.playlistid = tv.playlistid
-#                         v.pid = tv.pid
-#                         v.LoadFromJson(video)
-#                         tv.videos.append(v)
+                    if tv.vid == 1268037:
+                        print(tv.vid)
+                    v = tv.VideoClass()
+                    v.playlistid = tv.playlistid
+                    v.pid = tv.vid
+                    v.LoadFromJson(video)
+                    tv.videos.append(v)
             if tv.vid:
                 self._save_update_append(ret, tv, {'vid' : tv.vid}, upsert=False)
             else:
@@ -902,20 +902,6 @@ class SohuEngine(VideoEngine):
                     (url, album) = text[0]
 
                     if url and album:
-#                        test = [
-#                                'http://tv.sohu.com/s2011/1663/s322643386/',
-#                                 'http://tv.sohu.com/s2011/ajyh/',
-#                                 'http://tv.sohu.com/20110426/n306486856.shtml',
-#                                 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html',
-#                                 'http://tv.sohu.com/20120517/n343417005.shtml',
-#                                 'http://tv.sohu.com/s2012/zlyeye/',
-#                                 'http://store.tv.sohu.com/5009508/706684_1772.html',
-#                                ]
-#                        if url in test:
-#                            pass
-#                        else:
-#                            continue
-
                         tv = self.albumClass(self)
                         if tv.albumName == '':
                             tv.albumName = album
@@ -955,9 +941,11 @@ class SohuEngine(VideoEngine):
                         tv.playlistid = autoint(u[1])
                     elif u[0] == 'cid':
                         tv.cid = autoint(u[1])
-#                    elif u[0] == 'playAble':
-#                        if u[1] == 0:
-#                            return []
+                    elif u[0] == 'tvid':
+                        tv.tvid = autoint(u[1])
+                    elif u[0] == 'playAble':
+                        if u[1] == 0:
+                            return []
 
                 self._save_update_append(ret, tv, _filter={'albumPageUrl' : tv.albumPageUrl})#, False)
 

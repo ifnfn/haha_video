@@ -49,6 +49,28 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	return true;
 }
 
+bool KolaAlbum::GetVideos(void)
+{
+	std::string text;
+	json_t *js;
+	json_error_t error;
+	KolaClient *client = &KolaClient::Instance();
+	char url[128];
+
+	sprintf(url, "/video/getvideo?pid=%d", vid);
+
+	if (client->UrlPost(url, NULL, text) == false)
+		return false;
+
+	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+	if (js == NULL)
+		return false;
+
+	bool ret = video.LoadFromJson(js);
+	json_decref(js);
+
+	return ret;
+}
 bool KolaAlbum::GetVideo(void)
 {
 	std::string text;

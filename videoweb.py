@@ -16,7 +16,7 @@ from tornado.options import define, options
 from pymongo import Connection
 from basehandle import BaseHandler
 from kolatv import Kolatv
-import engine# import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autostr, autoint
+import engine
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -57,8 +57,12 @@ class VideoListHandler(BaseHandler):
 
     def argument(self):
         args = {}
-        args['page'] = int(self.get_argument('page', 0))
-        args['size'] = int(self.get_argument('size', 20))
+        page = self.get_argument('page', 0)
+        if page:
+            args['page'] = page
+        size = self.get_argument('size', 0)
+        if size:
+            args['size'] = size
 
         return args, self.get_argument('pid', '')
 
@@ -66,6 +70,7 @@ class VideoListHandler(BaseHandler):
         args, pid = self.argument()
 
         args['result'] = tv.GetVideoListByPid(pid, args)
+        args['count'] = len(args['result'])
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
@@ -81,6 +86,7 @@ class VideoListHandler(BaseHandler):
                 raise tornado.web.HTTPError(400)
 
         args['result'] = tv.GetVideoListByPid(pid, args)
+        args['count'] = len(args['result'])
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
 class UrlMapHandler(BaseHandler):

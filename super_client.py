@@ -149,8 +149,8 @@ class KolaClient:
             if data:
                 data = tornado.escape.json_decode(data)
                 self.key = data['key']
-                dest = data['dest']
-                if len(data['command']) > 0 and dest:
+                if 'command' in data:
+                    dest = data['dest']
                     for cmd in data['command']:
                         self.ProcessCommand(cmd, dest)
                     ret = True

@@ -3,59 +3,8 @@
 
 #include "kola.hpp"
 
-
-void filter_test(void)
-{
-	KolaFilter filter;
-
-	filter.KeyAdd("a1", "a1");
-	filter.GetJsonStr();
-	filter.KeyAdd("a1", "a2");
-	filter.GetJsonStr();
-	filter.KeyAdd("a1", "a3");
-	filter.GetJsonStr();
-	filter.KeyAdd("a1", "a4");
-	filter.GetJsonStr();
-	filter.KeyAdd("b1", "b1");
-	filter.GetJsonStr();
-	filter.KeyAdd("b1", "b2");
-	filter.GetJsonStr();
-	filter.KeyAdd("b1", "b3");
-	filter.GetJsonStr();
-	filter.KeyAdd("bb", "b4");
-	filter.GetJsonStr();
-	filter.KeyRemove("bb", "b3");
-	filter["bb"] >> "b2";
-
-	filter["aa"].Add("aaaaaa");
-	filter["aa"] << "1231231231";
-	FilterValue keys = filter["aa"];
-	foreach(keys, i)
-		printf("aa --> %s\n", i->c_str());
-
-	keys = filter["bb"];
-	foreach(keys, i)
-		printf("bb --> %s\n", i->c_str());
-	filter.GetJsonStr();
-	filter["aa"].clear();
-	filter["bb"].clear();
-	printf("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n");
-	filter.GetJsonStr();
-
-	KolaSort sort;
-
-	sort << "sort1";
-	std::cout << sort.GetJsonStr() << std::endl;
-	sort << "sort2";
-	std::cout << sort.GetJsonStr() << std::endl;
-	sort << "sort3";
-	std::cout << sort.GetJsonStr() << std::endl;
-}
-
 int main(int argc, char **argv)
 {
-//	filter_test(); return 0;
-
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();
@@ -64,21 +13,9 @@ int main(int argc, char **argv)
 
 #if 0
 	m = kola["电影"];
-	std::cout << "kola[\"电影\"] = " << m.name << std::endl;
-	for(int i = 0; i < kola.MenuCount(); i++) {
-		m = kola[i];
-		printf("ddd:");
-		std::cout << m.name << std::endl;
-	}
-
 	m = kola.GetMenuByCid(1);
-	std::cout << "ByCid: " << m.name << std::endl;
-
 	m = kola[1];
-	std::cout << "kola[1] = " << m.name << std::endl;
-
 	m = kola["电影"];
-	std::cout << "kola[\"电影\"] = " << m.name << std::endl;
 #endif
 
 	m = kola.GetMenuByName("电影");
@@ -98,18 +35,29 @@ int main(int argc, char **argv)
 	m.GetPage(page, 0);
 	page.CachePicture(PIC_LARGE);
 //	page.CacheVideo();
-	for (std::vector<KolaAlbum>::iterator it = page.begin(); it != page.end(); it++) {
+//	for (std::vector<KolaAlbum>::iterator it = page.begin(); it != page.end(); it++) {
+	foreach(page, it) {
 		std::string play_url;
 		printf("[%d] %s (%d)\n", it->playlistid, it->albumName.c_str(), it->weeklyPlayNum);
 		it->GetVideos();
-		if (it->video.GetPlayerUrl(0, play_url))
-			std::cout << play_url << std::endl;
+		foreach(it->videos, i) {
+			printf("\tVideo: %s < %s >\n", i->name.c_str(),
+					i->publishTime.c_str()
+			      );
+
+			i->GetPlayInfo();
+			if (i->GetPlayerUrl(0, play_url))
+				std::cout << play_url << std::endl;
+		}
 	}
+
 //	Picture pic;
 //	if (page.waitPictureTimeout(pic, 300) == true) {
 
 //	}
 #endif
+	while (1)
+		sleep(3);
 	while (kola.haveCommand()) {
 		sleep(1);
 	}

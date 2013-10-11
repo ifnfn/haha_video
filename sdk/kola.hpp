@@ -60,9 +60,20 @@ class VideoSegment {
 
 class KolaVideo: public std::vector<VideoSegment> {
 	public:
-		KolaVideo() {
+		KolaVideo(json_t *js = NULL) {
 			width = height = fps = totalBytes = totalBlocks = 0;
 			totalDuration = 0.0;
+			playlistid = 0;  // 所属 ablum
+			pid = 0;
+			vid = 0;
+			order = 0;
+			isHigh = 0;
+			videoPlayCount = 0;
+			videoScore = 0.0;
+			playLength = 0.0;
+
+			if (js)
+				LoadFromJson(js);
 		}
 		~KolaVideo() {}
 
@@ -74,6 +85,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 		int totalBlocks;
 
 		bool LoadFromJson(json_t *js);
+		bool GetPlayInfo(void);
 
 		std::string GetM3U8(void);
 		std::string GetSubtitle(const char *lang);
@@ -96,6 +108,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 		std::string smallPicUrl;
 		std::string largePicUrl;
 		std::string pageUrl;
+		std::string playUrl;
 };
 
 class Picture {
@@ -135,6 +148,8 @@ class PictureCache: public std::map<std::string, Picture> {
 			std::pair<std::map<std::string, Picture>::iterator, bool> ret;
 			ret = insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
 			ret.first->second.Caching();
+
+			return ret.first->second;
 		}
 
 	private:
@@ -167,7 +182,6 @@ class KolaAlbum {
 		std::string mainActors;
 		std::string actors;
 		std::string directors;
-		KolaVideo video;
 		std::vector<KolaVideo> videos;
 		std::vector<KolaAlbum> subAlbum; // 子集
 		int playlistid;

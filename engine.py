@@ -101,7 +101,7 @@ class VideoBase:
             "playLength": 1935.051,
             "showName": "第1集",
             "publishTime": "2013-08-06",
-            "videoDesc": "多年以来，雪祭的画面一直在齐远脑海里浮现，可是现实中却不是这个样子，他在心里向安琪道歉，因为安琪是那样全心全意的对待自己，而自己却负了她。家丁向齐远说早安，齐远吩咐他们，要注意的事情一定要注意，有事给自己的打招呼。",
+            "videoDesc": "事情一定要注意，有事给自己的打招呼。",
             "isHigh": 1,
 
             "videoPlayCount": 18435401,
@@ -133,6 +133,9 @@ class VideoBase:
         if js:
             self.LoadFromJson(js)
 
+    def GetVideoPlayUrl(self, definition=0):
+        pass
+
     def SaveToJson(self):
         ret = {}
 
@@ -151,6 +154,7 @@ class VideoBase:
         if self.largePicUrl     : ret['largePicUrl'] = self.largePicUrl
         if self.smallPicUrl     : ret['smallPicUrl'] = self.smallPicUrl
         if self.pageUrl         : ret['pageUrl'] = self.pageUrl
+        ret['playUrl'] = self.GetVideoPlayUrl()
 
         return ret
 
@@ -396,26 +400,25 @@ class DB:
         self.album_table  = self.db.album
         self.videos_table = self.db.videos
         self.map_table    = self.db.urlmap
+#        self.map_table.create_index([('pid', pymongo.ASCENDING)])
 #        self.album_table.drop_indexes()
 #         self.album_table.create_index([('albumPageUrl', pymongo.ASCENDING)])
 #         self.album_table.create_index([('vid', pymongo.ASCENDING)])
 #         self.album_table.create_index([('cid', pymongo.ASCENDING)])
 
     def SaveVideo(self, video):
-        if video.pid or video.vid or video.playlistid:
+        if video.pid and video.vid:
             js = video.SaveToJson()
-            upert = []
-            if video.playlistid:
-                upert.append({'playlistid' : video.playlistid})
-            if video.pid:
-                upert.append({'pid' : video.pid})
+            upert = {}
             if video.vid:
-                upert.append({'vid' : video.vid})
+                upert['vid'] = video.vid
+#            if video.pid:
+#                upert['pid'] = video.pid
 
             self.videos_table.update(
-                      {'$and' : upert},
-                      {'$set' : js},
-                      upsert=True, multi=True)
+                       upert,
+                       {'$set' : js},
+                       upsert=True, multi=True)
 
     def SaveAlbum(self, album, key={}, upsert=True):
         album.playlistid = autoint(album.playlistid)

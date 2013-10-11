@@ -211,8 +211,6 @@ Picture::~Picture() {
 
 void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
-	KolaClient *client =& KolaClient::Instance();
-
 	for (std::vector<KolaAlbum>::iterator it = begin(); it != end(); it++) {
 		std::string &fileName = it->GetPictureUrl(type);
 		if (fileName != "")

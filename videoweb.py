@@ -69,8 +69,8 @@ class VideoListHandler(BaseHandler):
     def get(self):
         args, pid = self.argument()
 
-        args['result'] = tv.GetVideoListByPid(pid, args)
-        args['count'] = len(args['result'])
+        args['videos'] = tv.GetVideoListByPid(pid, args)
+        args['count'] = len(args['videos'])
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
@@ -85,8 +85,8 @@ class VideoListHandler(BaseHandler):
                 log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
-        args['result'] = tv.GetVideoListByPid(pid, args)
-        args['count'] = len(args['result'])
+        args['videos'] = tv.GetVideoListByPid(pid, args)
+        args['count'] = len(args['videos'])
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
 class UrlMapHandler(BaseHandler):

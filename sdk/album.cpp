@@ -52,7 +52,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 bool KolaAlbum::GetVideos(void)
 {
 	std::string text;
-	json_t *js;
+	json_t *js, *videos, *v;
 	json_error_t error;
 	KolaClient *client = &KolaClient::Instance();
 	char url[128];
@@ -66,38 +66,20 @@ bool KolaAlbum::GetVideos(void)
 	if (js == NULL)
 		return false;
 
-	bool ret = video.LoadFromJson(js);
+	videos = json_geto(js, "videos");
+
+	json_array_foreach(videos, v) {
+		this->videos.push_back(KolaVideo(v));
+	}
+
 	json_decref(js);
 
-	return ret;
-}
-bool KolaAlbum::GetVideo(void)
-{
-	std::string text;
-	json_t *js;
-	json_error_t error;
-	KolaClient *client = &KolaClient::Instance();
-
-	if (client->UrlGet("", text, videoPlayUrl.c_str()) == false)
-		return false;
-
-	if (client->UrlPost("/video/getplayer", text.c_str(), text) == false)
-		return false;
-
-	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-	if (js == NULL)
-		return false;
-
-	bool ret = video.LoadFromJson(js);
-	json_decref(js);
-
-	return ret;
+	return true;
 }
 
 std::string &KolaAlbum::GetPictureUrl(enum PicType type)
 {
-	std::string &fileName = this->smallPicUrl;;
-	KolaClient *client =& KolaClient::Instance();
+	std::string &fileName = this->smallPicUrl;
 
 	switch (type){
 		case PIC_LARGE:
@@ -145,9 +127,23 @@ std::string VideoSegment::GetJsonStr(std::string *newUrl)
 	return std::string(buffer);
 }
 
-bool KolaVideo::LoadFromJson(json_t *js)
+bool KolaVideo::GetPlayInfo(void)
 {
-	json_t *sets, *value;
+	std::string text;
+	json_t *js, *sets, *value;
+	json_error_t error;
+	KolaClient *client = &KolaClient::Instance();
+
+	if (client->UrlGet("", text, playUrl.c_str()) == false)
+		return false;
+
+	if (client->UrlPost("/video/getplayer", text.c_str(), text) == false)
+		return false;
+
+	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+	if (js == NULL)
+		return false;
+
 	if (json_geto(js, "sets") == NULL)
 		return false;
 
@@ -163,6 +159,32 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	clear();
 	json_array_foreach(sets, value)
 		push_back(VideoSegment(value));
+
+	json_decref(js);
+
+	return true;
+}
+
+bool KolaVideo::LoadFromJson(json_t *js)
+{
+	name           = json_gets(js    , "name"           , "");
+	playlistid     = json_geti(js    , "playlistid"     , 0);
+	pid            = json_geti(js    , "pid"            , 0);
+	vid            = json_geti(js    , "vid"            , 0);
+	order          = json_geti(js    , "order"          , 0);
+	isHigh         = json_geti(js    , "isHigh"         , 0);
+
+	videoPlayCount = json_geti(js    , "videoPlayCount" , 0);
+	videoScore     = json_getreal(js , "videoScore"     , 0.0);
+	playLength     = json_getreal(js , "playLength"     , 0.0);
+
+	showName       = json_gets(js    , "showName"       , "");
+	publishTime    = json_gets(js    , "publishTime"    , "");
+	videoDesc      = json_gets(js    , "videoDesc"      , "");
+
+	smallPicUrl    = json_gets(js    , "smallPicUrl"    , "");
+	largePicUrl    = json_gets(js    , "largePicUrl"    , "");
+	playUrl        = json_gets(js    , "playUrl"        , "");
 
 	return true;
 }

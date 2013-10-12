@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	AlbumPage page;
 	m.GetPage(page, 0);
 	page.CachePicture(PIC_LARGE);
-	page.CacheVideo();
+	page.UpdateVideos();
 
 //	for (std::vector<KolaAlbum>::iterator it = page.begin(); it != page.end(); it++) {
 	foreach(page, it) {

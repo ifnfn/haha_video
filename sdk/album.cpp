@@ -102,8 +102,31 @@ std::string &KolaAlbum::GetPictureUrl(enum PicType type)
 	return fileName;
 }
 
-void AlbumPage::CacheVideo(void)
+bool KolaAlbum::Run() {
+	GetVideos();
+}
+
+
+void AlbumPage::UpdateVideos(void)
 {
 	for (std::vector<KolaAlbum>::iterator it = begin(); it != end(); it++)
-		it->GetVideos();
+		it->Start();
 }
+
+void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
+{
+	for (std::vector<KolaAlbum>::iterator it = begin(); it != end(); it++) {
+		std::string &fileName = it->GetPictureUrl(type);
+		if (fileName != "")
+			picCache.Add(fileName);
+	}
+}
+
+KolaAlbum& AlbumPage::GetAlbum(int index) {
+	KolaAlbum &album = at(index);
+	album.Wait();
+
+	return album;
+}
+
+

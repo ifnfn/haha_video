@@ -200,40 +200,17 @@ Picture::Picture() {
 }
 
 Picture::~Picture() {
-	Lock();
+}
+
+bool Picture::Destroy() {
 	if (data) {
 		free(data);
 		data = NULL;
 	}
 	size = 0;
-	Unlock();
 }
 
-void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
-{
-	for (std::vector<KolaAlbum>::iterator it = begin(); it != end(); it++) {
-		std::string &fileName = it->GetPictureUrl(type);
-		if (fileName != "")
-			picCache.Add(fileName);
-	}
-}
-
-static void *download_thread(void *arg) {
-	Picture *pic = (Picture*)arg;
-	pic->Lock();
-	pic->wget();
-	pic->finish();
-	pic->Unlock();
-
-	return NULL;
-}
-
-void Picture::finish(void)
-{
-//	printf("size=%d, data=%p\n", size, data);
-}
-
-bool Picture::wget()
+bool Picture::Run()
 {
 	if (inCache == true)
 		return inCache;
@@ -242,10 +219,11 @@ bool Picture::wget()
 	bool ok = false;
 	http_resp_t *http_resp = NULL;
 
-//	printf("wget %s\n", fileName.c_str());
+	printf("wget %s\n", fileName.c_str());
 	if (client->UrlGet("", fileName.c_str(), (void**)&http_resp)) {
 		size = http_resp->body_len;
 		data = malloc(size);
+		printf("size = %d, data = %p\n", size, data);
 		memcpy(data, http_resp->body, size);
 		inCache = true;
 		ok = true;
@@ -253,13 +231,6 @@ bool Picture::wget()
 	http_resp_free(http_resp);
 
 	return ok;
-}
-
-// 加入线程池
-void Picture::Caching()
-{
-	KolaClient *client = &KolaClient::Instance();
-	pool_add_worker((thread_pool_t)client->threadPool, download_thread, this);
 }
 
 KolaMenu::KolaMenu() {

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <pthread.h>
 #include <jansson.h>
+#include <semaphore.h>
 
 #define ENABLE_SSL 0
 
@@ -24,6 +25,40 @@ enum PicType {
 	PIC_SMALL_HOR,
 	PIC_LARGE_VER,
 	PIC_SMALL_VER,
+};
+
+class Task {
+	public:
+		enum {
+			StatusFree,
+			StatusDownloading,
+			StatusFinish
+		};
+		Task(void);
+		virtual ~Task();
+
+		virtual bool Run() {}
+		virtual bool Destroy() {}
+
+		void Start();
+		void Lock()   { pthread_mutex_lock(&lock);   }
+		void Unlock() { pthread_mutex_unlock(&lock); }
+		void SetStatus(int st) { status = st; }
+		bool Wait() {
+			Lock();
+			if (status == Task::StatusDownloading)
+				sem_wait(&sem);
+			Unlock();
+
+			return status == Task::StatusFinish;
+		}
+
+		void wait() { sem_wait(&sem); }
+		void post() { sem_post(&sem); }
+	private:
+		int status;
+		sem_t sem;
+		pthread_mutex_t lock;
 };
 
 class VideoSegment {
@@ -117,7 +152,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 
 };
 
-class Picture {
+class Picture: public Task {
 	public:
 		Picture(std::string fileName);
 		Picture();
@@ -126,17 +161,9 @@ class Picture {
 		size_t size;
 		std::string fileName;
 		bool inCache;
-		void Caching(void);
-		bool wget();
-		virtual void finish(void);
-		void Lock() {
-			pthread_mutex_lock(&lock);
-		}
-		void Unlock() {
-			pthread_mutex_unlock(&lock);
-		}
+		virtual bool Run();
+		virtual bool Destroy();
 	private:
-		pthread_mutex_t lock;
 };
 
 class PictureCache: public std::map<std::string, Picture> {
@@ -153,7 +180,7 @@ class PictureCache: public std::map<std::string, Picture> {
 		Picture& Add(std::string fileName) {
 			std::pair<std::map<std::string, Picture>::iterator, bool> ret;
 			ret = insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
-			ret.first->second.Caching();
+			ret.first->second.Start();
 
 			return ret.first->second;
 		}
@@ -162,7 +189,7 @@ class PictureCache: public std::map<std::string, Picture> {
 		int maxCount;
 };
 
-class KolaAlbum {
+class KolaAlbum : public Task {
 	public:
 		KolaAlbum(json_t *js) {
 			LoadFromJson(js);
@@ -193,6 +220,7 @@ class KolaAlbum {
 
 		bool GetVideos(void);
 		std::string &GetPictureUrl(enum PicType type);
+		virtual bool Run();
 	private:
 		bool LoadFromJson(json_t *js);
 
@@ -296,7 +324,8 @@ class KolaSort: public FilterValue {
 class AlbumPage: public std::vector<KolaAlbum> {
 	public:
 		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
-		void CacheVideo(void);
+		void UpdateVideos(void);
+		KolaAlbum& GetAlbum(int index);
 	private:
 		PictureCache picCache;
 };
@@ -361,6 +390,7 @@ class KolaClient {
 		friend class KolaAlbum;
 		friend class KolaVideo;
 		friend class Picture;
+		friend class Task;
 };
 
 void split(const std::string &s, std::string delim, std::vector< std::string > *ret);

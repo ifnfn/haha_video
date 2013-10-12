@@ -34,12 +34,28 @@ int main(int argc, char **argv)
 	AlbumPage page;
 	m.GetPage(page, 0);
 	page.CachePicture(PIC_LARGE);
-	page.CacheVideo();
-//	for (std::vector<KolaAlbum>::iterator it = page.begin(); it != page.end(); it++) {
+	page.UpdateVideos();
 
+	for (int i = 0; i < page.size(); i++) {
+		KolaAlbum &album = page.GetAlbum(i);
+		printf("[%d] %s (%d)\n", album.playlistid, album.albumName.c_str(), album.weeklyPlayNum);
+		foreach(album.videos, i) {
+			printf("\tVideo: %s < %s >, playUrl=%s\n", i->name.c_str(),
+					i->publishTime.c_str(),
+					i->playUrl.c_str());
+		}
+	}
+
+#if 0
 	foreach(page, it) {
 		std::string player_url;
 		printf("[%d] %s (%d)\n", it->playlistid, it->albumName.c_str(), it->weeklyPlayNum);
+
+		for (int i = 0; i < it->videos.size(); i++) {
+
+
+		}
+
 		foreach(it->videos, i) {
 			printf("\tVideo: %s < %s >, playUrl=%s\n", i->name.c_str(),
 					i->publishTime.c_str(),
@@ -51,17 +67,18 @@ int main(int argc, char **argv)
 			// std::cout << player_url << std::endl;
 		}
 	}
+#endif
 
 //	Picture pic;
 //	if (page.waitPictureTimeout(pic, 300) == true) {
 
 //	}
 #endif
-	while (1)
-		sleep(3);
-	while (kola.haveCommand()) {
-		sleep(1);
-	}
+//	while (1)
+//		sleep(3);
+//	while (kola.haveCommand()) {
+//		sleep(1);
+//	}
 
 	return 0;
 }

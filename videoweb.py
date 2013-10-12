@@ -51,7 +51,9 @@ class AlbumListHandler(BaseHandler):
         args['result'] = tv.GetMenuAlbumListByName(menu, args)
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
-class VideoListHandler(BaseHandler):
+# 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
+# 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=0'
+class GetVideoHandler(BaseHandler):
     def initialize(self):
         pass
 
@@ -69,7 +71,18 @@ class VideoListHandler(BaseHandler):
     def get(self):
         args, pid = self.argument()
 
-        args['videos'] = tv.GetVideoListByPid(pid, args)
+        self.Finish(args, pid)
+
+    def Finish(self, args, pid):
+        full = self.get_argument('full', 0)
+        videos = tv.GetVideoListByPid(pid, args)
+        if full == 0:
+            for v in videos:
+                if 'originalData' in v:
+                    v['haveOriginalData'] = 1
+                    del v['originalData']
+
+        args['videos'] = videos
         args['count'] = len(args['videos'])
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
@@ -85,9 +98,7 @@ class VideoListHandler(BaseHandler):
                 log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
-        args['videos'] = tv.GetVideoListByPid(pid, args)
-        args['count'] = len(args['videos'])
-        self.finish(json.dumps(args, indent=4, ensure_ascii=False))
+        self.Finish(args, pid)
 
 class UrlMapHandler(BaseHandler):
     def post(self):
@@ -426,7 +437,7 @@ class Application(tornado.web.Application):
 
         handlers = [
             (r'/video/list',       AlbumListHandler),
-            (r'/video/getvideo',   VideoListHandler),
+            (r'/video/getvideo',   GetVideoHandler),
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
             (r'/video/urlmap',     UrlMapHandler),          # 后台管理，增加网址映射

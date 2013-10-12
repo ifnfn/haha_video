@@ -141,16 +141,11 @@ class SohuVideo(VideoBase):
         super().__init__(js)
 
     def GetVideoPlayUrl(self, definition=0):
-        if self.vid:
-            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % self.vid
+        vid = self.GetVid(definition)
+        if vid:
+            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
         else:
-            return ""
-
-#        maplist = self.vid,self.norVid,self.highVid,self.supverVid,self.oriVid,self.relativeId
-#        if definition < len(maplist):
-#            vid = maplist[definition]
-#            if vid:
-#                return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
+            return ''
 
 class SohuAlbum(AlbumBase):
     def __init__(self, parent):
@@ -630,6 +625,8 @@ class SohuEngine(VideoEngine):
 
         self.engine_name = 'SohuEngine'
         self.albumClass = SohuAlbum
+        self.videoClass = SohuVideo
+
         self.fieldMapping = {
             '类型' : 'categories',
             '产地' : 'area',
@@ -672,13 +669,6 @@ class SohuEngine(VideoEngine):
                    'album_total_playnum' : self._CmdParserAlbumTotalPlayNum
         }
 
-    def NewAlbum(self, js=None):
-        album = SohuAlbum(self)
-        if js and album:
-            album.LoadFromJson(js)
-
-        return album
-
     def GetMenu(self):
         ret = {}
         for m, cls in list(self.menu.items()):
@@ -711,6 +701,8 @@ class SohuEngine(VideoEngine):
 
             host = jdata['allot']
             prot = jdata['prot']
+            vid = jdata['id']
+
             urls = []
             data = jdata['data']
             if data == None:
@@ -746,6 +738,10 @@ class SohuEngine(VideoEngine):
                 urls.append(x)
 
             res['sets'] = urls
+            res['vid'] = vid
+
+            # TODO
+            self._UpdateVideoVid(jdata, res)
 
             return res
         except:
@@ -1041,6 +1037,27 @@ class SohuEngine(VideoEngine):
 
         return ret
 
+    def _UpdateVideoVid(self, js, res=[]):
+        if 'id' not in js or 'data' not in js:
+            return
+
+        try:
+            video = self.NewVideo()
+            video.vid = autoint(js['id'])
+            data = js['data']
+
+            if 'highVid' in data:    video.highVid    = autoint(data['highVid'])
+            if 'norVid' in data:     video.norVid     = autoint(data['norVid'])
+            if 'oriVid' in data:     video.oriVid     = autoint(data['oriVid'])
+            if 'superVid' in data:   video.superVid   = autoint(data['superVid'])
+            if 'relativeId' in data: video.relativeId = autoint(data['relativeId'])
+
+            video.originalData = res
+            self.db.SaveVideo(video)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.UpdateVideoPid:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
     # 解析节目播放信息
     # 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s
     # album_playinfo
@@ -1048,19 +1065,11 @@ class SohuEngine(VideoEngine):
         ret = []
         try:
             data = tornado.escape.json_decode(js['data'])
-            vid = autoint(data['id'])
-            tv = self.GetAlbumFormDB(vid=vid)
-            if tv:
-                if 'highVid' in data:    tv.highVid    = autoint(data['highVid'])
-                if 'norVid' in data:     tv.norVid     = autoint(data['norVid'])
-                if 'oriVid' in data:     tv.oriVid     = autoint(data['oriVid'])
-                if 'superVid' in data:   tv.superVid   = autoint(data['superVid'])
-                if 'relativeId' in data: tv.relativeId = autoint(data['relativeId'])
-                self._save_update_append(ret, tv)
+            self._UpdateVideoVid(data)
         except:
             print(js['source'])
             t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+            log.error("SohuVideoMenu._CmdParserAlbumPlayInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
         return ret
 

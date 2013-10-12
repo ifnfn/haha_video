@@ -71,6 +71,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 			videoPlayCount = 0;
 			videoScore = 0.0;
 			playLength = 0.0;
+			haveOriginalData = 0;
 
 			if (js)
 				LoadFromJson(js);
@@ -87,7 +88,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 		bool LoadFromJson(json_t *js);
 		bool GetPlayInfo(void);
 
-		std::string GetM3U8(void);
+		std::string GetPlayerUrl(void);
 		std::string GetSubtitle(const char *lang);
 		bool GetPlayerUrl(size_t index, std::string &url);
 
@@ -109,6 +110,11 @@ class KolaVideo: public std::vector<VideoSegment> {
 		std::string largePicUrl;
 		std::string pageUrl;
 		std::string playUrl;
+
+		int haveOriginalData;
+	private:
+		bool UpdatePlayInfo(json_t *js);
+
 };
 
 class Picture {
@@ -183,13 +189,9 @@ class KolaAlbum {
 		std::string actors;
 		std::string directors;
 		std::vector<KolaVideo> videos;
-		std::vector<KolaAlbum> subAlbum; // 子集
 		int playlistid;
 
 		bool GetVideos(void);
-		bool GetVideo(void);
-		Picture *GetPicture(enum PicType type); // 得到图片
-		bool GetPlayUrl(void **data, int *size);          // 得到播放列表
 		std::string &GetPictureUrl(enum PicType type);
 	private:
 		bool LoadFromJson(json_t *js);
@@ -294,6 +296,7 @@ class KolaSort: public FilterValue {
 class AlbumPage: public std::vector<KolaAlbum> {
 	public:
 		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
+		void CacheVideo(void);
 	private:
 		PictureCache picCache;
 };

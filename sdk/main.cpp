@@ -34,20 +34,21 @@ int main(int argc, char **argv)
 	AlbumPage page;
 	m.GetPage(page, 0);
 	page.CachePicture(PIC_LARGE);
-//	page.CacheVideo();
+	page.CacheVideo();
 //	for (std::vector<KolaAlbum>::iterator it = page.begin(); it != page.end(); it++) {
-	foreach(page, it) {
-		std::string play_url;
-		printf("[%d] %s (%d)\n", it->playlistid, it->albumName.c_str(), it->weeklyPlayNum);
-		it->GetVideos();
-		foreach(it->videos, i) {
-			printf("\tVideo: %s < %s >\n", i->name.c_str(),
-					i->publishTime.c_str()
-			      );
 
-			i->GetPlayInfo();
-			if (i->GetPlayerUrl(0, play_url))
-				std::cout << play_url << std::endl;
+	foreach(page, it) {
+		std::string player_url;
+		printf("[%d] %s (%d)\n", it->playlistid, it->albumName.c_str(), it->weeklyPlayNum);
+		foreach(it->videos, i) {
+			printf("\tVideo: %s < %s >, playUrl=%s\n", i->name.c_str(),
+					i->publishTime.c_str(),
+					i->playUrl.c_str());
+
+			player_url = i->GetPlayerUrl();
+			std::cout << player_url << std::endl;
+			// i->GetPlayerUrl(0, player_url);
+			// std::cout << player_url << std::endl;
 		}
 	}
 

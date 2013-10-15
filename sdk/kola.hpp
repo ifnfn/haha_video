@@ -16,6 +16,8 @@ class KolaMenu;
 class KolaAlbum;
 class AlbumPage;
 
+extern void split(const std::string &s, std::string delim, std::vector< std::string > *ret);
+
 enum PicType {
 	PIC_LARGE,      // 大图片网址
 	PIC_SMALL,      // 小图片网址
@@ -41,24 +43,25 @@ class Task {
 		void Start();
 
 		void SetStatus(int st) { status = st; }
-		void Lock()   { pthread_mutex_lock(&lock);   }
-		void Unlock() { pthread_mutex_unlock(&lock); }
 		bool Wait() {
-			Lock();
+			lock();
 			if (status == Task::StatusDownloading)
 				wait();
-			Unlock();
+			unlock();
 
 			return status == Task::StatusFinish;
 		}
 
-		void wait()   { pthread_cond_wait(&ready, &lock); }
-		void signal() { pthread_cond_signal(&ready); }
 	private:
 		int status;
 		sem_t sem;
-		pthread_mutex_t lock;
+		pthread_mutex_t mutex;
 		pthread_cond_t ready;
+		void lock()   { pthread_mutex_lock(&mutex);   }
+		void unlock() { pthread_mutex_unlock(&mutex); }
+		void wait()   { pthread_cond_wait(&ready, &mutex); }
+		void signal() { pthread_cond_signal(&ready); }
+		friend void *task_thread(void *arg);
 };
 
 class VideoSegment: public Task {
@@ -270,6 +273,11 @@ class StringList: public std::vector<std::string> {
 			}
 			return ret;
 		}
+
+		void Split(const std::string items) {
+			clear();
+			split(items, ",", this);
+		}
 };
 
 class FilterValue: public StringList {
@@ -291,7 +299,6 @@ class KolaFilter {
 	public:
 		KolaFilter() {}
 		~KolaFilter() {}
-		void LoadFromJson(json_t *js);
 		void KeyAdd(std::string key, std::string value);
 		void KeyRemove(std::string key, std::string value);
 		std::string GetJsonStr(void);
@@ -386,4 +393,3 @@ class KolaClient {
 		friend class VideoSegment;
 };
 
-void split(const std::string &s, std::string delim, std::vector< std::string > *ret);

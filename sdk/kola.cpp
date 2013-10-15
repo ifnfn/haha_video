@@ -223,6 +223,7 @@ KolaMenu::KolaMenu(json_t *js)
 	name = json_gets(js, "name", "");
 	cid = json_geti(js, "cid" , -1);
 	json_t *filter = json_geto(js, "filter");
+	json_t *sort = json_geto(js, "sort");
 
 	client = &KolaClient::Instance();
 
@@ -234,20 +235,27 @@ KolaMenu::KolaMenu(json_t *js)
 			std::string list;
 			json_array_foreach(values, v)
 				list = list + json_string_value(v) + ",";
-			Filter.filterKey.insert(std::pair<std::string, FilterValue>(key, FilterValue(list)));
+			this->Filter.filterKey.insert(std::pair<std::string, FilterValue>(key, FilterValue(list)));
 		}
 	}
 
-	printf("cid = %d, name = %s\n", cid, name.c_str());
+	if (sort) {
+		json_t *v;
+		std::string list;
+		json_array_foreach(sort, v)
+			list = list + json_string_value(v) + ",";
+		this->Sort.Split(list);
+	}
 }
 
 KolaMenu::KolaMenu(const KolaMenu &m) {
-	name = m.name;
-	cid = m.cid;
+	name     = m.name;
+	cid      = m.cid;
 	PageSize = m.PageSize;
-	PageId = m.PageId;
-	client = m.client;
-	Filter = m.Filter;
+	PageId   = m.PageId;
+	client   = m.client;
+	Filter   = m.Filter;
+	Sort     = m.Sort;
 //	client = &KolaClient::Instance();
 }
 

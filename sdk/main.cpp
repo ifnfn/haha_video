@@ -8,23 +8,37 @@ int main(int argc, char **argv)
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();
-#if 1
 	KolaMenu m;
+
+#if 0
+	for(int i=0, count=kola.MenuCount(); i < count; i++) {
+		m = kola[i];
+		std::cout << "Menu: " << m.name << std::endl;
+	}
+#endif
+
 
 #if 0
 	m = kola["电影"];
 	m = kola.GetMenuByCid(1);
 	m = kola[1];
 	m = kola["电影"];
+	m = kola.GetMenuByName("电影");
 #endif
 
-	m = kola.GetMenuByName("电影");
-	std::cout << "GetMenuByName(\"电影\"):" << m.name << std::endl;
+	m = kola["电影"];
 #if 0
 	foreach(m.Filter.filterKey, i) {
 		std::cout << i->first << ": ";
 		foreach(i->second, j)
 			std::cout << "\t" << *j << std::endl;
+	}
+#endif
+
+#if 0
+	std::cout << "Sort List: " << std::endl;
+	for(int i=0, count=m.Sort.size(); i < count; i++) {
+		std::cout << "\t" << m.Sort[i] << std::endl;
 	}
 #endif
 
@@ -47,17 +61,17 @@ int main(int argc, char **argv)
 					i->playUrl.c_str());
 			player_url = i->GetVideoUrl();
 			std::cout << player_url << std::endl;
-			// i->GetVideoUrl(0, player_url);
-			// std::cout << player_url << std::endl;
+#if 0
+			for (int j=0, count=i->size(); j < count; j++) {
+				i->GetVideoUrl(player_url, j);
+				std::cout << player_url << std::endl;
+			}
+#endif
 		}
 	}
 
-#endif
-//	while (1)
-//		sleep(3);
-//	while (kola.haveCommand()) {
-//		sleep(1);
-//	}
+	while (1)
+		sleep(3);
 
 	return 0;
 }

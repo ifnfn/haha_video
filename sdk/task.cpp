@@ -1,43 +1,43 @@
 #include "kola.hpp"
 #include "threadpool.hpp"
 
-static void *task_thread(void *arg) {
+void *task_thread(void *arg) {
 	Task *t = (Task*)arg;
-	t->Lock();
+	t->lock();
 	t->Run();
 	t->SetStatus(Task::StatusFinish);
-	t->Unlock();
+	t->unlock();
 	t->signal();
 
 	return NULL;
 }
 
 Task::Task() {
-	pthread_mutex_init(&lock, NULL);
+	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&ready, NULL);
 
 	status = Task::StatusFree;
 }
 
 Task::~Task() {
-	Lock();
+	lock();
 	pthread_cond_broadcast(&ready);
 	if (status != Task::StatusFree) // downloading
 		Wait();
 
 	Destroy();
-	Unlock();
+	unlock();
 
-	pthread_mutex_destroy(&lock);
+	pthread_mutex_destroy(&mutex);
 	pthread_cond_destroy(&ready);
 }
 
 void Task::Start() {
 	KolaClient *client = &KolaClient::Instance();
 
-	Lock();
+	lock();
 	SetStatus(Task::StatusDownloading);
 	pool_add_worker((thread_pool_t)client->threadPool, task_thread, this);
-	Unlock();
+	unlock();
 }
 

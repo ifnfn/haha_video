@@ -62,24 +62,8 @@ FilterValue& KolaFilter::operator[] (std::string key)
 	return it->second;
 }
 
-void KolaFilter::LoadFromJson(json_t *js)
-{
-
-}
-
 FilterValue::FilterValue(const std::string items)
 {
-	split(items, ",", this);
-}
-#if 0
-ValueArray::ValueArray(const std::string items)
-{
-	split(items, ",", this);
+	Split(items);
 }
 
-void ValueArray::LoadValue(const std::string items)
-{
-	split(items, ",", this);
-}
-
-#endif

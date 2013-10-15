@@ -647,13 +647,13 @@ class SohuEngine(VideoEngine):
         self.menu = {
             '电影'   : SohuMovie,
             '电视剧' : SohuTV,
-            '综艺'   : None,  # SohuShow,
-            '娱乐'   : None,  # SohuYule,
-            '动漫'   : None,  # SohuComic,
-            '纪录片' : None,  # SohuDocumentary,
-            '教育'   : None,  # SohuEdu,
-            '旅游'   : None,  # SohuTour,
-            '新闻'   : None,  # SohuNew
+            '综艺'   : SohuShow,
+            '娱乐'   : SohuYule,
+            '动漫'   : SohuComic,
+            '纪录片' : SohuDocumentary,
+            '教育'   : SohuEdu,
+            '旅游'   : SohuTour,
+            '新闻'   : SohuNew
         }
 
         self.parserList = {

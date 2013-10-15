@@ -187,6 +187,7 @@ std::string KolaVideo::GetVideoUrl(void)
 			max_duration = seg.duration;
 		seg.Start();
 	}
+
 	for (size_t i=0; i < count;i++) {
 		VideoSegment &seg = at(i);
 		seg.Wait();

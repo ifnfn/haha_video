@@ -7,30 +7,37 @@ static void *task_thread(void *arg) {
 	t->Run();
 	t->SetStatus(Task::StatusFinish);
 	t->Unlock();
-	t->post();
+	t->signal();
 
 	return NULL;
 }
 
 Task::Task() {
 	pthread_mutex_init(&lock, NULL);
-	sem_init(&sem, 0, 0);
+	pthread_cond_init(&ready, NULL);
+
 	status = Task::StatusFree;
 }
 
 Task::~Task() {
 	Lock();
-	if (status == 1) // downloading
-		sem_wait(&sem);
+	pthread_cond_broadcast(&ready);
+	if (status != Task::StatusFree) // downloading
+		Wait();
 
 	Destroy();
 	Unlock();
-	sem_destroy(&sem);
+
+	pthread_mutex_destroy(&lock);
+	pthread_cond_destroy(&ready);
 }
 
 void Task::Start() {
 	KolaClient *client = &KolaClient::Instance();
+
+	Lock();
 	SetStatus(Task::StatusDownloading);
 	pool_add_worker((thread_pool_t)client->threadPool, task_thread, this);
+	Unlock();
 }
 

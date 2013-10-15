@@ -6,8 +6,6 @@
 #include <jansson.h>
 #include <semaphore.h>
 
-#define ENABLE_SSL 0
-
 #define foreach(container,i) \
 	for(bool __foreach_ctrl__=true;__foreach_ctrl__;)\
 	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
@@ -37,60 +35,52 @@ class Task {
 		Task(void);
 		virtual ~Task();
 
-		virtual bool Run() {}
-		virtual bool Destroy() {}
+		virtual bool Run()     {return false;}
+		virtual bool Destroy() {return false;}
 
 		void Start();
+
+		void SetStatus(int st) { status = st; }
 		void Lock()   { pthread_mutex_lock(&lock);   }
 		void Unlock() { pthread_mutex_unlock(&lock); }
-		void SetStatus(int st) { status = st; }
 		bool Wait() {
 			Lock();
 			if (status == Task::StatusDownloading)
-				sem_wait(&sem);
+				wait();
 			Unlock();
 
 			return status == Task::StatusFinish;
 		}
 
-		void wait() { sem_wait(&sem); }
-		void post() { sem_post(&sem); }
+		void wait()   { pthread_cond_wait(&ready, &lock); }
+		void signal() { pthread_cond_signal(&ready); }
 	private:
 		int status;
 		sem_t sem;
 		pthread_mutex_t lock;
+		pthread_cond_t ready;
 };
 
-class VideoSegment {
+class VideoSegment: public Task {
 	public:
-		VideoSegment() {
-			duration = 0;
-			size = 0;
+		VideoSegment(void);
+		VideoSegment(json_t *js);
+		VideoSegment(std::string u, std::string n, double d, size_t s);
 
-		}
-		VideoSegment(json_t *js) {
-			LoadFromJson(js);
-		}
-		VideoSegment(std::string u, std::string n, double d, size_t s) {
-			url = u;
-			newfile = n;
-			duration = d;
-			size = s;
-		}
-		~VideoSegment() {
+		~VideoSegment();
 
-		}
 		std::string url;
 		std::string newfile;
+		std::string realUrl;
 		double duration;
 		size_t size;
-		std::string realUrl;
-		bool LoadFromJson(json_t *js);
 
+		virtual bool Run(void);
+		bool LoadFromJson(json_t *js);
+		bool GetVideoUrl(std::string &video_url);
+
+	private:
 		std::string GetJsonStr(std::string *newUrl);
-		void Print(void) {
-			printf("%s, %s, %f, %d\n", url.c_str(), newfile.c_str(), duration, size);
-		}
 };
 
 class KolaVideo: public std::vector<VideoSegment> {
@@ -123,9 +113,9 @@ class KolaVideo: public std::vector<VideoSegment> {
 		bool LoadFromJson(json_t *js);
 		bool GetPlayInfo(void);
 
-		std::string GetPlayerUrl(void);
+		std::string GetVideoUrl(void);
 		std::string GetSubtitle(const char *lang);
-		bool GetPlayerUrl(size_t index, std::string &url);
+		bool GetVideoUrl(std::string &video_url, size_t index);
 
 		std::string name;
 		int playlistid;  // 所属 ablum
@@ -189,7 +179,7 @@ class PictureCache: public std::map<std::string, Picture> {
 		int maxCount;
 };
 
-class KolaAlbum : public Task {
+class KolaAlbum: public Task {
 	public:
 		KolaAlbum(json_t *js) {
 			LoadFromJson(js);
@@ -321,13 +311,16 @@ class KolaSort: public FilterValue {
 		}
 };
 
-class AlbumPage: public std::vector<KolaAlbum> {
+class AlbumPage {
 	public:
 		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
 		void UpdateVideos(void);
 		KolaAlbum& GetAlbum(int index);
+		void Put(KolaAlbum album);
+		size_t Count() { albumList.size();}
 	private:
 		PictureCache picCache;
+		std::vector<KolaAlbum> albumList;
 };
 
 class KolaMenu {
@@ -376,7 +369,6 @@ class KolaClient {
 		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL);
 		bool UrlGetCache(std::string url, std::string &ret, const char *home_url = NULL);
 		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
-		void GetKey(void);
 		bool Login(bool quick=false);
 		char *Run(const char *cmd);
 		bool ProcessCommand(json_t *cmd, const char *dest);
@@ -391,6 +383,7 @@ class KolaClient {
 		friend class KolaVideo;
 		friend class Picture;
 		friend class Task;
+		friend class VideoSegment;
 };
 
 void split(const std::string &s, std::string delim, std::vector< std::string > *ret);

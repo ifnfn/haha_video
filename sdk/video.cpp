@@ -1,6 +1,33 @@
+#include <iostream>
+
 #include "kola.hpp"
 #include "json.h"
 #include "base64.hpp"
+
+VideoSegment::VideoSegment()
+{
+	duration = 0;
+	size = 0;
+}
+
+VideoSegment::VideoSegment(json_t *js) {
+	LoadFromJson(js);
+}
+
+VideoSegment::VideoSegment(std::string u, std::string n, double d, size_t s) {
+	url = u;
+	newfile = n;
+	duration = d;
+	size = s;
+}
+
+VideoSegment::~VideoSegment() { }
+
+bool VideoSegment::Run() {
+	std::string video_url;
+
+	return GetVideoUrl(video_url);
+}
 
 bool VideoSegment::LoadFromJson(json_t *js)
 {
@@ -21,6 +48,46 @@ std::string VideoSegment::GetJsonStr(std::string *newUrl)
 	snprintf(buffer, 2047, "{\n\"url\":\"%s\",\n\"new\":\"%s\"\n}", newUrl->c_str(), newfile.c_str());
 
 	return std::string(buffer);
+}
+
+bool VideoSegment::GetVideoUrl(std::string &player_url)
+{
+	KolaClient *client =& KolaClient::Instance();
+	std::string text;
+	json_t *js, *sets;
+	json_error_t error;
+
+	if (client == NULL) {
+		while(1)
+			printf("error\n");
+	}
+
+	//std::cout << "Get: " << url << std::endl;
+	if (client->UrlGet("", text, url.c_str()) == false)
+		return false;
+
+	text = base64encode(text);
+	text = "{\"sets\": [" + GetJsonStr(&text) + "]}";
+	if (client->UrlPost("/video/getplayer?step=2", text.c_str(), text) == false)
+		return false;
+
+	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+	if (js == NULL)
+		return false;
+
+	sets = json_geto(js, "sets");
+	if (sets && json_is_array(sets) && json_array_size(sets) > 0) {
+		json_t *u = json_array_get(sets, 0);
+		if (u) {
+			realUrl = json_string_value(u);
+			player_url = realUrl;
+			return true;
+		}
+	}
+
+	//std::cout << realUrl << std::endl;
+
+	return false;
 }
 
 bool KolaVideo::UpdatePlayInfo(json_t *js)
@@ -102,7 +169,7 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	return true;
 }
 
-std::string KolaVideo::GetPlayerUrl(void)
+std::string KolaVideo::GetVideoUrl(void)
 {
 	char buf[256];
 	size_t count = size();
@@ -118,15 +185,17 @@ std::string KolaVideo::GetPlayerUrl(void)
 
 		if (seg.duration > max_duration)
 			max_duration = seg.duration;
-
-		if (GetPlayerUrl(i, player_url)) {
-			sprintf(buf, "#EXTINF:%d,\n", (int)seg.duration);
-
-			ret = ret + buf;
-			ret = ret + player_url;
-			ret = ret + "\n";
-		}
+		seg.Start();
 	}
+	for (size_t i=0; i < count;i++) {
+		VideoSegment &seg = at(i);
+		seg.Wait();
+		sprintf(buf, "#EXTINF:%d,\n", (int)seg.duration);
+		ret = ret + buf;
+		ret = ret + seg.realUrl;
+		ret = ret + "\n";
+	}
+
 	ret = ret + "#EXT-X-ENDLIST\n";
 
 	sprintf(buf, "#EXTM3U\n#EXT-X-TARGETDURATION:%d\n", (int)max_duration);
@@ -136,7 +205,7 @@ std::string KolaVideo::GetPlayerUrl(void)
 	return ret;
 }
 
-bool KolaVideo::GetPlayerUrl(size_t index, std::string &url)
+bool KolaVideo::GetVideoUrl(std::string &video_url, size_t index)
 {
 	KolaClient *client =& KolaClient::Instance();
 	std::string text;
@@ -151,31 +220,11 @@ bool KolaVideo::GetPlayerUrl(size_t index, std::string &url)
 		return false;
 
 	VideoSegment &seg = at(index);
-	//std::cout << "Get: " << seg.url << std::endl;
-	if (client->UrlGet("", text, seg.url.c_str()) == false)
-		return false;
 
-	text = base64encode(text);
-	text = "{\"sets\": [" + seg.GetJsonStr(&text) + "]}";
-	if (client->UrlPost("/video/getplayer?step=2", text.c_str(), text) == false)
-		return false;
-
-	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-	if (js == NULL)
-		return false;
-
-	sets = json_geto(js, "sets");
-	if (sets && json_is_array(sets) && json_array_size(sets) > 0) {
-		json_t *u = json_array_get(sets, 0);
-		if (u) {
-			seg.realUrl = json_string_value(u);
-			url = seg.realUrl;
-			return true;
-		}
-	}
-
+	return seg.GetVideoUrl(video_url);
 	//std::cout << seg.realUrl << std::endl;
 
 	return false;
 }
+
 

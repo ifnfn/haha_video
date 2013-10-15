@@ -44,33 +44,6 @@ static std::string xsrf_cookie;
 #define UNLOCK(lock) do {} while(0)
 #endif
 
-#if ENABLE_SSL
-
-#include <openssl/pem.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
-#include <openssl/rsa.h>
-
-static RSA *rsa = NULL;
-int Decrypt(int flen, const unsigned char *from, unsigned char *to)
-{
-	//	return RSA_public_decrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
-}
-
-int Encrypt(int flen, const unsigned char *in, int in_size, unsigned char *out, int out_size)
-{
-	int rsa_size = RSA_size(rsa);
-	int blocks = in_size / rsa_size;
-	int cur_len = 0;
-
-	for (int i = 0; i < blocks; i++) {
-
-	}
-	//	return RSA_public_encrypt(flen, from, to, rsa, RSA_PKCS1_PADDING);
-}
-#endif
-
 static std::string chipKey(void)
 {
 	return "000001";
@@ -208,6 +181,8 @@ bool Picture::Destroy() {
 		data = NULL;
 	}
 	size = 0;
+
+	return true;
 }
 
 bool Picture::Run()
@@ -314,7 +289,7 @@ int KolaMenu::GetPage(AlbumPage &page, int pageNo)
 			if (results && json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value)
-					page.push_back(KolaAlbum(value));
+					page.Put(KolaAlbum(value));
 			}
 
 //			std::cout << text << std::endl;
@@ -359,10 +334,6 @@ void KolaClient::Quit(void)
 
 KolaClient::~KolaClient(void)
 {
-#if ENABLE_SSL
-	if (rsa)
-		RSA_free(rsa);
-#endif
 	pool_free((thread_pool_t)threadPool);
 	Quit();
 }
@@ -507,18 +478,6 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 		return UrlPost(url, body, ret, home_url, times + 1);
 	else
 		return ok;
-}
-
-void KolaClient::GetKey(void)
-{
-	std::string text;
-	if (UrlGet("/key", text) == true) {
-#if ENABLE_SSL
-		BIO *key= BIO_new_mem_buf((void*)text.c_str(), text.size());
-		rsa = PEM_read_bio_RSA_PUBKEY(key, NULL, NULL, NULL);
-		BIO_free_all(key);
-#endif
-	}
 }
 
 char *KolaClient::Run(const char *cmd)

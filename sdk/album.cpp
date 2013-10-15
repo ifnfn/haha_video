@@ -109,21 +109,25 @@ bool KolaAlbum::Run() {
 
 void AlbumPage::UpdateVideos(void)
 {
-	for (std::vector<KolaAlbum>::iterator it = begin(); it != end(); it++)
+	for (std::vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++)
 		it->Start();
 }
 
 void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
-	for (std::vector<KolaAlbum>::iterator it = begin(); it != end(); it++) {
+	for (std::vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		std::string &fileName = it->GetPictureUrl(type);
 		if (fileName != "")
 			picCache.Add(fileName);
 	}
 }
 
+void AlbumPage::Put(KolaAlbum album) {
+	albumList.push_back(album);
+}
+
 KolaAlbum& AlbumPage::GetAlbum(int index) {
-	KolaAlbum &album = at(index);
+	KolaAlbum &album = albumList.at(index);
 	album.Wait();
 
 	return album;

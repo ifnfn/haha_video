@@ -67,8 +67,8 @@ thread_pool_t pool_create(int thread_num)
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 512 * 1024);
 	for (i = 0; i < thread_num; i++)
-		pthread_create(&(pool->threadid[i]), &attr, thread_routine,
-				(void*) pool);
+		pthread_create(&(pool->threadid[i]), &attr, thread_routine, (void*) pool);
+
 	return pool;
 }
 

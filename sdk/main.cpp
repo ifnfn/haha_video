@@ -36,43 +36,22 @@ int main(int argc, char **argv)
 	page.CachePicture(PIC_LARGE);
 	page.UpdateVideos();
 
-	for (int i = 0; i < page.size(); i++) {
+	for (int i = 0; i < page.Count(); i++) {
+		std::string player_url;
 		KolaAlbum &album = page.GetAlbum(i);
+
 		printf("[%d] %s (%d)\n", album.playlistid, album.albumName.c_str(), album.weeklyPlayNum);
 		foreach(album.videos, i) {
 			printf("\tVideo: %s < %s >, playUrl=%s\n", i->name.c_str(),
 					i->publishTime.c_str(),
 					i->playUrl.c_str());
-		}
-	}
-
-#if 0
-	foreach(page, it) {
-		std::string player_url;
-		printf("[%d] %s (%d)\n", it->playlistid, it->albumName.c_str(), it->weeklyPlayNum);
-
-		for (int i = 0; i < it->videos.size(); i++) {
-
-
-		}
-
-		foreach(it->videos, i) {
-			printf("\tVideo: %s < %s >, playUrl=%s\n", i->name.c_str(),
-					i->publishTime.c_str(),
-					i->playUrl.c_str());
-
-			player_url = i->GetPlayerUrl();
+			player_url = i->GetVideoUrl();
 			std::cout << player_url << std::endl;
-			// i->GetPlayerUrl(0, player_url);
+			// i->GetVideoUrl(0, player_url);
 			// std::cout << player_url << std::endl;
 		}
 	}
-#endif
 
-//	Picture pic;
-//	if (page.waitPictureTimeout(pic, 300) == true) {
-
-//	}
 #endif
 //	while (1)
 //		sleep(3);

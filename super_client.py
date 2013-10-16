@@ -186,12 +186,6 @@ def main_thread():
 
 if __name__ == "__main__":
     #haha = KolaClient()
-    #a=haha.GetUrl("http://tvimg.tv.itc.cn/live/top.json")
-    #js = json.loads(a.decode())
-    #print(js['attachment'])
-    #print(len(js['attachment']))
-
-
     #a = haha.RegularMatchUrl('http://tv.sohu.com/20120517/n343417005.shtml',
     #                         'var ((playlistId|pid|vid|PLAYLIST_ID|cid|playAble)\s*=\W*([\d,]+))'.encode())
     #print(a)

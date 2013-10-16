@@ -118,11 +118,17 @@ bool KolaVideo::GetPlayInfo(void)
 	json_t *js;
 	json_error_t error;
 	KolaClient *client = &KolaClient::Instance();
+	char buffer[128];
 
 	if (client->UrlGet("", text, playUrl.c_str()) == false)
 		return false;
 
-	if (client->UrlPost("/video/getplayer", text.c_str(), text) == false)
+	if (album)
+		sprintf(buffer, "/video/getplayer?cid=%d", album->cid);
+	else
+		sprintf(buffer, "/video/getplayer");
+
+	if (client->UrlPost(buffer, text.c_str(), text) == false)
 		return false;
 
 	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);

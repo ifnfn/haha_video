@@ -119,9 +119,10 @@ class GetPlayerHandler(BaseHandler):
     def post(self):
         body = self.request.body.decode()
         if body and len(body) > 0:
+            cid = self.get_argument('cid', 0)
             step = self.get_argument('step', "1",)
             definition = self.get_argument('hd', '0')
-            text = tv.engine.GetRealPlayer(body, definition, step)
+            text = tv.GetRealPlayer(body, cid, definition, step)
             self.finish(text)
         else:
             raise tornado.web.HTTPError(404)

@@ -219,6 +219,11 @@ class VideoBase:
         if 'originalData' in json   : self.originalData   = json['originalData']
 
 # 一个节目，表示一部电影、电视剧集
+# {'cu': 249, 'id': 147,
+#    'programaId': 76372, 'percentage': 0.1530424093423479,
+#    'enName': 'zjtv', 'name': '浙江卫视',
+#    'ico': 'http://i2.itc.cn/20120119/2cea_d8216f64_5ba9_b7dd_4b3d_f2ea360e895f_17.png',
+#    'videoId': 136573770, 'videoName': '浙江新闻联播'}
 class AlbumBase:
     def __init__(self, engine):
         self.engine = engine
@@ -226,7 +231,8 @@ class AlbumBase:
         self.VideoClass = VideoBase
         self.cid = 0
 
-        self.albumName = ''
+        self.albumName = ''      # 名称
+        self.enAlbumName = ''    # 英文名称
         self.albumPageUrl = ''
         self.pid = 0
         self.playlistid = 0
@@ -418,6 +424,10 @@ class VideoMenuBase:
     # 更新热门节目表
     def UpdateHotList(self):
         pass
+
+    # 得到真实播放地址
+    def GetRealPlayer(self, text, definition, step):
+        return ''
 
 class DB:
     def __init__(self):
@@ -655,10 +665,6 @@ class VideoEngine:
     # 解析菜单网页解析
     def ParserHtml(self, js):
         pass
-
-    # 得到真实播放地址
-    def GetRealPlayer(self, text, definition, step):
-        return ''
 
     # 转换 Filter 及 Sort 字段
     def GetAlbumListJson(self, arg, cid=-1,All=False):

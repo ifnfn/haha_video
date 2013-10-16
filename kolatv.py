@@ -48,6 +48,14 @@ class Kolatv:
     def GetVideoListByPid(self, pid, argument):
         return self.engine.db.GetVideoListJson(pid=pid, arg=argument)
 
+    # 得到真实播放地址
+    def GetRealPlayer(self, text, name, definition, step):
+        menu = self.FindMenu(name)
+        if menu == None:
+            return {}
+
+        return menu.GetRealPlayer(text, definition, step)
+
     def ParserHtml(self, data):
         js = tornado.escape.json_decode(data)
         if (js == None) or ('data' not in js):

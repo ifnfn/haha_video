@@ -9,6 +9,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 {
 	albumName      = json_gets(js, "albumName"  , "");
 	albumDesc      = json_gets(js, "albumDesc"  , "");
+	cid            = json_geti(js, "cid"        , 0);
 	vid            = json_geti(js, "vid"        , 0);
 	pid            = json_geti(js, "pid"        , 0);
 	playlistid     = json_geti(js, "playlistid" , 0);
@@ -70,7 +71,7 @@ bool KolaAlbum::GetVideos(void)
 
 	this->videos.clear();
 	json_array_foreach(videos, v) {
-		this->videos.push_back(KolaVideo(v));
+		this->videos.push_back(KolaVideo(this, v));
 	}
 
 	json_decref(js);

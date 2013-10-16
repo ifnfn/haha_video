@@ -88,7 +88,7 @@ class VideoSegment: public Task {
 
 class KolaVideo: public std::vector<VideoSegment> {
 	public:
-		KolaVideo(json_t *js = NULL) {
+		KolaVideo(KolaAlbum *album = NULL, json_t *js = NULL) {
 			width = height = fps = totalBytes = totalBlocks = 0;
 			totalDuration = 0.0;
 			playlistid = 0;  // 所属 ablum
@@ -100,6 +100,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 			videoScore = 0.0;
 			playLength = 0.0;
 			haveOriginalData = 0;
+			this->album = album;
 
 			if (js)
 				LoadFromJson(js);
@@ -141,6 +142,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 
 		int haveOriginalData;
 	private:
+		KolaAlbum *album;
 		bool UpdatePlayInfo(json_t *js);
 
 };
@@ -210,6 +212,7 @@ class KolaAlbum: public Task {
 		std::string directors;
 		std::vector<KolaVideo> videos;
 		int playlistid;
+		int cid;
 
 		bool GetVideos(void);
 		std::string &GetPictureUrl(enum PicType type);

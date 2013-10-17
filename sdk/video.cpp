@@ -8,9 +8,11 @@ VideoSegment::VideoSegment()
 {
 	duration = 0;
 	size = 0;
+	video = NULL;
 }
 
-VideoSegment::VideoSegment(json_t *js) {
+VideoSegment::VideoSegment(KolaVideo *video, json_t *js) {
+	this->video = video;
 	LoadFromJson(js);
 }
 
@@ -19,6 +21,7 @@ VideoSegment::VideoSegment(std::string u, std::string n, double d, size_t s) {
 	newfile = n;
 	duration = d;
 	size = s;
+	video = NULL;
 }
 
 VideoSegment::~VideoSegment() { }
@@ -31,10 +34,10 @@ bool VideoSegment::Run() {
 
 bool VideoSegment::LoadFromJson(json_t *js)
 {
-	url = json_gets(js, "url", "");
-	newfile = json_gets(js, "new", "");
+	url      = json_gets   (js, "url", "");
+	newfile  = json_gets   (js, "new", "");
+	size     = json_geti   (js, "size", 0);
 	duration = json_getreal(js, "duration", 0.0);
-	size = json_geti(js, "size", 0);
 
 	return true;
 }
@@ -56,6 +59,7 @@ bool VideoSegment::GetVideoUrl(std::string &player_url)
 	std::string text;
 	json_t *js, *sets;
 	json_error_t error;
+	char buffer[128];
 
 	if (client == NULL) {
 		while(1)
@@ -68,7 +72,13 @@ bool VideoSegment::GetVideoUrl(std::string &player_url)
 
 	text = base64encode(text);
 	text = "{\"sets\": [" + GetJsonStr(&text) + "]}";
-	if (client->UrlPost("/video/getplayer?step=2", text.c_str(), text) == false)
+
+	if (video)
+		sprintf(buffer, "/video/getplayer?step=2&cid=%d", video->cid);
+	else
+		sprintf(buffer, "/video/getplayer?step=2");
+
+	if (client->UrlPost(buffer, text.c_str(), text) == false)
 		return false;
 
 	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
@@ -90,6 +100,32 @@ bool VideoSegment::GetVideoUrl(std::string &player_url)
 	return false;
 }
 
+KolaVideo::KolaVideo(json_t *js)
+{
+	width = height = fps = totalBytes = totalBlocks = 0;
+	totalDuration = 0.0;
+	playlistid = cid = vid = pid = 0;
+	order = 0;
+	isHigh = 0;
+	videoPlayCount = 0;
+	videoScore = 0.0;
+	playLength = 0.0;
+	haveOriginalData = 0;
+
+	if (js)
+		LoadFromJson(js);
+}
+
+KolaVideo::~KolaVideo() {
+	for (size_t i=0, count=size(); i < count;i++) {
+		VideoSegment* seg = at(i);
+		seg->Wait();
+
+		delete seg;
+	}
+	clear();
+}
+
 bool KolaVideo::UpdatePlayInfo(json_t *js)
 {
 	json_t *sets, *value;
@@ -107,7 +143,7 @@ bool KolaVideo::UpdatePlayInfo(json_t *js)
 
 	clear();
 	json_array_foreach(sets, value)
-		push_back(VideoSegment(value));
+		push_back(new VideoSegment(this, value));
 
 	return true;
 }
@@ -123,11 +159,7 @@ bool KolaVideo::GetPlayInfo(void)
 	if (client->UrlGet("", text, playUrl.c_str()) == false)
 		return false;
 
-	if (album)
-		sprintf(buffer, "/video/getplayer?cid=%d", album->cid);
-	else
-		sprintf(buffer, "/video/getplayer");
-
+	sprintf(buffer, "/video/getplayer?cid=%d", cid);
 	if (client->UrlPost(buffer, text.c_str(), text) == false)
 		return false;
 
@@ -150,6 +182,7 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	playlistid     = json_geti(js    , "playlistid"     , 0);
 	pid            = json_geti(js    , "pid"            , 0);
 	vid            = json_geti(js    , "vid"            , 0);
+	cid            = json_geti(js    , "cid"            , 0);
 	order          = json_geti(js    , "order"          , 0);
 	isHigh         = json_geti(js    , "isHigh"         , 0);
 
@@ -187,19 +220,19 @@ std::string KolaVideo::GetVideoUrl(void)
 
 	ret = "";
 	for (size_t i=0; i < count;i++) {
-		VideoSegment &seg = at(i);
+		VideoSegment *seg = at(i);
 
-		if (seg.duration > max_duration)
-			max_duration = seg.duration;
-		seg.Start();
+		if (seg->duration > max_duration)
+			max_duration = seg->duration;
+		seg->Start();
 	}
 
 	for (size_t i=0; i < count;i++) {
-		VideoSegment &seg = at(i);
-		seg.Wait();
-		sprintf(buf, "#EXTINF:%d,\n", (int)seg.duration);
+		VideoSegment *seg = at(i);
+		seg->Wait();
+		sprintf(buf, "#EXTINF:%d,\n", (int)seg->duration);
 		ret = ret + buf;
-		ret = ret + seg.realUrl;
+		ret = ret + seg->realUrl;
 		ret = ret + "\n";
 	}
 
@@ -216,8 +249,6 @@ bool KolaVideo::GetVideoUrl(std::string &video_url, size_t index)
 {
 	KolaClient *client =& KolaClient::Instance();
 	std::string text;
-	json_t *js, *sets;
-	json_error_t error;
 
 	if (client == NULL)
 		while(1) {
@@ -226,9 +257,9 @@ bool KolaVideo::GetVideoUrl(std::string &video_url, size_t index)
 	if (index >= size())
 		return false;
 
-	VideoSegment &seg = at(index);
+	VideoSegment *seg = at(index);
 
-	return seg.GetVideoUrl(video_url);
+	return seg->GetVideoUrl(video_url);
 	//std::cout << seg.realUrl << std::endl;
 
 	return false;

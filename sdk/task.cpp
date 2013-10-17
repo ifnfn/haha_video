@@ -41,3 +41,12 @@ void Task::Start() {
 	unlock();
 }
 
+bool Task::Wait()
+{
+	lock();
+	if (status == Task::StatusDownloading)
+		wait();
+	unlock();
+
+	return status == Task::StatusFinish;
+}

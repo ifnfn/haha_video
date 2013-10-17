@@ -123,6 +123,7 @@ class VideoBase:
         self.playlistid = 0  # 所属 ablum
         self.pid = 0
         self.vid = 0
+        self.cid = 0
 
         self.highVid = 0
         self.norVid = 0
@@ -168,6 +169,7 @@ class VideoBase:
         if self.pid             : ret['pid'] = self.pid
         if self.name            : ret['name'] = self.name
         if self.vid             : ret['vid'] = self.vid
+        if self.cid             : ret['cid'] = self.cid
 
         if self.highVid         : ret['highVid'] = self.highVid
         if self.norVid          : ret['norVid'] = self.norVid
@@ -196,6 +198,7 @@ class VideoBase:
         if 'playlistid' in json     : self.playlistid     = autoint(json['playlistid'])
         if 'pid' in json            : self.pid            = autoint(json['pid'])
         if 'vid' in json            : self.vid            = autoint(json['vid'])
+        if 'cid' in json            : self.cid            = autoint(json['cid'])
 
         if 'highVid' in json        : self.highVid        = autoint(json['highVid'])
         if 'norVid' in json         : self.norVid         = autoint(json['norVid'])
@@ -278,10 +281,6 @@ class AlbumBase:
         if self.cid :        ret['cid'] = self.cid
         if self.playlistid : ret['playlistid'] = self.playlistid
         if self.vid :        ret['vid'] = self.vid
-
-        url = self.GetVideoPlayUrl()
-        if url != '':
-            ret['videoPlayUrl'] = url
 
         if self.albumName       : ret['albumName']      = self.albumName
         if self.albumPageUrl    : ret['albumPageUrl']   = self.albumPageUrl
@@ -384,10 +383,6 @@ class AlbumBase:
     def UpdateAlbumPlayInfoCommand(self):
         pass
 
-    # 得到节目的地址
-    def GetVideoPlayUrl(self):
-        pass
-
 # 一级分类菜单
 class VideoMenuBase:
     def __init__(self, name, engine):
@@ -429,6 +424,12 @@ class VideoMenuBase:
     def GetRealPlayer(self, text, definition, step):
         return ''
 
+    def GetAlbumListJson(self, arg, All=False):
+        self.engine.ConvertJson(arg)
+
+        return self.engine.db.GetAlbumListJson(arg, self.cid, All)
+
+
 class DB:
     def __init__(self):
         self.con = pymongo.Connection('localhost', 27017)
@@ -437,10 +438,10 @@ class DB:
         self.videos_table = self.db.videos
         self.map_table    = self.db.urlmap
 
-        self.map_table.drop_indexes()
-        self.map_table.create_index([('pid', pymongo.ASCENDING)])
-        self.map_table.create_index([('vid', pymongo.ASCENDING)])
-        self.map_table.create_index([('pid', pymongo.ASCENDING), ('vid', pymongo.ASCENDING)])
+        self.videos_table.drop_indexes()
+        self.videos_table.create_index([('pid', pymongo.ASCENDING)])
+        self.videos_table.create_index([('vid', pymongo.ASCENDING)])
+        self.videos_table.create_index([('pid', pymongo.ASCENDING), ('vid', pymongo.ASCENDING)])
 
         self.album_table.drop_indexes()
         self.album_table.create_index([('albumName', pymongo.ASCENDING)])
@@ -667,7 +668,7 @@ class VideoEngine:
         pass
 
     # 转换 Filter 及 Sort 字段
-    def GetAlbumListJson(self, arg, cid=-1,All=False):
+    def GetAlbumListJson(self, arg, cid=-1, All=False):
         self.ConvertJson(arg)
 
         return self.db.GetAlbumListJson(arg, cid, All)

@@ -50,16 +50,18 @@ int main(int argc, char **argv)
 	page.CachePicture(PIC_LARGE);
 	page.UpdateVideos();
 
-	for (int i = 0; i < page.Count(); i++) {
+	for (size_t i = 0; i < page.Count(); i++) {
 		std::string player_url;
 		KolaAlbum &album = page.GetAlbum(i);
 
 		printf("[%d] %s (%d)\n", album.playlistid, album.albumName.c_str(), album.weeklyPlayNum);
+
 		foreach(album.videos, i) {
-			printf("\tVideo: %s < %s >, playUrl=%s\n", i->name.c_str(),
-					i->publishTime.c_str(),
-					i->playUrl.c_str());
-			player_url = i->GetVideoUrl();
+			KolaVideo *video = *i;
+			printf("\tVideo: %s < %s >, playUrl=%s\n", video->name.c_str(),
+					video->publishTime.c_str(),
+					video->playUrl.c_str());
+			player_url = video->GetVideoUrl();
 			std::cout << player_url << std::endl;
 #if 0
 			for (int j=0, count=i->size(); j < count; j++) {

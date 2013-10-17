@@ -185,16 +185,6 @@ class SohuAlbum(AlbumBase):
         if url != '':
             TemplateAlbumPlayInfo(self, url)
 
-    # 得到节目的地址
-    def GetVideoPlayUrl(self, definition=0):
-        maplist = self.vid,self.norVid,self.highVid,self.supverVid,self.oriVid,self.relativeId
-        if definition < len(maplist):
-            vid = maplist[definition]
-            if vid:
-                return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
-
-        return ''
-
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name, engine):
         VideoMenuBase.__init__(self, name, engine)
@@ -341,7 +331,7 @@ class SohuVideoMenu(VideoMenuBase):
             res['vid'] = vid
 
             # TODO
-            self._UpdateVideoVid(jdata, res)
+            self.engine._UpdateVideoVid(jdata, res)
 
             return res
         except:
@@ -723,10 +713,10 @@ class SohuLiveTV(SohuVideoMenu):
         self.homePage = 'http://tv.sohu.com/live/'
         self.filter = {
             '类型': [
-                {'卫视台':''},
-                {'地方台':''},
-                {'央视台':''},
-                {'境外台':''},
+                {'卫视台':'1'},
+                {'地方台':'2'},
+                {'央视台':'3'},
+                {'境外台':'4'},
             ]
         }
 
@@ -791,7 +781,7 @@ class SohuEngine(VideoEngine):
            # '教育'   : SohuEdu,
            # '旅游'   : SohuTour,
            # '新闻'   : SohuNew,
-            '直播'   : SohuLiveTV
+           # '直播'   : SohuLiveTV
         }
 
         self.parserList = {
@@ -934,6 +924,7 @@ class SohuEngine(VideoEngine):
                     v = album.VideoClass()
                     v.playlistid = album.playlistid
                     v.pid = album.vid
+                    v.cid = album.cid
                     v.LoadFromJson(video)
                     album.videos.append(v)
             if album.playlistid in [1000680, 5828810]:

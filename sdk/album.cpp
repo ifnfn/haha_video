@@ -5,6 +5,17 @@
 #include "base64.hpp"
 #include "httplib.h"
 
+KolaAlbum::KolaAlbum(json_t *js) {
+	LoadFromJson(js);
+}
+
+KolaAlbum::~KolaAlbum() {
+	for (size_t i=0, count=videos.size(); i < count;i++)
+		delete videos[i];
+
+	videos.clear();
+}
+
 bool KolaAlbum::LoadFromJson(json_t *js)
 {
 	albumName      = json_gets(js, "albumName"  , "");
@@ -71,7 +82,7 @@ bool KolaAlbum::GetVideos(void)
 
 	this->videos.clear();
 	json_array_foreach(videos, v) {
-		this->videos.push_back(KolaVideo(this, v));
+		this->videos.push_back(new KolaVideo(v));
 	}
 
 	json_decref(js);
@@ -104,9 +115,15 @@ std::string &KolaAlbum::GetPictureUrl(enum PicType type)
 }
 
 bool KolaAlbum::Run() {
-	GetVideos();
+	return GetVideos();
 }
 
+
+AlbumPage::~AlbumPage(void)
+{
+	for (std::vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++)
+		it->Wait();
+}
 
 void AlbumPage::UpdateVideos(void)
 {

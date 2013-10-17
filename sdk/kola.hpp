@@ -14,6 +14,7 @@
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
+class KolaVideo;
 class AlbumPage;
 
 extern void split(const std::string &s, std::string delim, std::vector< std::string > *ret);
@@ -43,31 +44,23 @@ class Task {
 		void Start();
 
 		void SetStatus(int st) { status = st; }
-		bool Wait() {
-			lock();
-			if (status == Task::StatusDownloading)
-				wait();
-			unlock();
-
-			return status == Task::StatusFinish;
-		}
-
+		bool Wait();
 	private:
 		int status;
 		sem_t sem;
 		pthread_mutex_t mutex;
 		pthread_cond_t ready;
-		void lock()   { pthread_mutex_lock(&mutex);   }
-		void unlock() { pthread_mutex_unlock(&mutex); }
-		void wait()   { pthread_cond_wait(&ready, &mutex); }
-		void signal() { pthread_cond_signal(&ready); }
+		inline void lock()   { pthread_mutex_lock(&mutex);   }
+		inline void unlock() { pthread_mutex_unlock(&mutex); }
+		inline void wait()   { pthread_cond_wait(&ready, &mutex); }
+		inline void signal() { pthread_cond_signal(&ready); }
 		friend void *task_thread(void *arg);
 };
 
 class VideoSegment: public Task {
 	public:
 		VideoSegment(void);
-		VideoSegment(json_t *js);
+		VideoSegment(KolaVideo *video, json_t *js);
 		VideoSegment(std::string u, std::string n, double d, size_t s);
 
 		~VideoSegment();
@@ -83,29 +76,14 @@ class VideoSegment: public Task {
 		bool GetVideoUrl(std::string &video_url);
 
 	private:
+		KolaVideo *video;
 		std::string GetJsonStr(std::string *newUrl);
 };
 
-class KolaVideo: public std::vector<VideoSegment> {
+class KolaVideo: public std::vector<VideoSegment*> {
 	public:
-		KolaVideo(KolaAlbum *album = NULL, json_t *js = NULL) {
-			width = height = fps = totalBytes = totalBlocks = 0;
-			totalDuration = 0.0;
-			playlistid = 0;  // 所属 ablum
-			pid = 0;
-			vid = 0;
-			order = 0;
-			isHigh = 0;
-			videoPlayCount = 0;
-			videoScore = 0.0;
-			playLength = 0.0;
-			haveOriginalData = 0;
-			this->album = album;
-
-			if (js)
-				LoadFromJson(js);
-		}
-		~KolaVideo() {}
+		KolaVideo(json_t *js = NULL);
+		~KolaVideo();
 
 		int width;
 		int height;
@@ -125,6 +103,7 @@ class KolaVideo: public std::vector<VideoSegment> {
 		int playlistid;  // 所属 ablum
 		int pid;
 		int vid;
+		int cid;
 		int order;
 		int isHigh;
 		int videoPlayCount;
@@ -142,7 +121,6 @@ class KolaVideo: public std::vector<VideoSegment> {
 
 		int haveOriginalData;
 	private:
-		KolaAlbum *album;
 		bool UpdatePlayInfo(json_t *js);
 
 };
@@ -186,13 +164,8 @@ class PictureCache: public std::map<std::string, Picture> {
 
 class KolaAlbum: public Task {
 	public:
-		KolaAlbum(json_t *js) {
-			LoadFromJson(js);
-		}
-
-		~KolaAlbum() {
-			//printf("~KolaAlbum %s\n", albumName.c_str());
-		}
+		KolaAlbum(json_t *js);
+		~KolaAlbum();
 
 		std::string albumName;
 		std::string albumDesc;
@@ -210,7 +183,7 @@ class KolaAlbum: public Task {
 		std::string mainActors;
 		std::string actors;
 		std::string directors;
-		std::vector<KolaVideo> videos;
+		std::vector<KolaVideo*> videos;
 		int playlistid;
 		int cid;
 
@@ -323,11 +296,12 @@ class KolaSort: public FilterValue {
 
 class AlbumPage {
 	public:
+		~AlbumPage(void);
 		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
 		void UpdateVideos(void);
 		KolaAlbum& GetAlbum(int index);
 		void Put(KolaAlbum album);
-		size_t Count() { albumList.size();}
+		size_t Count() { return albumList.size();}
 	private:
 		PictureCache picCache;
 		std::vector<KolaAlbum> albumList;

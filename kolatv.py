@@ -41,7 +41,7 @@ class Kolatv:
         data = []
         m = self.FindMenu(menuName)
         if m:
-            data = self.engine.GetAlbumListJson(argument, m.cid)
+            data = m.GetAlbumListJson(argument)
 
         return data
 
@@ -49,8 +49,8 @@ class Kolatv:
         return self.engine.db.GetVideoListJson(pid=pid, arg=argument)
 
     # 得到真实播放地址
-    def GetRealPlayer(self, text, name, definition, step):
-        menu = self.FindMenu(name)
+    def GetRealPlayer(self, text, cid, definition, step):
+        menu = self.FindMenuById(eg.autoint(cid))
         if menu == None:
             return {}
 
@@ -67,6 +67,13 @@ class Kolatv:
         self.engine.ParserHtml(js)
 
         return True
+
+    def FindMenuById(self, cid):
+        for _, menu in list(self.MenuList.items()):
+            if menu.cid == cid:
+                return menu
+
+        return None
 
     def FindMenu(self, name):
         if name in self.MenuList:

@@ -215,8 +215,12 @@ std::string KolaVideo::GetVideoUrl(void)
 	std::string ret, player_url;
 	double max_duration = 0;
 
-	ret = "#EXTM3U\n";
-	ret = ret + "#EXT-X-TARGETDURATION:";
+	if (count == 1) {
+		VideoSegment *seg = at(0);
+		seg->Start();
+		seg->Wait();
+		return seg->realUrl;
+	}
 
 	ret = "";
 	for (size_t i=0; i < count;i++) {

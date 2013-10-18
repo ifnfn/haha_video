@@ -11,7 +11,7 @@ import base64
 import tornado.escape
 
 from bs4 import BeautifulSoup as bs
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autoint
+from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autoint, json_get
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -240,13 +240,10 @@ class SohuVideoMenu(VideoMenuBase):
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
-        if self.homePage != "":
-            TemplateVideoAll(self).Execute()
-
-    # 获取所有节目列表的别一种方法，该方法备用
-    def UpdateAlbumList2(self):
         for url in self.HomeUrlList:
             TemplateVideoList(self, url).Execute()
+        #if self.homePage != "":
+        #    TemplateVideoAll(self).Execute()
 
     def UpdateHotList(self):
         # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3&encode=GBK
@@ -634,20 +631,20 @@ class SohuNew(SohuVideoMenu):
         self.number = 122
         SohuVideoMenu.__init__(self, name, engine)
         self.filter = {
-            '类型':[
-                {'国内':'122204'},
-                {'国际':'122205'},
-                {'军事':'122101'},
-                {'科技':'122106'},
-                {'财经':'122104'},
-                {'社会':'122102'},
-                {'生活':'122999'},
-            ],
-            '范围':[
-                {'今天':'86400'},
-                {'本周':'604800'},
-                {'本月':'2592000'},
-            ]
+            '类型':{
+                '国内':'122204',
+                '国际':'122205',
+                '军事':'122101',
+                '科技':'122106',
+                '财经':'122104',
+                '社会':'122102',
+                '生活':'122999',
+            },
+            '范围': {
+                '今天':'86400',
+                '本周':'604800',
+                '本月':'2592000',
+            }
         }
 
     # 更新热门电影信息
@@ -660,20 +657,20 @@ class SohuYule(SohuVideoMenu):
         self.number = 112
         SohuVideoMenu.__init__(self, name, engine)
         self.filter = {
-            '类型':[
-                {'明星':'112103'},
-                {'电影':'112100'},
-                {'电视':'112101'},
-                {'音乐':'112102'},
-                {'戏剧':'112202'},
-                {'动漫':'112201'},
-                {'其他':'112203'},
-            ],
-            '范围':[
-                {'今天':'86400'},
-                {'本周':'604800'},
-                {'本月':'2592000'},
-            ]
+            '类型':{
+                '明星':'112103',
+                '电影':'112100',
+                '电视':'112101',
+                '音乐':'112102',
+                '戏剧':'112202',
+                '动漫':'112201',
+                '其他':'112203',
+            },
+            '范围':{
+                '今天':'86400',
+                '本周':'604800',
+                '本月':'2592000',
+            }
         }
 
     # 更新热门电影信息
@@ -686,19 +683,19 @@ class SohuTour(SohuVideoMenu):
         self.number = 131
         SohuVideoMenu.__init__(self, name, engine)
         self.filter = {
-            '类型': [
-                {'自驾游':'131100'},
-                {'攻略':'131101'},
-                {'交通住宿':'131102'},
-                {'旅游资讯':'131103'},
-                {'国内游':'131104'},
-                {'境外游':'131105'},
-                {'自然':'131106'},
-                {'人文':'131107'},
-                {'户外':'131108'},
-                {'美食':'131109'},
-                {'节庆活动':'131110'},
-            ]
+            '类型': {
+                '自驾游' : '131100',
+                '攻略' : '131101',
+                '交通住宿' : '131102',
+                '旅游资讯' : '131103',
+                '国内游' : '131104',
+                '境外游' : '131105',
+                '自然' : '131106',
+                '人文' : '131107',
+                '户外' : '131108',
+                '美食' : '131109',
+                '节庆活动' : '131110',
+            }
         }
 
     # 更新热门电影信息
@@ -711,14 +708,19 @@ class SohuLiveTV(SohuVideoMenu):
         self.number = 200
         SohuVideoMenu.__init__(self, name, engine)
         self.homePage = 'http://tv.sohu.com/live/'
+        self.cid = 200
         self.filter = {
-            '类型': [
-                {'卫视台':'1'},
-                {'地方台':'2'},
-                {'央视台':'3'},
-                {'境外台':'4'},
-            ]
+            '类型': {
+                '卫视台':1,
+                '地方台':2,
+                '央视台':3,
+                '境外台':4,
+            }
         }
+    # 更新该菜单下所有节目列表
+    def UpdateAlbumList(self):
+        if self.homePage != "":
+            TemplateLiveTVInfo(self).Execute()
 
     # 更新热门电影信息
     def UpdateHotInfo(self):
@@ -731,20 +733,37 @@ class SohuLiveTV(SohuVideoMenu):
             data = jdata['data']
             if 'live' in data:
                 res['live'] = data['live']
+                urls = []
+                x = {}
+                x['url'] = res['live']
+                urls.append(x)
+
+                res['sets'] = urls
+                res['vid'] = jdata['lid']
         return res
 
     def _ParserRealUrlStep2(self, text):
     # {"code":"000000","msg":"OK","url":"http://122.228.223.139:80/live/31?key=H7mpogs3o-c84CTkTvx7PB6ME-QWypUS&ver=seg&n=1&a=1012&cip=115.236.90.218","cid":"31","nid":"347","cip":"115.236.90.218","key":"H7mpogs3o-c84CTkTvx7PB6ME-QWypUS","sp":"0"}
-        res = {}
-        jdata = tornado.escape.json_decode(text)
+        ret = {}
         try:
-            if jdata['msg'] == 'OK':
-                res['url'] = jdata['url']
+            ret = tornado.escape.json_decode(text)
+
+            if 'sets' in ret:
+                urls = []
+                for url in ret['sets']:
+                    text = base64.decodebytes(url['url'].encode()).decode()
+                    jdata = tornado.escape.json_decode(text)
+                    if jdata['msg'] == 'OK':
+                        u = jdata['url']
+                        urls.append(u)
+
+                ret['sets'] = urls
         except:
             t, v, tb = sys.exc_info()
-            log.error('SohuEngine._ParserLiveTVUrlStep2 %s,%s,%s' % (t, v, traceback.format_tb(tb)))
+            log.error('SohuEngine._ParserRealUrlStep2: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
 
-        return res
+        return ret
+
 # Sohu 搜索引擎
 class SohuEngine(VideoEngine):
     def __init__(self):
@@ -781,7 +800,7 @@ class SohuEngine(VideoEngine):
            # '教育'   : SohuEdu,
            # '旅游'   : SohuTour,
            # '新闻'   : SohuNew,
-           # '直播'   : SohuLiveTV
+            '直播'   : SohuLiveTV
         }
 
         self.parserList = {
@@ -919,16 +938,12 @@ class SohuEngine(VideoEngine):
                         if 'playLength' in video  : album.playLength =  video['playLength']
                         if 'publishTime' in video : album.publishTime = video['publishTime']
 
-                    if album.vid == 1268037:
-                        print(album)
                     v = album.VideoClass()
                     v.playlistid = album.playlistid
                     v.pid = album.vid
                     v.cid = album.cid
                     v.LoadFromJson(video)
                     album.videos.append(v)
-            if album.playlistid in [1000680, 5828810]:
-                print(album.vid)
             if album.vid:
                 self._save_update_append(ret, album, {'vid' : album.vid}, upsert=False)
             else:
@@ -1167,18 +1182,24 @@ class SohuEngine(VideoEngine):
         '''
         tvlist = tornado.escape.json_decode(js['data'])
         for v in tvlist['attachment']:
-            tv  = self.NewAlbum()
-            tv.pid         = v['programaId']
-            tv.cid         = 200
-            tv.vid         = v['videoId']
-            tv.playlistid  = v['id']
-            tv.albumName   = v['name']
-            tv.enAlbumName = v['enname']
-            tv.smallPicUrl = v['ico']
-            tv.albumDesc   = v['VideoName']
-            tv.videoPlayUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?lid=%d&type=1' % tv.playlistid
+            album  = self.NewAlbum()
+            album.cid         = 200
+            album.pid         = json_get(v, 'programaId', 0)
+            album.vid         = json_get(v, 'videoId', 0)
+            album.playlistid  = json_get(v, 'id', 0)
+            album.albumName   = json_get(v, 'name', '')
+            album.enAlbumName = json_get(v, 'enName', '')
+            album.smallPicUrl = json_get(v, 'ico', '')
+            album.albumDesc   = json_get(v, 'VideoName', '')
 
-            self._save_update_append(ret, tv)
+            v = album.VideoClass()
+            v.playlistid = album.playlistid
+            v.pid = album.vid
+            v.cid = album.cid
+            v.vid = album.vid
+            v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%d&type=1' % album.playlistid
+            album.videos.append(v)
+            self._save_update_append(ret, album)
 
         pass
 

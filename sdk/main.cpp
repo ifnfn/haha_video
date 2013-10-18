@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	m = kola.GetMenuByName("电影");
 #endif
 
-	m = kola["电影"];
+	m = kola["直播"];
 #if 0
 	foreach(m.Filter.filterKey, i) {
 		std::cout << i->first << ": ";
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 //	m.Sort.Set("评分最高");
 	AlbumPage page;
 	m.GetPage(page, 0);
-	page.CachePicture(PIC_LARGE);
+//	page.CachePicture(PIC_LARGE);
 	page.UpdateVideos();
 
 	for (size_t i = 0; i < page.Count(); i++) {

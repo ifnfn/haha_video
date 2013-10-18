@@ -89,6 +89,12 @@ def autoint(i):
     else:
         return i
 
+def json_get(sets, key, default):
+    if key in sets:
+        return sets[key]
+    else:
+        return default
+
 # 每个 Video 表示一个可以播放视频
 class VideoBase:
     def __init__(self, js=None):
@@ -144,6 +150,7 @@ class VideoBase:
         self.smallPicUrl = ''
         self.largePicUrl = ''
         self.pageUrl = ''
+        self.playUrl = ''
 
         self.originalData = []
         if js:
@@ -190,7 +197,10 @@ class VideoBase:
         if self.pageUrl         : ret['pageUrl'] = self.pageUrl
         if self.originalData    : ret['originalData'] = self.originalData
 
-        ret['playUrl'] = self.GetVideoPlayUrl()
+        if self.playUrl:
+            ret['playUrl'] = self.playUrl
+        else:
+            ret['playUrl'] = self.GetVideoPlayUrl()
 
         return ret
 
@@ -255,7 +265,6 @@ class AlbumBase:
         self.playLength = 0.0
         self.publishTime = ''
         self.updateTime = 0
-        self.videoPlayUrl = ''
 
         self.albumDesc = ''
         self.videoScore = ''
@@ -330,7 +339,6 @@ class AlbumBase:
         if 'playlistid' in json     : self.playlistid   = autoint(json['playlistid'])
         if 'vid' in json            : self.vid          = autoint(json['vid'])
 
-        if 'videoPlayUrl' in json   : self.videoPlayUrl = json['videoPlayUrl']
         if 'albumPageUrl' in json   : self.albumPageUrl = json['albumPageUrl']
 
         if 'isHigh' in json         : self.isHigh       = json['isHigh']
@@ -590,6 +598,9 @@ class DB:
                 fields = arg['fields']
             else:
                 fields = None
+
+            if not _filter:
+                return ret
 
             cursor = self.videos_table.find(_filter, fields = fields)
 

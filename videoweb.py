@@ -84,8 +84,8 @@ class GetVideoHandler(BaseHandler):
             else:
                 v['haveOriginalData'] = 0
 
+        args['count'] = len(videos)
         args['videos'] = videos
-        args['count'] = len(args['videos'])
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):

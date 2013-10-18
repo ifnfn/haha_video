@@ -64,8 +64,8 @@ int main(int argc, char **argv)
 			player_url = video->GetVideoUrl();
 			std::cout << player_url << std::endl;
 #if 0
-			for (int j=0, count=i->size(); j < count; j++) {
-				i->GetVideoUrl(player_url, j);
+			for (int j=0, count=video->size(); j < count; j++) {
+				video->GetVideoUrl(player_url, j);
 				std::cout << player_url << std::endl;
 			}
 #endif

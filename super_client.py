@@ -105,10 +105,16 @@ class KolaClient:
             coding = 'utf8'
             if 'regular' in cmd:
                 try:
-                    text = response.decode(coding)
+                    if type(response) == bytes:
+                        text = response.decode(coding)
+                    else:
+                        text = response
                 except:
                     coding = 'GB18030'
-                    text = response.decode(coding)
+                    if type(response) == bytes:
+                        text = response.decode(coding)
+                    else:
+                        text = response
 
                 response = self.RegularMatch(cmd['regular'], text).encode(coding)
             if 'json' in cmd:

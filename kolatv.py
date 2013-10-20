@@ -4,7 +4,8 @@
 import redis
 import logging
 import tornado.escape
-import sohuengine as eg
+import sohuengine, letvengine
+import engine
 
 from ThreadPool import ThreadPool
 
@@ -14,10 +15,21 @@ log = logging.getLogger('crawler')
 
 class Kolatv:
     def __init__(self):
-        self.engine = eg.SohuEngine()
-        self.db = redis.Redis(host='127.0.0.1', port=6379, db=2)
+        self.db = engine.DB()
+        self.command = engine.Commands(self.db.map_table)
+        self.engine = sohuengine.SohuEngine(self.db, self.command)
+        self.letv_engine = letvengine.LetvEngine(self.db, self.command)
+        self.engines = {}
+        self.engines[self.engine.engine_name] = self.engine
+        self.engines[self.letv_engine.engine_name] = self.letv_engine
+
         self.thread_pool = ThreadPool(POOLSIZE)
         self.MenuList = self.engine.GetMenu()
+
+    def GetEngine(self, name):
+        if name in self.engines:
+            return self.engines[name]
+        return None
 
     def GetMenuJsonInfoById(self, cid_list):
         ret = []
@@ -41,16 +53,16 @@ class Kolatv:
         data = []
         m = self.FindMenu(menuName)
         if m:
-            data = m.GetAlbumListJson(argument)
+            data = self.db.GetAlbumListJson(argument, m.cid)
 
         return data
 
     def GetVideoListByPid(self, pid, argument):
-        return self.engine.db.GetVideoListJson(pid=pid, arg=argument)
+        return self.db.GetVideoListJson(pid=pid, arg=argument)
 
     # 得到真实播放地址
     def GetRealPlayer(self, text, cid, definition, step):
-        menu = self.FindMenuById(eg.autoint(cid))
+        menu = self.FindMenuById(engine.autoint(cid))
         if menu == None:
             return {}
 
@@ -64,7 +76,8 @@ class Kolatv:
             print("Error:", js['source'])
             return False
 
-        self.engine.ParserHtml(js)
+        if self.engine.ParserHtml(js) == None:
+            self.letv_engine.ParserHtml(js)
 
         return True
 
@@ -102,35 +115,51 @@ class Kolatv:
                               'albumPageUrl': True,
                               'vid': True,
                               'playlistid': True}
-        return self.engine.GetAlbumListJson(argument, All=All)
+        return self.db.GetAlbumListJson(argument, All=All)
 
     # 更新所有节目的排名数据
     def UpdateAllScore(self):
         print("UpdateAllScore")
 
         for p in self._get_data(True):
-            self.engine.NewAlbum(p).UpdateScoreCommand()
-        self.engine.command.Execute()
+            for (name, engine) in list(self.engines.items()):
+                if hasattr(p, 'sources') and name in p.sources:
+                    engine.NewAlbum(p).UpdateScoreCommand()
+                else:
+                    self.engine.NewAlbum(p).UpdateScoreCommand()
+        self.command.Execute()
 
     # 更新所有节目的完全信息
     def UpdateAllFullInfo(self):
         print("UpdateAllFullInfo")
 
         for p in self._get_data(True):
-            self.engine.NewAlbum(p).UpdateFullInfoCommand()
-        self.engine.command.Execute()
+            for (name, engine) in list(self.engines.items()):
+                if hasattr(p, 'sources') and name in p.sources:
+                    engine.NewAlbum(p).UpdateFullInfoCommand()
+                else:
+                    self.engine.NewAlbum(p).UpdateFullInfoCommand()
+        self.command.Execute()
 
     # 更新所有节目的播放信息
     def UpdateAllPlayInfo(self):
         for p in self._get_data():
-            self.engine.NewAlbum(p).UpdateAlbumPlayInfoCommand()
-        self.engine.command.Execute()
+            for (name, engine) in list(self.engines.items()):
+                if hasattr(p, 'sources') and name in p.sources:
+                    engine.NewAlbum(p).UpdateAlbumPlayInfoCommand()
+                else:
+                    self.engine.NewAlbum(p).UpdateAlbumPlayInfoCommand()
+        self.command.Execute()
 
     # 更新所有节目主页
     def UpdateAllAlbumPage(self):
         for p in self._get_data(All=True):
-            self.engine.NewAlbum(p).UpdateAlbumPageCommand()
-        self.engine.command.Execute()
+            for (name, engine) in list(self.engines.items()):
+                if hasattr(p, 'sources') and name in p.sources:
+                    engine.NewAlbum(p).UpdateAlbumPageCommand()
+                else:
+                    self.engine.NewAlbum(p).UpdateAlbumPageCommand()
+        self.command.Execute()
 
     def UpdateAllHotList(self):
         for (_, menu) in list(self.MenuList.items()):

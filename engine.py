@@ -231,12 +231,6 @@ class VideoBase:
         if 'pageUrl' in json        : self.pageUrl        = json['pageUrl']
         if 'originalData' in json   : self.originalData   = json['originalData']
 
-# 一个节目，表示一部电影、电视剧集
-# {'cu': 249, 'id': 147,
-#    'programaId': 76372, 'percentage': 0.1530424093423479,
-#    'enName': 'zjtv', 'name': '浙江卫视',
-#    'ico': 'http://i2.itc.cn/20120119/2cea_d8216f64_5ba9_b7dd_4b3d_f2ea360e895f_17.png',
-#    'videoId': 136573770, 'videoName': '浙江新闻联播'}
 class AlbumBase:
     def __init__(self, engine):
         self.engine = engine
@@ -244,6 +238,8 @@ class AlbumBase:
         self.VideoClass = VideoBase
         self.cid = 0
 
+        self.source = {}         # 节目来源
+        self.source[engine.engine_name] = True
         self.albumName = ''      # 名称
         self.enAlbumName = ''    # 英文名称
         self.albumPageUrl = ''
@@ -432,19 +428,13 @@ class VideoMenuBase:
     def GetRealPlayer(self, text, definition, step):
         return ''
 
-    def GetAlbumListJson(self, arg, All=False):
-        self.engine.ConvertJson(arg)
-
-        return self.engine.db.GetAlbumListJson(arg, self.cid, All)
-
-
 class DB:
     def __init__(self):
         self.con = pymongo.Connection('localhost', 27017)
-        self.db = self.con.kola
-        self.album_table  = self.db.album
-        self.videos_table = self.db.videos
-        self.map_table    = self.db.urlmap
+        self.mongodb = self.con.kola
+        self.album_table  = self.mongodb.album
+        self.videos_table = self.mongodb.videos
+        self.map_table    = self.mongodb.urlmap
 
         self.videos_table.drop_indexes()
         self.videos_table.create_index([('pid', pymongo.ASCENDING)])
@@ -457,6 +447,22 @@ class DB:
         self.album_table.create_index([('vid', pymongo.ASCENDING)])
         self.album_table.create_index([('cid', pymongo.ASCENDING)])
         self.album_table.create_index([('playlistid', pymongo.ASCENDING)])
+        self.fieldMapping = {
+            '类型' : 'categories',
+            '产地' : 'area',
+            '地区' : 'area', # Music
+            '年份' : 'publishYear',
+            '篇幅' : '',
+            '年龄' : '',
+            '范围' : '',
+            '语言' : '',
+            '周播放最多' : 'weeklyPlayNum',
+            '日播放最多' : 'dailyPlayNum',
+            '总播放最多' : 'totalPlayNum',
+            '最新发布'   : 'publishTime',
+            '评分最高'   : 'videoScore'
+        }
+
 
     def SaveVideo(self, video):
         if video.vid:
@@ -529,6 +535,7 @@ class DB:
     #        "vid": -1
     #    }
     def GetAlbumListJson(self, arg, cid=-1,All=False):
+        self.ConvertJson(arg)
         ret = []
         try:
             _filter = {}
@@ -626,27 +633,6 @@ class DB:
     def GetMenuAlbumCount(self, cid):
         return self.db.album_table.find({'cid': cid}).count()
 
-class VideoEngine:
-    def __init__(self):
-        self.fieldMapping = {}
-        self.engine_name = 'EngineBase'
-        self.config = configparser.ConfigParser()
-
-        self.albumClass = AlbumBase
-        self.videoClass = VideoBase
-        self.db = DB()
-        self.command = Commands(self.db.map_table)
-
-    def NewVideo(self, js=None):
-        return self.videoClass(js)
-
-    def NewAlbum(self, js=None):
-        album = self.albumClass(self)
-        if js and album:
-            album.LoadFromJson(js)
-
-        return album
-
     def ConvertJson(self, arg):
         if 'filter' in arg:
             arg['filter'] = self._ConvertFilterJson(arg['filter'])
@@ -670,19 +656,41 @@ class VideoEngine:
         else:
             return [(v, -1)]
 
+class VideoEngine:
+    def __init__(self, db, command):
+        self.engine_name = 'EngineBase'
+        self.config = configparser.ConfigParser()
+
+        self.albumClass = AlbumBase
+        self.videoClass = VideoBase
+        self.db = db
+        self.command = command
+        self.parserList = {}
+
+    def NewVideo(self, js=None):
+        return self.videoClass(js)
+
+    def NewAlbum(self, js=None):
+        album = self.albumClass(self)
+        if js and album:
+            album.LoadFromJson(js)
+
+        return album
+
     # 获取节目一级菜单, 返回分类列表
-    def GetMenu(self, times=0):
-        return []
+    def GetMenu(self):
+        ret = {}
+        for m, cls in list(self.menu.items()):
+            if cls:
+                ret[m] = cls(m, self)
+        return ret
 
     # 解析菜单网页解析
     def ParserHtml(self, js):
-        pass
-
-    # 转换 Filter 及 Sort 字段
-    def GetAlbumListJson(self, arg, cid=-1, All=False):
-        self.ConvertJson(arg)
-
-        return self.db.GetAlbumListJson(arg, cid, All)
+        name = js['name']
+        if name in self.parserList:
+            return self.parserList[name](js)
+        return None
 
     # 从数据库中找到album
     def GetAlbumFormDB(self, playlistid=0, albumName='', albumPageUrl='', vid=0, auto=False):

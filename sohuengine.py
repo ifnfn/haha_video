@@ -24,7 +24,7 @@ MAX_TRY = 3
 class TemplateVideoAll(Template):
     def __init__(self, menu):
         cmd = {
-            'name' : 'videoall',
+            'name' : 'sohu_videoall',
             'source': menu.homePage
         }
         super().__init__(menu.command, cmd)
@@ -33,7 +33,7 @@ class TemplateVideoAll(Template):
 class TemplateVideoList(Template):
     def __init__(self, menu, url):
         cmd = {
-            'name': 'videolist',
+            'name': 'sohu_videolist',
             'source': url,
             'regular': [
                 '<p class="tit tit-p"><a target="_blank"\s*(.+)>.*</a>'
@@ -45,7 +45,7 @@ class TemplateVideoList(Template):
 class TemplateAlbumPage(Template):
     def __init__(self, album):
         cmd = {
-            'name'    : 'album',
+            'name'    : 'sohu_album',
             'source'  : album.albumPageUrl,
             'regular' : [
                 'var ((playlistId|pid|vid|PLAYLIST_ID|cid|playAble)\s*=\W*([\d,]+))'
@@ -57,7 +57,7 @@ class TemplateAlbumPage(Template):
 class TemplateAlbumScore(Template):
     def __init__(self, album):
         cmd = {
-            'name'    : 'album_score',
+            'name'    : 'sohu_album_score',
             'source'  : 'http://index.tv.sohu.com/index/switch-aid/%d' % album.playlistid,
             'json'    : [
                 'attachment.album',
@@ -70,7 +70,7 @@ class TemplateAlbumScore(Template):
 class TemplateAlbumTotalPlayNum(Template):
     def __init__(self, album):
         cmd = {
-            'name'    : 'album_total_playnum',
+            'name'    : 'sohu_album_total_playnum',
             'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=%d,' % album.vid,
         }
         super().__init__(album.command, cmd)
@@ -80,7 +80,7 @@ class TemplateAlbumTotalPlayNum(Template):
 class TemplateAlbumHotList(Template):
     def __init__(self, menu, url):
         cmd = {
-            'name'    : 'albumlist_hot',
+            'name'    : 'sohu_albumlist_hot',
             'source'  : url,
         }
         super().__init__(menu.command, cmd)
@@ -89,7 +89,7 @@ class TemplateAlbumHotList(Template):
 class TemplateAlbumFullInfo(Template):
     def __init__(self, album):
         cmd = {
-            'name' : 'album_fullinfo',
+            'name' : 'sohu_album_fullinfo',
             'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%d&vid=%d' % (album.playlistid, album.vid)
         }
         super().__init__(album.command, cmd)
@@ -98,7 +98,7 @@ class TemplateAlbumFullInfo(Template):
 class TemplateAlbumMvInfo(Template):
     def __init__(self, album, source_url):
         cmd = {
-            'name'    : 'album_mvinfo',
+            'name'    : 'sohu_album_mvinfo',
             'source'  : 'http://search.vrs.sohu.com/mv_i%d.json' % album.vid,
             'homePage': source_url,
             'regular': ['var video_album_videos_result=(\{.*.\})']
@@ -109,7 +109,7 @@ class TemplateAlbumMvInfo(Template):
 class TemplateAlbumMvInfoMini(Template):
     def __init__(self, album, source_url):
         cmd = {
-            'name'    : 'album_mvinfo_mini',
+            'name'    : 'sohu_album_mvinfo_mini',
             'source'  : 'http://search.vrs.sohu.com/mv_i%d.json' % album.vid,
             'homePage': source_url,
             'regular' : [
@@ -118,12 +118,11 @@ class TemplateAlbumMvInfoMini(Template):
         }
         super().__init__(album.command, cmd)
 
-
 # 更新节目的播放信息
 class TemplateAlbumPlayInfo(Template):
     def __init__(self, album, url):
         cmd = {
-            'name'   : 'album_playinfo',
+            'name'   : 'sohu_album_playinfo',
             'source' : url, #'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s',
             'json' : [
                 'data.highVid',
@@ -140,7 +139,7 @@ class TemplateAlbumPlayInfo(Template):
 class TemplateLiveTVInfo(Template):
     def __init__(self, menu):
         cmd = {
-            'name'   : 'livetv_list',
+            'name'   : 'sohu_livetv_list',
             'source' : 'http://tvimg.tv.itc.cn/live/top.json'
         }
         super().__init__(menu.command, cmd)
@@ -258,7 +257,6 @@ class SohuVideoMenu(VideoMenuBase):
         url = fmt % (v, self.number, sc)
 
         TemplateAlbumHotList(self, url).Execute()
-        #self.command.AddCommand('albumlist_hot', self.name, url).Execute()
 
     def UpdateHotList2(self):
         # http://so.tv.sohu.com/jsl?c=100&area=5&cate=100102_100122&o=1&encode=GBK
@@ -766,28 +764,12 @@ class SohuLiveTV(SohuVideoMenu):
 
 # Sohu 搜索引擎
 class SohuEngine(VideoEngine):
-    def __init__(self):
-        VideoEngine.__init__(self)
+    def __init__(self, db, command):
+        VideoEngine.__init__(self, db, command)
 
         self.engine_name = 'SohuEngine'
         self.albumClass = SohuAlbum
         self.videoClass = SohuVideo
-
-        self.fieldMapping = {
-            '类型' : 'categories',
-            '产地' : 'area',
-            '地区' : 'area', # Music
-            '年份' : 'publishYear',
-            '篇幅' : '',
-            '年龄' : '',
-            '范围' : '',
-            '语言' : '',
-            '周播放最多' : 'weeklyPlayNum',
-            '日播放最多' : 'dailyPlayNum',
-            '总播放最多' : 'totalPlayNum',
-            '最新发布'   : 'publishTime',
-            '评分最高'   : 'videoScore'
-        }
 
         # 引擎主菜单
         self.menu = {
@@ -804,33 +786,18 @@ class SohuEngine(VideoEngine):
         }
 
         self.parserList = {
-                   'videolist'           : self._CmdParserVideoList,
-                   'album'               : self._CmdParserAlbumPage,
-                   'album_score'         : self._CmdParserAlbumScore,
-                   'videoall'            : self._CmdParserAlbumList,
-                   'albumlist_hot'       : self._CmdParserHotInfoByIapi,
-                   'album_fullinfo'      : self._CmdParserAlbumFullInfo,
-                   'album_mvinfo'        : self._CmdParserAlbumMvInfo,
-                   'album_mvinfo_mini'   : self._CmdParserAlbumMvInfo,
-                   'album_playinfo'      : self._CmdParserAlbumPlayInfo,
-                   'album_total_playnum' : self._CmdParserAlbumTotalPlayNum,
-                   'livetv_list'         : self._CmdParserLiveTVList,
+                   'sohu_videolist'           : self._CmdParserVideoList,
+                   'sohu_album'               : self._CmdParserAlbumPage,
+                   'sohu_album_score'         : self._CmdParserAlbumScore,
+                   'sohu_videoall'            : self._CmdParserAlbumList,
+                   'sohu_albumlist_hot'       : self._CmdParserHotInfoByIapi,
+                   'sohu_album_fullinfo'      : self._CmdParserAlbumFullInfo,
+                   'sohu_album_mvinfo'        : self._CmdParserAlbumMvInfo,
+                   'sohu_album_mvinfo_mini'   : self._CmdParserAlbumMvInfo,
+                   'sohu_album_playinfo'      : self._CmdParserAlbumPlayInfo,
+                   'sohu_album_total_playnum' : self._CmdParserAlbumTotalPlayNum,
+                   'sohu_livetv_list'         : self._CmdParserLiveTVList,
         }
-
-    def GetMenu(self):
-        ret = {}
-        for m, cls in list(self.menu.items()):
-            if cls:
-                ret[m] = cls(m, self)
-        return ret
-
-    # 解析菜单网页解析
-    def ParserHtml(self, js):
-        ret = []
-        name = js['name']
-        if name in self.parserList:
-            ret = self.parserList[name](js)
-        return ret
 
     # 解析热门节目
     # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3

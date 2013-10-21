@@ -214,7 +214,9 @@ std::string KolaVideo::GetVideoUrl(void)
 	std::string ret, player_url;
 	double max_duration = 0;
 
-	if (count == 1) {
+	if (count == 0)
+		return "";
+	else if (count == 1) {
 		VideoSegment *seg = at(0);
 		seg->Start();
 		seg->Wait();

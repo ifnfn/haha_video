@@ -26,8 +26,8 @@ int main(int argc, char **argv)
 	m = kola.GetMenuByName("电影");
 #endif
 
-	//m = kola["直播"];
-	m = kola["电影"];
+	m = kola["直播"];
+	//m = kola["电影"];
 #if 0
 	foreach(m.Filter.filterKey, i) {
 		std::cout << i->first << ": ";

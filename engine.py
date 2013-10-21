@@ -372,6 +372,7 @@ class VideoMenuBase:
         self.engine = engine
         self.command = engine.command
         self.filter = {}
+        self.sort = {}
         self.name = name
         self.homePage = ''
         self.parserList = {}
@@ -379,10 +380,18 @@ class VideoMenuBase:
         self.cid = 0
 
     def GetFilterJson(self):
-        pass
+        ret = {}
+        for k,v in list(self.filter.items()):
+            ret[k] = [x for x in v]
+
+        return ret
 
     def GetSortJson(self):
-        pass
+        ret = []
+        for k in self.sort:
+            ret.append(k)
+
+        return ret
 
     def GetJsonInfo(self):
         ret = {}

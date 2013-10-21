@@ -64,20 +64,13 @@ class LetvVideoMenu(VideoMenuBase):
         self.homePage    = ''
         self.HomeUrlList = []
         self.albumClass  = LetvAlbum
-
-    def GetFilterJson(self):
-        ret = {}
-        for k,v in list(self.filter.items()):
-            ret[k] = [x for x in v]
-
-        return ret
-
-    def GetSortJson(self):
-        ret = []
-        for k in self.sort:
-            ret.append(k)
-
-        return ret
+        self.sort = {
+            '周播放最多' : 7,
+            '日播放最多' : 5,
+            '总播放最多' : 1,
+            '最新发布'   : 3,
+            '评分最高'   : 4
+        }
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
@@ -154,7 +147,7 @@ class LetvEngine(VideoEngine):
                     elif u[0] == 'id':
                         nameid = u[1]
 
-                urls = re.findall('>([\s\S]*?)</a>', t)
+                urls = re.findall('>([\s\S]*?)<', t)
                 if urls:
                     text = urls[0]
                 print(href, nameid, text)
@@ -162,6 +155,8 @@ class LetvEngine(VideoEngine):
                 album  = self.NewAlbum()
                 album.cid         = 200
                 album.vid         = nameid
+                album.playlistid  = nameid
+                album.pid         = nameid
                 album.albumName   = text
 
                 v = album.VideoClass()
@@ -169,7 +164,7 @@ class LetvEngine(VideoEngine):
                 v.pid = album.vid
                 v.cid = album.cid
                 v.vid = album.vid
-                v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%d&type=1' % album.playlistid
+                v.playUrl = href
                 album.videos.append(v)
                 self._save_update_append(ret, album)
 

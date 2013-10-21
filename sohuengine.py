@@ -218,20 +218,6 @@ class SohuVideoMenu(VideoMenuBase):
             '评分最高'   : 4
         }
 
-    def GetFilterJson(self):
-        ret = {}
-        for k,v in list(self.filter.items()):
-            ret[k] = [x for x in v]
-
-        return ret
-
-    def GetSortJson(self):
-        ret = []
-        for k in self.sort:
-            ret.append(k)
-
-        return ret
-
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:

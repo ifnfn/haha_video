@@ -8,6 +8,7 @@ from urllib.parse import unquote
 
 class BaseHandler(tornado.web.RequestHandler):
     def initialize(self):
+        return
         self.client_ip = self.request.remote_ip
         key = self.get_cookie('key')
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)

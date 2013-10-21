@@ -21,9 +21,9 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	albumName      = json_gets(js, "albumName"  , "");
 	albumDesc      = json_gets(js, "albumDesc"  , "");
 	cid            = json_geti(js, "cid"        , 0);
-	vid            = json_geti(js, "vid"        , 0);
-	pid            = json_geti(js, "pid"        , 0);
-	playlistid     = json_geti(js, "playlistid" , 0);
+	vid            = json_gets(js, "vid"        , "");
+	pid            = json_gets(js, "pid"        , "");
+	playlistid     = json_gets(js, "playlistid" , "");
 	isHigh         = json_geti(js, "isHigh"     , 0);
 	publishYear    = json_geti(js, "publishYear", 0);
 	totalSet       = json_geti(js, "totalSet"   , 0);
@@ -67,9 +67,9 @@ bool KolaAlbum::GetVideos(void)
 	json_t *js, *videos, *v;
 	json_error_t error;
 	KolaClient *client = &KolaClient::Instance();
-	char url[128];
+	std::string url;
 
-	sprintf(url, "/video/getvideo?full=1&pid=%d", vid);
+	url = "/video/getvideo?full=1&pid=" + vid;
 
 	if (client->UrlPost(url, NULL, text) == false)
 		return false;

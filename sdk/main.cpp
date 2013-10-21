@@ -26,7 +26,8 @@ int main(int argc, char **argv)
 	m = kola.GetMenuByName("电影");
 #endif
 
-	m = kola["直播"];
+	//m = kola["直播"];
+	m = kola["电影"];
 #if 0
 	foreach(m.Filter.filterKey, i) {
 		std::cout << i->first << ": ";
@@ -54,7 +55,7 @@ int main(int argc, char **argv)
 		std::string player_url;
 		KolaAlbum &album = page.GetAlbum(i);
 
-		printf("[%d] %s (%d)\n", album.playlistid, album.albumName.c_str(), album.weeklyPlayNum);
+		printf("[%s] %s (%d)\n", album.playlistid.c_str(), album.albumName.c_str(), album.weeklyPlayNum);
 
 		foreach(album.videos, i) {
 			KolaVideo *video = *i;

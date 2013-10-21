@@ -104,7 +104,6 @@ KolaVideo::KolaVideo(json_t *js)
 {
 	width = height = fps = totalBytes = totalBlocks = 0;
 	totalDuration = 0.0;
-	playlistid = cid = vid = pid = 0;
 	order = 0;
 	isHigh = 0;
 	videoPlayCount = 0;

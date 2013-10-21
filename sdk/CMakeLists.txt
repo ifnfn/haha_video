@@ -14,11 +14,14 @@ SET(SRCS
 	httplib.cpp
 	kola.cpp
 	pcre.cpp
-	threadpool.cpp)
+	threadpool.cpp
+	task.cpp
+	video.cpp
+)
 
 ADD_GX_LIBRARY(kolatv
 	${SRCS}
-	)
+)
 
 
 ###############################################################################

@@ -81,7 +81,7 @@ class KolaClient:
             return None
 
     def RegularMatchUrl(self, url, regular):
-        response = self.GetUrl(url)
+        response = self.GetCacheUrl(url)
         return self.RegularMatch([regular], response)
 
     def RegularMatch(self, regular, text):
@@ -90,7 +90,10 @@ class KolaClient:
             res = re.finditer(r, text)
             if (res):
                 for i in res:
-                    x += i.group(1) + '\n'
+                    if type(i.group(1)) == bytes:
+                        x += i.group(1).decode("GB18030") + '\n'
+                    else:
+                        x += i.group(1) + '\n'
         return x
 
     def ProcessCommand(self, cmd, dest, times = 0):
@@ -102,21 +105,19 @@ class KolaClient:
                 response = self.GetUrl(cmd['source'])
             else:
                 response = self.GetCacheUrl(cmd['source'])
-            coding = 'utf8'
-            if 'regular' in cmd:
-                try:
-                    if type(response) == bytes:
-                        text = response.decode(coding)
-                    else:
-                        text = response
-                except:
-                    coding = 'GB18030'
-                    if type(response) == bytes:
-                        text = response.decode(coding)
-                    else:
-                        text = response
 
-                response = self.RegularMatch(cmd['regular'], text).encode(coding)
+            coding = 'utf8'
+            try:
+                if type(response) == bytes:
+                    response = response.decode(coding)
+            except:
+                coding = 'GB18030'
+                if type(response) == bytes:
+                    response = response.decode(coding)
+
+            if 'regular' in cmd:
+                response = self.RegularMatch(cmd['regular'], response).encode(coding)
+
             if 'json' in cmd:
                 data = tornado.escape.json_decode(response)
 
@@ -135,9 +136,12 @@ class KolaClient:
                 response = json.dumps(ret).encode()
 
             if response:
-                cmd['data'] = response.decode()
+                if type(response) == bytes:
+                    response = response.decode(coding)
+                cmd['data'] = response
             else:
                 print("[WARNING] Data is empty: ", cmd['source'])
+
             body = json.dumps(cmd) #, ensure_ascii = False)
             ret = self.PostUrl(dest, body) != None
         except:
@@ -194,10 +198,12 @@ def main_thread():
         thread_pool.add_job(main)
 
 if __name__ == "__main__":
-    #haha = KolaClient()
-    #a = haha.RegularMatchUrl('http://tv.sohu.com/20120517/n343417005.shtml',
-    #                         'var ((playlistId|pid|vid|PLAYLIST_ID|cid|playAble)\s*=\W*([\d,]+))'.encode())
+    haha = KolaClient()
+    #a = haha.RegularMatchUrl('http://www.letvlive.com',
+    #                         '(<a href="tv.php.*</a>)'.encode())
+                             #'<h1 class="lm_1">(.*)</h1>'.encode())
     #print(a)
+
     #a = haha.RegularMatchUrl("http://search.vrs.sohu.com/mv_i1268037.json",
     #                         '("playlistId":\w+)'.encode())
     #print(a)

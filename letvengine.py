@@ -11,7 +11,8 @@ import base64
 import tornado.escape
 
 from bs4 import BeautifulSoup as bs
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autoint, json_get
+from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
+from utils import autoint, json_get
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
@@ -25,7 +26,11 @@ class TemplateLiveTVInfo(Template):
     def __init__(self, menu):
         cmd = {
             'name'   : 'letv_livetv_list',
-            'source' : 'http://tvimg.tv.itc.cn/live/top.json'
+            'source' : 'http://www.letvlive.com',
+            'regular' : [
+                            '(<a href="tv.php.*</a>)',
+                            '<h1 class="lm_1">(.*)</h1>'
+            ]
         }
         super().__init__(menu.command, cmd)
 
@@ -131,26 +136,42 @@ class LetvEngine(VideoEngine):
     def _CmdParserLiveTVList(self, js):
         ret = []
 
-        tvlist = tornado.escape.json_decode(js['data'])
-        for v in tvlist['attachment']:
-            album  = self.NewAlbum()
-            album.cid         = 200
-            album.pid         = json_get(v, 'programaId', 0)
-            album.vid         = json_get(v, 'videoId', 0)
-            album.playlistid  = json_get(v, 'id', 0)
-            album.albumName   = json_get(v, 'name', '')
-            album.enAlbumName = json_get(v, 'enName', '')
-            album.smallPicUrl = json_get(v, 'ico', '')
-            album.albumDesc   = json_get(v, 'VideoName', '')
+        text = js['data']
 
-            v = album.VideoClass()
-            v.playlistid = album.playlistid
-            v.pid = album.vid
-            v.cid = album.cid
-            v.vid = album.vid
-            v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%d&type=1' % album.playlistid
-            album.videos.append(v)
-            self._save_update_append(ret, album)
+        playlist = js['data'].split("</a>")
+
+        for t in playlist:
+            #print(t)
+            if re.findall('target="play"', t):
+                href=''
+                nameid=''
+                text=''
+                t += '</a>'
+                urls = re.findall('(href|id)="([\s\S]*?)"', t)
+                for u in urls:
+                    if u[0] == 'href':
+                        href = 'http://live.gslb.letv.com/gslb?ext=m3u8&sign=live_tv&format=1&stream_id=' + u[1]
+                    elif u[0] == 'id':
+                        nameid = u[1]
+
+                urls = re.findall('>([\s\S]*?)</a>', t)
+                if urls:
+                    text = urls[0]
+                print(href, nameid, text)
+
+                album  = self.NewAlbum()
+                album.cid         = 200
+                album.vid         = nameid
+                album.albumName   = text
+
+                v = album.VideoClass()
+                v.playlistid = album.playlistid
+                v.pid = album.vid
+                v.cid = album.cid
+                v.vid = album.vid
+                v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%d&type=1' % album.playlistid
+                album.videos.append(v)
+                self._save_update_append(ret, album)
 
         pass
 

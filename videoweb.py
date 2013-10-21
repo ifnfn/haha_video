@@ -136,7 +136,7 @@ class GetMenuHandler(BaseHandler):
         ret = []
         cid = self.get_argument('cid', '')
         name  = self.get_argument('name', '')
-        if cid != '':
+        if cid:
             cid = cid.split(',')
             ret = tv.GetMenuJsonInfoById(cid)
         elif name != '':

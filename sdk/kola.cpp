@@ -22,14 +22,13 @@
 #include "pcre.hpp"
 #include "threadpool.hpp"
 
-//#define SERVER_HOST "127.0.0.1"
+#define SERVER_HOST "127.0.0.1"
 //#define SERVER_HOST "121.199.20.175"
-
 //#define SERVER_HOST "112.124.60.152"
-//#define PORT 9991
+//#define SERVER_HOST "www.kolatv.com"
 
-#define SERVER_HOST "www.kolatv.com"
-#define PORT 80
+#define PORT 9991
+//#define PORT 80
 
 #define MAX_THREAD_POOL_SIZE 8
 #define TRY_TIMES 3

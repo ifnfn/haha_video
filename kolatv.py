@@ -6,6 +6,7 @@ import logging
 import tornado.escape
 import sohuengine, letvengine
 import engine
+from db import DB
 
 from ThreadPool import ThreadPool
 
@@ -15,7 +16,7 @@ log = logging.getLogger('crawler')
 
 class Kolatv:
     def __init__(self):
-        self.db = engine.DB()
+        self.db = DB()
         self.command = engine.Commands(self.db.map_table)
         self.engine = sohuengine.SohuEngine(self.db, self.command)
         self.letv_engine = letvengine.LetvEngine(self.db, self.command)
@@ -24,7 +25,10 @@ class Kolatv:
         self.engines[self.letv_engine.engine_name] = self.letv_engine
 
         self.thread_pool = ThreadPool(POOLSIZE)
-        self.MenuList = self.engine.GetMenu()
+        self.MenuList = {}
+
+        self.engine.GetMenu(self.MenuList)
+#        self.letv_engine.GetMenu(self.MenuList)
 
     def GetEngine(self, name):
         if name in self.engines:

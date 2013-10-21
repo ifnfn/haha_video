@@ -100,9 +100,9 @@ class KolaVideo: public std::vector<VideoSegment*> {
 		bool GetVideoUrl(std::string &video_url, size_t index);
 
 		std::string name;
-		int playlistid;  // 所属 ablum
-		int pid;
-		int vid;
+		std::string playlistid;  // 所属 ablum
+		std::string pid;
+		std::string vid;
 		int cid;
 		int order;
 		int isHigh;
@@ -167,6 +167,8 @@ class KolaAlbum: public Task {
 		KolaAlbum(json_t *js);
 		~KolaAlbum();
 
+		int cid;
+		std::string playlistid;
 		std::string albumName;
 		std::string albumDesc;
 		std::string area;            // 地区
@@ -184,8 +186,6 @@ class KolaAlbum: public Task {
 		std::string actors;
 		std::string directors;
 		std::vector<KolaVideo*> videos;
-		int playlistid;
-		int cid;
 
 		bool GetVideos(void);
 		std::string &GetPictureUrl(enum PicType type);
@@ -193,8 +193,8 @@ class KolaAlbum: public Task {
 	private:
 		bool LoadFromJson(json_t *js);
 
-		int pid;
-		int vid;
+		std::string pid;
+		std::string vid;
 
 		std::string videoPlayUrl;
 		std::string largePicUrl;      // 大图片网址

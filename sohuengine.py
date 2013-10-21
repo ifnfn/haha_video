@@ -1,7 +1,6 @@
 #! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import logging
 import traceback
 import sys
 import json
@@ -11,10 +10,8 @@ import base64
 import tornado.escape
 
 from bs4 import BeautifulSoup as bs
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template, autoint, json_get
-
-logging.basicConfig()
-log = logging.getLogger("crawler")
+from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
+from utils import autostr, autoint, json_get, log
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
 SOHU_HOST = 'tv.sohu.com'
@@ -58,7 +55,7 @@ class TemplateAlbumScore(Template):
     def __init__(self, album):
         cmd = {
             'name'    : 'sohu_album_score',
-            'source'  : 'http://index.tv.sohu.com/index/switch-aid/%d' % album.playlistid,
+            'source'  : 'http://index.tv.sohu.com/index/switch-aid/%s' % album.playlistid,
             'json'    : [
                 'attachment.album',
                 'attachment.index'
@@ -71,7 +68,7 @@ class TemplateAlbumTotalPlayNum(Template):
     def __init__(self, album):
         cmd = {
             'name'    : 'sohu_album_total_playnum',
-            'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=%d,' % album.vid,
+            'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=%s,' % album.vid,
         }
         super().__init__(album.command, cmd)
 
@@ -90,7 +87,7 @@ class TemplateAlbumFullInfo(Template):
     def __init__(self, album):
         cmd = {
             'name' : 'sohu_album_fullinfo',
-            'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%d&vid=%d' % (album.playlistid, album.vid)
+            'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s&vid=%s' % (album.playlistid, album.vid)
         }
         super().__init__(album.command, cmd)
 
@@ -99,9 +96,9 @@ class TemplateAlbumMvInfo(Template):
     def __init__(self, album, source_url):
         cmd = {
             'name'    : 'sohu_album_mvinfo',
-            'source'  : 'http://search.vrs.sohu.com/mv_i%d.json' % album.vid,
+            'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
             'homePage': source_url,
-            'regular': ['var video_album_videos_result=(\{.*.\})']
+            'regular' : ['var video_album_videos_result=(\{.*.\})']
         }
         super().__init__(album.command, cmd)
 
@@ -110,11 +107,9 @@ class TemplateAlbumMvInfoMini(Template):
     def __init__(self, album, source_url):
         cmd = {
             'name'    : 'sohu_album_mvinfo_mini',
-            'source'  : 'http://search.vrs.sohu.com/mv_i%d.json' % album.vid,
+            'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
             'homePage': source_url,
-            'regular' : [
-                '("playlistId":\w+)'
-            ]
+            'regular' : ['("playlistId":\w+)']
         }
         super().__init__(album.command, cmd)
 
@@ -782,7 +777,7 @@ class SohuEngine(VideoEngine):
            # '教育'   : SohuEdu,
            # '旅游'   : SohuTour,
            # '新闻'   : SohuNew,
-            '直播'   : SohuLiveTV
+           # '直播'   : SohuLiveTV
         }
 
         self.parserList = {
@@ -801,7 +796,7 @@ class SohuEngine(VideoEngine):
 
     # 解析热门节目
     # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3
-    # albumlist_hot
+    # sohu_albumlist_hot
     def _CmdParserHotInfoByIapi(self, js):
         ret = []
         try:
@@ -821,13 +816,13 @@ class SohuEngine(VideoEngine):
 
     # 通过 vid 获得节目更多的信息
     # http://search.vrs.sohu.com/mv_i1268037.json
-    # album_mvinfo
-    # album_mvinfo_mini
+    # sohu_album_mvinfo
+    # sohu_sohu_album_mvinfo_mini
     def _CmdParserAlbumMvInfo(self, js):
         ret = []
         try:
             text = tornado.escape.to_basestring(js['data'])
-            if js['name'] == 'album_mvinfo_mini':
+            if js['name'] == 'sohu_album_mvinfo_mini':
                 text = '{' + text + '}'
             json = tornado.escape.json_decode(text)
 
@@ -838,7 +833,7 @@ class SohuEngine(VideoEngine):
                 return []
 
             if 'playlistId' in json :
-                album.playlistid = autoint(json['playlistId'])
+                album.playlistid = autostr(json['playlistId'])
 
             if 'videos' in json and json['videos']:
                 video = json['videos'][0]
@@ -854,8 +849,6 @@ class SohuEngine(VideoEngine):
 #
 #                     tv.videos.append(v)
             if album.playlistid:
-                if album.playlistid == 1000680:
-                    print(album.playlistid)
                 self._save_update_append(ret, album, upsert=False)
         except:
             t, v, tb = sys.exc_info()
@@ -865,7 +858,7 @@ class SohuEngine(VideoEngine):
 
     # 解析节目的完全信息
     # http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241
-    # album_fullinfo
+    # sohu_album_fullinfo
     def _CmdParserAlbumFullInfo(self, js):
         ret = []
         try:
@@ -874,9 +867,9 @@ class SohuEngine(VideoEngine):
             album = self.NewAlbum()
 
             if 'cid' in json            : album.cid            = autoint(json['cid'])
-            if 'playlistid' in json     : album.playlistid     = autoint(json['playlistid'])
-            if 'pid' in json            : album.pid            = autoint(json['pid'])
-            if 'vid' in json            : album.vid            = autoint(json['vid'])
+            if 'playlistid' in json     : album.playlistid     = autostr(json['playlistid'])
+            if 'pid' in json            : album.pid            = autostr(json['pid'])
+            if 'vid' in json            : album.vid            = autostr(json['vid'])
 
             if 'isHigh' in json         : album.isHigh         = json['isHigh']
             if 'area' in json           : album.area           = json['area']
@@ -901,7 +894,7 @@ class SohuEngine(VideoEngine):
 
             if 'videos' in json:
                 for video in json['videos']:
-                    if 'vid' in video and video['vid'] == int(album.vid) and album.vid:
+                    if 'vid' in video and video['vid'] == autostr(album.vid) and album.vid:
                         if 'playLength' in video  : album.playLength =  video['playLength']
                         if 'publishTime' in video : album.publishTime = video['publishTime']
 
@@ -924,7 +917,7 @@ class SohuEngine(VideoEngine):
     # 解析所有节目列表：
     # 拿到菜单下所有节目的 albumName、albumPageUrl
     # http://tv.sohu.com/tvall/
-    # videoall
+    # sohu_videoall
     def _CmdParserAlbumList(self, js):
         ret = []
 
@@ -956,7 +949,7 @@ class SohuEngine(VideoEngine):
     # 解析节目基本信息：
     # 主要要拿到节目的playlistid、vid、pid，如果没有找到playlistid，则通过 mv_i继续找
     # http://tv.sohu.com/20120517/n343417005.shtml
-    # album
+    # sohu_album
     def _CmdParserAlbumPage(self, js):
         ret = []
         try:
@@ -968,13 +961,13 @@ class SohuEngine(VideoEngine):
             if t:
                 for u in t:
                     if u[0] == 'pid':
-                        tv.pid = autoint(u[1])
+                        tv.pid = autostr(u[1])
                     elif u[0] == 'vid':
                         if u[1] in ['-1', '', '1']:
                             return ret
-                        tv.vid = autoint(u[1])
+                        tv.vid = autostr(u[1])
                     elif u[0] == 'playlistId' or u[0] == 'PLAYLIST_ID':
-                        tv.playlistid = autoint(u[1])
+                        tv.playlistid = autostr(u[1])
                     elif u[0] == 'cid':
                         tv.cid = autoint(u[1])
                     elif u[0] == 'playAble':
@@ -985,7 +978,7 @@ class SohuEngine(VideoEngine):
 
                 #TODO
                 # 如果得不到 playlistId 的话
-                if tv.playlistid == 0:
+                if tv.playlistid == '':
                     TemplateAlbumMvInfoMini(tv, js['source']).Execute()
                 #tv.UpdateFullInfoCommand().Execute()
                 #tv.UpdateScoreCommand().Execute()
@@ -1010,7 +1003,7 @@ class SohuEngine(VideoEngine):
             if text:
                 data = tornado.escape.json_decode(text[0])
                 for v in data['videos']:
-                    vid = autoint(v['videoid'])
+                    vid = autostr(v['videoid'])
                     tv = self.GetAlbumFormDB(vid=vid, auto=False)
                     if tv == None:
                         return []
@@ -1035,7 +1028,7 @@ class SohuEngine(VideoEngine):
                 if album:
                     tv = self.NewAlbum()
                     if 'id' in album:
-                        tv.playlistid = autoint(album['id'])
+                        tv.playlistid = autostr(album['id'])
                         if not tv.playlistid:
                             return []
 
@@ -1067,14 +1060,14 @@ class SohuEngine(VideoEngine):
 
         try:
             video = self.NewVideo()
-            video.vid = autoint(js['id'])
+            video.vid = autostr(js['id'])
             data = js['data']
 
-            if 'highVid' in data:    video.highVid    = autoint(data['highVid'])
-            if 'norVid' in data:     video.norVid     = autoint(data['norVid'])
-            if 'oriVid' in data:     video.oriVid     = autoint(data['oriVid'])
-            if 'superVid' in data:   video.superVid   = autoint(data['superVid'])
-            if 'relativeId' in data: video.relativeId = autoint(data['relativeId'])
+            if 'highVid' in data:    video.highVid    = autostr(data['highVid'])
+            if 'norVid' in data:     video.norVid     = autostr(data['norVid'])
+            if 'oriVid' in data:     video.oriVid     = autostr(data['oriVid'])
+            if 'superVid' in data:   video.superVid   = autostr(data['superVid'])
+            if 'relativeId' in data: video.relativeId = autostr(data['relativeId'])
 
             video.originalData = res
             self.db.SaveVideo(video)
@@ -1151,9 +1144,9 @@ class SohuEngine(VideoEngine):
         for v in tvlist['attachment']:
             album  = self.NewAlbum()
             album.cid         = 200
-            album.pid         = json_get(v, 'programaId', 0)
-            album.vid         = json_get(v, 'videoId', 0)
-            album.playlistid  = json_get(v, 'id', 0)
+            album.pid         = json_get(v, 'programaId', '')
+            album.vid         = json_get(v, 'videoId', '')
+            album.playlistid  = json_get(v, 'id', '')
             album.albumName   = json_get(v, 'name', '')
             album.enAlbumName = json_get(v, 'enName', '')
             album.smallPicUrl = json_get(v, 'ico', '')
@@ -1164,7 +1157,7 @@ class SohuEngine(VideoEngine):
             v.pid = album.vid
             v.cid = album.cid
             v.vid = album.vid
-            v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%d&type=1' % album.playlistid
+            v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % album.playlistid
             album.videos.append(v)
             self._save_update_append(ret, album)
 

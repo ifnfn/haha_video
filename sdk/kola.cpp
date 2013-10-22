@@ -268,6 +268,8 @@ int KolaMenu::GetPage(AlbumPage &page, int pageNo)
 	std::string body("{");
 	std::string filter = Filter.GetJsonStr();
 	std::string sort = Sort.GetJsonStr();
+
+	page.Clear();
 	if (filter.size() > 0) {
 		count++;
 		body = body + filter;
@@ -298,7 +300,7 @@ int KolaMenu::GetPage(AlbumPage &page, int pageNo)
 			if (results && json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value)
-					page.Put(KolaAlbum(value));
+					page.PutAlbum(KolaAlbum(value));
 			}
 
 //			std::cout << text << std::endl;

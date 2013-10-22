@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <stdexcept>
 #include <algorithm>
 #include <pthread.h>
 #include <jansson.h>
@@ -137,29 +138,6 @@ class Picture: public Task {
 		virtual bool Run();
 		virtual bool Destroy();
 	private:
-};
-
-class PictureCache: public std::map<std::string, Picture> {
-	public:
-		PictureCache(void) {
-			maxCount = 20;
-		}
-		PictureCache(int size) {
-			maxCount = size;
-		}
-		~PictureCache() {
-		}
-
-		Picture& Add(std::string fileName) {
-			std::pair<std::map<std::string, Picture>::iterator, bool> ret;
-			ret = insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
-			ret.first->second.Start();
-
-			return ret.first->second;
-		}
-
-	private:
-		int maxCount;
 };
 
 class KolaAlbum: public Task {
@@ -300,11 +278,17 @@ class AlbumPage {
 		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
 		void UpdateVideos(void);
 		KolaAlbum& GetAlbum(int index);
-		void Put(KolaAlbum album);
+
+		void PutAlbum(KolaAlbum album);
+		void PutPicture(std::string picFileName);
+
 		size_t Count() { return albumList.size();}
+
+		Picture& GetPicture(std::string fileName);
+		void Clear();
 	private:
-		PictureCache picCache;
 		std::vector<KolaAlbum> albumList;
+		std::map<std::string, Picture> pictureList;
 };
 
 class KolaMenu {

@@ -930,6 +930,7 @@ class SohuEngine(VideoEngine):
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
         return ret
 
     # 解析节目基本信息：
@@ -1146,8 +1147,6 @@ class SohuEngine(VideoEngine):
             v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % album.playlistid
             album.videos.append(v)
             self._save_update_append(ret, album)
-
-        pass
 
     def _save_update_append(self, sets, tv, _filter={}, upsert=True):
         if tv:

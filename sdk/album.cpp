@@ -123,6 +123,10 @@ AlbumPage::~AlbumPage(void)
 {
 	for (std::vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++)
 		it->Wait();
+
+	for (std::map<std::string, Picture>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
+		it->second.Wait();
+	}
 }
 
 void AlbumPage::UpdateVideos(void)
@@ -135,20 +139,53 @@ void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列�
 {
 	for (std::vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		std::string &fileName = it->GetPictureUrl(type);
-		if (fileName != "")
-			picCache.Add(fileName);
+		PutPicture(fileName);
 	}
 }
 
-void AlbumPage::Put(KolaAlbum album) {
-	albumList.push_back(album);
+void AlbumPage::PutPicture(std::string fileName)
+{
+	if (fileName != "") {
+		std::pair<std::map<std::string, Picture>::iterator, bool> ret;
+		ret = pictureList.insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
+		ret.first->second.Start();
+	}
 }
 
-KolaAlbum& AlbumPage::GetAlbum(int index) {
+void AlbumPage::PutAlbum(KolaAlbum album)
+{
+	//albumList.push_back(album).Start();
+	albumList.insert(albumList.end(), album)->Start();
+}
+
+KolaAlbum& AlbumPage::GetAlbum(int index)
+{
 	KolaAlbum &album = albumList.at(index);
 	album.Wait();
 
 	return album;
 }
 
+Picture& AlbumPage::GetPicture(std::string fileName)
+{
+	std::map<std::string, Picture>::iterator it;
 
+	it = pictureList.find(fileName);
+
+	if (it != pictureList.end()) {
+		it->second.Wait();
+		return it->second;
+	}
+	else {
+		Picture pic(fileName);
+
+	}
+
+	throw std::invalid_argument(fileName);
+}
+
+void AlbumPage::Clear()
+{
+	pictureList.clear();
+	albumList.clear();
+}

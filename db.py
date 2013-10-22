@@ -21,6 +21,7 @@ class DB:
         self.album_table.create_index([('vid', pymongo.ASCENDING)])
         self.album_table.create_index([('cid', pymongo.ASCENDING)])
         self.album_table.create_index([('playlistid', pymongo.ASCENDING)])
+
         self.fieldMapping = {
             '类型' : 'categories',
             '产地' : 'area',
@@ -228,4 +229,3 @@ class DB:
             return [(newkey, -1)]
         else:
             return [(v, -1)]
-

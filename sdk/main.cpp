@@ -48,8 +48,9 @@ int main(int argc, char **argv)
 //	m.Sort.Set("评分最高");
 	AlbumPage page;
 	m.GetPage(page, 0);
-//	page.CachePicture(PIC_LARGE);
-	page.UpdateVideos();
+	page.CachePicture(PIC_LARGE);
+	//page.CachePicture(PIC_SMALL);
+	//page.UpdateVideos();
 
 	for (size_t i = 0; i < page.Count(); i++) {
 		std::string player_url;
@@ -71,6 +72,8 @@ int main(int argc, char **argv)
 			}
 #endif
 		}
+		Picture &LargePic = page.GetPicture(album.GetPictureUrl(PIC_LARGE));
+		Picture &SmallPic = page.GetPicture(album.GetPictureUrl(PIC_SMALL));
 	}
 
 	while (1)

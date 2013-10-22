@@ -2,24 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import traceback
-import sys
 import json
 import re
-import redis
-import base64
-import tornado.escape
 
-from bs4 import BeautifulSoup as bs
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
-from utils import autoint, json_get
 
 logging.basicConfig()
 log = logging.getLogger("crawler")
 
-#================================= 以下是搜狐视频的搜索引擎 =======================================
-SOHU_HOST = 'tv.sohu.com'
-MAX_TRY = 3
+#================================= 以下是视频的搜索引擎 =======================================
 
 # 更新节目的播放信息
 class TemplateLiveTVInfo(Template):
@@ -55,8 +46,6 @@ class LetvAlbum(AlbumBase):
         if self.albumPageUrl:
             if self.playlistid:
                 TemplateLiveTVInfo(self)
-            #if self.vid:
-            #    TemplateAlbumMvInfo(self, self.albumPageUrl)
 
 class LetvVideoMenu(VideoMenuBase):
     def __init__(self, name, engine):
@@ -167,8 +156,6 @@ class LetvEngine(VideoEngine):
                 v.playUrl = href
                 album.videos.append(v)
                 self._save_update_append(ret, album)
-
-        pass
 
     def _save_update_append(self, sets, tv, _filter={}, upsert=True):
         if tv:

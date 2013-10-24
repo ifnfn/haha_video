@@ -41,7 +41,7 @@ class AlbumListHandler(BaseHandler):
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
-        args, menu = self.argument()
+        args, menu, cid = self.argument()
 
         if self.request.body:
             try:
@@ -52,7 +52,10 @@ class AlbumListHandler(BaseHandler):
                 log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
-        args['result'] = tv.GetMenuAlbumListByName(menu, args)
+        if cid:
+            args['result'] = tv.GetMenuAlbumListByCid(cid, args)
+        elif menu:
+            args['result'] = tv.GetMenuAlbumListByName(menu, args)
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
@@ -455,7 +458,6 @@ class DirectTVHandler(BaseHandler):
 
         #self.finish(text)
         self.finish(json.dumps(tv, indent=4, ensure_ascii=False))
-
 
 class TestHandler(BaseHandler):
     def initialize(self):

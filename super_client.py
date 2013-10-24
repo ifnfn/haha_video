@@ -48,7 +48,7 @@ class KolaClient:
         return response
 
     def PostUrl(self, url, body):
-        return utils.GetUrl(url, body, self.key)
+        return utils.PostUrl(url, body, self.key)
 
     def RegularMatchUrl(self, url, regular):
         response = self.GetCacheUrl(url)

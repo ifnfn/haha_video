@@ -30,7 +30,7 @@ class Kolatv:
         self.thread_pool = ThreadPool(POOLSIZE)
         self.MenuList = {}
 
-        #self.engine.GetMenu(self.MenuList)
+        self.engine.GetMenu(self.MenuList)
         #self.letv_engine.GetMenu(self.MenuList)
         self.text_engine.GetMenu(self.MenuList)
 

@@ -45,6 +45,7 @@ class TextvTV(VideoMenuBase):
         self.homePage    = ''
         self.HomeUrlList = []
         self.albumClass  = TextvAlbum
+        self.cid = 200
         self.sort = {
             '周播放最多' : 7,
             '日播放最多' : 5,

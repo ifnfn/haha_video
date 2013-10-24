@@ -22,6 +22,9 @@ class BaseHandler(tornado.web.RequestHandler):
         if self.request.method == "POST" and self.request.body:
             body = unquote(self.request.body.decode())           # URLDecode
             body = base64.decodebytes(body.encode())             # BASE64_Decode
-            decompress = zlib.decompressobj(-zlib.MAX_WBITS)     # ZLIB Decompress
-            self.request.body = decompress.decompress(body)
-            self.request.body += decompress.flush()
+            if int(body[0]) == 0x5A and int(body[1]) == 0xA5:
+                decompress = zlib.decompressobj(-zlib.MAX_WBITS)     # ZLIB Decompress
+                self.request.body = decompress.decompress(body[2:])
+                self.request.body += decompress.flush()
+            else:
+                self.request.body = body

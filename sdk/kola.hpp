@@ -185,6 +185,7 @@ class KolaAlbum: public Task {
 		std::string videoScore;
 
 		std::string defaultPageUrl;  // 当前播放集
+		bool directVideos;
 };
 
 class StringList: public std::vector<std::string> {
@@ -316,18 +317,19 @@ class KolaClient {
 		~KolaClient(void);
 
 		void Quit(void);
-		KolaMenu GetMenuByName(const char *name);
-		KolaMenu GetMenuByCid(int cid);
-
+		void ClearMenu();
 		bool UpdateMenu(void);
-		KolaMenu operator[] (const char *name);
-		KolaMenu operator[] (int inx);
+
+		KolaMenu* GetMenuByName(const char *name);
+		KolaMenu* GetMenuByCid(int cid);
+		KolaMenu* operator[] (const char *name);
+		KolaMenu* operator[] (int inx);
 		int MenuCount() { return menuMap.size(); };
 		bool haveCommand() { return havecmd; }
 	private:
 		KolaClient(void);
 		std::string baseUrl;
-		std::map<std::string, KolaMenu> menuMap;
+		std::map<std::string, KolaMenu*> menuMap;
 
 		int nextLoginSec;
 		void *threadPool;

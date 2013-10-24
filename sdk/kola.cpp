@@ -142,12 +142,14 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 static std::string gzip_base64(const char *data, int ndata)
 {
 	std::string ret;
-	Byte *zdata = (Byte*)malloc(ndata * 2);
+	Byte *zdata = (Byte*)malloc(ndata * 2 + 4);
 	uLong nzdata = ndata * 2;
 
-	if (gzcompress((Bytef *)data, (uLong)ndata, zdata, &nzdata) == 0) {
+	if (gzcompress((Bytef *)data, (uLong)ndata, zdata + 2, &nzdata) == 0) {
+		zdata[0] = 0x5A;
+		zdata[1] = 0xA5;
 		data = (const char*)zdata;
-		ndata = nzdata;
+		ndata = nzdata + 2;
 	}
 	int out_size = BASE64_SIZE(ndata) + 1;
 
@@ -198,11 +200,9 @@ bool Picture::Run()
 	bool ok = false;
 	http_resp_t *http_resp = NULL;
 
-	printf("wget %s\n", fileName.c_str());
 	if (client->UrlGet("", fileName.c_str(), (void**)&http_resp)) {
 		size = http_resp->body_len;
 		data = malloc(size);
-		printf("size = %d, data = %p\n", size, data);
 		memcpy(data, http_resp->body, size);
 		inCache = true;
 		ok = true;
@@ -616,6 +616,15 @@ bool KolaClient::Login(bool quick)
 	return true;
 }
 
+void KolaClient::ClearMenu()
+{
+	std::map<std::string, KolaMenu*>::iterator it;
+	for (it = menuMap.begin(); it != menuMap.end(); it++)
+		delete it->second;
+
+	menuMap.clear();
+}
+
 bool KolaClient::UpdateMenu(void)
 {
 	json_error_t error;
@@ -630,14 +639,14 @@ bool KolaClient::UpdateMenu(void)
 	}
 
 //	std::cout << text << std::endl;
-	menuMap.clear();
+	ClearMenu();
 	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	if (js) {
 		json_t *value;
 		json_array_foreach(js, value) {
 			const char *name = json_gets(value, "name", "");
-			menuMap.insert(std::pair<std::string, KolaMenu>(name, KolaMenu(value)));
+			menuMap.insert(std::pair<std::string, KolaMenu*>(name, new KolaMenu(value)));
 		}
 		json_decref(js);
 	}
@@ -645,39 +654,38 @@ bool KolaClient::UpdateMenu(void)
 	return true;
 }
 
-KolaMenu KolaClient::operator[] (const char *name)
+KolaMenu* KolaClient::operator[] (const char *name)
 {
 	return GetMenuByName(name);
 }
 
-KolaMenu KolaClient::operator[] (int index)
+KolaMenu* KolaClient::operator[] (int index)
 {
-	std::map<std::string, KolaMenu>::iterator it = menuMap.begin();
+	std::map<std::string, KolaMenu*>::iterator it = menuMap.begin();
 	for(; it != menuMap.end() && index; it++, index--);
 
 	if (index == 0 && it != menuMap.end())
 		return it->second;
-	else
-		throw std::out_of_range("index");
+
+	return NULL;
 }
 
-KolaMenu KolaClient::GetMenuByCid(int cid)
+KolaMenu* KolaClient::GetMenuByCid(int cid)
 {
 	foreach(menuMap, i) {
-		if (i->second.cid == cid)
+		if (i->second->cid == cid)
 			return i->second;
 	}
-	// TODO
-	return KolaMenu();
+
+	return NULL;
 }
 
-KolaMenu KolaClient::GetMenuByName(const char *menuName)
+KolaMenu* KolaClient::GetMenuByName(const char *menuName)
 {
-	KolaMenu ret;
-	std::map<std::string, KolaMenu>::iterator it;
+	std::map<std::string, KolaMenu*>::iterator it;
 
 	if (menuName == NULL)
-		throw std::invalid_argument(menuName);
+		return NULL;
 
 	it = menuMap.find(menuName);
 
@@ -688,9 +696,9 @@ KolaMenu KolaClient::GetMenuByName(const char *menuName)
 	it = menuMap.find(menuName);
 
 	if (it != menuMap.end())
-		ret = it->second;
+		return it->second;
 
-	return ret;
+	return NULL;
 }
 
 static void cancel(void *any)

@@ -6,6 +6,7 @@
 #include "httplib.h"
 
 KolaAlbum::KolaAlbum(json_t *js) {
+	directVideos = false;
 	LoadFromJson(js);
 }
 
@@ -58,9 +59,11 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	//categories = json_gets(js, "categories", "");
 //	std::cout << "KolaAlbum:" << albumName << std::endl;
 
-	sources = json_geto(js, "sources", NULL);
+	sources = json_geto(js, "sources");
 
 	if (sources) {
+		json_t *v;
+		directVideos = true;
 		this->videos.clear();
 		json_array_foreach(sources, v) {
 			this->videos.push_back(new KolaVideo(v));
@@ -72,6 +75,9 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 
 bool KolaAlbum::GetVideos(void)
 {
+	if (directVideos)
+		return directVideos;
+
 	std::string text;
 	json_t *js, *videos, *v;
 	json_error_t error;

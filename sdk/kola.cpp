@@ -168,6 +168,7 @@ Picture::Picture(std::string fileName) {
 	data = NULL;
 	size = 0;
 	inCache = false;
+	used = false;
 	this->fileName = fileName;
 }
 

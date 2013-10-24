@@ -137,6 +137,7 @@ class Picture: public Task {
 		bool inCache;
 		virtual bool Run();
 		virtual bool Destroy();
+		bool used;
 	private:
 };
 
@@ -168,6 +169,7 @@ class KolaAlbum: public Task {
 		bool GetVideos(void);
 		std::string &GetPictureUrl(enum PicType type);
 		virtual bool Run();
+		inline void WaitVideo() { Wait(); }
 	private:
 		bool LoadFromJson(json_t *js);
 
@@ -283,6 +285,7 @@ class AlbumPage {
 		void PutPicture(std::string picFileName);
 
 		size_t Count() { return albumList.size();}
+		size_t PictureCount() { return pictureList.size(); }
 
 		Picture* GetPicture(std::string fileName);
 		void Clear();

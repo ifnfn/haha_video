@@ -61,10 +61,11 @@ int main(int argc, char **argv)
 		printf("[%d] %s\n", i, album->albumName.c_str());
 	}
 
+#if 0
 	for (size_t i = 0; i < page.Count(); i++) {
 		std::string player_url;
 		KolaAlbum *album = page.GetAlbum(i);
-		album->Wait();
+		album->WaitVideo();
 		printf("[%d]: Video:Count %d\n", i, album->videos.size());
 		foreach(album->videos, j) {
 			KolaVideo *video = *j;
@@ -72,16 +73,25 @@ int main(int argc, char **argv)
 			printf("\t%s -> %s\n", video->name.c_str(), player_url.c_str());
 		}
 	}
+#endif
 
 #if 1
-	for (size_t i = 0; i < page.Count(); i++) {
-		KolaAlbum *album = page.GetAlbum(i);
+	size_t count = page.PictureCount();
+	while (count) {
+		for (size_t i = 0; i < page.Count(); i++) {
+			KolaAlbum *album = page.GetAlbum(i);
 
-		Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
-		if (LargePic)
-			printf("%s: data:%p, size=%d\n", LargePic->fileName.c_str(), LargePic->data, LargePic->size);
-//		Picture &SmallPic = page.GetPicture(album->GetPictureUrl(PIC_SMALL));
+			Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
+			if (LargePic) {
+				if (LargePic->inCache && LargePic->used == false) {
+					printf("[%d] %s: data:%p, size=%d\n", i, LargePic->fileName.c_str(), LargePic->data, LargePic->size);
+					LargePic->used = true;
+					count--;
+				}
+			}
+		}
 	}
+	printf("End!!!\n");
 #endif
 
 	while (1)

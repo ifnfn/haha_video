@@ -306,7 +306,7 @@ class AlbumBase:
 
         return ret
 
-    def directVideosLoadFromJson(self, json):
+    def LoadFromJson(self, json):
         # From DataBase
         if 'cid' in json            : self.cid             = json['cid']
         if 'albumName' in json      : self.albumName       = json['albumName']

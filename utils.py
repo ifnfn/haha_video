@@ -44,7 +44,7 @@ def PostUrl(url, body, key=""):
                                     - zlib.MAX_WBITS,
                                     zlib.DEF_MEM_LEVEL,
                                     0)
-        body = compress.compress(body.encode())
+        body = b"\x5A\xA5" + compress.compress(body.encode())
         body += compress.flush()
         body = base64.encodebytes(body).decode()
 

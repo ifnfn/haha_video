@@ -196,7 +196,7 @@ class ShowHandler(BaseHandler):
         if 'totalPlayNum' not in album: album['totalPlayNum'] = ''
         if 'videoScore'   not in album: album['videoScore'] = 0
 
-        totalPlayNum = engine.autoint(album['totalPlayNum'])
+        totalPlayNum = utils.autoint(album['totalPlayNum'])
         if totalPlayNum > 100000000:
             album['totalPlayNum'] = '%.4f 亿次' % (totalPlayNum / 100000000)
         elif totalPlayNum > 10000:

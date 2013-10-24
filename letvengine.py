@@ -104,7 +104,7 @@ class LetvEngine(VideoEngine):
     def __init__(self, db, command):
         VideoEngine.__init__(self, db, command)
 
-        self.engine_name = 'SohuEngine'
+        self.engine_name = 'LetvEngine'
         self.albumClass = LetvAlbum
         self.videoClass = LetvVideo
 

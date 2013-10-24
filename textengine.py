@@ -77,7 +77,7 @@ class TextvEngine(VideoEngine):
     def __init__(self, db, command):
         VideoEngine.__init__(self, db, command)
 
-        self.engine_name = 'SohuEngine'
+        self.engine_name = 'TextvEngine'
         self.albumClass = TextvAlbum
         self.videoClass = TextvVideo
 

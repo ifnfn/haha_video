@@ -26,8 +26,8 @@ int main(int argc, char **argv)
 	m = kola.GetMenuByName("电影");
 #endif
 
-	//m = kola["直播"];
-	m = kola["电影"];
+	m = kola["直播"];
+	//m = kola["电影"];
 
 	if (m == NULL)
 		return -1;
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 		printf("[%d] %s\n", i, album->albumName.c_str());
 	}
 
-#if 0
+#if 1
 	for (size_t i = 0; i < page.Count(); i++) {
 		std::string player_url;
 		KolaAlbum *album = page.GetAlbum(i);

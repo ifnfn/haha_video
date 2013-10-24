@@ -1,14 +1,12 @@
 #! env /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import logging
-import json
+import sys, traceback
 import re
+import tornado.escape
 
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
-
-logging.basicConfig()
-log = logging.getLogger("crawler")
+from utils import log, autostr
 
 #================================= 以下是视频的搜索引擎 =======================================
 
@@ -67,12 +65,18 @@ class LetvVideoMenu(VideoMenuBase):
             TemplateLiveTVInfo(self, url).Execute()
 
     def GetRealPlayer(self, text, definition, step):
-        if step == '1':
-            res = self._ParserRealUrlStep1(text)
-        else:
-            res = self._ParserRealUrlStep2(text)
+        jdata = tornado.escape.json_decode(text)
+        ret = {}
+        try:
+            ret['directPlayUrl'] = jdata['location']
+            ret['name'] = jdata['desc']
+            ret['publishTime'] = autostr(jdata['starttime'])
+            print(ret)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error('SohuEngine._ParserRealUrlStep2: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
 
-        return json.dumps(res, indent=4, ensure_ascii=False)
+        return ret
 
 # 直播电视
 class LetvLiveTV(LetvVideoMenu):
@@ -129,12 +133,11 @@ class LetvEngine(VideoEngine):
                 nameid=''
                 text=''
                 t += '</a>'
-                urls = re.findall('(href|id)="([\s\S]*?)"', t)
+                urls = re.findall('tv.php\?(id)=([\s\S]*?)"', t)
                 for u in urls:
-                    if u[0] == 'href':
-                        href = 'http://live.gslb.letv.com/gslb?ext=m3u8&sign=live_tv&format=1&stream_id=' + u[1]
-                    elif u[0] == 'id':
+                    if u[0] == 'id':
                         nameid = u[1]
+                        href = 'http://live.gslb.letv.com/gslb?ext=m3u8&sign=live_tv&format=1&stream_id=' + u[1]
 
                 urls = re.findall('>([\s\S]*?)<', t)
                 if urls:

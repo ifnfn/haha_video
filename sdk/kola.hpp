@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <stdexcept>
 #include <algorithm>
 #include <pthread.h>
 #include <jansson.h>
@@ -119,6 +118,7 @@ class KolaVideo: public std::vector<VideoSegment*> {
 		std::string largePicUrl;
 		std::string pageUrl;
 		std::string playUrl;
+		std::string directPlayUrl;
 
 		int haveOriginalData;
 	private:
@@ -257,7 +257,6 @@ class KolaFilter {
 		void KeyRemove(std::string key, std::string value);
 		std::string GetJsonStr(void);
 		FilterValue& operator[] (std::string key);
-//	private:
 		std::map<std::string, FilterValue> filterKey;
 };
 
@@ -274,21 +273,21 @@ class KolaSort: public FilterValue {
 
 class AlbumPage {
 	public:
+		AlbumPage();
 		~AlbumPage(void);
 		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
-		void UpdateVideos(void);
-		KolaAlbum& GetAlbum(int index);
+		KolaAlbum* GetAlbum(int index);
 
-		void PutAlbum(KolaAlbum album);
+		void PutAlbum(KolaAlbum *album);
 		void PutPicture(std::string picFileName);
 
 		size_t Count() { return albumList.size();}
 
-		Picture& GetPicture(std::string fileName);
+		Picture* GetPicture(std::string fileName);
 		void Clear();
 	private:
-		std::vector<KolaAlbum> albumList;
-		std::map<std::string, Picture> pictureList;
+		std::vector<KolaAlbum*> albumList;
+		std::map<std::string, Picture*> pictureList;
 };
 
 class KolaMenu {

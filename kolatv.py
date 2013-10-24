@@ -4,9 +4,10 @@
 import redis
 import logging
 import tornado.escape
-import sohuengine, letvengine
+import sohuengine, letvengine, textengine
 import engine
 from db import DB
+import utils
 
 from ThreadPool import ThreadPool
 
@@ -20,15 +21,18 @@ class Kolatv:
         self.command = engine.Commands(self.db.map_table)
         self.engine = sohuengine.SohuEngine(self.db, self.command)
         self.letv_engine = letvengine.LetvEngine(self.db, self.command)
+        self.text_engine = textengine.TextvEngine(self.db, self.command)
         self.engines = {}
         self.engines[self.engine.engine_name] = self.engine
         self.engines[self.letv_engine.engine_name] = self.letv_engine
+        self.engines[self.text_engine.engine_name] = self.text_engine
 
         self.thread_pool = ThreadPool(POOLSIZE)
         self.MenuList = {}
 
-        self.engine.GetMenu(self.MenuList)
+        #self.engine.GetMenu(self.MenuList)
         #self.letv_engine.GetMenu(self.MenuList)
+        self.text_engine.GetMenu(self.MenuList)
 
     def GetEngine(self, name):
         if name in self.engines:
@@ -61,6 +65,10 @@ class Kolatv:
 
         return data
 
+    def GetMenuAlbumListByCid(self, cid, argument):
+        cid = utils.autoint(cid)
+        return self.db.GetAlbumListJson(argument, cid)
+
     def GetVideoListByPid(self, pid, argument):
         return self.db.GetVideoListJson(pid=pid, arg=argument)
 
@@ -80,8 +88,9 @@ class Kolatv:
             print("Error:", js['source'])
             return False
 
-        if self.engine.ParserHtml(js) == None:
-            self.letv_engine.ParserHtml(js)
+        for _, eg in list(self.engines.items()):
+            if eg.ParserHtml(js) != None:
+                break
 
         return True
 

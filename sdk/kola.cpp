@@ -22,13 +22,16 @@
 #include "pcre.hpp"
 #include "threadpool.hpp"
 
+#if 1
 #define SERVER_HOST "127.0.0.1"
-//#define SERVER_HOST "121.199.20.175"
+#define PORT 9991
+#else
+#define SERVER_HOST "121.199.20.175"
 //#define SERVER_HOST "112.124.60.152"
 //#define SERVER_HOST "www.kolatv.com"
 
-#define PORT 9991
-//#define PORT 80
+#define PORT 80
+#endif
 
 #define MAX_THREAD_POOL_SIZE 8
 #define TRY_TIMES 3
@@ -300,7 +303,7 @@ int KolaMenu::GetPage(AlbumPage &page, int pageNo)
 			if (results && json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value)
-					page.PutAlbum(KolaAlbum(value));
+					page.PutAlbum(new KolaAlbum(value));
 			}
 
 //			std::cout << text << std::endl;

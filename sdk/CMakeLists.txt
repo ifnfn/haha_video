@@ -28,7 +28,8 @@ ADD_GX_LIBRARY(kolatv
 # 编译可执行程序
 ###############################################################################
 # test
-#ADD_EXECUTABLE(test main.cpp)
-#TARGET_LINK_LIBRARIES(test kolatv jansson pcre crypto z pthread dl)
+SET(CMAKE_EXE_LINKER_FLAGS "--static")
+ADD_EXECUTABLE(kola main.cpp)
+TARGET_LINK_LIBRARIES(kola kolatv jansson pcre crypto z dl gxcore pthread)
 
 INSTALL(FILES kola.hpp DESTINATION ${GOXCEED_PATH}/include)

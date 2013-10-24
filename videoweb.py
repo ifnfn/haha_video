@@ -8,18 +8,19 @@ import tornado.web
 import tornado.options
 import redis
 import json
-import logging
 import uuid
+import re
 import hashlib
 
 from tornado.options import define, options
 from pymongo import Connection
 from basehandle import BaseHandler
 from kolatv import Kolatv
+from utils import log
 import engine
+import utils
+import tornado.escape
 
-logging.basicConfig()
-log = logging.getLogger("crawler")
 tv = Kolatv()
 
 class AlbumListHandler(BaseHandler):
@@ -28,12 +29,15 @@ class AlbumListHandler(BaseHandler):
         args['page'] = int(self.get_argument('page', 0))
         args['size'] = int(self.get_argument('size', 20))
 
-        return args, self.get_argument('menu', '')
+        return args, self.get_argument('menu', ''), self.get_argument('cid', '')
 
     def get(self):
-        args, menu = self.argument()
+        args, menu, cid = self.argument()
 
-        args['result'] = tv.GetMenuAlbumListByName(menu, args)
+        if cid:
+            args['result'] = tv.GetMenuAlbumListByCid(cid, args)
+        elif menu:
+            args['result'] = tv.GetMenuAlbumListByName(menu, args)
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
@@ -207,7 +211,6 @@ class ShowHandler(BaseHandler):
             album['type'] = ''
 
         self.render("show.html", alubm=album)
-        pass
 
 class UpdateCommandHandle(BaseHandler):
     def initialize(self):
@@ -424,6 +427,55 @@ class IndexHandler(BaseHandler):
 
         self.render("index.html",newtv=newtv,toptv=toptv,topmovie=topmovie,newmovie=newmovie)
 
+class DirectTVHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        text = tornado.escape.to_basestring(utils.GetUrl('http://files.cloudtv.bz/media/20130927.txt'))
+        text = text.replace('（华侨直播）', '')
+        text = text.replace('【夜猫】', '')
+        text = text.replace('[腾讯]', '')
+        playlist = text.split('\n')
+        tv = {}
+        for t in playlist:
+            t = t.strip()
+            if t[0:1] != '#':
+                v = re.findall('(.*)((http|rtmp|rtsp).*)', t)
+                if v and len(v[0]) >= 2:
+                    key = v[0][0].strip()
+                    value = v[0][1].strip()
+                    print(key, value)
+                    if key not in tv:
+                        tv[key] = []
+                    x = {}
+                    x['name'] = utils.GetNameByUrl(value)
+                    x['url'] = value
+                    tv[key].append(x)
+
+        #self.finish(text)
+        self.finish(json.dumps(tv, indent=4, ensure_ascii=False))
+
+
+class TestHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        ret = {}
+        text = utils.GetUrl('http://control.sm.kukuplay.com/SrcManager/getchannelproperty/5_1356062660479')
+        jdata = tornado.escape.json_decode(text)
+
+        ret['sname'] = jdata['channelInfo']['sname']
+        ret['cdn_src'] = jdata['channelInfo']['cdn_src']
+        ret['lastSplitTime'] = jdata['channelInfo']['lastSplitTime']
+        ret['serverTime']  = jdata['channelInfo']['serverTime']
+        ret['xx'] = utils.dec2hex(ret['lastSplitTime']/100)
+        ret['url'] = ret['cdn_src'] + ret['sname'] + '/' + ret['xx'] + '.dat'
+        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+        #self.finish(json.dumps(jdata, indent=4, ensure_ascii=False))
+        self.finish(ret['url'])
+
 define('port', default=9991, help='run on the given port', type=int)
 class Application(tornado.web.Application):
     def __init__(self):
@@ -444,11 +496,14 @@ class Application(tornado.web.Application):
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
             (r'/video/urlmap',     UrlMapHandler),          # 后台管理，增加网址映射
-            (r'/video/getmenu',    GetMenuHandler),         # 后台管理，增加网址映射
+            (r'/video/getmenu',    GetMenuHandler),         #
             (r'/login',            LoginHandler),           # 登录认证
             (r'/manage/update',    UpdateCommandHandle),
             (r'/',                 IndexHandler),
             (r'/show',             ShowHandler),
+            (r'/test',             TestHandler),
+            (r'/a',                DirectTVHandler),
+
             (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),
         ]
 

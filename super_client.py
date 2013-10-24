@@ -4,14 +4,13 @@
 import sys, os
 import traceback
 import json
-import base64, zlib
 import re
 import time
 import hashlib
 import tornado.escape
 
-from fetchTools import fetch_httplib2 as fetch
 from ThreadPool import ThreadPool
+import utils
 
 HOST = 'http://127.0.0.1:9991'
 #HOST = 'http://192.168.188.135:9991'
@@ -25,19 +24,8 @@ class KolaClient:
         self.menuList = []
         self.key = ''
 
-    def GetUrl(self, url, times = 0):
-        if times > MAX_TRY:
-            return ''
-        try:
-            status, _, _, response = fetch(url)
-            if status != '200':
-                print(response)
-                return ''
-            return response
-        except:
-            t, v, tb = sys.exc_info()
-            print("KolaClient.GetUrl: %s %s, %s, %s" % (url, t, v, traceback.format_tb(tb)))
-            return self.GetUrl(url, times + 1)
+    def GetUrl(self, url):
+        return utils.GetUrl(url)
 
     def GetCacheUrl(self, url):
         response = ''
@@ -60,25 +48,7 @@ class KolaClient:
         return response
 
     def PostUrl(self, url, body):
-        try:
-            compress = zlib.compressobj(9,
-                                        zlib.DEFLATED,
-                                        - zlib.MAX_WBITS,
-                                        zlib.DEF_MEM_LEVEL,
-                                        0)
-            body = compress.compress(body.encode())
-            body += compress.flush()
-            body = base64.encodebytes(body).decode()
-
-            ret, _, _, response = fetch(url, 'POST', body, cookies = "key=" + self.key)
-            if ret != "200":
-                print(response)
-                return None
-            return response
-        except:
-            t, v, tb = sys.exc_info()
-            print("PostUrl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
-            return None
+        return utils.GetUrl(url, body, self.key)
 
     def RegularMatchUrl(self, url, regular):
         response = self.GetCacheUrl(url)
@@ -201,7 +171,7 @@ if __name__ == "__main__":
     haha = KolaClient()
     #a = haha.RegularMatchUrl('http://www.letvlive.com',
     #                         '(<a href="tv.php.*</a>)'.encode())
-                             #'<h1 class="lm_1">(.*)</h1>'.encode())
+    #                         '<h1 class="lm_1">(.*)</h1>'.encode())
     #print(a)
 
     #a = haha.RegularMatchUrl("http://search.vrs.sohu.com/mv_i1268037.json",

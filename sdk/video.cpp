@@ -127,22 +127,21 @@ KolaVideo::~KolaVideo() {
 
 bool KolaVideo::UpdatePlayInfo(json_t *js)
 {
-	json_t *sets, *value;
-	if (json_geto(js, "sets") == NULL)
-		return false;
-
 	totalDuration = json_getreal(js, "totalDuration", 0.0);
 	width         = json_geti(js, "width", 0);
 	totalBlocks   = json_geti(js, "totalBlocks", 0);
 	height        = json_geti(js, "height", 0);
 	totalBytes    = json_geti(js, "totalBytes", 0);
 	fps           = json_geti(js, "fps", 0);
-
-	sets = json_geto(js, "sets");
+	directPlayUrl = json_gets(js, "directPlayUrl", "");
 
 	clear();
-	json_array_foreach(sets, value)
-		push_back(new VideoSegment(this, value));
+	if (directPlayUrl == "") {
+		json_t *sets, *value;
+		sets = json_geto(js, "sets");
+		json_array_foreach(sets, value)
+			push_back(new VideoSegment(this, value));
+	}
 
 	return true;
 }
@@ -155,13 +154,16 @@ bool KolaVideo::GetPlayInfo(void)
 	KolaClient *client = &KolaClient::Instance();
 	char buffer[128];
 
-	if (client->UrlGet("", text, playUrl.c_str()) == false)
+	if (client->UrlGet("", text, playUrl.c_str()) == false) {
+		printf("====================================== %s error!\n", playUrl.c_str());
 		return false;
+	}
 
 	sprintf(buffer, "/video/getplayer?cid=%d", cid);
 	if (client->UrlPost(buffer, text.c_str(), text) == false)
 		return false;
 
+	std::cout << text << std::endl;
 	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 	if (js == NULL)
 		return false;
@@ -177,32 +179,36 @@ bool KolaVideo::LoadFromJson(json_t *js)
 {
 	json_t *originalData;
 
-	name           = json_gets(js    , "name"           , "");
-	playlistid     = json_geti(js    , "playlistid"     , 0);
-	pid            = json_geti(js    , "pid"            , 0);
-	vid            = json_geti(js    , "vid"            , 0);
-	cid            = json_geti(js    , "cid"            , 0);
-	order          = json_geti(js    , "order"          , 0);
-	isHigh         = json_geti(js    , "isHigh"         , 0);
+	name             = json_gets(js   , "name"           , "");
+	playlistid       = json_gets(js   , "playlistid"     , "");
+	pid              = json_gets(js   , "pid"            , "");
+	vid              = json_gets(js   , "vid"            , "");
+	cid              = json_geti(js   , "cid"            , 0);
+	order            = json_geti(js   , "order"          , 0);
+	isHigh           = json_geti(js   , "isHigh"         , 0);
 
-	videoPlayCount = json_geti(js    , "videoPlayCount" , 0);
-	videoScore     = json_getreal(js , "videoScore"     , 0.0);
-	playLength     = json_getreal(js , "playLength"     , 0.0);
+	videoPlayCount   = json_geti(js   , "videoPlayCount" , 0);
+	videoScore       = json_getreal(js, "videoScore"     , 0.0);
+	playLength       = json_getreal(js, "playLength"     , 0.0);
 
-	showName       = json_gets(js    , "showName"       , "");
-	publishTime    = json_gets(js    , "publishTime"    , "");
-	videoDesc      = json_gets(js    , "videoDesc"      , "");
+	showName         = json_gets(js   , "showName"       , "");
+	publishTime      = json_gets(js   , "publishTime"    , "");
+	videoDesc        = json_gets(js   , "videoDesc"      , "");
 
-	smallPicUrl    = json_gets(js    , "smallPicUrl"    , "");
-	largePicUrl    = json_gets(js    , "largePicUrl"    , "");
-	playUrl        = json_gets(js    , "playUrl"        , "");
-	haveOriginalData = json_geti(js  , "haveOriginalData", 0);
-	originalData   = json_geto(js    , "originalData");
+	smallPicUrl      = json_gets(js   , "smallPicUrl"    , "");
+	largePicUrl      = json_gets(js   , "largePicUrl"    , "");
+	playUrl          = json_gets(js   , "playUrl"        , "");
+	directPlayUrl    = json_gets(js   , "directPlayUrl"  , "");
 
-	if (originalData)
-		UpdatePlayInfo(originalData);
-	else
-		GetPlayInfo();
+	haveOriginalData = json_geti(js   , "haveOriginalData", 0);
+	originalData     = json_geto(js   , "originalData");
+
+	if (directPlayUrl == "") {
+		if (originalData)
+			UpdatePlayInfo(originalData);
+		else
+			GetPlayInfo();
+	}
 
 	return true;
 }
@@ -215,7 +221,7 @@ std::string KolaVideo::GetVideoUrl(void)
 	double max_duration = 0;
 
 	if (count == 0)
-		return "";
+		return directPlayUrl;
 	else if (count == 1) {
 		VideoSegment *seg = at(0);
 		seg->Start();

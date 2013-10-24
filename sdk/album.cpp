@@ -18,6 +18,7 @@ KolaAlbum::~KolaAlbum() {
 
 bool KolaAlbum::LoadFromJson(json_t *js)
 {
+	json_t *sources;
 	albumName      = json_gets(js, "albumName"  , "");
 	albumDesc      = json_gets(js, "albumDesc"  , "");
 	cid            = json_geti(js, "cid"        , 0);
@@ -36,7 +37,6 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	smallHorPicUrl = json_gets(js, "smallHorPicUrl", "");
 	largeVerPicUrl = json_gets(js, "largeVerPicUrl", "");
 	smallVerPicUrl = json_gets(js, "smallVerPicUrl", "");
-
 #if 0
 	std::cout << "largePicUrl: " << largePicUrl << std::endl;
 	std::cout << "smallPicUrl: " << smallPicUrl << std::endl;
@@ -52,12 +52,21 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	totalPlayNum    =json_geti   (js , "totalPlayNum"    , 0);   // 总播放资料
 	dailyIndexScore =json_getreal(js , "dailyIndexScore" , 0.0); // 每日指数
 
-	//directors = json_gets(js, "directors", "");
-	//actors = json_gets(js, "actors", "");
+	//directors  = json_gets(js, "directors", "");
+	//actors     = json_gets(js, "actors", "");
 	//mainActors = json_gets(js, "mainActors", "");
 	//categories = json_gets(js, "categories", "");
-
 //	std::cout << "KolaAlbum:" << albumName << std::endl;
+
+	sources = json_geto(js, "sources", NULL);
+
+	if (sources) {
+		this->videos.clear();
+		json_array_foreach(sources, v) {
+			this->videos.push_back(new KolaVideo(v));
+		}
+	}
+
 	return true;
 }
 
@@ -118,27 +127,28 @@ bool KolaAlbum::Run() {
 	return GetVideos();
 }
 
+AlbumPage::AlbumPage()
+{
+
+}
 
 AlbumPage::~AlbumPage(void)
 {
-	for (std::vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++)
-		it->Wait();
-
-	for (std::map<std::string, Picture>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
-		it->second.Wait();
+	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		(*it)->Wait();
+		delete (*it);
 	}
-}
 
-void AlbumPage::UpdateVideos(void)
-{
-	for (std::vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++)
-		it->Start();
+	for (std::map<std::string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
+		it->second->Wait();
+		delete it->second;
+	}
 }
 
 void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
-	for (std::vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		std::string &fileName = it->GetPictureUrl(type);
+	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		std::string &fileName = (*it)->GetPictureUrl(type);
 		PutPicture(fileName);
 	}
 }
@@ -146,42 +156,47 @@ void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列�
 void AlbumPage::PutPicture(std::string fileName)
 {
 	if (fileName != "") {
-		std::pair<std::map<std::string, Picture>::iterator, bool> ret;
-		ret = pictureList.insert(std::pair<std::string, Picture>(fileName, Picture(fileName)));
-		ret.first->second.Start();
+		std::pair<std::map<std::string, Picture*>::iterator, bool> ret;
+		ret = pictureList.insert(std::pair<std::string, Picture*>(fileName, new Picture(fileName)));
+		ret.first->second->Start();
 	}
 }
 
-void AlbumPage::PutAlbum(KolaAlbum album)
+void AlbumPage::PutAlbum(KolaAlbum *album)
 {
-	//albumList.push_back(album).Start();
-	albumList.insert(albumList.end(), album)->Start();
+	if (album) {
+		albumList.push_back(album);
+		album->Start();
+	}
 }
 
-KolaAlbum& AlbumPage::GetAlbum(int index)
+KolaAlbum* AlbumPage::GetAlbum(int index)
 {
-	KolaAlbum &album = albumList.at(index);
-	album.Wait();
-
-	return album;
+	return albumList.at(index);
 }
 
-Picture& AlbumPage::GetPicture(std::string fileName)
+Picture* AlbumPage::GetPicture(std::string fileName)
 {
-	std::map<std::string, Picture>::iterator it;
+	std::map<std::string, Picture*>::iterator it;
 
 	it = pictureList.find(fileName);
 
 	if (it != pictureList.end()) {
-		it->second.Wait();
+		it->second->Wait();
 		return it->second;
 	}
-	else {
-		Picture pic(fileName);
+	else if (fileName != "") {
+		Picture *pic = NULL;
+		pic = new Picture(fileName);
+		if (pic) {
+			pic->Start();
+			pic->Wait();
+		}
 
+		return pic;
 	}
 
-	throw std::invalid_argument(fileName);
+	return NULL;
 }
 
 void AlbumPage::Clear()

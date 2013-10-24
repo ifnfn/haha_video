@@ -217,8 +217,7 @@ class AlbumBase:
         self.VideoClass = VideoBase
         self.cid = 0
 
-        self.source = {}         # 节目来源
-        self.source[engine.engine_name] = True
+        self.sources = {}         # 节目来源
         self.albumName = ''      # 名称
         self.enAlbumName = ''    # 英文名称
         self.albumPageUrl = ''
@@ -303,9 +302,11 @@ class AlbumBase:
         if self.totalPlayNum :    ret['totalPlayNum']   = self.totalPlayNum     # 总播放资料
         if self.dailyIndexScore : ret['dailyIndexScore']= self.dailyIndexScore  # 每日指数
 
+        if self.sources :         ret['sources']        = self.sources
+
         return ret
 
-    def LoadFromJson(self, json):
+    def directVideosLoadFromJson(self, json):
         # From DataBase
         if 'cid' in json            : self.cid             = json['cid']
         if 'albumName' in json      : self.albumName       = json['albumName']
@@ -349,6 +350,8 @@ class AlbumBase:
         if 'monthlyPlayNum' in json : self.monthlyPlayNum  = json['monthlyPlayNum']  # 每月播放次数
         if 'totalPlayNum' in json   : self.totalPlayNum    = json['totalPlayNum']    # 总播放资料
         if 'dailyIndexScore' in json: self.dailyIndexScore = json['dailyIndexScore'] # 每日指数
+
+        if 'sources' in json        : self.sources         = json['sources']
 
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):

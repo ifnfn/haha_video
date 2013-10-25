@@ -11,6 +11,10 @@ KolaAlbum::KolaAlbum(json_t *js) {
 }
 
 KolaAlbum::~KolaAlbum() {
+	VideosClear();
+}
+
+void KolaAlbum::VideosClear() {
 	for (size_t i=0, count=videos.size(); i < count;i++)
 		delete videos[i];
 
@@ -64,7 +68,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	if (sources) {
 		json_t *v;
 		directVideos = true;
-		this->videos.clear();
+		VideosClear();
 		json_array_foreach(sources, v) {
 			this->videos.push_back(new KolaVideo(v));
 		}
@@ -95,7 +99,7 @@ bool KolaAlbum::GetVideos(void)
 
 	videos = json_geto(js, "videos");
 
-	this->videos.clear();
+	VideosClear();
 	json_array_foreach(videos, v) {
 		this->videos.push_back(new KolaVideo(v));
 	}
@@ -141,14 +145,14 @@ AlbumPage::AlbumPage()
 AlbumPage::~AlbumPage(void)
 {
 	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		(*it)->Wait();
 		delete (*it);
 	}
+	albumList.clear();
 
 	for (std::map<std::string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
-		it->second->Wait();
 		delete it->second;
 	}
+	pictureList.clear();
 }
 
 void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
@@ -188,7 +192,6 @@ Picture* AlbumPage::GetPicture(std::string fileName)
 	it = pictureList.find(fileName);
 
 	if (it != pictureList.end()) {
-//		it->second->Wait();
 		return it->second;
 	}
 #if 0

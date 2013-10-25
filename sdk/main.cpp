@@ -50,17 +50,26 @@ int main(int argc, char **argv)
 //	m->Filter.KeyAdd("类型", "爱情片");
 //	m->Sort.Set("周播放最多");
 //	m->Sort.Set("评分最高");
-	AlbumPage page;
-	m->GetPage(page, 0);
-	page.CachePicture(PIC_LARGE);
-	//page.CachePicture(PIC_SMALL);
 
-	for (size_t i = 0; i < page.Count(); i++) {
-		KolaAlbum *album = page.GetAlbum(i);
+	while (1) {
+		AlbumPage page;
+		m->GetPage(page);
+		page.CachePicture(PIC_LARGE);
 
-		printf("[%d] %s\n", i, album->albumName.c_str());
+		for (size_t i = 0; i < page.Count(); i++) {
+			KolaAlbum *album = page.GetAlbum(i);
+
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		}
+
+		if (page.Count() < 20)
+			break;
 	}
 
+//	return 0;
+
+	AlbumPage page;
+	m->GetPage(page, 0);
 #if 1
 	for (size_t i = 0; i < page.Count(); i++) {
 		std::string player_url;

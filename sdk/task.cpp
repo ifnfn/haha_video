@@ -20,13 +20,8 @@ Task::Task() {
 }
 
 Task::~Task() {
-	lock();
-	pthread_cond_broadcast(&ready);
-	if (status != Task::StatusFree) // downloading
-		Wait();
-
+	Wait();
 	Destroy();
-	unlock();
 
 	pthread_mutex_destroy(&mutex);
 	pthread_cond_destroy(&ready);

@@ -164,30 +164,35 @@ static std::string gzip_base64(const char *data, int ndata)
 	return ret;
 }
 
-Picture::Picture(std::string fileName) {
-	data = NULL;
-	size = 0;
-	inCache = false;
-	used = false;
+Picture::Picture(std::string fileName)
+{
+	data           = NULL;
+	size           = 0;
+	inCache        = false;
+	used           = false;
 	this->fileName = fileName;
 }
 
-Picture::Picture() {
-	data = NULL;
-	size = 0;
-	inCache = false;
+Picture::Picture()
+{
+	data     = NULL;
+	size     = 0;
+	inCache  = false;
 	fileName = "";
+	used     = false;
 }
 
-Picture::~Picture() {
-}
-
-bool Picture::Destroy() {
+Picture::~Picture()
+{
 	if (data) {
 		free(data);
 		data = NULL;
 	}
 	size = 0;
+}
+
+
+bool Picture::Destroy() {
 
 	return true;
 }
@@ -205,6 +210,7 @@ bool Picture::Run()
 		size = http_resp->body_len;
 		data = malloc(size);
 		memcpy(data, http_resp->body, size);
+		printf("wget %s, data=%p, size=%d\n", fileName.c_str(), data, size);
 		inCache = true;
 		ok = true;
 	}

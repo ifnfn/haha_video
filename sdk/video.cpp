@@ -118,7 +118,6 @@ KolaVideo::KolaVideo(json_t *js)
 KolaVideo::~KolaVideo() {
 	for (size_t i=0, count=size(); i < count;i++) {
 		VideoSegment* seg = at(i);
-		seg->Wait();
 
 		delete seg;
 	}
@@ -155,7 +154,7 @@ bool KolaVideo::GetPlayInfo(void)
 	char buffer[128];
 
 	if (client->UrlGet("", text, playUrl.c_str()) == false) {
-		printf("====================================== %s error!\n", playUrl.c_str());
+		printf("wget %s error!\n", playUrl.c_str());
 		return false;
 	}
 
@@ -163,7 +162,6 @@ bool KolaVideo::GetPlayInfo(void)
 	if (client->UrlPost(buffer, text.c_str(), text) == false)
 		return false;
 
-	std::cout << text << std::endl;
 	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 	if (js == NULL)
 		return false;

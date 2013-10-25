@@ -171,6 +171,7 @@ class KolaAlbum: public Task {
 		virtual bool Run();
 		inline void WaitVideo() { Wait(); }
 	private:
+		void VideosClear();
 		bool LoadFromJson(json_t *js);
 
 		std::string pid;

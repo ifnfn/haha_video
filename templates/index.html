@@ -74,15 +74,17 @@
 					</div>
 					<div class="wdj_xwl_box_con">
 						<div id="wdj_xwl_json_2" class="wdj_xwl_sublist">
-                        {% for n in range(15) %}
-                            {% if n ==0 %}
-                            <p class="first fix"><a href="show?vid={{ toptv[n]['id'] }}" class="thumb"><img src="{{ toptv[n]['pic'] }}"><i>1</i></a><strong class="fix"><em>{{ toptv[n]['score']  }}</em><a href="show?vid={{ toptv[n]['id'] }}">{{ toptv[n]['title'] }}</a></strong><span>{{ toptv[n]['info'] }}</span></p>
-                            {% else %}
-                            <p><em>{{ toptv[n]['score'] }}</em><i>{{ n+1 }}</i><strong><a href="show?vid={{ toptv[n]['id'] }}">{{ toptv[n]['title'] }}</a></strong></p>
-                            {% end %}
-                        {% end %}
+						{% for n in range(15) %}
+							{% if n < len(toptv) %}
+								{% if n == 0 %}
+									<p class="first fix"><a href="show?vid={{ toptv[n]['id'] }}" class="thumb"><img src="{{ toptv[n]['pic'] }}"><i>1</i></a><strong class="fix"><em>{{ toptv[n]['score']  }}</em><a href="show?vid={{ toptv[n]['id'] }}">{{ toptv[n]['title'] }}</a></strong><span>{{ toptv[n]['info'] }}</span></p>
+								{% else %}
+									<p><em>{{ toptv[n]['score'] }}</em><i>{{ n+1 }}</i><strong><a href="show?vid={{ toptv[n]['id'] }}">{{ toptv[n]['title'] }}</a></strong></p>
+								{% end %}
+							{% end %}
+						{% end %}
 
-                        </div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -94,20 +96,22 @@
 					</div>
 					<div class="wdj_xwl_box_con">
 						<ul id="wdj_xwl_json_3" class="wdj_xwl_vlist">
-                        {% for n in range(12) %}
-                            {% if (n+1) %4 ==0 %}
-                            <li class="pr0"><p>
-                            {% else %}
-                            <li><p>
-                            {% end %}
-                            <a href="show?vid={{ newtv[n]['id'] }}"><img src="{{ newtv[n]['pic'] }}"></a>
-                                <strong><a href="show?vid={{ newtv[n]['id'] }}">{{ newtv[n]['time'] }}</a></strong>
-                                <i></i>
-                                </p>
-                                <span><a href="show?vid={{ newtv[n]['id'] }}">{{ newtv[n]['title']}}</a></span>
-                            </li>
-                        {% end %}
-                        </ul>
+						{% for n in range(12) %}
+							{% if n < len(toptv) %}
+								{% if (n+1) %4 == 0 %}
+									<li class="pr0"><p>
+								{% else %}
+									<li><p>
+								{% end %}
+								<a href="show?vid={{ newtv[n]['id'] }}"><img src="{{ newtv[n]['pic'] }}"></a>
+								<strong><a href="show?vid={{ newtv[n]['id'] }}">{{ newtv[n]['time'] }}</a></strong>
+								<i></i>
+								</p>
+								<span><a href="show?vid={{ newtv[n]['id'] }}">{{ newtv[n]['title']}}</a></span>
+								</li>
+							{% end %}
+						{% end %}
+						</ul>
 					</div>
 				</div>
 			</div>
@@ -122,15 +126,15 @@
 					</div>
 					<div class="wdj_xwl_box_con">
 						<div id="wdj_xwl_json_1" class="wdj_xwl_sublist">
-                        {% for n in range(15) %}
-                            {% if n ==0 %}
-                            <p class="first fix"><a href="show?vid={{ topmovie[n]['id'] }}" class="thumb"><img src="{{ topmovie[n]['pic'] }}"><i>1</i></a><strong class="fix"><em>{{ topmovie[n]['score']  }}</em><a href="show?vid={{ topmovie[n]['id'] }}">{{ topmovie[n]['title'] }}</a></strong><span>{{ topmovie[n]['info'] }}</span></p>
-                            {% else %}
-                            <p><em>{{ topmovie[n]['score'] }}</em><i>{{ n+1 }}</i><strong><a href="show?vid={{ topmovie[n]['id'] }}">{{ topmovie[n]['title'] }}</a></strong></p>
-                            {% end %}
-                        {% end %}
+						{% for n in range(15) %}
+							{% if n ==0 %}
+								<p class="first fix"><a href="show?vid={{ topmovie[n]['id'] }}" class="thumb"><img src="{{ topmovie[n]['pic'] }}"><i>1</i></a><strong class="fix"><em>{{ topmovie[n]['score']  }}</em><a href="show?vid={{ topmovie[n]['id'] }}">{{ topmovie[n]['title'] }}</a></strong><span>{{ topmovie[n]['info'] }}</span></p>
+							{% else %}
+								<p><em>{{ topmovie[n]['score'] }}</em><i>{{ n+1 }}</i><strong><a href="show?vid={{ topmovie[n]['id'] }}">{{ topmovie[n]['title'] }}</a></strong></p>
+							{% end %}
+						{% end %}
                         
-                        </div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -143,21 +147,21 @@
 					<div class="wdj_xwl_box_con">
 						<ul id="wdj_xwl_json_4" class="wdj_xwl_vlist">
 
-                        {% for n in range(12) %}
-                            {% if (n+1) %4 ==0 %}
-                            <li class="pr0"><p>
-                            {% else %}
-                            <li><p>
-                            {% end %}
-                            <a href="show?vid={{ newmovie[n]['id'] }}"><img src="{{ newmovie[n]['pic'] }}"></a>
-                                <strong><a href="show?vid={{ newmovie[n]['id'] }}">{{ newmovie[n]['time'] }}</a></strong>
-                                <i></i>
-                                </p>
-                                <span><a href="show?vid={{ newmovie[n]['id'] }}">{{ newmovie[n]['title']}}</a></span>
-                            </li>
-                        {% end %}
- 
-                        </ul>
+						{% for n in range(12) %}
+							{% if (n+1) %4 ==0 %}
+								<li class="pr0"><p>
+							{% else %}
+								<li><p>
+							{% end %}
+							<a href="show?vid={{ newmovie[n]['id'] }}"><img src="{{ newmovie[n]['pic'] }}"></a>
+							<strong><a href="show?vid={{ newmovie[n]['id'] }}">{{ newmovie[n]['time'] }}</a></strong>
+							<i></i>
+							</p>
+							<span><a href="show?vid={{ newmovie[n]['id'] }}">{{ newmovie[n]['title']}}</a></span>
+							</li>
+						{% end %}
+
+						</ul>
 					</div>
 				</div>
 			</div>

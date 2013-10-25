@@ -111,6 +111,7 @@ class DB:
     def GetAlbumListJson(self, arg, cid=-1,All=False):
         self.ConvertJson(arg)
         ret = []
+        count = 0
         try:
             _filter = {}
             if cid != -1:
@@ -128,6 +129,7 @@ class DB:
                 fields = None
 
             cursor = self.album_table.find(_filter, fields = fields)
+            count = cursor.count()
 
             if 'sort' in arg:
                 cursor = cursor.sort(arg['sort'])
@@ -135,16 +137,16 @@ class DB:
             if 'page' in arg and 'size' in arg:
                 page = arg['page']
                 size = arg['size']
-                cursor = cursor.skip(page * size).limit(size)
-
-            for x in cursor:
-                del x['_id']
-                ret.append(x)
+                if size:
+                    cursor = cursor.skip(page * size).limit(size)
+                    for x in cursor:
+                        del x['_id']
+                        ret.append(x)
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
-        return ret
+        return ret, count
 
     def FindVideoJson(self, playlistid='', pid='', vid=''):
         playlistid = autostr(playlistid)

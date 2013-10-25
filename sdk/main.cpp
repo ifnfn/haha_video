@@ -51,6 +51,8 @@ int main(int argc, char **argv)
 //	m->Sort.Set("周播放最多");
 //	m->Sort.Set("评分最高");
 
+	printf("%d album in menu!\n", m->GetAlbumCount());
+
 	while (1) {
 		AlbumPage page;
 		m->GetPage(page);

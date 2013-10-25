@@ -309,10 +309,13 @@ class KolaMenu {
 		KolaFilter Filter;
 		KolaSort   Sort;
 		void SetPageSize(int size) {PageSize = size;}
+		int GetAlbumCount();
 	private:
 		KolaClient *client;
 		int PageSize;
 		int PageId;
+		int albumCount;
+		int GetPage(AlbumPage &page, int pageId, int pageSize);
 };
 
 class KolaClient {

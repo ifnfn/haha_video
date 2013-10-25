@@ -17,7 +17,6 @@ from pymongo import Connection
 from basehandle import BaseHandler
 from kolatv import Kolatv
 from utils import log
-import engine
 import utils
 import tornado.escape
 
@@ -35,9 +34,12 @@ class AlbumListHandler(BaseHandler):
         args, menu, cid = self.argument()
 
         if cid:
-            args['result'] = tv.GetMenuAlbumListByCid(cid, args)
+            albumlist, args['total'] = tv.GetMenuAlbumListByCid(cid, args)
         elif menu:
-            args['result'] = tv.GetMenuAlbumListByName(menu, args)
+            albumlist, args['total'] = tv.GetMenuAlbumListByName(menu, args)
+
+        if albumlist: args['result'] = albumlist
+
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
@@ -53,9 +55,12 @@ class AlbumListHandler(BaseHandler):
                 raise tornado.web.HTTPError(400)
 
         if cid:
-            args['result'] = tv.GetMenuAlbumListByCid(cid, args)
+            albumlist, args['total'] = tv.GetMenuAlbumListByCid(cid, args)
         elif menu:
-            args['result'] = tv.GetMenuAlbumListByName(menu, args)
+            albumlist, args['total'] = tv.GetMenuAlbumListByName(menu, args)
+
+        if albumlist: args['result'] = albumlist
+
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
@@ -114,7 +119,7 @@ class UrlMapHandler(BaseHandler):
         try:
             umap = tornado.escape.json_decode(self.request.body)
             if umap:
-                tv.engine.command.AddUrlMap(umap['source'], umap['dest'])
+                tv.command.AddUrlMap(umap['source'], umap['dest'])
         except:
             raise tornado.web.HTTPError(400)
         self.finish('OK')
@@ -171,7 +176,7 @@ class ShowHandler(BaseHandler):
 
     def get(self):
         vid = self.get_argument('vid')
-        album = tv.engine.db.FindAlbumJson(albumName='', vid=vid, auto=False)
+        album = tv.db.FindAlbumJson(albumName='', vid=vid, auto=False)
 
         if 'largeVerPicUrl' in album:
             album['pic'] = album['largeVerPicUrl']
@@ -191,6 +196,10 @@ class ShowHandler(BaseHandler):
             album['mainActors'] = ', '.join(album['mainActors'])
         else:
             album['mainActors'] = ''
+
+        if 'area' not in album:
+            album['area'] = ''
+
         if 'playLength'   not in album: album['playLength'] = 0
         if 'albumDesc'    not in album: album['albumDesc'] = ''
         if 'totalPlayNum' not in album: album['totalPlayNum'] = ''
@@ -286,7 +295,7 @@ class LoginHandler(BaseHandler):
                 timeout = 0.3
             count = self.get_argument('count', 1)
 
-            cmd = tv.engine.command.GetCommand(timeout, count)
+            cmd = tv.command.GetCommand(timeout, count)
             if cmd:
                 ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
                 ret['command'] = cmd
@@ -308,7 +317,7 @@ class IndexHandler(BaseHandler):
         args['size'] = 20
         args['sort'] = '周播放最多'
 
-        _items = tv.GetMenuAlbumListByName('电视剧', args)
+        _items, _ = tv.GetMenuAlbumListByName('电视剧', args)
         newtv = []
         for i in _items:
             _item = {}
@@ -341,7 +350,7 @@ class IndexHandler(BaseHandler):
         args['size'] = 20
         args['sort'] = '评分最高'
 
-        _items = tv.GetMenuAlbumListByName('电视剧', args)
+        _items, _ = tv.GetMenuAlbumListByName('电视剧', args)
         for i in _items:
             _item = {}
             if x == 0:
@@ -369,7 +378,7 @@ class IndexHandler(BaseHandler):
         args['page'] = 0
         args['size'] = 20
         args['sort'] = '周播放最多'
-        _items = tv.GetMenuAlbumListByName('电影', args)
+        _items, _ = tv.GetMenuAlbumListByName('电影', args)
         newmovie = []
         for i in _items:
             _item = {}
@@ -402,7 +411,7 @@ class IndexHandler(BaseHandler):
         args['size'] = 20
         args['sort'] = '评分最高'
 
-        _items = tv.GetMenuAlbumListByName('电影', args)
+        _items, _ = tv.GetMenuAlbumListByName('电影', args)
         for i in _items:
             _item = {}
             if x == 0:

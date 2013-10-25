@@ -94,7 +94,6 @@ class VideoBase:
 
             "largePicUrl": "http://photocdn.sohu.com/20130806/vrsb924544.jpg",
             "smallPicUrl": "http://photocdn.sohu.com/20130806/vrss924544.jpg",
-            "pageUrl": "http://tv.sohu.com/20130806/n383534504.shtml",
 
             'highVid' :
             'norVid' :
@@ -104,9 +103,9 @@ class VideoBase:
         }
         '''
 
+        self.pid = ''
         self.name = ''
         self.playlistid = ''  # 所属 ablum
-        self.pid = ''
         self.vid = ''
         self.cid = 0
 
@@ -128,7 +127,6 @@ class VideoBase:
 
         self.smallPicUrl = ''
         self.largePicUrl = ''
-        self.pageUrl = ''
         self.playUrl = ''
 
         self.originalData = []
@@ -173,7 +171,6 @@ class VideoBase:
         if self.videoScore      : ret['videoScore'] = self.videoScore
         if self.largePicUrl     : ret['largePicUrl'] = self.largePicUrl
         if self.smallPicUrl     : ret['smallPicUrl'] = self.smallPicUrl
-        if self.pageUrl         : ret['pageUrl'] = self.pageUrl
         if self.originalData    : ret['originalData'] = self.originalData
 
         if self.playUrl:
@@ -207,7 +204,6 @@ class VideoBase:
         if 'videoScore' in json     : self.videoScore     = json['videoScore']
         if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
         if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
-        if 'pageUrl' in json        : self.pageUrl        = json['pageUrl']
         if 'originalData' in json   : self.originalData   = json['originalData']
 
 class AlbumBase:
@@ -217,7 +213,10 @@ class AlbumBase:
         self.VideoClass = VideoBase
         self.cid = 0
 
-        self.sources = {}         # 节目来源
+        self.engineList = []
+        self.engineList.append(engine.engine_name)
+
+        self.sources = {}        # 直接节目
         self.albumName = ''      # 名称
         self.enAlbumName = ''    # 英文名称
         self.albumPageUrl = ''
@@ -264,6 +263,7 @@ class AlbumBase:
         if self.cid :        ret['cid']        = self.cid
         if self.vid :        ret['vid']        = self.vid
         if self.playlistid : ret['playlistid'] = self.playlistid
+        if self.engineList : ret['engineList'] = self.engineList
 
         if self.albumName       : ret['albumName']      = self.albumName
         if self.albumPageUrl    : ret['albumPageUrl']   = self.albumPageUrl
@@ -310,6 +310,7 @@ class AlbumBase:
         # From DataBase
         if 'cid' in json            : self.cid             = json['cid']
         if 'albumName' in json      : self.albumName       = json['albumName']
+        if 'engineList' in json     : self.engineList      = json['engineList']
 
         if 'pid' in json            : self.pid             = autostr(json['pid'])
         if 'playlistid' in json     : self.playlistid      = autostr(json['playlistid'])
@@ -469,3 +470,27 @@ class VideoEngine:
             if albumPageUrl : tv.albumPageUrl = albumPageUrl
 
         return tv
+
+    # 更新所有节目的排名数据
+    def UpdateAllScore(self):
+        print("UpdateAllScore")
+
+    # 更新所有节目的完全信息
+    def UpdateAllFullInfo(self):
+        print("UpdateAllFullInfo")
+
+    # 更新所有节目的播放信息
+    def UpdateAllPlayInfo(self):
+        print("UpdateAllPlayInfo")
+
+    # 更新所有节目主页
+    def UpdateAllAlbumPage(self):
+        print("UpdateAllAlbumPage")
+
+    # 更新热门节目信息
+    def UpdateAllHotList(self):
+        print("UpdateAllHotList")
+
+    # 更新所有节目（增加新的节目）
+    def UpdateAllAlbumList(self):
+        print("UpdateAllAlbumList")

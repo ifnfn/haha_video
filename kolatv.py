@@ -5,7 +5,7 @@ import redis
 import logging
 import tornado.escape
 import sohuengine, letvengine, textengine
-import engine
+import engine as eg
 from db import DB
 import utils
 
@@ -17,22 +17,20 @@ log = logging.getLogger('crawler')
 
 class Kolatv:
     def __init__(self):
-        self.db = DB()
-        self.command = engine.Commands(self.db.map_table)
-        self.engine = sohuengine.SohuEngine(self.db, self.command)
-        self.letv_engine = letvengine.LetvEngine(self.db, self.command)
-        self.text_engine = textengine.TextvEngine(self.db, self.command)
-        self.engines = {}
-        self.engines[self.engine.engine_name] = self.engine
-        self.engines[self.letv_engine.engine_name] = self.letv_engine
-        self.engines[self.text_engine.engine_name] = self.text_engine
-
         self.thread_pool = ThreadPool(POOLSIZE)
+        self.db = DB()
+        self.command = eg.Commands(self.db.map_table)
+        self.engines = {}
         self.MenuList = {}
 
-        self.engine.GetMenu(self.MenuList)
-        #self.letv_engine.GetMenu(self.MenuList)
-        self.text_engine.GetMenu(self.MenuList)
+        self.AddEngine(sohuengine.SohuEngine)
+        #self.AddEngine(letvengine.LetvEngine)
+        self.AddEngine(textengine.TextvEngine)
+
+    def AddEngine(self, egClass):
+        e = egClass(self.db, self.command)
+        self.engines[e.engine_name] = e
+        e.GetMenu(self.MenuList)
 
     def GetEngine(self, name):
         if name in self.engines:
@@ -61,9 +59,9 @@ class Kolatv:
         data = []
         m = self.FindMenu(menuName)
         if m:
-            data = self.db.GetAlbumListJson(argument, m.cid)
+            return self.db.GetAlbumListJson(argument, m.cid)
 
-        return data
+        return data, 0
 
     def GetMenuAlbumListByCid(self, cid, argument):
         cid = utils.autoint(cid)
@@ -74,7 +72,7 @@ class Kolatv:
 
     # 得到真实播放地址
     def GetRealPlayer(self, text, cid, definition, step):
-        menu = self.FindMenuById(engine.autoint(cid))
+        menu = self.FindMenuById(utils.autoint(cid))
         if menu == None:
             return {}
 
@@ -124,7 +122,8 @@ class Kolatv:
 
     def _get_data(self, All=False):
         argument = {}
-        argument['fields'] = {'albumName': True,
+        argument['fields'] = {'engineList' : True,
+                              'albumName': True,
                               'albumPageUrl': True,
                               'vid': True,
                               'playlistid': True}
@@ -134,44 +133,42 @@ class Kolatv:
     def UpdateAllScore(self):
         print("UpdateAllScore")
 
-        for p in self._get_data(True):
+        data, _ = self._get_data(True)
+        for p in data:
             for (name, engine) in list(self.engines.items()):
-                if hasattr(p, 'sources') and name in p.sources:
+                if hasattr(p, 'engineList') and name in p.engineList:
                     engine.NewAlbum(p).UpdateScoreCommand()
-                else:
-                    self.engine.NewAlbum(p).UpdateScoreCommand()
         self.command.Execute()
 
     # 更新所有节目的完全信息
     def UpdateAllFullInfo(self):
         print("UpdateAllFullInfo")
 
-        for p in self._get_data(True):
+        data, _ = self._get_data(True)
+        for p in data:
             for (name, engine) in list(self.engines.items()):
-                if hasattr(p, 'sources') and name in p.sources:
+                if hasattr(p, 'engineList') and name in p.engineList:
                     engine.NewAlbum(p).UpdateFullInfoCommand()
-                else:
-                    self.engine.NewAlbum(p).UpdateFullInfoCommand()
         self.command.Execute()
 
     # 更新所有节目的播放信息
     def UpdateAllPlayInfo(self):
-        for p in self._get_data():
+        data, _ = self._get_data()
+        for p in data:
             for (name, engine) in list(self.engines.items()):
-                if hasattr(p, 'sources') and name in p.sources:
+                if hasattr(p, 'engineList') and name in p.engineList:
                     engine.NewAlbum(p).UpdateAlbumPlayInfoCommand()
-                else:
-                    self.engine.NewAlbum(p).UpdateAlbumPlayInfoCommand()
         self.command.Execute()
 
     # 更新所有节目主页
     def UpdateAllAlbumPage(self):
-        for p in self._get_data(All=True):
+        data, _ = self._get_data(All=True)
+        for p in data:
             for (name, engine) in list(self.engines.items()):
-                if hasattr(p, 'sources') and name in p.sources:
+                if 'engineList' in p and name in p['engineList']:
                     engine.NewAlbum(p).UpdateAlbumPageCommand()
-                else:
-                    self.engine.NewAlbum(p).UpdateAlbumPageCommand()
+                    break
+
         self.command.Execute()
 
     def UpdateAllHotList(self):

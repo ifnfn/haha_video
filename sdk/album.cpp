@@ -191,21 +191,8 @@ Picture* AlbumPage::GetPicture(std::string fileName)
 
 	it = pictureList.find(fileName);
 
-	if (it != pictureList.end()) {
+	if (it != pictureList.end())
 		return it->second;
-	}
-#if 0
-	else if (fileName != "") {
-		Picture *pic = NULL;
-		pic = new Picture(fileName);
-		if (pic) {
-			pic->Start();
-			pic->Wait();
-		}
-
-		return pic;
-	}
-#endif
 
 	return NULL;
 }

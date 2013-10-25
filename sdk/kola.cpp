@@ -200,7 +200,6 @@ Picture::~Picture()
 	size = 0;
 }
 
-
 bool Picture::Destroy() {
 
 	return true;
@@ -219,7 +218,7 @@ bool Picture::Run()
 		size = http_resp->body_len;
 		data = malloc(size);
 		memcpy(data, http_resp->body, size);
-		printf("wget %s, data=%p, size=%d\n", fileName.c_str(), data, size);
+//		printf("wget %s, data=%p, size=%d\n", fileName.c_str(), data, size);
 		inCache = true;
 		ok = true;
 	}
@@ -232,16 +231,19 @@ KolaMenu::KolaMenu() {
 	cid = -1;
 	PageId = -1;
 	PageSize = 20;
+	albumCount = 0;
 
 	client = &KolaClient::Instance();
 }
 
 KolaMenu::KolaMenu(json_t *js)
 {
-	PageSize = 20;
-	PageId   = -1;
-	name = json_gets(js, "name", "");
-	cid = json_geti(js, "cid" , -1);
+	PageSize   = 20;
+	PageId     = -1;
+	albumCount = 0;
+	name       = json_gets(js, "name", "");
+	cid        = json_geti(js, "cid" , -1);
+
 	json_t *filter = json_geto(js, "filter");
 	json_t *sort = json_geto(js, "sort");
 
@@ -268,18 +270,26 @@ KolaMenu::KolaMenu(json_t *js)
 	}
 }
 
-KolaMenu::KolaMenu(const KolaMenu &m) {
-	name     = m.name;
-	cid      = m.cid;
-	PageSize = m.PageSize;
-	PageId   = m.PageId;
-	client   = m.client;
-	Filter   = m.Filter;
-	Sort     = m.Sort;
-//	client = &KolaClient::Instance();
+KolaMenu::KolaMenu(const KolaMenu &m)
+{
+	name       = m.name;
+	cid        = m.cid;
+	PageSize   = m.PageSize;
+	PageId     = m.PageId;
+	client     = m.client;
+	Filter     = m.Filter;
+	Sort       = m.Sort;
+	albumCount = m.albumCount;;
 }
 
-int KolaMenu::GetPage(AlbumPage &page, int pageNo)
+int KolaMenu::GetAlbumCount()
+{
+	AlbumPage page;
+	GetPage(page, 0, 0);
+	return albumCount;
+}
+
+int KolaMenu::GetPage(AlbumPage &page, int pageId, int pageSize)
 {
 	char url[256];
 	int count = 0;
@@ -288,7 +298,6 @@ int KolaMenu::GetPage(AlbumPage &page, int pageNo)
 	std::string filter = Filter.GetJsonStr();
 	std::string sort = Sort.GetJsonStr();
 
-	page.Clear();
 	if (filter.size() > 0) {
 		count++;
 		body = body + filter;
@@ -303,31 +312,42 @@ int KolaMenu::GetPage(AlbumPage &page, int pageNo)
 	std::cout << "Filter Body: " << body << std::endl;
 
 	if (name == "" or cid == -1)
-		return false;
+		return 0;
+
+	count = 0;
+	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", pageId, pageSize, name.c_str());
+	if (client->UrlPost(url, body.c_str(), text) == true) {
+		json_error_t error;
+		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+		if (js) {
+			albumCount = json_geti(js, "total", 0);
+			json_t *results = json_geto(js, "result");
+
+			if (results && json_is_array(results)) {
+				json_t *value;
+
+				page.Clear();
+				json_array_foreach(results, value) {
+					page.PutAlbum(new KolaAlbum(value));
+					count++;
+				}
+			}
+
+			json_decref(js);
+		}
+	}
+
+	return count;
+}
+
+int KolaMenu::GetPage(AlbumPage &page, int pageNo)
+{
 	if (pageNo == -1)
 		PageId++;
 	else
 		PageId = pageNo;
 
-	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", PageId, PageSize, name.c_str());
-	if (client->UrlPost(url, body.c_str(), text) == true) {
-		json_error_t error;
-		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-		if (js) {
-			json_t *results = json_geto(js, "result");
-
-			if (results && json_is_array(results)) {
-				json_t *value;
-				json_array_foreach(results, value)
-					page.PutAlbum(new KolaAlbum(value));
-			}
-
-//			std::cout << text << std::endl;
-			json_decref(js);
-		}
-	}
-
-	return true;
+	return GetPage(page, PageId, PageSize);
 }
 
 void *kola_login_thread(void *arg);

@@ -109,6 +109,7 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 {
 	z_stream c_stream;
 	int err = 0;
+	int ret = -1;
 
 	if(data && ndata > 0)
 	{
@@ -121,22 +122,30 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 		c_stream.avail_in  = ndata;
 		c_stream.next_out = zdata;
 		c_stream.avail_out  = *nzdata;
-		while (c_stream.avail_in != 0 && c_stream.total_out < *nzdata)
-		{
-			if(deflate(&c_stream, Z_NO_FLUSH) != Z_OK) return -1;
+
+		while (c_stream.avail_in != 0 && c_stream.total_out < *nzdata) {
+			if (deflate(&c_stream, Z_NO_FLUSH) != Z_OK)
+				goto out;
 		}
-		if(c_stream.avail_in != 0) return c_stream.avail_in;
+		if(c_stream.avail_in != 0) {
+			ret = c_stream.avail_in;
+			goto out;
+		}
 		for (;;) {
 			if((err = deflate(&c_stream, Z_FINISH)) == Z_STREAM_END) break;
-			if(err != Z_OK) return -1;
+			if(err != Z_OK)
+				goto out;
 		}
-		if(deflateEnd(&c_stream) != Z_OK) return -1;
+		if(deflateEnd(&c_stream) != Z_OK)
+			return -1;
 		*nzdata = c_stream.total_out;
 
 		return 0;
 	}
 
-	return -1;
+out:
+	deflateEnd(&c_stream);
+	return ret;
 }
 
 static std::string gzip_base64(const char *data, int ndata)
@@ -355,6 +364,7 @@ void KolaClient::Quit(void)
 
 KolaClient::~KolaClient(void)
 {
+	ClearMenu();
 	pool_free((thread_pool_t)threadPool);
 	Quit();
 }
@@ -611,10 +621,8 @@ bool KolaClient::Login(bool quick)
 					ProcessCommand(value, dest);
 			}
 		}
-		else {
+		else
 			havecmd = false;
-			printf("No found command!\n");
-		}
 
 		nextLoginSec = json_geti(js, "next", nextLoginSec);
 		json_decref(js);

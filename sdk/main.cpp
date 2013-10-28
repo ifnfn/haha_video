@@ -26,8 +26,8 @@ int main(int argc, char **argv)
 	m = kola.GetMenuByName("电影");
 #endif
 
-	m = kola["直播"];
-	//m = kola["电影"];
+	//m = kola["直播"];
+	m = kola["电影"];
 
 	if (m == NULL)
 		return -1;
@@ -52,6 +52,8 @@ int main(int argc, char **argv)
 //	m->Sort.Set("评分最高");
 
 	printf("%d album in menu!\n", m->GetAlbumCount());
+
+//	return 0;
 
 	while (1) {
 		AlbumPage page;

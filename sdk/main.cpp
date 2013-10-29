@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 			printf("[%d] %s\n", i, album->albumName.c_str());
 		}
 
-//		break;
+		break;
 		if (page.Count() < 20)
 			break;
 	}

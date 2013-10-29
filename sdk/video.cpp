@@ -261,7 +261,7 @@ std::string KolaVideo::GetVideoUrl(void)
 		KolaClient *client =& KolaClient::Instance();
 
 		if (client->UrlPost("/video/urls", ret.c_str(), ret) == false)
-			return false;
+			return "";
 
 		return client->GetFullUrl("/video/urls" + ret);
 	}

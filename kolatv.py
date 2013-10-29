@@ -120,54 +120,52 @@ class Kolatv:
         print("UpdateTop200")
         pass
 
-    def _get_data(self, All=False):
+    def _get_album(self, All=False):
         argument = {}
         argument['fields'] = {'engineList' : True,
                               'albumName': True,
                               'albumPageUrl': True,
                               'vid': True,
                               'playlistid': True}
-        return self.db.GetAlbumListJson(argument, All=All)
+
+        albumList = []
+        data, _ = self.db.GetAlbumListJson(argument, All=All, disablePage=True)
+        for p in data:
+            for (name, engine) in list(self.engines.items()):
+                if 'engineList' in p and name in p['engineList']:
+                    albumList.append(engine.NewAlbum(p))
+                    break
+
+        return albumList
 
     # 更新所有节目的排名数据
     def UpdateAllScore(self):
         print("UpdateAllScore")
+        for album in self._get_album(True):
+            album.UpdateScoreCommand()
 
-        data, _ = self._get_data(True)
-        for p in data:
-            for (name, engine) in list(self.engines.items()):
-                if hasattr(p, 'engineList') and name in p.engineList:
-                    engine.NewAlbum(p).UpdateScoreCommand()
         self.command.Execute()
 
     # 更新所有节目的完全信息
     def UpdateAllFullInfo(self):
         print("UpdateAllFullInfo")
 
-        data, _ = self._get_data(True)
-        for p in data:
-            for (name, engine) in list(self.engines.items()):
-                if hasattr(p, 'engineList') and name in p.engineList:
-                    engine.NewAlbum(p).UpdateFullInfoCommand()
+        for album in self._get_album(True):
+            album.UpdateFullInfoCommand()
+
         self.command.Execute()
 
     # 更新所有节目的播放信息
     def UpdateAllPlayInfo(self):
-        data, _ = self._get_data()
-        for p in data:
-            for (name, engine) in list(self.engines.items()):
-                if hasattr(p, 'engineList') and name in p.engineList:
-                    engine.NewAlbum(p).UpdateAlbumPlayInfoCommand()
+        for album in self._get_album():
+            album.UpdateAlbumPlayInfoCommand()
+
         self.command.Execute()
 
     # 更新所有节目主页
     def UpdateAllAlbumPage(self):
-        data, _ = self._get_data(All=True)
-        for p in data:
-            for (name, engine) in list(self.engines.items()):
-                if 'engineList' in p and name in p['engineList']:
-                    engine.NewAlbum(p).UpdateAlbumPageCommand()
-                    break
+        for album in self._get_album(True):
+            album.UpdateAlbumPageCommand()
 
         self.command.Execute()
 

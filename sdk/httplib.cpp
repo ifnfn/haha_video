@@ -8,11 +8,14 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
+#include <sys/select.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <time.h>
 #include <stdarg.h>
 #include <zlib.h>
+#include <sys/ioctl.h>
 
 #include "httplib.h"
 
@@ -35,6 +38,9 @@ typedef enum {
 } http_state_t;
 
 #define RESP_BUF_SIZE 2048
+
+#define NONBLOCK 0
+#define BLOCK 1
 
 struct http_client_ {
 	const char *m_orig_url;
@@ -243,6 +249,79 @@ static int httpgzdecompress(Byte *zdata, uLong nzdata, Byte *data, uLong *ndata)
 	return 0;
 }
 
+int tcp_connect(struct in_addr addr, unsigned short port, int block)
+{
+	int sock;
+	struct sockaddr_in servaddr;
+	fd_set rset, wset;
+	int n;
+	int maxfd;
+	int opt = 1;
+	struct timeval tval;
+	unsigned int len, error;
+
+	if( (sock = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
+	{
+		printf("socket error : %s\n", strerror(errno));
+		return -1;
+	}
+
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_port = htons(port);
+	servaddr.sin_addr = addr;
+
+	if (ioctl(sock, FIONBIO, &opt) < 0) {
+		close(sock);
+		perror("ioctl");
+		return -1;
+	}
+
+	if( connect(sock, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0 ) {
+		if( errno != EINPROGRESS ) {
+			printf("connect error : %s\n", strerror(errno));
+			return -1;
+		}
+
+		if( block == NONBLOCK ) {
+			FD_ZERO(&rset);
+			FD_SET(sock, &rset);
+			wset = rset;
+			maxfd = sock;
+			tval.tv_sec = 2;
+			tval.tv_usec = 0;
+
+			if( (n = select(maxfd + 1, &rset, &wset, NULL, &tval)) == 0 )
+			{
+				close(sock);
+				errno = ETIMEDOUT;
+				return -1;
+			}
+
+			if( FD_ISSET(sock, &rset) || FD_ISSET(sock, &wset) )
+			{
+				len = sizeof(error);
+				if( getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0 )
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				printf("select error : sockfd not set\n");
+			}
+
+			opt = 0;
+			//set blocking
+			if (ioctl(sock, FIONBIO, &opt) < 0) {
+				close(sock);
+				errno = error;
+				return -1;
+			}
+		}
+	}
+
+	return sock;
+}
 /*
  * http_init_connection()
  * decode url and make connection
@@ -646,10 +725,8 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 				return h_errno;
 #endif
 			}
-			if (memcmp(host->h_addr,
-						&cptr->m_server_addr,
-						sizeof(struct in_addr)) == 0 &&
-					(port == cptr->m_port)) {
+			if (memcmp(host->h_addr, &cptr->m_server_addr,
+						sizeof(struct in_addr)) == 0 && (port == cptr->m_port)) {
 				match = 1;
 			} else {
 				cptr->m_server_addr = *(struct in_addr *)host->h_addr;
@@ -679,6 +756,10 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 		cptr->m_server_addr = *(struct in_addr *)host->h_addr;
 	}
 
+	cptr->m_server_socket = tcp_connect(cptr->m_server_addr, cptr->m_port, NONBLOCK);
+	if (cptr->m_server_socket == -1)
+		return -1;
+#if 0
 	// Create and connect the socket
 	cptr->m_server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (cptr->m_server_socket == -1)
@@ -687,13 +768,52 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_port = htons(cptr->m_port);
 	sockaddr.sin_addr = cptr->m_server_addr;
+	set_nonblock(cptr->m_server_socket);
 
-	result = connect(cptr->m_server_socket,
-			(struct sockaddr *)&sockaddr,
-			sizeof(sockaddr));
+	result = connect(cptr->m_server_socket, (struct sockaddr *)&sockaddr, sizeof(sockaddr));
 
-	if (result == -1)
-		return -1;
+	if( result < 0 ) {
+		fd_set rset, wset;
+		int n, maxfd;
+		struct timeval tval;
+		unsigned int len, error;
+
+		if( errno != EINPROGRESS ) {
+			printf("connect error : %s\n", strerror(errno));
+			return -1;
+		}
+
+		FD_ZERO(&rset);
+		FD_SET(cptr->m_server_socket, &rset);
+		wset = rset;
+		maxfd = cptr->m_server_socket;
+		tval.tv_sec = 2;
+		tval.tv_usec = 0;
+
+		if( (n = select(maxfd + 1, &rset, &wset, NULL, &tval)) == 0 ) {
+			close(cptr->m_server_socket);
+			errno = ETIMEDOUT;
+			return -1;
+		}
+
+		if( FD_ISSET(cptr->m_server_socket, &rset) || FD_ISSET(cptr->m_server_socket, &wset) ) {
+			len = sizeof(error);
+			if( getsockopt(cptr->m_server_socket, SOL_SOCKET, SO_ERROR, &error, &len) < 0 )
+				return -1;
+		}
+		else
+			printf("select error : sockfd not set\n");
+
+		if( set_block(cptr->m_server_socket) == -1 )
+			printf("set_block error\n");
+
+		if(error) {
+			close(cptr->m_server_socket);
+			errno = error;
+			return -1;
+		}
+	}
+#endif
 
 	cptr->m_state = HTTP_STATE_CONNECTED;
 	return 0;

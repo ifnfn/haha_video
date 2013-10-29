@@ -1,18 +1,16 @@
 #include "kola.hpp"
-#include "threadpool.hpp"
 
-void *task_thread(void *arg) {
-	Task *t = (Task*)arg;
-	t->lock();
-	t->Run();
-	t->SetStatus(Task::StatusFinish);
-	t->unlock();
-	t->signal();
-
-	return NULL;
+void Task::lowRun() {
+	lock();
+	if (not cancel)
+		Run();
+	SetStatus(Task::StatusFinish);
+	broadcast();
+	unlock();
 }
 
 Task::Task() {
+	cancel = false;
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&ready, NULL);
 
@@ -30,18 +28,20 @@ Task::~Task() {
 void Task::Start() {
 	KolaClient *client = &KolaClient::Instance();
 
-	lock();
-	SetStatus(Task::StatusDownloading);
-	pool_add_worker((thread_pool_t)client->threadPool, task_thread, this);
-	unlock();
+	SetStatus(Task::StatusWait);
+	client->threadPool->AddTask(this);
 }
 
-bool Task::Wait()
+void Task::Cancel() {
+	cancel = true;
+	KolaClient *client = &KolaClient::Instance();
+	client->threadPool->RemoveTask(this);
+}
+
+void Task::Wait()
 {
 	lock();
-	if (status == Task::StatusDownloading)
+	while (status == Task::StatusDownloading || status == Task::StatusWait)
 		wait();
 	unlock();
-
-	return status == Task::StatusFinish;
 }

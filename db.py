@@ -108,7 +108,8 @@ class DB:
     #        "albumName": 1,
     #        "vid": -1
     #    }
-    def GetAlbumListJson(self, arg, cid=-1,All=False):
+    # disablePage 为Ture时，页的大小不能为 0
+    def GetAlbumListJson(self, arg, cid=-1,All=False, disablePage=False):
         self.ConvertJson(arg)
         ret = []
         count = 0
@@ -134,14 +135,16 @@ class DB:
             if 'sort' in arg:
                 cursor = cursor.sort(arg['sort'])
 
+            size = 0
             if 'page' in arg and 'size' in arg:
                 page = arg['page']
                 size = arg['size']
-                if size:
-                    cursor = cursor.skip(page * size).limit(size)
-                    for x in cursor:
-                        del x['_id']
-                        ret.append(x)
+            if size:
+                cursor = cursor.skip(page * size).limit(size)
+            if size or disablePage:
+                for x in cursor:
+                    del x['_id']
+                    ret.append(x)
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))

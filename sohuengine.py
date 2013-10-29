@@ -217,6 +217,11 @@ class SohuVideoMenu(VideoMenuBase):
             '最新发布'   : 3,
             '评分最高'   : 4
         }
+        self.quickSort = {
+            '热门电影' : '',
+            '最新电影' : '',
+            '推荐电影' : '',
+        }
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):

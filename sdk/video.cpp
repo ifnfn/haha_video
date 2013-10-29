@@ -24,9 +24,8 @@ VideoSegment::VideoSegment(std::string u, std::string n, double d, size_t s) {
 	video = NULL;
 }
 
-VideoSegment::~VideoSegment() { }
-
-bool VideoSegment::Run() {
+bool VideoSegment::Run()
+{
 	std::string video_url;
 
 	return GetVideoUrl(video_url);
@@ -95,7 +94,7 @@ bool VideoSegment::GetVideoUrl(std::string &player_url)
 		}
 	}
 
-	//std::cout << realUrl << std::endl;
+	std::cout << realUrl << std::endl;
 
 	return false;
 }
@@ -115,13 +114,18 @@ KolaVideo::KolaVideo(json_t *js)
 		LoadFromJson(js);
 }
 
-KolaVideo::~KolaVideo() {
-	for (size_t i=0, count=size(); i < count;i++) {
-		VideoSegment* seg = at(i);
+KolaVideo::~KolaVideo()
+{
+	Clear();
+}
 
-		delete seg;
+void KolaVideo::Clear() {
+	for (size_t i=0, count = segmentList.size(); i < count; i++) {
+		segmentList[i]->Cancel();
+		delete segmentList[i];
 	}
-	clear();
+
+	segmentList.clear();
 }
 
 bool KolaVideo::UpdatePlayInfo(json_t *js)
@@ -134,12 +138,14 @@ bool KolaVideo::UpdatePlayInfo(json_t *js)
 	fps           = json_geti(js, "fps", 0);
 	directPlayUrl = json_gets(js, "directPlayUrl", "");
 
-	clear();
+	Clear();
 	if (directPlayUrl == "") {
 		json_t *sets, *value;
 		sets = json_geto(js, "sets");
-		json_array_foreach(sets, value)
-			push_back(new VideoSegment(this, value));
+		json_array_foreach(sets, value) {
+			VideoSegment *seg = new VideoSegment(this, value);
+			segmentList.push_back(seg);
+		}
 	}
 
 	return true;
@@ -214,14 +220,14 @@ bool KolaVideo::LoadFromJson(json_t *js)
 std::string KolaVideo::GetVideoUrl(void)
 {
 	char buf[256];
-	size_t count = size();
+	size_t count = segmentList.size();
 	std::string ret, player_url;
 	double max_duration = 0;
 
 	if (count == 0)
 		return directPlayUrl;
 	else if (count == 1) {
-		VideoSegment *seg = at(0);
+		VideoSegment *seg = segmentList[0];
 		seg->Start();
 		seg->Wait();
 		return seg->realUrl;
@@ -229,7 +235,7 @@ std::string KolaVideo::GetVideoUrl(void)
 
 	ret = "";
 	for (size_t i=0; i < count;i++) {
-		VideoSegment *seg = at(i);
+		VideoSegment *seg = segmentList[i];
 
 		if (seg->duration > max_duration)
 			max_duration = seg->duration;
@@ -237,7 +243,7 @@ std::string KolaVideo::GetVideoUrl(void)
 	}
 
 	for (size_t i=0; i < count;i++) {
-		VideoSegment *seg = at(i);
+		VideoSegment *seg = segmentList[i];
 		seg->Wait();
 		sprintf(buf, "#EXTINF:%d,\n", (int)seg->duration);
 		ret = ret + buf;
@@ -251,6 +257,15 @@ std::string KolaVideo::GetVideoUrl(void)
 
 	ret = buf + ret;
 
+	if (count > 0) {
+		KolaClient *client =& KolaClient::Instance();
+
+		if (client->UrlPost("/video/urls", ret.c_str(), ret) == false)
+			return false;
+
+		return client->GetFullUrl("/video/urls" + ret);
+	}
+
 	return ret;
 }
 
@@ -263,13 +278,12 @@ bool KolaVideo::GetVideoUrl(std::string &video_url, size_t index)
 		while(1) {
 			printf("error\n");
 		}
-	if (index >= size())
+	if (index >= segmentList.size())
 		return false;
 
-	VideoSegment *seg = at(index);
-
-	return seg->GetVideoUrl(video_url);
-	//std::cout << seg.realUrl << std::endl;
+	VideoSegment *seg = segmentList[index];
+	if (seg)
+		return seg->GetVideoUrl(video_url);
 
 	return false;
 }

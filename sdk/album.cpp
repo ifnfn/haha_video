@@ -15,7 +15,7 @@ KolaAlbum::~KolaAlbum() {
 }
 
 void KolaAlbum::VideosClear() {
-	for (size_t i=0, count=videos.size(); i < count;i++)
+	for (int i=videos.size() - 1; i >= 0;i--)
 		delete videos[i];
 
 	videos.clear();
@@ -77,7 +77,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	return true;
 }
 
-bool KolaAlbum::GetVideos(void)
+bool KolaAlbum::Run(void)
 {
 	if (directVideos)
 		return directVideos;
@@ -133,10 +133,6 @@ std::string &KolaAlbum::GetPictureUrl(enum PicType type)
 	return fileName;
 }
 
-bool KolaAlbum::Run() {
-	return GetVideos();
-}
-
 AlbumPage::AlbumPage()
 {
 
@@ -144,15 +140,7 @@ AlbumPage::AlbumPage()
 
 AlbumPage::~AlbumPage(void)
 {
-	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		delete (*it);
-	}
-	albumList.clear();
-
-	for (std::map<std::string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
-		delete it->second;
-	}
-	pictureList.clear();
+	Clear();
 }
 
 void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
@@ -166,17 +154,22 @@ void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列�
 void AlbumPage::PutPicture(std::string fileName)
 {
 	if (fileName != "") {
-		std::pair<std::map<std::string, Picture*>::iterator, bool> ret;
-		ret = pictureList.insert(std::pair<std::string, Picture*>(fileName, new Picture(fileName)));
-		ret.first->second->Start();
+		std::map<std::string, Picture*>::iterator it;
+
+		it = pictureList.find(fileName);
+		if (it == pictureList.end()) {
+			Picture *pic = new Picture(fileName);
+			pictureList.insert(std::pair<std::string, Picture*>(fileName, pic));
+			pic->Start();
+		}
 	}
 }
 
 void AlbumPage::PutAlbum(KolaAlbum *album)
 {
 	if (album) {
-		albumList.push_back(album);
 		album->Start();
+		albumList.push_back(album);
 	}
 }
 
@@ -199,6 +192,17 @@ Picture* AlbumPage::GetPicture(std::string fileName)
 
 void AlbumPage::Clear()
 {
-	pictureList.clear();
+	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		(*it)->Cancel();
+		delete (*it);
+	}
+
 	albumList.clear();
+
+	for (std::map<std::string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
+		it->second->Cancel();
+		delete it->second;
+	}
+
+	pictureList.clear();
 }

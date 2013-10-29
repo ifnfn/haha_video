@@ -20,7 +20,6 @@
 #include "base64.hpp"
 #include "kola.hpp"
 #include "pcre.hpp"
-#include "threadpool.hpp"
 
 #if 0
 #define SERVER_HOST "127.0.0.1"
@@ -35,6 +34,7 @@
 
 #define MAX_THREAD_POOL_SIZE 8
 #define TRY_TIMES 3
+#define DEFAULT_PAGE_SIZE 1
 
 static std::string loginKey;
 static std::string loginKeyCookie;
@@ -216,11 +216,15 @@ bool Picture::Run()
 
 	if (client->UrlGet("", fileName.c_str(), (void**)&http_resp)) {
 		size = http_resp->body_len;
-		data = malloc(size);
-		memcpy(data, http_resp->body, size);
-//		printf("wget %s, data=%p, size=%d\n", fileName.c_str(), data, size);
-		inCache = true;
-		ok = true;
+		if (size > 0) {
+			data = malloc(size);
+			memcpy(data, http_resp->body, size);
+//			printf("wget %s, data=%p, size=%d\n", fileName.c_str(), data, size);
+			inCache = true;
+			ok = true;
+		}
+		else
+			printf("wger error %s\n", fileName.c_str());
 	}
 	http_resp_free(http_resp);
 
@@ -230,7 +234,7 @@ bool Picture::Run()
 KolaMenu::KolaMenu() {
 	cid = -1;
 	PageId = -1;
-	PageSize = 20;
+	PageSize = DEFAULT_PAGE_SIZE;
 	albumCount = 0;
 
 	client = &KolaClient::Instance();
@@ -238,7 +242,7 @@ KolaMenu::KolaMenu() {
 
 KolaMenu::KolaMenu(json_t *js)
 {
-	PageSize   = 20;
+	PageSize   = DEFAULT_PAGE_SIZE;
 	PageId     = -1;
 	albumCount = 0;
 	name       = json_gets(js, "name", "");
@@ -315,7 +319,7 @@ int KolaMenu::GetPage(AlbumPage &page, int pageId, int pageSize)
 		return 0;
 
 	count = 0;
-	sprintf(url, "/video/list?page=%d&size=%d&menu=%s", pageId, pageSize, name.c_str());
+	sprintf(url, "/video/list?page=%d&size=%d&cid=%d", pageId, pageSize, cid);
 	if (client->UrlPost(url, body.c_str(), text) == true) {
 		json_error_t error;
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
@@ -367,7 +371,7 @@ KolaClient::KolaClient(void)
 	running = true;
 	havecmd = true;
 
-	threadPool = (void*)pool_create(MAX_THREAD_POOL_SIZE);
+	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
 
 	pthread_mutex_init(&lock, NULL);
 	Login(true);
@@ -385,7 +389,6 @@ void KolaClient::Quit(void)
 KolaClient::~KolaClient(void)
 {
 	ClearMenu();
-	pool_free((thread_pool_t)threadPool);
 	Quit();
 }
 

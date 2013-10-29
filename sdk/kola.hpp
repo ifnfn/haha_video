@@ -1,6 +1,10 @@
 #include <string>
+#include <unistd.h>
 #include <vector>
 #include <map>
+#include <list>
+#include <deque>
+
 #include <algorithm>
 #include <pthread.h>
 #include <jansson.h>
@@ -16,6 +20,8 @@ class KolaMenu;
 class KolaAlbum;
 class KolaVideo;
 class AlbumPage;
+class ThreadPool;
+class Task;
 
 extern void split(const std::string &s, std::string delim, std::vector< std::string > *ret);
 
@@ -28,33 +34,69 @@ enum PicType {
 	PIC_SMALL_VER,
 };
 
+class Thread {
+	public:
+		Thread(ThreadPool *pool);
+		~Thread();
+		void SetTask(Task *task) {this->task = task;}
+		void Execute();
+	private:
+		pthread_t tid;
+		Task *task;
+		ThreadPool *pool;
+		friend void *thread_routine(void *arg);
+};
+
 class Task {
 	public:
 		enum {
-			StatusFree,
-			StatusDownloading,
-			StatusFinish
+			StatusFree = 0,
+			StatusWait = 1,
+			StatusDownloading = 2,
+			StatusFinish = 3,
+			StatusCancel = 4
+
 		};
 		Task(void);
 		virtual ~Task();
 
-		virtual bool Run()     {return false;}
+		virtual bool Run()     {printf("Run\n"); usleep(60 * 1000); return false;}
+		//virtual bool Run()     {return false;}
 		virtual bool Destroy() {return false;}
 
 		void Start();
 
+		void Cancel();
 		void SetStatus(int st) { status = st; }
-		bool Wait();
-	private:
-		int status;
-		sem_t sem;
-		pthread_mutex_t mutex;
-		pthread_cond_t ready;
+		void Wait();
 		inline void lock()   { pthread_mutex_lock(&mutex);   }
 		inline void unlock() { pthread_mutex_unlock(&mutex); }
-		inline void wait()   { pthread_cond_wait(&ready, &mutex); }
-		inline void signal() { pthread_cond_signal(&ready); }
-		friend void *task_thread(void *arg);
+		int status;
+	private:
+		bool cancel;
+		pthread_mutex_t mutex;
+		pthread_cond_t ready;
+		inline void wait()      { pthread_cond_wait(&ready, &mutex); }
+		inline void signal()    { pthread_cond_signal(&ready); }
+		inline void broadcast() { pthread_cond_broadcast(&ready); }
+		void lowRun();
+		friend class Thread;
+};
+
+class ThreadPool {
+	public:
+		ThreadPool(int size);
+		~ThreadPool();
+		bool AddTask(Task *task);
+		bool RemoveTask(Task *task);
+		void ExecuteThread(Thread *thread);
+	private:
+		pthread_mutex_t queue_lock;
+		pthread_cond_t queue_ready;
+		std::deque<Task*> taskList;
+		std::vector<Thread *> m_threads;
+		bool need_destroy;
+		int thread_num;
 };
 
 class VideoSegment: public Task {
@@ -62,8 +104,6 @@ class VideoSegment: public Task {
 		VideoSegment(void);
 		VideoSegment(KolaVideo *video, json_t *js);
 		VideoSegment(std::string u, std::string n, double d, size_t s);
-
-		~VideoSegment();
 
 		std::string url;
 		std::string newfile;
@@ -80,10 +120,18 @@ class VideoSegment: public Task {
 		std::string GetJsonStr(std::string *newUrl);
 };
 
-class KolaVideo: public std::vector<VideoSegment*> {
+class KolaVideo {
 	public:
 		KolaVideo(json_t *js = NULL);
 		~KolaVideo();
+
+		bool LoadFromJson(json_t *js);
+		bool GetPlayInfo(void);
+
+		void Clear();
+		std::string GetVideoUrl(void);
+		std::string GetSubtitle(const char *lang);
+		bool GetVideoUrl(std::string &video_url, size_t index);
 
 		int width;
 		int height;
@@ -91,13 +139,6 @@ class KolaVideo: public std::vector<VideoSegment*> {
 		double totalDuration;
 		size_t totalBytes;
 		int totalBlocks;
-
-		bool LoadFromJson(json_t *js);
-		bool GetPlayInfo(void);
-
-		std::string GetVideoUrl(void);
-		std::string GetSubtitle(const char *lang);
-		bool GetVideoUrl(std::string &video_url, size_t index);
 
 		std::string name;
 		std::string playlistid;  // 所属 ablum
@@ -123,7 +164,7 @@ class KolaVideo: public std::vector<VideoSegment*> {
 		int haveOriginalData;
 	private:
 		bool UpdatePlayInfo(json_t *js);
-
+		std::vector<VideoSegment*> segmentList;
 };
 
 class Picture: public Task {
@@ -166,7 +207,6 @@ class KolaAlbum: public Task {
 		std::string directors;
 		std::vector<KolaVideo*> videos;
 
-		bool GetVideos(void);
 		std::string &GetPictureUrl(enum PicType type);
 		virtual bool Run();
 		inline void WaitVideo() { Wait(); }
@@ -333,13 +373,14 @@ class KolaClient {
 		KolaMenu* operator[] (int inx);
 		int MenuCount() { return menuMap.size(); };
 		bool haveCommand() { return havecmd; }
+		inline std::string GetFullUrl(std::string url) { return baseUrl + url; }
 	private:
 		KolaClient(void);
 		std::string baseUrl;
 		std::map<std::string, KolaMenu*> menuMap;
 
 		int nextLoginSec;
-		void *threadPool;
+		ThreadPool *threadPool;
 
 		bool UrlGet(std::string url, const char *home_url, void **http_resp, int times = 0);
 		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL);

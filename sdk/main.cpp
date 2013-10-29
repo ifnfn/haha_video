@@ -3,8 +3,30 @@
 
 #include "kola.hpp"
 
+void test_task()
+{
+	int c = 4;
+	std::vector<Task*> tasks;
+	for (int i=0; i < c; i ++)
+		tasks.push_back(new Task());
+	for (int i=0; i < c; i ++)
+		tasks[i]->Start();
+	for (int i=0; i <c ; i++) {
+		delete tasks[i];
+	}
+	tasks.clear();
+	printf("end\n");
+}
+
+
 int main(int argc, char **argv)
 {
+#if 0
+	while(1)
+		test_task();
+	return 0;
+#endif
+#if 1
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();
@@ -32,7 +54,7 @@ int main(int argc, char **argv)
 	if (m == NULL)
 		return -1;
 
-#if 1
+#if 0
 	foreach(m->Filter.filterKey, i) {
 		std::cout << i->first << ": ";
 		foreach(i->second, j)
@@ -40,7 +62,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
-#if 1
+#if 0
 	std::cout << "Sort List: " << std::endl;
 	for(int i=0, count=m->Sort.size(); i < count; i++) {
 		std::cout << "\t" << m->Sort[i] << std::endl;
@@ -55,6 +77,7 @@ int main(int argc, char **argv)
 
 //	return 0;
 
+#if 1
 	while (1) {
 		AlbumPage page;
 		m->GetPage(page);
@@ -66,11 +89,11 @@ int main(int argc, char **argv)
 			printf("[%d] %s\n", i, album->albumName.c_str());
 		}
 
+//		break;
 		if (page.Count() < 20)
 			break;
 	}
-
-	return 0;
+#endif
 
 	AlbumPage page;
 	m->GetPage(page, 0);
@@ -89,6 +112,7 @@ int main(int argc, char **argv)
 #endif
 
 #if 1
+	page.CachePicture(PIC_LARGE);
 	size_t count = page.PictureCount();
 	while (count) {
 		for (size_t i = 0; i < page.Count(); i++) {
@@ -99,11 +123,13 @@ int main(int argc, char **argv)
 				if (LargePic->inCache && LargePic->used == false) {
 					printf("[%d] %s: data:%p, size=%d\n", i, LargePic->fileName.c_str(), LargePic->data, LargePic->size);
 					LargePic->used = true;
+					printf("count = %d\n", count);
 					count--;
 				}
 			}
 		}
 	}
+
 	printf("End!!!\n");
 #endif
 
@@ -111,4 +137,5 @@ int main(int argc, char **argv)
 		sleep(3);
 
 	return 0;
+#endif
 }

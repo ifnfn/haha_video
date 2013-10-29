@@ -66,9 +66,6 @@ class AlbumListHandler(BaseHandler):
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=0'
 class GetVideoHandler(BaseHandler):
-    def initialize(self):
-        pass
-
     def argument(self):
         args = {}
         page = self.get_argument('page', 0)
@@ -223,6 +220,20 @@ class ShowHandler(BaseHandler):
             album['type'] = ''
 
         self.render("show.html", alubm=album)
+
+class RandomVideoUrlHandle(BaseHandler):
+    db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
+    def get(self, name):
+        print(name)
+        self.finish(self.db.get(name))
+
+    def post(self, name):
+        if name == '':
+            body = self.request.body
+            name = hashlib.md5(body).hexdigest().upper()
+            self.db.set(name, body.decode())
+            self.finish(name)
+
 
 class UpdateCommandHandle(BaseHandler):
     def initialize(self):
@@ -508,6 +519,7 @@ class Application(tornado.web.Application):
             (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
             (r'/video/urlmap',     UrlMapHandler),          # 后台管理，增加网址映射
             (r'/video/getmenu',    GetMenuHandler),         #
+            (r'/video/urls(.*)',  RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
             (r'/manage/update',    UpdateCommandHandle),
             (r'/',                 IndexHandler),

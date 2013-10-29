@@ -34,7 +34,7 @@
 
 #define MAX_THREAD_POOL_SIZE 8
 #define TRY_TIMES 3
-#define DEFAULT_PAGE_SIZE 1
+#define DEFAULT_PAGE_SIZE 20
 
 static std::string loginKey;
 static std::string loginKeyCookie;
@@ -389,6 +389,7 @@ void KolaClient::Quit(void)
 KolaClient::~KolaClient(void)
 {
 	ClearMenu();
+	delete threadPool;
 	Quit();
 }
 

@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <vector>
 #include <map>
-#include <list>
 #include <deque>
 
 #include <algorithm>
@@ -69,13 +68,13 @@ class Task {
 		void Cancel();
 		void SetStatus(int st) { status = st; }
 		void Wait();
-		inline void lock()   { pthread_mutex_lock(&mutex);   }
-		inline void unlock() { pthread_mutex_unlock(&mutex); }
-		int status;
 	private:
+		int status;
 		bool cancel;
 		pthread_mutex_t mutex;
 		pthread_cond_t ready;
+		inline void lock()   { pthread_mutex_lock(&mutex);   }
+		inline void unlock() { pthread_mutex_unlock(&mutex); }
 		inline void wait()      { pthread_cond_wait(&ready, &mutex); }
 		inline void signal()    { pthread_cond_signal(&ready); }
 		inline void broadcast() { pthread_cond_broadcast(&ready); }

@@ -110,7 +110,7 @@ class LetvEngine(VideoEngine):
 
         # 引擎主菜单
         self.menu = {
-            '直播'   : LetvLiveTV
+#            '直播'   : LetvLiveTV
         }
 
         self.parserList = {

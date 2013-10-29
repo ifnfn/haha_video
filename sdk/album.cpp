@@ -168,8 +168,8 @@ void AlbumPage::PutPicture(std::string fileName)
 void AlbumPage::PutAlbum(KolaAlbum *album)
 {
 	if (album) {
-		album->Start();
 		albumList.push_back(album);
+		album->Start();
 	}
 }
 

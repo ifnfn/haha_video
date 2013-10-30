@@ -6,7 +6,7 @@ import json
 import configparser
 import tornado.escape
 import redis
-from utils import autostr, autoint
+from utils import autostr, autoint, GetQuickFilter
 
 class Template:
     def __init__(self, command=None, cmd=None):
@@ -253,7 +253,6 @@ class AlbumBase:
         self.dailyIndexScore = 0  # 每日指数
 
         self.mainActors = []
-        self.actors = []
         self.directors = []
 
         self.videos = []
@@ -289,7 +288,6 @@ class AlbumBase:
         if self.smallPicUrl     : ret['smallPicUrl']    = self.smallPicUrl
 
         if self.mainActors      : ret['mainActors']     = self.mainActors
-        if self.actors          : ret['actors']         = self.actors
         if self.directors       : ret['directors']      = self.directors
 
         if self.playLength :      ret['playLength']     = self.playLength
@@ -342,7 +340,6 @@ class AlbumBase:
         if 'videoScore' in json     : self.videoScore      = json['videoScore']
         if 'totalSet' in json       : self.totalSet        = json['totalSet']
 
-        if 'actors' in json         : self.actors          = json['actors']
         if 'mainActors' in json     : self.mainActors      = json['mainActors']
         if 'directors' in json      : self.directors       = json['directors']
 
@@ -376,12 +373,29 @@ class VideoMenuBase:
         self.engine = engine
         self.command = engine.command
         self.filter = {}
+        self.quickFilter = {}
         self.sort = {}
         self.name = name
         self.homePage = ''
         self.parserList = {}
         self.albumClass = AlbumBase
         self.cid = 0
+
+    def CheckQuickFilter(self, argument):
+        if 'quickFilter' in argument:
+            qf = GetQuickFilter(self.name, self.quickFilter)
+
+            name = argument['quickFilter']
+            if name in qf:
+                js = qf[name]
+                if 'filter' in js:
+                    argument['filter'] = js['filter']
+                if 'sort' in js:
+                    argument['sort'] = js['sort']
+            del argument['quickFilter']
+
+    def GetQuickFilterJson(self):
+        return [x for x in self.quickFilter]
 
     def GetFilterJson(self):
         ret = {}
@@ -400,11 +414,12 @@ class VideoMenuBase:
     def GetJsonInfo(self):
         ret = {}
 
-        ret['name'] = self.name
-        ret['cid'] = self.cid
-        ret['count'] = self.engine.db.GetMenuAlbumCount(self.cid)
-        ret['filter'] = self.GetFilterJson()
-        ret['sort'] = self.GetSortJson()
+        ret['name']         = self.name
+        ret['cid']          = self.cid
+        ret['count']        = self.engine.db.GetMenuAlbumCount(self.cid)
+        ret['filter']       = self.GetFilterJson()
+        ret['quickFilters'] = self.GetQuickFilterJson()
+        ret['sort']         = self.GetSortJson()
 
         return ret
 

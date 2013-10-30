@@ -20,8 +20,9 @@
 #include "base64.hpp"
 #include "kola.hpp"
 #include "pcre.hpp"
+#include "threadpool.hpp"
 
-#if 0
+#if 1
 #define SERVER_HOST "127.0.0.1"
 #define PORT 9991
 #else
@@ -234,6 +235,8 @@ bool Picture::Run()
 KolaMenu::KolaMenu() {
 	cid = -1;
 	PageId = -1;
+	language = "zh";
+	//quickFilter = "";
 	PageSize = DEFAULT_PAGE_SIZE;
 	albumCount = 0;
 
@@ -242,21 +245,20 @@ KolaMenu::KolaMenu() {
 
 KolaMenu::KolaMenu(json_t *js)
 {
+	json_t *sub;
 	PageSize   = DEFAULT_PAGE_SIZE;
 	PageId     = -1;
 	albumCount = 0;
 	name       = json_gets(js, "name", "");
 	cid        = json_geti(js, "cid" , -1);
 
-	json_t *filter = json_geto(js, "filter");
-	json_t *sort = json_geto(js, "sort");
-
 	client = &KolaClient::Instance();
 
-	if (filter) {
+	sub = json_geto(js, "filter");
+	if (sub) {
 		const char *key;
 		json_t *values;
-		json_object_foreach(filter, key, values) {
+		json_object_foreach(sub, key, values) {
 			json_t *v;
 			std::string list;
 			json_array_foreach(values, v)
@@ -265,25 +267,48 @@ KolaMenu::KolaMenu(json_t *js)
 		}
 	}
 
-	if (sort) {
+	sub = json_geto(js, "sort");
+	if (sub) {
 		json_t *v;
 		std::string list;
-		json_array_foreach(sort, v)
+		json_array_foreach(sub, v)
 			list = list + json_string_value(v) + ",";
 		this->Sort.Split(list);
+	}
+
+	sub = json_geto(js, "quickFilters");
+	if (sub) {
+		json_t *v;
+		json_array_foreach(sub, v) {
+			const char *s = json_string_value(v);
+			if (s)
+				quickFilters << s;
+		}
 	}
 }
 
 KolaMenu::KolaMenu(const KolaMenu &m)
 {
-	name       = m.name;
-	cid        = m.cid;
-	PageSize   = m.PageSize;
-	PageId     = m.PageId;
-	client     = m.client;
-	Filter     = m.Filter;
-	Sort       = m.Sort;
-	albumCount = m.albumCount;;
+	name         = m.name;
+	cid          = m.cid;
+	PageSize     = m.PageSize;
+	PageId       = m.PageId;
+	client       = m.client;
+	Filter       = m.Filter;
+	Sort         = m.Sort;
+	albumCount   = m.albumCount;;
+	language     = m.language;
+	quickFilter  = m.quickFilter;
+	quickFilters = m.quickFilters;
+}
+
+bool KolaMenu::SetQuickFilter(std:: string name)
+{
+	bool ret = quickFilters.Find(name);
+	if (ret)
+		quickFilter = name;
+
+	return ret;
 }
 
 int KolaMenu::GetAlbumCount()
@@ -302,15 +327,21 @@ int KolaMenu::GetPage(AlbumPage &page, int pageId, int pageSize)
 	std::string filter = Filter.GetJsonStr();
 	std::string sort = Sort.GetJsonStr();
 
-	if (filter.size() > 0) {
-		count++;
-		body = body + filter;
+	if (quickFilter.size() > 0)
+		body = body + "\"quickFilter\": \"" + quickFilter + "\"";
+	else {
+		if (filter.size() > 0) {
+			count++;
+			body = body + filter + ",";
+		}
 	}
+
 	if (sort.size() > 0) {
 		if (count)
 			body = body + ",";
 		body = body + sort;
 	}
+
 	body = body + "}";
 
 	std::cout << "Filter Body: " << body << std::endl;

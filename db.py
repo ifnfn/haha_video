@@ -224,7 +224,7 @@ class DB:
         for key in f:
             if key in self.fieldMapping:
                 newkey = self.fieldMapping[key]
-                f[newkey] = { "$in" : [f[key]]}
+                f[newkey] = { "$in" : f[key].split(',')}
                 del f[key]
         return f
 

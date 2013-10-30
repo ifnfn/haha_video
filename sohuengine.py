@@ -217,10 +217,31 @@ class SohuVideoMenu(VideoMenuBase):
             '最新发布'   : 3,
             '评分最高'   : 4
         }
-        self.quickSort = {
-            '热门电影' : '',
-            '最新电影' : '',
-            '推荐电影' : '',
+        self.quickFilter = {
+            '热门电影' :{
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '最新电影' :{
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '推荐电影' :{
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '港台电影' : {
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            }
         }
 
     # 更新该菜单下所有节目列表
@@ -880,7 +901,6 @@ class SohuEngine(VideoEngine):
             if 'totalSet' in json       : album.totalSet       = json['totalSet']
 
             if 'mainActors' in json     : album.mainActors     = json['mainActors']
-            if 'actors' in json         : album.actors         = json['actors']
             if 'directors' in json      : album.directors      = json['directors']
 
             if 'videos' in json:

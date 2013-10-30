@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "kola.hpp"
+#include "threadpool.hpp"
 
 //#define DBG_TPOOL
 

@@ -33,19 +33,6 @@ enum PicType {
 	PIC_SMALL_VER,
 };
 
-class Thread {
-	public:
-		Thread(ThreadPool *pool);
-		~Thread();
-		void SetTask(Task *task) {this->task = task;}
-		void Execute();
-	private:
-		pthread_t tid;
-		Task *task;
-		ThreadPool *pool;
-		friend void *thread_routine(void *arg);
-};
-
 class Task {
 	public:
 		enum {
@@ -59,43 +46,34 @@ class Task {
 		Task(void);
 		virtual ~Task();
 
-		virtual bool Run()     {printf("Run\n"); usleep(60 * 1000); return false;}
-		//virtual bool Run()     {return false;}
+		//virtual bool Run()     {printf("Run\n"); usleep(60 * 1000); return false;}
+		virtual bool Run()     {return false;}
 		virtual bool Destroy() {return false;}
 
 		void Start();
 
 		void Cancel();
 		void SetStatus(int st) { status = st; }
-		void Wait();
+		int GetStatus() {return status; }
+		void Wait(int msec = 0);
 	private:
 		int status;
 		bool cancel;
 		pthread_mutex_t mutex;
 		pthread_cond_t ready;
-		inline void lock()   { pthread_mutex_lock(&mutex);   }
-		inline void unlock() { pthread_mutex_unlock(&mutex); }
-		inline void wait()      { pthread_cond_wait(&ready, &mutex); }
-		inline void signal()    { pthread_cond_signal(&ready); }
-		inline void broadcast() { pthread_cond_broadcast(&ready); }
+		inline void lock()      { pthread_mutex_lock(&mutex);        }
+		inline void unlock()    { pthread_mutex_unlock(&mutex);      }
+		inline int wait(struct timespec *time = NULL) {
+			if (time)
+				return pthread_cond_timedwait(&ready, &mutex, time);
+			else
+				return pthread_cond_wait(&ready, &mutex);
+		}
+
+		inline void signal()    { pthread_cond_signal(&ready);       }
+		inline void broadcast() { pthread_cond_broadcast(&ready);    }
 		void lowRun();
 		friend class Thread;
-};
-
-class ThreadPool {
-	public:
-		ThreadPool(int size);
-		~ThreadPool();
-		bool AddTask(Task *task);
-		bool RemoveTask(Task *task);
-		void ExecuteThread(Thread *thread);
-	private:
-		pthread_mutex_t queue_lock;
-		pthread_cond_t queue_ready;
-		std::deque<Task*> taskList;
-		std::vector<Thread *> m_threads;
-		bool need_destroy;
-		int thread_num;
 };
 
 class VideoSegment: public Task {
@@ -179,55 +157,6 @@ class Picture: public Task {
 		virtual bool Destroy();
 		bool used;
 	private:
-};
-
-class KolaAlbum: public Task {
-	public:
-		KolaAlbum(json_t *js);
-		~KolaAlbum();
-
-		int cid;
-		std::string playlistid;
-		std::string albumName;
-		std::string albumDesc;
-		std::string area;            // 地区
-		std::string categories;      // 类型
-		std::string isHigh;          // 是否是高清
-		int publishYear;             // 发布年份
-		int totalSet;                // 总集数
-		int updateSet;               // 当前更新集
-		int dailyPlayNum;            // 每日播放次数
-		int weeklyPlayNum;           // 每周播放次数
-		int monthlyPlayNum;          // 每月播放次数
-		int totalPlayNum;            // 总播放资料
-		double dailyIndexScore;      // 每日指数
-		std::string mainActors;
-		std::string actors;
-		std::string directors;
-		std::vector<KolaVideo*> videos;
-
-		std::string &GetPictureUrl(enum PicType type);
-		virtual bool Run();
-		inline void WaitVideo() { Wait(); }
-	private:
-		void VideosClear();
-		bool LoadFromJson(json_t *js);
-
-		std::string pid;
-		std::string vid;
-
-		std::string videoPlayUrl;
-		std::string largePicUrl;      // 大图片网址
-		std::string smallPicUrl;      // 小图片网址
-		std::string largeHorPicUrl;
-		std::string smallHorPicUrl;
-		std::string largeVerPicUrl;
-		std::string smallVerPicUrl;
-
-		std::string videoScore;
-
-		std::string defaultPageUrl;  // 当前播放集
-		bool directVideos;
 };
 
 class StringList: public std::vector<std::string> {
@@ -314,6 +243,54 @@ class KolaSort: public FilterValue {
 		}
 };
 
+class KolaAlbum: public Task {
+	public:
+		KolaAlbum(json_t *js);
+		~KolaAlbum();
+
+		int cid;
+		std::string playlistid;
+		std::string albumName;
+		std::string albumDesc;
+		std::string area;            // 地区
+		std::string categories;      // 类型
+		std::string isHigh;          // 是否是高清
+		int publishYear;             // 发布年份
+		int totalSet;                // 总集数
+		int updateSet;               // 当前更新集
+		int dailyPlayNum;            // 每日播放次数
+		int weeklyPlayNum;           // 每周播放次数
+		int monthlyPlayNum;          // 每月播放次数
+		int totalPlayNum;            // 总播放资料
+		double dailyIndexScore;      // 每日指数
+		StringList mainActors;
+		StringList directors;
+		std::vector<KolaVideo*> videos;
+
+		std::string &GetPictureUrl(enum PicType type);
+		virtual bool Run();
+		inline void WaitVideo() { Wait(); }
+	private:
+		void VideosClear();
+		bool LoadFromJson(json_t *js);
+
+		std::string pid;
+		std::string vid;
+
+		std::string videoPlayUrl;
+		std::string largePicUrl;      // 大图片网址
+		std::string smallPicUrl;      // 小图片网址
+		std::string largeHorPicUrl;
+		std::string smallHorPicUrl;
+		std::string largeVerPicUrl;
+		std::string smallVerPicUrl;
+
+		std::string videoScore;
+
+		std::string defaultPageUrl;  // 当前播放集
+		bool directVideos;
+};
+
 class AlbumPage {
 	public:
 		AlbumPage();
@@ -341,12 +318,15 @@ class KolaMenu {
 		KolaMenu(json_t *js);
 		~KolaMenu(void) {}
 
+		StringList quickFilters;
 		std::string name;
 		int cid;
+
 		int GetPage(AlbumPage &page, int pageNo = -1);
 
 		KolaFilter Filter;
 		KolaSort   Sort;
+		bool SetQuickFilter(std:: string);
 		void SetPageSize(int size) {PageSize = size;}
 		int GetAlbumCount();
 	private:
@@ -354,6 +334,8 @@ class KolaMenu {
 		int PageSize;
 		int PageId;
 		int albumCount;
+		std::string quickFilter;
+		std::string language;
 		int GetPage(AlbumPage &page, int pageId, int pageSize);
 };
 

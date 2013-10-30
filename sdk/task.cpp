@@ -1,4 +1,9 @@
+#include <time.h>
+#include <pthread.h>
+#include <errno.h>
+
 #include "kola.hpp"
+#include "threadpool.hpp"
 
 void Task::lowRun() {
 	lock();
@@ -38,10 +43,21 @@ void Task::Cancel() {
 	client->threadPool->RemoveTask(this);
 }
 
-void Task::Wait()
+void Task::Wait(int msec)
 {
+	struct timespec timeout;
+	int ret = 0;
+
+	timeout.tv_sec = msec / 1000;
+	timeout.tv_nsec = (msec % 1000) * 1000;
 	lock();
-	while (status == Task::StatusDownloading || status == Task::StatusWait)
-		wait();
+	while (status == Task::StatusDownloading || status == Task::StatusWait) {
+		if (msec == 0)
+			ret = wait();
+		else
+			ret = wait(&timeout);
+		if (ret == ETIMEDOUT)
+			break;
+	}
 	unlock();
 }

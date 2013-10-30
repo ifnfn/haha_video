@@ -55,17 +55,21 @@ class Kolatv:
 
         return ret
 
-    def GetMenuAlbumListByName(self, menuName, argument):
-        data = []
-        m = self.FindMenu(menuName)
-        if m:
-            return self.db.GetAlbumListJson(argument, m.cid)
+    def _GetMenuAlbumList(self, menu, argument):
+        if menu:
+            menu.CheckQuickFilter(argument)
+            return self.db.GetAlbumListJson(argument, menu.cid)
 
-        return data, 0
+        return [], 0
+
+    def GetMenuAlbumListByName(self, menuName, argument):
+        menu = self.FindMenu(menuName)
+        return self._GetMenuAlbumList(menu, argument)
 
     def GetMenuAlbumListByCid(self, cid, argument):
         cid = utils.autoint(cid)
-        return self.db.GetAlbumListJson(argument, cid)
+        menu = self.FindMenuById(cid)
+        return self._GetMenuAlbumList(menu, argument)
 
     def GetVideoListByPid(self, pid, argument):
         return self.db.GetVideoListJson(pid=pid, arg=argument)

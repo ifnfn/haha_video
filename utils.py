@@ -1,7 +1,7 @@
 from fetchTools import fetch_httplib2 as fetch
 import logging, sys
 import traceback
-
+import json
 import base64, zlib
 
 def autostr(i):
@@ -86,6 +86,14 @@ def GetNameByUrl(url):
                 if vv in url:
                     return k
     return ''
+
+def GetQuickFilter(name, default):
+    filename = name + '.json'
+    try:
+        io = open(filename)
+        return json.load(io)
+    except:
+        return default
 
 logging.basicConfig()
 log = logging.getLogger("crawler")

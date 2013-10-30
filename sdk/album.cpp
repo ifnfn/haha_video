@@ -23,7 +23,7 @@ void KolaAlbum::VideosClear() {
 
 bool KolaAlbum::LoadFromJson(json_t *js)
 {
-	json_t *sources;
+	json_t *sub;
 	albumName      = json_gets(js, "albumName"  , "");
 	albumDesc      = json_gets(js, "albumDesc"  , "");
 	cid            = json_geti(js, "cid"        , 0);
@@ -57,19 +57,27 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	totalPlayNum    =json_geti   (js , "totalPlayNum"    , 0);   // 总播放资料
 	dailyIndexScore =json_getreal(js , "dailyIndexScore" , 0.0); // 每日指数
 
+	sub = json_geto(js, "mainActors");
+	if (sub) {
+		json_t *v;
+		json_array_foreach(sub, v) {
+			const char *s = json_string_value(v);
+			if (s)
+				mainActors << s;
+		}
+	}
+
 	//directors  = json_gets(js, "directors", "");
-	//actors     = json_gets(js, "actors", "");
 	//mainActors = json_gets(js, "mainActors", "");
 	//categories = json_gets(js, "categories", "");
 //	std::cout << "KolaAlbum:" << albumName << std::endl;
 
-	sources = json_geto(js, "sources");
-
-	if (sources) {
+	sub = json_geto(js, "sources");
+	if (sub) {
 		json_t *v;
 		directVideos = true;
 		VideosClear();
-		json_array_foreach(sources, v) {
+		json_array_foreach(sub, v) {
 			this->videos.push_back(new KolaVideo(v));
 		}
 	}

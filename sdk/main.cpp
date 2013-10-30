@@ -61,6 +61,9 @@ int main(int argc, char **argv)
 			std::cout << "\t" << *j << std::endl;
 	}
 #endif
+	foreach(m->quickFilters, i) {
+		std::cout << *i << std::endl;
+	}
 
 #if 0
 	std::cout << "Sort List: " << std::endl;
@@ -69,7 +72,10 @@ int main(int argc, char **argv)
 	}
 #endif
 
-//	m->Filter.KeyAdd("类型", "爱情片");
+	//m->Filter.KeyAdd("类型", "爱情片");
+	//m->Filter.KeyAdd("产地", "香港,台湾");
+	m->SetQuickFilter("推荐电影");
+
 //	m->Sort.Set("周播放最多");
 //	m->Sort.Set("评分最高");
 
@@ -114,16 +120,32 @@ int main(int argc, char **argv)
 #if 1
 	page.CachePicture(PIC_LARGE);
 	size_t count = page.PictureCount();
+
+#if 0
+	for (size_t i = 0; i < page.Count(); i++) {
+		KolaAlbum *album = page.GetAlbum(i);
+
+		Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
+		if (LargePic) {
+			LargePic->Wait();
+		}
+	}
+#endif
+
 	while (count) {
 		for (size_t i = 0; i < page.Count(); i++) {
 			KolaAlbum *album = page.GetAlbum(i);
 
 			Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
 			if (LargePic) {
-				if (LargePic->inCache && LargePic->used == false) {
-					printf("[%d] %s: data:%p, size=%d\n", i, LargePic->fileName.c_str(), LargePic->data, LargePic->size);
-					LargePic->used = true;
-					printf("count = %d\n", count);
+				if (LargePic->GetStatus() == Task::StatusFinish) {
+					if (LargePic->inCache && LargePic->used == false) {
+						printf("[%d] %s: data:%p, size=%d\n", i,
+							LargePic->fileName.c_str(),
+							LargePic->data, LargePic->size);
+						LargePic->used = true;
+						printf("count = %d\n", count);
+					}
 					count--;
 				}
 			}

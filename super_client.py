@@ -73,8 +73,8 @@ class KolaClient:
         try:
             cached = False
             if 'cache' in cmd:
-                cache = cmd['cache']
-            if ('name' in cmd and cmd['name'] == 'videolist') or (cache == False):
+                cached = cmd['cache']
+            if ('name' in cmd and cmd['name'] == 'videolist') or (cached == False):
                 response = self.GetUrl(cmd['source'])
             else:
                 response = self.GetCacheUrl(cmd['source'])

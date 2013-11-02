@@ -295,7 +295,7 @@ class LoginHandler(BaseHandler):
         ret = {
             'key'    : self.check_user_id(),
             'server' : self.request.protocol + '://' + self.request.host,
-            'next'   : 5,   # 下次登录时间
+            'next'   : 60,   # 下次登录时间
         }
 
         cmd = self.get_argument('cmd', '1')

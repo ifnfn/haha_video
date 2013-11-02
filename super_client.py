@@ -71,7 +71,10 @@ class KolaClient:
         if times > MAX_TRY or type(cmd) != dict:
             return False
         try:
-            if 'name' in cmd and cmd['name'] == 'videolist':
+            cached = False
+            if 'cache' in cmd:
+                cache = cmd['cache']
+            if ('name' in cmd and cmd['name'] == 'videolist') or (cache == False):
                 response = self.GetUrl(cmd['source'])
             else:
                 response = self.GetCacheUrl(cmd['source'])

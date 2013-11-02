@@ -25,6 +25,7 @@ class KolaClient:
         self.key = ''
 
     def GetUrl(self, url):
+        print("Download: ", url)
         return utils.GetUrl(url)
 
     def GetCacheUrl(self, url):
@@ -38,7 +39,6 @@ class KolaClient:
             response = f.read()
             f.close()
         else:
-            print("Download: ", url)
             response = self.GetUrl(url)
             if response:
                 f = open(filename, 'wb')

@@ -47,6 +47,7 @@ class TemplateAlbumPage(Template):
             'regular' : [
                 'var ((playlistId|pid|vid|PLAYLIST_ID|cid|playAble)\s*=\W*([\d,]+))'
             ],
+            'cache' : True
         }
         super().__init__(album.command, cmd)
 
@@ -60,6 +61,7 @@ class TemplateAlbumScore(Template):
                 'attachment.album',
                 'attachment.index'
             ],
+            'cache' : False
         }
         super().__init__(album.command, cmd)
 
@@ -69,6 +71,7 @@ class TemplateAlbumTotalPlayNum(Template):
         cmd = {
             'name'    : 'sohu_album_total_playnum',
             'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=%s,' % album.vid,
+            'cache' : False
         }
         super().__init__(album.command, cmd)
 
@@ -87,7 +90,8 @@ class TemplateAlbumFullInfo(Template):
     def __init__(self, album):
         cmd = {
             'name' : 'sohu_album_fullinfo',
-            'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s&vid=%s' % (album.playlistid, album.vid)
+            'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s&vid=%s' % (album.playlistid, album.vid),
+            'cache' : True
         }
         super().__init__(album.command, cmd)
 
@@ -98,7 +102,8 @@ class TemplateAlbumMvInfo(Template):
             'name'    : 'sohu_album_mvinfo',
             'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
             'homePage': source_url,
-            'regular' : ['var video_album_videos_result=(\{.*.\})']
+            'regular' : ['var video_album_videos_result=(\{.*.\})'],
+            'cache' : False
         }
         super().__init__(album.command, cmd)
 
@@ -109,7 +114,8 @@ class TemplateAlbumMvInfoMini(Template):
             'name'    : 'sohu_album_mvinfo_mini',
             'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
             'homePage': source_url,
-            'regular' : ['("playlistId":\w+)']
+            'regular' : ['("playlistId":\w+)'],
+            'cache' : False
         }
         super().__init__(album.command, cmd)
 
@@ -127,6 +133,7 @@ class TemplateAlbumPlayInfo(Template):
                 'data.relativeId',
                 'id'
             ],
+            'cache' : False
         }
         super().__init__(album.command, cmd)
 
@@ -421,6 +428,50 @@ class SohuMovie(SohuVideoMenu):
                 '其他'  : ''
             }
         }
+        self.quickFilter = {
+            '热门电影' :{
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '最新电影' :{
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '推荐电影' :{
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '国产电影' : {
+                    'filter': {
+                        '地区' : '内地'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '欧美大片' : {
+                    'filter': {
+                        '地区' : '美国,英国,法国,德国,意大利,西班牙,俄罗斯'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '港台电影' : {
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '日韩电影' : {
+                    'filter': {
+                        '地区' : '日本,韩国'
+                    },
+                    'sort' : '日播放最多'
+            },
+        }
 
     # 更新热门电影信息
     def UpdateHotInfo(self):
@@ -474,6 +525,44 @@ class SohuTV(SohuVideoMenu):
                 '日剧' : '15',
                 '其他' : ''
             }
+        }
+        self.quickFilter = {
+            '热播剧' :{
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '最新更新' :{
+                    'sort' : '最新发布'
+            },
+            '推荐' :{
+                    'sort' : '评分最高'
+            },
+            '国内剧' : {
+                    'filter': {
+                        '地区' : '内地'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '韩剧' : {
+                    'filter': {
+                        '地区' : '韩国'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '港台剧' : {
+                    'filter': {
+                        '地区' : '香港,台湾'
+                    },
+                    'sort' : '日播放最多'
+            },
+            '美剧' : {
+                    'filter': {
+                        '地区' : '美国'
+                    },
+                    'sort' : '日播放最多'
+            },
         }
 
     # 更新热门电影信息

@@ -225,7 +225,7 @@ class SohuVideoMenu(VideoMenuBase):
             '评分最高'   : 4
         }
         self.quickFilter = {
-            '热门电影' :{
+            '热门电影' : {
                     'filter': {
                         '地区' : '香港,台湾'
                     },

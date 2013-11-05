@@ -1,8 +1,6 @@
 #include <string>
-#include <unistd.h>
 #include <vector>
 #include <map>
-#include <deque>
 
 #include <algorithm>
 #include <pthread.h>
@@ -14,9 +12,12 @@
 	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
 	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
+#define DEFAULT_PAGE_SIZE 20
+
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
+class CustomMenu;
 class KolaVideo;
 class AlbumPage;
 class ThreadPool;
@@ -41,12 +42,10 @@ class Task {
 			StatusDownloading = 2,
 			StatusFinish = 3,
 			StatusCancel = 4
-
 		};
 		Task(void);
 		virtual ~Task();
 
-		//virtual bool Run()     {printf("Run\n"); usleep(60 * 1000); return false;}
 		virtual bool Run()     {return false;}
 		virtual bool Destroy() {return false;}
 
@@ -54,7 +53,7 @@ class Task {
 
 		void Cancel();
 		void SetStatus(int st) { status = st; }
-		int GetStatus() {return status; }
+		int  GetStatus() {return status; }
 		void Wait(int msec = 0);
 	private:
 		int status;
@@ -82,19 +81,20 @@ class VideoSegment: public Task {
 		VideoSegment(KolaVideo *video, json_t *js);
 		VideoSegment(std::string u, std::string n, double d, size_t s);
 
+		virtual bool Run(void);
+		bool LoadFromJson(json_t *js);
+		bool GetVideoUrl(std::string &video_url);
+
+	private:
 		std::string url;
 		std::string newfile;
 		std::string realUrl;
 		double duration;
 		size_t size;
 
-		virtual bool Run(void);
-		bool LoadFromJson(json_t *js);
-		bool GetVideoUrl(std::string &video_url);
-
-	private:
 		KolaVideo *video;
 		std::string GetJsonStr(std::string *newUrl);
+		friend class KolaVideo;
 };
 
 class KolaVideo {
@@ -103,25 +103,20 @@ class KolaVideo {
 		~KolaVideo();
 
 		bool LoadFromJson(json_t *js);
-		bool GetPlayInfo(void);
 
 		void Clear();
 		std::string GetVideoUrl(void);
 		std::string GetSubtitle(const char *lang);
 		bool GetVideoUrl(std::string &video_url, size_t index);
 
-		int width;
-		int height;
-		int fps;
+		int    width;
+		int    height;
+		int    fps;
 		double totalDuration;
 		size_t totalBytes;
-		int totalBlocks;
+		int    totalBlocks;
 
 		std::string name;
-		std::string playlistid;  // 所属 ablum
-		std::string pid;
-		std::string vid;
-		int cid;
 		int order;
 		int isHigh;
 		int videoPlayCount;
@@ -131,17 +126,24 @@ class KolaVideo {
 		std::string showName;
 		std::string publishTime;
 		std::string videoDesc;
-
 		std::string smallPicUrl;
 		std::string largePicUrl;
+	private:
+		std::string localVideoFile;
+		int         cid;
+		std::string pid;
+		std::string vid;
+		std::string playlistid;
 		std::string pageUrl;
 		std::string playUrl;
 		std::string directPlayUrl;
-
 		int haveOriginalData;
-	private:
 		bool UpdatePlayInfo(json_t *js);
 		std::vector<VideoSegment*> segmentList;
+
+		bool GetPlayInfo(void);
+		void deleteLocalVideoFile();
+		friend class VideoSegment;
 };
 
 class Picture: public Task {
@@ -149,6 +151,7 @@ class Picture: public Task {
 		Picture(std::string fileName);
 		Picture();
 		virtual ~Picture();
+
 		void *data;
 		size_t size;
 		std::string fileName;
@@ -156,54 +159,21 @@ class Picture: public Task {
 		virtual bool Run();
 		virtual bool Destroy();
 		bool used;
-	private:
 };
 
 class StringList: public std::vector<std::string> {
 	public:
 		StringList() {}
 		virtual ~StringList() {}
-		virtual void Add(std::string v) {
-			StringList::iterator iter = find(begin(), end(), v);
-			if (iter == end())
-				push_back(v);
-		}
-		virtual void Remove(std::string v) {
-			StringList::iterator iter = find(begin(), end(), v);
-			if (iter != end())
-				erase(iter);
-		}
-
-		void operator<< (std::string v) {
-			Add(v);
-		}
-		void operator>> (std::string v) {
-			Remove(v);
-		}
-
-		bool Find(std::string v) {
-			StringList::iterator iter = find(begin(), end(), v);
-			return iter != end();
-		}
-
-		std::string ToString(std::string s = "", std::string e = "", std::string split = ",") {
-			std::string ret;
-			int count = size();
-
-			if (count > 0) {
-				ret = s;
-				for (int i = 0; i < count - 1; i++)
-					ret += at(i) + split;
-
-				ret += at(count - 1) + e;
-			}
-			return ret;
-		}
-
-		void Split(const std::string items) {
-			clear();
-			split(items, ",", this);
-		}
+		virtual void Add(std::string v);
+		virtual void Remove(std::string v);
+		void operator<< (std::string v);
+		void operator>> (std::string v);
+		bool Find(std::string v);
+		std::string ToString(std::string s = "", std::string e = "", std::string split = ",");
+		void Split(const std::string items, std::string sp=",");
+		bool SaveToFile(std::string fileName);
+		bool LoadFromFile(std::string fileName);
 };
 
 class FilterValue: public StringList {
@@ -248,8 +218,6 @@ class KolaAlbum: public Task {
 		KolaAlbum(json_t *js);
 		~KolaAlbum();
 
-		int cid;
-		std::string playlistid;
 		std::string albumName;
 		std::string albumDesc;
 		std::string area;            // 地区
@@ -274,8 +242,10 @@ class KolaAlbum: public Task {
 		void VideosClear();
 		bool LoadFromJson(json_t *js);
 
+		int cid;
 		std::string pid;
 		std::string vid;
+		std::string playlistid;
 
 		std::string videoPlayUrl;
 		std::string largePicUrl;      // 大图片网址
@@ -289,6 +259,8 @@ class KolaAlbum: public Task {
 
 		std::string defaultPageUrl;  // 当前播放集
 		bool directVideos;
+
+		friend class CustomMenu;
 };
 
 class AlbumPage {
@@ -318,25 +290,41 @@ class KolaMenu {
 		KolaMenu(json_t *js);
 		~KolaMenu(void) {}
 
-		StringList quickFilters;
+		int         cid;
 		std::string name;
-		int cid;
+		StringList  quickFilters;
+		KolaFilter  Filter;
+		KolaSort    Sort;
 
 		int GetPage(AlbumPage &page, int pageNo = -1);
-
-		KolaFilter Filter;
-		KolaSort   Sort;
 		bool SetQuickFilter(std:: string);
 		void SetPageSize(int size) {PageSize = size;}
 		int GetAlbumCount();
-	private:
+		int Search(AlbumPage &page, std::string keyword, int pageNo);
+	protected:
 		KolaClient *client;
 		int PageSize;
 		int PageId;
 		int albumCount;
 		std::string quickFilter;
 		std::string language;
-		int GetPage(AlbumPage &page, int pageId, int pageSize);
+		virtual int GetPage(AlbumPage &page, int pageId, int pageSize);
+		int ParserJson(AlbumPage &page, json_t *js);
+		int ParserJson(AlbumPage &page, std::string &jsonstr);
+		std::string GetPostData();
+};
+
+class CustomMenu: public KolaMenu {
+	public:
+		CustomMenu(std::string fileName);
+		void AlbumAdd(KolaAlbum *album);
+		void AlbumRemove(KolaAlbum *album);
+		bool SaveToFile(std::string otherFile = "");
+	protected:
+		virtual int GetPage(AlbumPage &page, int pageId, int pageSize);
+	private:
+		StringList albumIdList;
+		std::string fileName;
 };
 
 class KolaClient {
@@ -377,8 +365,9 @@ class KolaClient {
 
 		friend void *kola_login_thread(void *arg);
 		friend class KolaMenu;
-		friend class KolaAlbum;
 		friend class KolaVideo;
+		friend class KolaAlbum;
+		friend class CustomMenu;
 		friend class Picture;
 		friend class Task;
 		friend class VideoSegment;

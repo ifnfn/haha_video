@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 
 #include "kola.hpp"
 #include "json.h"
@@ -116,6 +117,7 @@ KolaVideo::KolaVideo(json_t *js)
 
 KolaVideo::~KolaVideo()
 {
+	deleteLocalVideoFile();
 	Clear();
 }
 
@@ -217,6 +219,14 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	return true;
 }
 
+void KolaVideo::deleteLocalVideoFile()
+{
+	if (localVideoFile != "") {
+		unlink(localVideoFile.c_str());
+		localVideoFile = "";
+	}
+}
+
 std::string KolaVideo::GetVideoUrl(void)
 {
 	char buf[256];
@@ -258,12 +268,26 @@ std::string KolaVideo::GetVideoUrl(void)
 	ret = buf + ret;
 
 	if (count > 0) {
-		KolaClient *client =& KolaClient::Instance();
+		deleteLocalVideoFile();
+		char fileName[128];
 
-		if (client->UrlPost("/video/urls", ret.c_str(), ret) == false)
-			return "";
+		sprintf(fileName, "/tmp/video_%ld", random());
+		FILE *fp = fopen(fileName, "w");
 
-		return client->GetFullUrl("/video/urls" + ret);
+		if (fp) {
+			fwrite(ret.c_str(), 1, ret.size(), fp);
+			fclose(fp);
+			localVideoFile = fileName;
+
+			return localVideoFile;
+		}
+		else {
+			KolaClient *client =& KolaClient::Instance();
+			if (client->UrlPost("/video/urls", ret.c_str(), ret) == false)
+				return "";
+
+			return client->GetFullUrl("/video/urls" + ret);
+		}
 	}
 
 	return ret;

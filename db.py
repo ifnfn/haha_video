@@ -35,7 +35,8 @@ class DB:
             '日播放最多' : 'dailyPlayNum',
             '总播放最多' : 'totalPlayNum',
             '最新发布'   : 'publishTime',
-            '评分最高'   : 'videoScore'
+            '评分最高'   : 'videoScore',
+            'vids'     : 'vid'
         }
 
     def SaveVideo(self, video):

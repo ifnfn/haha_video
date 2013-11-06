@@ -28,22 +28,24 @@ class AlbumListHandler(BaseHandler):
         args['page'] = int(self.get_argument('page', 0))
         args['size'] = int(self.get_argument('size', 20))
 
-        return args, self.get_argument('menu', ''), self.get_argument('cid', '')
+        return args, self.get_argument('menu', ''), self.get_argument('cid', ''), self.get_argument('vid', '')
 
     def get(self):
-        args, menu, cid = self.argument()
+        args, menu, cid, vid = self.argument()
 
         if cid:
             albumlist, args['total'] = tv.GetMenuAlbumListByCid(cid, args)
         elif menu:
             albumlist, args['total'] = tv.GetMenuAlbumListByName(menu, args)
+        elif vid:
+            albumlist, args['total'] = tv.GetMenuAlbumListByVidList(vid, args)
 
         if albumlist: args['result'] = albumlist
 
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
-        args, menu, cid = self.argument()
+        args, menu, cid, vid = self.argument()
 
         if self.request.body:
             try:
@@ -58,6 +60,8 @@ class AlbumListHandler(BaseHandler):
             albumlist, args['total'] = tv.GetMenuAlbumListByCid(cid, args)
         elif menu:
             albumlist, args['total'] = tv.GetMenuAlbumListByName(menu, args)
+        elif vid:
+            albumlist, args['total'] = tv.GetMenuAlbumListByVidList(vid, args)
 
         if albumlist: args['result'] = albumlist
 

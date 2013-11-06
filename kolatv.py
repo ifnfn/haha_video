@@ -62,6 +62,12 @@ class Kolatv:
 
         return [], 0
 
+    def GetMenuAlbumListByVidList(self, vids, argument):
+        if 'filter' not in argument:
+            argument['filter'] = {}
+        argument['filter']['vids'] = vids
+        return self.db.GetAlbumListJson(argument)
+
     def GetMenuAlbumListByName(self, menuName, argument):
         menu = self.FindMenu(menuName)
         return self._GetMenuAlbumList(menu, argument)

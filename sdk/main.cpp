@@ -18,9 +18,32 @@ void test_task()
 	printf("end\n");
 }
 
+void test_custommenu()
+{
+	CustomMenu *menu = new CustomMenu("abc");
+
+	menu->AlbumAdd("845690");
+	menu->AlbumAdd("582923");
+	menu->AlbumAdd("841316");
+	menu->AlbumAdd("220791");
+	menu->AlbumAdd("221079");
+
+	AlbumPage page;
+	menu->GetPage(page);
+	for (size_t i = 0; i < page.Count(); i++) {
+		KolaAlbum *album = page.GetAlbum(i);
+
+		printf("[%d] %s\n", i, album->albumName.c_str());
+	}
+
+	menu->SaveToFile();
+}
 
 int main(int argc, char **argv)
 {
+	test_custommenu();
+
+	return 0;
 #if 0
 	while(1)
 		test_task();

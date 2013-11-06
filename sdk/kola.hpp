@@ -308,7 +308,7 @@ class KolaMenu {
 		int albumCount;
 		std::string quickFilter;
 		std::string language;
-		virtual int GetPage(AlbumPage &page, int pageId, int pageSize);
+		virtual int LowGetPage(AlbumPage &page, int pageId, int pageSize);
 		int ParserJson(AlbumPage &page, json_t *js);
 		int ParserJson(AlbumPage &page, std::string &jsonstr);
 		std::string GetPostData();
@@ -318,10 +318,12 @@ class CustomMenu: public KolaMenu {
 	public:
 		CustomMenu(std::string fileName);
 		void AlbumAdd(KolaAlbum *album);
+		void AlbumAdd(std::string vid);
 		void AlbumRemove(KolaAlbum *album);
+		void AlbumRemove(std::string vid);
 		bool SaveToFile(std::string otherFile = "");
 	protected:
-		virtual int GetPage(AlbumPage &page, int pageId, int pageSize);
+		virtual int LowGetPage(AlbumPage &page, int pageId, int pageSize);
 	private:
 		StringList albumIdList;
 		std::string fileName;

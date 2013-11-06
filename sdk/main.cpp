@@ -113,7 +113,7 @@ void test_tv()
 			std::string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			player_url = video->GetVideoUrl();
-			printf("\t%s -> %s\n", video->name.c_str(), player_url.c_str());
+			printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 		}
 	}
 }
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 {
 //	test_custommenu(); return 0;
 //	test_livetv(); return 0;
-	test_video(); return 0;
-//	test_tv(); return 0;
+//	test_video(); return 0;
+	test_tv(); return 0;
 //	test_task(); return 0;
 }

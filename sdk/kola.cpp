@@ -283,10 +283,11 @@ bool KolaClient::UrlGet(std::string url, const char *home_url, void **resp, int 
 
 	if (home_url == NULL)
 		home_url = baseUrl.c_str();
+	//printf("wget: %s%s\n", home_url, url.c_str());
 
 	http_client = http_init_connection(home_url);
 	if (http_client == NULL) {
-		printf("no client: %s\n", url.c_str());
+		printf("%s error: %s %s\n", __func__, home_url, url.c_str());
 		return false;
 	}
 	LOCK(lock);
@@ -375,9 +376,10 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 	if (home_url == NULL)
 		home_url = baseUrl.c_str();
 
+	//printf("wpost: %s%s\n", home_url, url.c_str());
 	http_client = http_init_connection(home_url);
 	if (http_client == NULL) {
-		printf("no client: %s\n", url.c_str());
+		printf("%s error: %s %s\n", __func__, home_url, url.c_str());
 		return false;
 	}
 

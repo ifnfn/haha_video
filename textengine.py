@@ -66,7 +66,6 @@ class TextvTV(VideoMenuBase):
             }
         }
 
-
     def GetCategories(self, name):
         ret = []
         for k,v in self.filter['类型'].items():

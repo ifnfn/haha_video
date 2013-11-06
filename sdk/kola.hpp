@@ -213,7 +213,7 @@ class KolaSort: public FilterValue {
 		}
 };
 
-class KolaAlbum: public Task {
+class KolaAlbum {
 	public:
 		KolaAlbum(json_t *js);
 		~KolaAlbum();
@@ -235,12 +235,13 @@ class KolaAlbum: public Task {
 		StringList directors;
 		std::vector<KolaVideo*> videos;
 
+		int GetVideoCount();
 		std::string &GetPictureUrl(enum PicType type);
-		virtual bool Run();
-		inline void WaitVideo() { Wait(); }
+		KolaVideo *GetVideo(int id);
 	private:
 		void VideosClear();
 		bool LoadFromJson(json_t *js);
+		bool LowVideoGetPage(int pageNo, int pageSize);
 
 		int cid;
 		std::string pid;
@@ -259,6 +260,8 @@ class KolaAlbum: public Task {
 
 		std::string defaultPageUrl;  // 当前播放集
 		bool directVideos;
+		int videoPageSize;
+		int videoPageId;
 
 		friend class CustomMenu;
 };

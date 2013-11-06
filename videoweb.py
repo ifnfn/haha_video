@@ -87,16 +87,16 @@ class GetVideoHandler(BaseHandler):
 
     def Finish(self, args, pid):
         full = self.get_argument('full', 0)
-        videos = tv.GetVideoListByPid(pid, args)
+        videos, count = tv.GetVideoListByPid(pid, args)
         for v in videos:
             if 'originalData' in v:
                 v['haveOriginalData'] = 1
-                if full == 0:
+                if full == '0':
                     del v['originalData']
             else:
                 v['haveOriginalData'] = 0
 
-        args['count'] = len(videos)
+        args['count'] = count
         args['videos'] = videos
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 

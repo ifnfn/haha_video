@@ -66,6 +66,58 @@ void test_livetv()
 	}
 }
 
+void test_tv()
+{
+	AlbumPage page;
+	KolaMenu* m = NULL;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+	m = kola["电视剧"];
+
+	if (m == NULL)
+		return;
+	//m->Filter.KeyAdd("类型", "爱情片");
+	//m->Filter.KeyAdd("产地", "香港,台湾");
+	//m->SetQuickFilter("推荐电影");
+
+//	m->Sort.Set("周播放最多");
+//	m->Sort.Set("评分最高");
+
+	printf("%d album in menu!\n", m->GetAlbumCount());
+#if 1
+	while (1) {
+		m->GetPage(page);
+		page.CachePicture(PIC_LARGE);
+
+		for (size_t i = 0; i < page.Count(); i++) {
+			KolaAlbum *album = page.GetAlbum(i);
+
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		}
+
+		break;
+		if (page.Count() < 20)
+			break;
+	}
+#endif
+
+	m->GetPage(page, 0);
+	for (size_t i = 0; i < page.Count(); i++) {
+		KolaAlbum *album = page.GetAlbum(i);
+		int video_count = album->GetVideoCount();
+		printf("[%d]: Video:Count %d\n", i, video_count);
+
+		for (size_t j = 0; j < video_count; j++) {
+			std::string player_url;
+			KolaVideo *video = album->GetVideo(j);
+			player_url = video->GetVideoUrl();
+			printf("\t%s -> %s\n", video->name.c_str(), player_url.c_str());
+		}
+	}
+}
+
 void test_video()
 {
 	AlbumPage page;
@@ -141,12 +193,13 @@ void test_video()
 	m->GetPage(page, 0);
 #if 1
 	for (size_t i = 0; i < page.Count(); i++) {
-		std::string player_url;
 		KolaAlbum *album = page.GetAlbum(i);
-		album->WaitVideo();
-		printf("[%d]: Video:Count %d\n", i, album->videos.size());
-		foreach(album->videos, j) {
-			KolaVideo *video = *j;
+		int video_count = album->GetVideoCount();
+		printf("[%d]: Video:Count %d\n", i, video_count);
+
+		for (size_t j = 0; j < video_count; j++) {
+			std::string player_url;
+			KolaVideo *video = album->GetVideo(j);
 			player_url = video->GetVideoUrl();
 			printf("\t%s -> %s\n", video->name.c_str(), player_url.c_str());
 		}
@@ -164,10 +217,20 @@ void test_video()
 		Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
 		if (LargePic) {
 			LargePic->Wait();
+			if (LargePic->GetStatus() == Task::StatusFinish) {
+				if (LargePic->inCache && LargePic->used == false) {
+					printf("[%d] %s: data:%p, size=%d\n", i,
+							LargePic->fileName.c_str(),
+							LargePic->data, LargePic->size);
+					LargePic->used = true;
+					printf("count = %d\n", count);
+				}
+			}
 		}
 	}
 #endif
 
+#if 0
 	while (count) {
 		for (size_t i = 0; i < page.Count(); i++) {
 			KolaAlbum *album = page.GetAlbum(i);
@@ -187,6 +250,7 @@ void test_video()
 			}
 		}
 	}
+#endif
 
 	printf("End!!!\n");
 #endif
@@ -195,7 +259,8 @@ void test_video()
 int main(int argc, char **argv)
 {
 //	test_custommenu(); return 0;
-	test_livetv(); return 0;
+//	test_livetv(); return 0;
 	test_video(); return 0;
-	test_task(); return 0;
+//	test_tv(); return 0;
+//	test_task(); return 0;
 }

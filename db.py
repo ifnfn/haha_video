@@ -1,6 +1,6 @@
 import sys, traceback
 import pymongo
-from utils import autostr, log
+from utils import autostr, autoint, log
 
 class DB:
     def __init__(self):
@@ -138,8 +138,8 @@ class DB:
 
             size = 0
             if 'page' in arg and 'size' in arg:
-                page = arg['page']
-                size = arg['size']
+                page = autoint(arg['page'])
+                size = autoint(arg['size'])
             if size:
                 cursor = cursor.skip(page * size).limit(size)
             if size or disablePage:
@@ -170,6 +170,7 @@ class DB:
         ret = []
         playlistid = autostr(playlistid)
         pid        = autostr(pid)
+        count = 0
         try:
             _filter = {}
             if pid:
@@ -187,28 +188,37 @@ class DB:
                 fields = None
 
             if not _filter:
-                return ret
+                return ret, 0
 
             cursor = self.videos_table.find(_filter, fields = fields)
+            count = cursor.count()
 
             if 'sort' in arg:
                 cursor = cursor.sort(arg['sort'])
             else:
                 cursor = cursor.sort([('order', 1)])
 
+            allVideo = False
             if 'page' in arg and 'size' in arg:
-                page = arg['page']
-                size = arg['size']
-                cursor = cursor.skip(page * size).limit(size)
+                page = autoint(arg['page'])
+                size = autoint(arg['size'])
+            else:
+                allVideo = True
+                size = 0
 
-            for x in cursor:
-                del x['_id']
-                ret.append(x)
+            if size or allVideo:
+                if size:
+                    cursor = cursor.skip(page * size).limit(size)
+                for x in cursor:
+                    del x['_id']
+                    ret.append(x)
+            elif size == 0 and page == 0:
+                pass
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
-        return ret
+        return ret, count
 
     def GetMenuAlbumCount(self, cid):
         return self.album_table.find({'cid': cid}).count()

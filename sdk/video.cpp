@@ -89,9 +89,13 @@ bool VideoSegment::GetVideoUrl(std::string &player_url)
 	if (sets && json_is_array(sets) && json_array_size(sets) > 0) {
 		json_t *u = json_array_get(sets, 0);
 		if (u) {
-			realUrl = json_string_value(u);
-			player_url = realUrl;
-			return true;
+			const char *url_tmp = json_string_value(u);
+			if (url_tmp) {
+				realUrl = url_tmp;
+				player_url = realUrl;
+
+				return true;
+			}
 		}
 	}
 
@@ -161,10 +165,8 @@ bool KolaVideo::GetPlayInfo(void)
 	KolaClient *client = &KolaClient::Instance();
 	char buffer[128];
 
-	if (client->UrlGet("", text, playUrl.c_str()) == false) {
-		printf("wget %s error!\n", playUrl.c_str());
+	if (client->UrlGet("", text, playUrl.c_str()) == false)
 		return false;
-	}
 
 	sprintf(buffer, "/video/getplayer?cid=%d", cid);
 	if (client->UrlPost(buffer, text.c_str(), text) == false)
@@ -209,12 +211,8 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	haveOriginalData = json_geti(js   , "haveOriginalData", 0);
 	originalData     = json_geto(js   , "originalData");
 
-	if (directPlayUrl == "") {
-		if (originalData)
-			UpdatePlayInfo(originalData);
-		else
-			GetPlayInfo();
-	}
+	if (directPlayUrl == "" && originalData)
+		UpdatePlayInfo(originalData);
 
 	return true;
 }
@@ -229,6 +227,9 @@ void KolaVideo::deleteLocalVideoFile()
 
 std::string KolaVideo::GetVideoUrl(void)
 {
+	if (directPlayUrl == "" && haveOriginalData == false)
+		GetPlayInfo();
+
 	char buf[256];
 	size_t count = segmentList.size();
 	std::string ret, player_url;
@@ -271,7 +272,7 @@ std::string KolaVideo::GetVideoUrl(void)
 		deleteLocalVideoFile();
 		char fileName[128];
 
-		sprintf(fileName, "/tmp/video_%ld", random());
+		sprintf(fileName, "/tmp/video_%s", vid.c_str());
 		FILE *fp = fopen(fileName, "w");
 
 		if (fp) {
@@ -298,10 +299,9 @@ bool KolaVideo::GetVideoUrl(std::string &video_url, size_t index)
 	KolaClient *client =& KolaClient::Instance();
 	std::string text;
 
-	if (client == NULL)
-		while(1) {
-			printf("error\n");
-		}
+	if (directPlayUrl == "" and haveOriginalData == false) {
+		GetPlayInfo();
+	}
 	if (index >= segmentList.size())
 		return false;
 

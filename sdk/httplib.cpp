@@ -287,28 +287,24 @@ int tcp_connect(struct in_addr addr, unsigned short port, int block)
 			FD_SET(sock, &rset);
 			wset = rset;
 			maxfd = sock;
-			tval.tv_sec = 2;
+			tval.tv_sec = 8;
 			tval.tv_usec = 0;
 
-			if( (n = select(maxfd + 1, &rset, &wset, NULL, &tval)) == 0 )
-			{
+			if( (n = select(maxfd + 1, &rset, &wset, NULL, &tval)) == 0 ) {
 				close(sock);
 				errno = ETIMEDOUT;
+				printf("network timeout 10s!\n");
 				return -1;
 			}
 
-			if( FD_ISSET(sock, &rset) || FD_ISSET(sock, &wset) )
-			{
+			if( FD_ISSET(sock, &rset) || FD_ISSET(sock, &wset) ) {
 				len = sizeof(error);
-				if( getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0 )
-				{
+				if( getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0 ) {
 					return -1;
 				}
 			}
 			else
-			{
 				printf("select error : sockfd not set\n");
-			}
 
 			opt = 0;
 			//set blocking

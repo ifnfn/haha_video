@@ -7,6 +7,8 @@
 
 KolaAlbum::KolaAlbum(json_t *js) {
 	directVideos = false;
+	videoPageSize = 8;
+	videoPageId = -1;
 	LoadFromJson(js);
 }
 
@@ -19,6 +21,49 @@ void KolaAlbum::VideosClear() {
 		delete videos[i];
 
 	videos.clear();
+}
+
+int KolaAlbum::GetVideoCount()
+{
+	if (totalSet == 0)
+		LowVideoGetPage(0, 0);
+
+       return totalSet;
+}
+
+bool KolaAlbum::LowVideoGetPage(int pageNo, int pageSize)
+{
+	if (pageNo == videoPageId)
+		return true;
+
+	KolaClient *client = &KolaClient::Instance();
+	char url_buffer[256];
+	std::string text;
+	json_t *js, *videos, *v;
+	json_error_t error;
+
+	sprintf(url_buffer, "/video/getvideo?full=1&pid=%s&page=%d&size=%d", vid.c_str(), pageNo, pageSize);
+
+	if (client->UrlPost(url_buffer, NULL, text) == false)
+		return false;
+
+	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+	if (js == NULL)
+		return false;
+
+	videos = json_geto(js, "videos");
+	totalSet = json_geti(js, "count", totalSet);
+
+	videoPageId = pageNo;
+	videoPageSize = pageSize;
+	VideosClear();
+	json_array_foreach(videos, v) {
+		this->videos.push_back(new KolaVideo(v));
+	}
+
+	json_decref(js);
+
+	return true;
 }
 
 bool KolaAlbum::LoadFromJson(json_t *js)
@@ -85,36 +130,18 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	return true;
 }
 
-bool KolaAlbum::Run(void)
+KolaVideo *KolaAlbum::GetVideo(int id)
 {
-	if (directVideos)
-		return directVideos;
+	int pageNo = id / videoPageSize;
+	int pos = id % videoPageSize;
 
-	std::string text;
-	json_t *js, *videos, *v;
-	json_error_t error;
-	KolaClient *client = &KolaClient::Instance();
-	std::string url;
+	if (pageNo != videoPageId)
+		LowVideoGetPage(pageNo, videoPageSize);
 
-	url = "/video/getvideo?full=1&pid=" + vid;
+	if (pos < videos.size())
+		return videos[pos];
 
-	if (client->UrlPost(url, NULL, text) == false)
-		return false;
-
-	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-	if (js == NULL)
-		return false;
-
-	videos = json_geto(js, "videos");
-
-	VideosClear();
-	json_array_foreach(videos, v) {
-		this->videos.push_back(new KolaVideo(v));
-	}
-
-	json_decref(js);
-
-	return true;
+	return NULL;
 }
 
 std::string &KolaAlbum::GetPictureUrl(enum PicType type)
@@ -177,7 +204,6 @@ void AlbumPage::PutAlbum(KolaAlbum *album)
 {
 	if (album) {
 		albumList.push_back(album);
-		album->Start();
 	}
 }
 
@@ -201,7 +227,6 @@ Picture* AlbumPage::GetPicture(std::string fileName)
 void AlbumPage::Clear()
 {
 	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		(*it)->Cancel();
 		delete (*it);
 	}
 

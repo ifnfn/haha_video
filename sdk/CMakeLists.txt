@@ -17,6 +17,8 @@ SET(SRCS
 	threadpool.cpp
 	task.cpp
 	video.cpp
+	stringlist.cpp
+	menu.cpp
 )
 
 ADD_GX_LIBRARY(kolatv

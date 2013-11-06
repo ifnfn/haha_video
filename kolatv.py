@@ -24,7 +24,7 @@ class Kolatv:
         self.MenuList = {}
 
         self.AddEngine(sohuengine.SohuEngine)
-        self.AddEngine(letvengine.LetvEngine)
+#        self.AddEngine(letvengine.LetvEngine)
         self.AddEngine(textengine.TextvEngine)
 
     def AddEngine(self, egClass):

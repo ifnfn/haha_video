@@ -9,7 +9,6 @@ import tornado.options
 import redis
 import json
 import uuid
-import re
 import hashlib
 
 from tornado.options import define, options

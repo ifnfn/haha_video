@@ -53,6 +53,27 @@ class TextvTV(VideoMenuBase):
             '最新发布'   : 3,
             '评分最高'   : 4
         }
+        self.Outside = '凤凰|越南|半岛|澳门|东森|澳视|亚洲|良仔|朝鲜| TV|KP|Yes|HQ|NASA|Poker|Docu|Channel|Neotv|fashion|Sport|sport|Power|FIGHT|Pencerahan|UK|GOOD|Kontra|Rouge|Outdoor|Divine|Europe|DaQu|Teleromagna|Alsharqiya|Playy|Boot Movie|Runway|Bid|LifeStyle|CBN|HSN|BNT|NTV|Virgin|Film|Smile|Russia|NRK|VIET|Gulli|Fresh'
+        self.filter = {
+            '类型' : {
+                'CCTV' : 'cctv|CCTV',
+                '卫视台' : '卫视',
+                '体育台' : '体育|足球|网球',
+                '综合台' : '综合|财|都市|经济|旅游',
+                '动画台' : '动画|卡通|动漫',
+                '地方台' : '^(?!.*?(cctv|CCTV|卫视|测试|' + self.Outside + ')).*$',
+                '境外台' : self.Outside
+            }
+        }
+
+
+    def GetCategories(self, name):
+        ret = []
+        for k,v in self.filter['类型'].items():
+            x = re.findall(v, name)
+            if x:
+                ret.append(k)
+        return ret
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
@@ -99,15 +120,16 @@ class TextvEngine(VideoEngine):
         text = text.replace('[腾讯]', '')
         playlist = text.split('\n')
 
+        tvmenu = TextvTV('直播', self)
+
         tv = {}
         for t in playlist:
             t = t.strip()
             if t[0:1] != '#':
-                v = re.findall('(.*)((http|rtmp|rtsp).*)', t)
+                v = re.findall('(.*)((http://|rtmp://|rtsp://).*)', t)
                 if v and len(v[0]) >= 2:
                     key = v[0][0].strip()
                     value = v[0][1].strip()
-                    print(key, value)
                     if key not in tv:
                         tv[key] = []
                     x = {}
@@ -115,13 +137,13 @@ class TextvEngine(VideoEngine):
                     x['directPlayUrl'] = value
                     tv[key].append(x)
         for k,v in list(tv.items()):
-            print(k,v)
             album  = self.NewAlbum()
             album.cid         = 200
             album.vid         = k
             album.playlistid  = k
             album.pid         = k
             album.albumName   = k
+            album.categories  = tvmenu.GetCategories(k)
             album.sources = v
             self._save_update_append(None, album)
 

@@ -39,22 +39,14 @@ void test_custommenu()
 	menu->SaveToFile();
 }
 
-int main(int argc, char **argv)
+void test_livetv()
 {
-	test_custommenu();
+	AlbumPage page;
+	KolaMenu* m = NULL;
 
-	return 0;
-#if 0
-	while(1)
-		test_task();
-	return 0;
-#endif
-#if 1
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();
-	KolaMenu* m = NULL;
-
 #if 1
 	for(int i=0, count=kola.MenuCount(); i < count; i++) {
 		m = kola[i];
@@ -62,6 +54,32 @@ int main(int argc, char **argv)
 	}
 #endif
 
+	m = kola["直播"];
+	m->Filter.KeyAdd("类型", "CCTV");
+
+	m->GetPage(page);
+
+	for (size_t i = 0; i < page.Count(); i++) {
+		KolaAlbum *album = page.GetAlbum(i);
+
+		printf("[%d] %s\n", i, album->albumName.c_str());
+	}
+}
+
+void test_video()
+{
+	AlbumPage page;
+	KolaMenu* m = NULL;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+#if 1
+	for(int i=0, count=kola.MenuCount(); i < count; i++) {
+		m = kola[i];
+		std::cout << "Menu: " << m->name << std::endl;
+	}
+#endif
 
 #if 0
 	m = kola["电影"];
@@ -70,13 +88,10 @@ int main(int argc, char **argv)
 	m = kola["电影"];
 	m = kola.GetMenuByName("电影");
 #endif
-
-	//m = kola["直播"];
 	m = kola["电影"];
 
 	if (m == NULL)
-		return -1;
-
+		return;
 #if 0
 	foreach(m->Filter.filterKey, i) {
 		std::cout << i->first << ": ";
@@ -108,7 +123,6 @@ int main(int argc, char **argv)
 
 #if 1
 	while (1) {
-		AlbumPage page;
 		m->GetPage(page);
 		page.CachePicture(PIC_LARGE);
 
@@ -124,7 +138,6 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	AlbumPage page;
 	m->GetPage(page, 0);
 #if 1
 	for (size_t i = 0; i < page.Count(); i++) {
@@ -177,10 +190,12 @@ int main(int argc, char **argv)
 
 	printf("End!!!\n");
 #endif
+}
 
-	while (1)
-		sleep(3);
-
-	return 0;
-#endif
+int main(int argc, char **argv)
+{
+//	test_custommenu(); return 0;
+	test_livetv(); return 0;
+	test_video(); return 0;
+	test_task(); return 0;
 }

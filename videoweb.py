@@ -134,7 +134,8 @@ class GetPlayerHandler(BaseHandler):
             cid = self.get_argument('cid', 0)
             step = self.get_argument('step', "1",)
             definition = self.get_argument('hd', '0')
-            text = tv.GetRealPlayer(body, cid, definition, step)
+            text = tv.GetRealPlayer(body, cid, definition, step,
+                                    url= self.request.protocol + '://' + self.request.host  + '/video/urls')
             self.finish(text)
         else:
             raise tornado.web.HTTPError(404)
@@ -225,10 +226,8 @@ class ShowHandler(BaseHandler):
         self.render("show.html", alubm=album)
 
 class RandomVideoUrlHandle(BaseHandler):
-    db = redis.Redis(host='127.0.0.1', port=6379, db=3) # 出错页
     def get(self, name):
-        print(name)
-        self.finish(self.db.get(name))
+        self.finish(tv.db.GetVideoCache(name))
 
     def post(self, name):
         if name == '':
@@ -315,6 +314,8 @@ class LoginHandler(BaseHandler):
                 ret['command'] = cmd
                 if self.user_id == '000001':
                     ret['next'] = 0
+            else:
+                tv.CommandEmptyMessage()
 
         self.finish(json.dumps(ret))
 

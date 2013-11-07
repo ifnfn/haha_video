@@ -83,8 +83,6 @@ class VideoSegment: public Task {
 
 		virtual bool Run(void);
 		bool LoadFromJson(json_t *js);
-		bool GetVideoUrl(std::string &video_url);
-
 	private:
 		std::string url;
 		std::string newfile;
@@ -107,7 +105,6 @@ class KolaVideo {
 		void Clear();
 		std::string GetVideoUrl(void);
 		std::string GetSubtitle(const char *lang);
-		bool GetVideoUrl(std::string &video_url, size_t index);
 
 		int    width;
 		int    height;

@@ -224,7 +224,7 @@ bool Picture::Run()
 			ok = true;
 		}
 		else
-			printf("wger error %s\n", fileName.c_str());
+			printf("Picture get timeout error %s\n", fileName.c_str());
 	}
 	http_resp_free(http_resp);
 

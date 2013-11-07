@@ -7,6 +7,7 @@ import json
 import re
 import redis
 import base64
+import hashlib
 import tornado.escape
 
 from bs4 import BeautifulSoup as bs
@@ -283,11 +284,11 @@ class SohuVideoMenu(VideoMenuBase):
 
         TemplateAlbumHotList(self, url).Execute()
 
-    def GetRealPlayer(self, text, definition, step):
+    def GetRealPlayer(self, text, definition, step, url=''):
         if step == '1':
             res = self._ParserRealUrlStep1(text)
         else:
-            res = self._ParserRealUrlStep2(text)
+            res = self._ParserRealUrlStep2(text, url)
 
         return json.dumps(res, indent=4, ensure_ascii=False)
 
@@ -349,27 +350,35 @@ class SohuVideoMenu(VideoMenuBase):
 
         return res;
 
-    def _ParserRealUrlStep2(self, text):
-        ret = {}
+    def _ParserRealUrlStep2(self, text, url):
         try:
             ret = tornado.escape.json_decode(text)
 
             if 'sets' in ret:
-                urls = []
-                for url in ret['sets']:
-                    new = url['new']
-                    text = base64.decodebytes(url['url'].encode()).decode()
+                max_duration = 0.0
+                m3u8 = ''
+                for u in ret['sets']:
+                    new = u['new']
+                    url_tmp = u['url']
+                    duration = float(u['duration'])
 
-                    start, _, _, key, _, _, _, _ = text.split('|')
-                    u = '%s%s?key=%s' % (start[:-1], new, key)
-                    urls.append(u)
+                    start, _, _, key, _, _, _, _ = url_tmp.split('|')
+                    u_tmp = '%s%s?key=%s' % (start[:-1], new, key)
+                    m3u8 += '#EXTINF:%.0f\n%s\n' % (duration, u_tmp)
+                    if duration > max_duration:
+                        max_duration = duration
 
-                ret['sets'] = urls
+                m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
+
+                name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
+                self.engine.db.SetVideoCache(name, m3u8)
+
+                return url + name
         except:
             t, v, tb = sys.exc_info()
             log.error('SohuEngine._ParserRealUrlStep2: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
 
-        return ret
+        return ''
 
 # 电影
 class SohuMovie(SohuVideoMenu):

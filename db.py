@@ -1,9 +1,11 @@
 import sys, traceback
 import pymongo
+import redis
 from utils import autostr, autoint, log
 
 class DB:
     def __init__(self):
+        self.video_cachedb = redis.Redis(host='127.0.0.1', port=6379, db=3)
         self.con = pymongo.Connection('localhost', 27017)
         mongodb = self.con.kola
         self.album_table  = mongodb.album
@@ -38,6 +40,13 @@ class DB:
             '评分最高'   : 'videoScore',
             'vids'     : 'vid'
         }
+
+    def SetVideoCache(self, key, value):
+        self.video_cachedb.set(key, value)
+        self.video_cachedb.expire(key, 60) # 1 分钟有效
+
+    def GetVideoCache(self, key):
+        return self.video_cachedb.get(key)
 
     def SaveVideo(self, video):
         if video.vid:

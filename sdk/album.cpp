@@ -5,9 +5,10 @@
 #include "base64.hpp"
 #include "httplib.h"
 
+#define VIDEO_COUNT 8
 KolaAlbum::KolaAlbum(json_t *js) {
 	directVideos = false;
-	videoPageSize = 8;
+	videoPageSize = VIDEO_COUNT;
 	videoPageId = -1;
 	LoadFromJson(js);
 }
@@ -25,8 +26,11 @@ void KolaAlbum::VideosClear() {
 
 int KolaAlbum::GetVideoCount()
 {
-	if (totalSet == 0)
+	if (directVideos == false || totalSet == 0) {
 		LowVideoGetPage(0, 0);
+		videoPageSize = VIDEO_COUNT;
+		videoPageId = -1;
+	}
 
        return totalSet;
 }
@@ -135,7 +139,7 @@ KolaVideo *KolaAlbum::GetVideo(int id)
 	int pageNo = id / videoPageSize;
 	int pos = id % videoPageSize;
 
-	if (pageNo != videoPageId)
+	if (pageNo != videoPageId && directVideos == false)
 		LowVideoGetPage(pageNo, videoPageSize);
 
 	if (pos < videos.size())

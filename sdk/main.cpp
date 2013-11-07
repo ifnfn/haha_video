@@ -22,21 +22,30 @@ void test_custommenu()
 {
 	CustomMenu *menu = new CustomMenu("abc");
 
-	menu->AlbumAdd("845690");
+//	menu->AlbumAdd("845690");
 	menu->AlbumAdd("582923");
-	menu->AlbumAdd("841316");
-	menu->AlbumAdd("220791");
+//	menu->AlbumAdd("841316");
+//	menu->AlbumAdd("220791");
 	menu->AlbumAdd("221079");
 
 	AlbumPage page;
 	menu->GetPage(page);
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
+		int video_count = album->GetVideoCount();
+		printf("[%d] %s: Video:Count %d\n", i, album->albumName.c_str(), video_count);
 
-		printf("[%d] %s\n", i, album->albumName.c_str());
+		for (size_t j = 0; j < video_count; j++) {
+			std::string player_url;
+			KolaVideo *video = album->GetVideo(j);
+			player_url = video->GetVideoUrl();
+			printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+		}
 	}
 
 	menu->SaveToFile();
+
+	printf("%s End!!!\n", __func__);
 }
 
 void test_livetv()
@@ -62,8 +71,18 @@ void test_livetv()
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 
-		printf("[%d] %s\n", i, album->albumName.c_str());
+		int video_count = album->GetVideoCount();
+		printf("[%d] %s: Video:Count %d\n", i, album->albumName.c_str(), video_count);
+
+		for (size_t j = 0; j < video_count; j++) {
+			std::string player_url;
+			KolaVideo *video = album->GetVideo(j);
+			player_url = video->GetVideoUrl();
+			printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+		}
 	}
+
+	printf("%s End!!!\n", __func__);
 }
 
 void test_tv()
@@ -87,7 +106,7 @@ void test_tv()
 
 	printf("%d album in menu!\n", m->GetAlbumCount());
 #if 1
-	while (1) {
+	do {
 		m->GetPage(page);
 		page.CachePicture(PIC_LARGE);
 
@@ -97,13 +116,13 @@ void test_tv()
 			printf("[%d] %s\n", i, album->albumName.c_str());
 		}
 
-		break;
 		if (page.Count() < 20)
 			break;
-	}
+	} while(0);
 #endif
 
 	m->GetPage(page, 0);
+	page.CachePicture(PIC_LARGE);
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		int video_count = album->GetVideoCount();
@@ -116,6 +135,30 @@ void test_tv()
 			printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 		}
 	}
+#if 1
+	size_t count = page.PictureCount();
+	printf("Picture count %d\n", count);
+	while (count) {
+		for (size_t i = 0; i < page.Count(); i++) {
+			KolaAlbum *album = page.GetAlbum(i);
+
+			Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
+			if (LargePic) {
+				if (LargePic->GetStatus() == Task::StatusFinish) {
+					if (LargePic->inCache && LargePic->used == false) {
+						printf("[%d] %s: data:%p, size=%d\n", i,
+							LargePic->fileName.c_str(),
+							LargePic->data, LargePic->size);
+						LargePic->used = true;
+						printf("count = %d\n", count);
+					}
+					count--;
+				}
+			}
+		}
+	}
+#endif
+	printf("%s End!!!\n", __func__);
 }
 
 void test_video()
@@ -230,7 +273,7 @@ void test_video()
 	}
 #endif
 
-#if 0
+#if 1
 	while (count) {
 		for (size_t i = 0; i < page.Count(); i++) {
 			KolaAlbum *album = page.GetAlbum(i);
@@ -252,15 +295,19 @@ void test_video()
 	}
 #endif
 
-	printf("End!!!\n");
+	printf("%s End!!!\n", __func__);
 #endif
 }
 
 int main(int argc, char **argv)
 {
-//	test_custommenu(); return 0;
-//	test_livetv(); return 0;
-//	test_video(); return 0;
-	test_tv(); return 0;
+	test_custommenu();
+	printf("Test LiveTV\n"); test_livetv();
+
+	printf("Test Video\n"); test_video();
+
+	printf("Test TV\n"); test_tv();
+
+	printf("end\n");
 //	test_task(); return 0;
 }

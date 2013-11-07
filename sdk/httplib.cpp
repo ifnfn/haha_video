@@ -287,7 +287,7 @@ int tcp_connect(struct in_addr addr, unsigned short port, int block)
 			FD_SET(sock, &rset);
 			wset = rset;
 			maxfd = sock;
-			tval.tv_sec = 8;
+			tval.tv_sec = 10;
 			tval.tv_usec = 0;
 
 			if( (n = select(maxfd + 1, &rset, &wset, NULL, &tval)) == 0 ) {
@@ -1265,7 +1265,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 		 * We have content-length - read that many bytes.
 		 */
 		if (cptr->m_content_len != 0) {
-			cptr->m_resp->body = (char *)malloc(cptr->m_content_len + 1);
+			cptr->m_resp->body = (char *)calloc(1, cptr->m_content_len + 1);
 			len = cptr->m_buffer_len - cptr->m_offset_on;
 			memcpy(cptr->m_resp->body,
 					&cptr->m_resp_buffer[cptr->m_offset_on],
@@ -1371,7 +1371,7 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 		Byte *data = NULL;
 		while (multiple < 32) {
 			ndata = cptr->m_resp->body_len * multiple;
-			data = (Byte*)calloc(1, ndata);
+			data = (Byte*)calloc(1, ndata + 1);
 			if (httpgzdecompress((Byte*)cptr->m_resp->body, cptr->m_resp->body_len, data, &ndata) == 0) {
 				if (ndata < cptr->m_resp->body_len * multiple)
 					break;

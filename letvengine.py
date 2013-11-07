@@ -64,7 +64,7 @@ class LetvVideoMenu(VideoMenuBase):
         for url in self.HomeUrlList:
             TemplateLiveTVInfo(self, url).Execute()
 
-    def GetRealPlayer(self, text, definition, step):
+    def GetRealPlayer(self, text, definition, step, url=''):
         jdata = tornado.escape.json_decode(text)
         ret = {}
         try:

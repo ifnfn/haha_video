@@ -132,10 +132,13 @@ class TextvEngine(VideoEngine):
                     if key not in tv:
                         tv[key] = []
                     x = {}
-                    x['name'] = GetNameByUrl(value)
+                    x['name'], x['order'] = GetNameByUrl(value)
                     x['directPlayUrl'] = value
-                    tv[key].append(x)
+
+                    if x not in tv[key]:
+                        tv[key].append(x)
         for k,v in list(tv.items()):
+            v.sort(key=lambda x:x['order'])
             album  = self.NewAlbum()
             album.cid         = 200
             album.vid         = k
@@ -143,7 +146,8 @@ class TextvEngine(VideoEngine):
             album.pid         = k
             album.albumName   = k
             album.categories  = tvmenu.GetCategories(k)
-            album.sources = v
+            album.sources     = v
+            album.totalSet    = len(v)
             self._save_update_append(None, album)
 
     def _save_update_append(self, sets, album, _filter={}, upsert=True):

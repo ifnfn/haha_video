@@ -75,17 +75,23 @@ def GetNameByUrl(url):
            '腾讯视频' : ('qq.com', 'qqlive.dnion.com'),
            '视讯中国' : 'cnlive.com',
            '凤凰网'   : 'ifeng.com',
-           }
+    }
+    order = {
+           '乐视'    : 1,
+           '腾讯视频' : 2,
+           '视讯中国' : 3,
+           '凤凰网'   : 4,
+    }
 
-    for k,v in list(maps.items()):
+    for k, v in list(maps.items()):
         if type(v) == str:
             if v in url:
-                return k
+                return k, order[k]
         elif type(v) == tuple:
             for vv in v:
                 if vv in url:
-                    return k
-    return ''
+                    return k, order[k]
+    return '', 5
 
 def GetQuickFilter(name, default):
     filename = name + '.json'

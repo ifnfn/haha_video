@@ -73,7 +73,6 @@ class Commands:
             return ret
         return None
 
-
 # 每个 Video 表示一个可以播放视频
 class VideoBase:
     def __init__(self, js=None):
@@ -432,7 +431,7 @@ class VideoMenuBase:
         pass
 
     # 得到真实播放地址
-    def GetRealPlayer(self, text, definition, step):
+    def GetRealPlayer(self, text, definition, step, url=''):
         return ''
 
 class VideoEngine:

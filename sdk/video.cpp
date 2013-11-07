@@ -25,13 +25,6 @@ VideoSegment::VideoSegment(std::string u, std::string n, double d, size_t s) {
 	video = NULL;
 }
 
-bool VideoSegment::Run()
-{
-	std::string video_url;
-
-	return GetVideoUrl(video_url);
-}
-
 bool VideoSegment::LoadFromJson(json_t *js)
 {
 	url      = json_gets   (js, "url", "");
@@ -48,12 +41,13 @@ std::string VideoSegment::GetJsonStr(std::string *newUrl)
 	if (newUrl == NULL)
 		newUrl = &url;
 
-	snprintf(buffer, 2047, "{\n\"url\":\"%s\",\n\"new\":\"%s\"\n}", newUrl->c_str(), newfile.c_str());
+	snprintf(buffer, 2047, "{\n\"url\":\"%s\",\n\"new\":\"%s\"\n,\"duration\":\"%.2f\"\n}",
+			newUrl->c_str(), newfile.c_str(), duration);
 
 	return std::string(buffer);
 }
 
-bool VideoSegment::GetVideoUrl(std::string &player_url)
+bool VideoSegment::Run()
 {
 	KolaClient *client =& KolaClient::Instance();
 	std::string text;
@@ -66,42 +60,12 @@ bool VideoSegment::GetVideoUrl(std::string &player_url)
 			printf("error\n");
 	}
 
-	//std::cout << "Get: " << url << std::endl;
 	if (client->UrlGet("", text, url.c_str()) == false)
 		return false;
 
-	text = base64encode(text);
-	text = "{\"sets\": [" + GetJsonStr(&text) + "]}";
+	realUrl = GetJsonStr(&text);
 
-	if (video)
-		sprintf(buffer, "/video/getplayer?step=2&cid=%d", video->cid);
-	else
-		sprintf(buffer, "/video/getplayer?step=2");
-
-	if (client->UrlPost(buffer, text.c_str(), text) == false)
-		return false;
-
-	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-	if (js == NULL)
-		return false;
-
-	sets = json_geto(js, "sets");
-	if (sets && json_is_array(sets) && json_array_size(sets) > 0) {
-		json_t *u = json_array_get(sets, 0);
-		if (u) {
-			const char *url_tmp = json_string_value(u);
-			if (url_tmp) {
-				realUrl = url_tmp;
-				player_url = realUrl;
-
-				return true;
-			}
-		}
-	}
-
-	std::cout << realUrl << std::endl;
-
-	return false;
+	return true;
 }
 
 KolaVideo::KolaVideo(json_t *js)
@@ -208,11 +172,13 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	playUrl          = json_gets(js   , "playUrl"        , "");
 	directPlayUrl    = json_gets(js   , "directPlayUrl"  , "");
 
+#if 1
 	haveOriginalData = json_geti(js   , "haveOriginalData", 0);
 	originalData     = json_geto(js   , "originalData");
 
 	if (directPlayUrl == "" && originalData)
 		UpdatePlayInfo(originalData);
+#endif
 
 	return true;
 }
@@ -232,84 +198,32 @@ std::string KolaVideo::GetVideoUrl(void)
 
 	char buf[256];
 	size_t count = segmentList.size();
-	std::string ret, player_url;
-	double max_duration = 0;
+	std::string text;
+	StringList videos;
+	KolaClient *client =& KolaClient::Instance();
 
 	if (count == 0)
 		return directPlayUrl;
-	else if (count == 1) {
-		VideoSegment *seg = segmentList[0];
-		seg->Start();
-		seg->Wait();
-		return seg->realUrl;
-	}
 
-	ret = "";
-	for (size_t i=0; i < count;i++) {
+	for (size_t i = 0; i < count; i++) {
 		VideoSegment *seg = segmentList[i];
-
-		if (seg->duration > max_duration)
-			max_duration = seg->duration;
 		seg->Start();
 	}
 
-	for (size_t i=0; i < count;i++) {
+	for (size_t i = 0; i < count; i++) {
 		VideoSegment *seg = segmentList[i];
 		seg->Wait();
-		sprintf(buf, "#EXTINF:%d,\n", (int)seg->duration);
-		ret = ret + buf;
-		ret = ret + seg->realUrl;
-		ret = ret + "\n";
+		videos << seg->realUrl;
 	}
 
-	ret = ret + "#EXT-X-ENDLIST\n";
+	text = "{\"sets\": [" + videos.ToString() + "]}";
+	sprintf(buf, "/video/getplayer?step=2&cid=%d", cid);
 
-	sprintf(buf, "#EXTM3U\n#EXT-X-TARGETDURATION:%d\n", (int)max_duration);
+	if (client->UrlPost(buf, text.c_str(), text) == false)
+		return "";
 
-	ret = buf + ret;
+	std::cout << text << std::endl;
 
-	if (count > 0) {
-		deleteLocalVideoFile();
-		char fileName[128];
-
-		sprintf(fileName, "/tmp/video_%s", vid.c_str());
-		FILE *fp = fopen(fileName, "w");
-
-		if (fp) {
-			fwrite(ret.c_str(), 1, ret.size(), fp);
-			fclose(fp);
-			localVideoFile = fileName;
-
-			return localVideoFile;
-		}
-		else {
-			KolaClient *client =& KolaClient::Instance();
-			if (client->UrlPost("/video/urls", ret.c_str(), ret) == false)
-				return "";
-
-			return client->GetFullUrl("/video/urls" + ret);
-		}
-	}
-
-	return ret;
+	return text;
 }
-
-bool KolaVideo::GetVideoUrl(std::string &video_url, size_t index)
-{
-	KolaClient *client =& KolaClient::Instance();
-	std::string text;
-
-	if (directPlayUrl == "" and haveOriginalData == false) {
-		GetPlayInfo();
-	}
-	if (index >= segmentList.size())
-		return false;
-
-	VideoSegment *seg = segmentList[index];
-	if (seg)
-		return seg->GetVideoUrl(video_url);
-
-	return false;
-}
-
 

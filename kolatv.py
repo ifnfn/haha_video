@@ -22,9 +22,10 @@ class Kolatv:
         self.command = eg.Commands(self.db.map_table)
         self.engines = {}
         self.MenuList = {}
+        self.UpdateAlbumFlag = False
 
         self.AddEngine(sohuengine.SohuEngine)
-#        self.AddEngine(letvengine.LetvEngine)
+        #self.AddEngine(letvengine.LetvEngine)
         self.AddEngine(textengine.TextvEngine)
 
     def AddEngine(self, egClass):
@@ -81,12 +82,12 @@ class Kolatv:
         return self.db.GetVideoListJson(pid=pid, arg=argument)
 
     # 得到真实播放地址
-    def GetRealPlayer(self, text, cid, definition, step):
+    def GetRealPlayer(self, text, cid, definition, step, url=''):
         menu = self.FindMenuById(utils.autoint(cid))
         if menu == None:
             return {}
 
-        return menu.GetRealPlayer(text, definition, step)
+        return menu.GetRealPlayer(text, definition, step, url)
 
     def ParserHtml(self, data):
         js = tornado.escape.json_decode(data)
@@ -185,5 +186,10 @@ class Kolatv:
 
     # 更新所有节目（增加新的节目）
     def UpdateAllAlbumList(self):
+        self.UpdateAlbumFlag = True
         for (_, menu) in list(self.MenuList.items()):
             menu.UpdateAlbumList()
+
+    def CommandEmptyMessage(self):
+        if self.UpdateAlbumFlag == True:
+            self.UpdateAlbumFlag = False

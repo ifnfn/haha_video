@@ -32,7 +32,7 @@ void test_custommenu()
 	menu->GetPage(page);
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
-		int video_count = album->GetVideoCount();
+		size_t video_count = album->GetVideoCount();
 		printf("[%d] %s: Video:Count %d\n", i, album->albumName.c_str(), video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
@@ -71,7 +71,7 @@ void test_livetv()
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 
-		int video_count = album->GetVideoCount();
+		size_t video_count = album->GetVideoCount();
 		printf("[%d] %s: Video:Count %d\n", i, album->albumName.c_str(), video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
@@ -85,7 +85,7 @@ void test_livetv()
 	printf("%s End!!!\n", __func__);
 }
 
-void test_tv()
+void test_video(const char *menuName)
 {
 	AlbumPage page;
 	KolaMenu* m = NULL;
@@ -93,7 +93,7 @@ void test_tv()
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();
-	m = kola["电视剧"];
+	m = kola[menuName];
 
 	if (m == NULL)
 		return;
@@ -101,14 +101,13 @@ void test_tv()
 	//m->Filter.KeyAdd("产地", "香港,台湾");
 	//m->SetQuickFilter("推荐电影");
 
-//	m->Sort.Set("周播放最多");
-//	m->Sort.Set("评分最高");
+	//m->Sort.Set("周播放最多");
+	//m->Sort.Set("评分最高");
 
 	printf("%d album in menu!\n", m->GetAlbumCount());
 #if 1
 	do {
 		m->GetPage(page);
-		page.CachePicture(PIC_LARGE);
 
 		for (size_t i = 0; i < page.Count(); i++) {
 			KolaAlbum *album = page.GetAlbum(i);
@@ -116,7 +115,7 @@ void test_tv()
 			printf("[%d] %s\n", i, album->albumName.c_str());
 		}
 
-		if (page.Count() < 20)
+		if (page.Count() < DEFAULT_PAGE_SIZE)
 			break;
 	} while(0);
 #endif
@@ -125,7 +124,7 @@ void test_tv()
 	page.CachePicture(PIC_LARGE);
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
-		int video_count = album->GetVideoCount();
+		size_t video_count = album->GetVideoCount();
 		printf("[%d]: Video:Count %d\n", i, video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
@@ -135,124 +134,9 @@ void test_tv()
 			printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 		}
 	}
-#if 1
+
 	size_t count = page.PictureCount();
 	printf("Picture count %d\n", count);
-	while (count) {
-		for (size_t i = 0; i < page.Count(); i++) {
-			KolaAlbum *album = page.GetAlbum(i);
-
-			Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
-			if (LargePic) {
-				if (LargePic->GetStatus() == Task::StatusFinish) {
-					if (LargePic->inCache && LargePic->used == false) {
-						printf("[%d] %s: data:%p, size=%d\n", i,
-							LargePic->fileName.c_str(),
-							LargePic->data, LargePic->size);
-						LargePic->used = true;
-						printf("count = %d\n", count);
-					}
-					count--;
-				}
-			}
-		}
-	}
-#endif
-	printf("%s End!!!\n", __func__);
-}
-
-void test_video()
-{
-	AlbumPage page;
-	KolaMenu* m = NULL;
-
-	KolaClient &kola = KolaClient::Instance();
-
-	kola.UpdateMenu();
-#if 1
-	for(int i=0, count=kola.MenuCount(); i < count; i++) {
-		m = kola[i];
-		std::cout << "Menu: " << m->name << std::endl;
-	}
-#endif
-
-#if 0
-	m = kola["电影"];
-	m = kola.GetMenuByCid(1);
-	m = kola[1];
-	m = kola["电影"];
-	m = kola.GetMenuByName("电影");
-#endif
-	m = kola["电影"];
-
-	if (m == NULL)
-		return;
-#if 0
-	foreach(m->Filter.filterKey, i) {
-		std::cout << i->first << ": ";
-		foreach(i->second, j)
-			std::cout << "\t" << *j << std::endl;
-	}
-#endif
-	foreach(m->quickFilters, i) {
-		std::cout << *i << std::endl;
-	}
-
-#if 0
-	std::cout << "Sort List: " << std::endl;
-	for(int i=0, count=m->Sort.size(); i < count; i++) {
-		std::cout << "\t" << m->Sort[i] << std::endl;
-	}
-#endif
-
-	//m->Filter.KeyAdd("类型", "爱情片");
-	//m->Filter.KeyAdd("产地", "香港,台湾");
-	m->SetQuickFilter("推荐电影");
-
-//	m->Sort.Set("周播放最多");
-//	m->Sort.Set("评分最高");
-
-	printf("%d album in menu!\n", m->GetAlbumCount());
-
-//	return 0;
-
-#if 1
-	while (1) {
-		m->GetPage(page);
-		page.CachePicture(PIC_LARGE);
-
-		for (size_t i = 0; i < page.Count(); i++) {
-			KolaAlbum *album = page.GetAlbum(i);
-
-			printf("[%d] %s\n", i, album->albumName.c_str());
-		}
-
-		break;
-		if (page.Count() < 20)
-			break;
-	}
-#endif
-
-	m->GetPage(page, 0);
-#if 1
-	for (size_t i = 0; i < page.Count(); i++) {
-		KolaAlbum *album = page.GetAlbum(i);
-		int video_count = album->GetVideoCount();
-		printf("[%d]: Video:Count %d\n", i, video_count);
-
-		for (size_t j = 0; j < video_count; j++) {
-			std::string player_url;
-			KolaVideo *video = album->GetVideo(j);
-			player_url = video->GetVideoUrl();
-			printf("\t%s -> %s\n", video->name.c_str(), player_url.c_str());
-		}
-	}
-#endif
-
-#if 1
-	page.CachePicture(PIC_LARGE);
-	size_t count = page.PictureCount();
-
 #if 0
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
@@ -260,14 +144,15 @@ void test_video()
 		Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
 		if (LargePic) {
 			LargePic->Wait();
-			if (LargePic->GetStatus() == Task::StatusFinish) {
-				if (LargePic->inCache && LargePic->used == false) {
+			if (LargePic->GetStatus() == Task::StatusFinish && LargePic->used == false) {
+				if (LargePic->inCache) {
 					printf("[%d] %s: data:%p, size=%d\n", i,
 							LargePic->fileName.c_str(),
 							LargePic->data, LargePic->size);
-					LargePic->used = true;
 					printf("count = %d\n", count);
 				}
+				LargePic->used = true;
+				count--;
 			}
 		}
 	}
@@ -280,14 +165,14 @@ void test_video()
 
 			Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
 			if (LargePic) {
-				if (LargePic->GetStatus() == Task::StatusFinish) {
-					if (LargePic->inCache && LargePic->used == false) {
+				if (LargePic->GetStatus() == Task::StatusFinish && LargePic->used == false) {
+					if (LargePic->inCache) {
 						printf("[%d] %s: data:%p, size=%d\n", i,
 							LargePic->fileName.c_str(),
 							LargePic->data, LargePic->size);
-						LargePic->used = true;
 						printf("count = %d\n", count);
 					}
+					LargePic->used = true;
 					count--;
 				}
 			}
@@ -296,7 +181,6 @@ void test_video()
 #endif
 
 	printf("%s End!!!\n", __func__);
-#endif
 }
 
 int main(int argc, char **argv)
@@ -304,9 +188,9 @@ int main(int argc, char **argv)
 	test_custommenu();
 	printf("Test LiveTV\n"); test_livetv();
 
-	printf("Test Video\n"); test_video();
+	printf("Test Video\n"); test_video("电影");
 
-	printf("Test TV\n"); test_tv();
+	printf("Test TV\n");    test_video("电视剧");
 
 	printf("end\n");
 //	test_task(); return 0;

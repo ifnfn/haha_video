@@ -232,13 +232,13 @@ class KolaAlbum {
 		StringList directors;
 		std::vector<KolaVideo*> videos;
 
-		int GetVideoCount();
+		size_t GetVideoCount();
 		std::string &GetPictureUrl(enum PicType type);
 		KolaVideo *GetVideo(int id);
 	private:
 		void VideosClear();
 		bool LoadFromJson(json_t *js);
-		bool LowVideoGetPage(int pageNo, int pageSize);
+		bool LowVideoGetPage(size_t pageNo, size_t pageSize);
 
 		int cid;
 		std::string pid;
@@ -257,8 +257,8 @@ class KolaAlbum {
 
 		std::string defaultPageUrl;  // 当前播放集
 		bool directVideos;
-		int videoPageSize;
-		int videoPageId;
+		size_t videoPageSize;
+		size_t videoPageId;
 
 		friend class CustomMenu;
 };
@@ -288,7 +288,7 @@ class KolaMenu {
 		KolaMenu(void);
 		KolaMenu(const KolaMenu& m);
 		KolaMenu(json_t *js);
-		~KolaMenu(void) {}
+		virtual ~KolaMenu(void) {}
 
 		int         cid;
 		std::string name;

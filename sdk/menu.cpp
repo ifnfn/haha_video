@@ -92,6 +92,7 @@ int KolaMenu::GetAlbumCount()
 int KolaMenu::Search(AlbumPage &page, std::string keyword, int pageNo)
 {
 
+	return 0;
 }
 
 int KolaMenu::ParserJson(AlbumPage &page, std::string &text)
@@ -166,6 +167,7 @@ int KolaMenu::LowGetPage(AlbumPage &page, int pageId, int pageSize)
 
 	sprintf(url, "/video/list?page=%d&size=%d&cid=%d", pageId, pageSize, cid);
 	if (client->UrlPost(url, body.c_str(), text) == true) {
+		page.Clear();
 		return ParserJson(page, text);
 	}
 

@@ -12,12 +12,14 @@ VideoSegment::VideoSegment()
 	video = NULL;
 }
 
-VideoSegment::VideoSegment(KolaVideo *video, json_t *js) {
+VideoSegment::VideoSegment(KolaVideo *video, json_t *js)
+{
 	this->video = video;
 	LoadFromJson(js);
 }
 
-VideoSegment::VideoSegment(std::string u, std::string n, double d, size_t s) {
+VideoSegment::VideoSegment(std::string u, std::string n, double d, size_t s)
+{
 	url = u;
 	newfile = n;
 	duration = d;
@@ -49,16 +51,8 @@ std::string VideoSegment::GetJsonStr(std::string *newUrl)
 
 bool VideoSegment::Run()
 {
-	KolaClient *client =& KolaClient::Instance();
 	std::string text;
-	json_t *js, *sets;
-	json_error_t error;
-	char buffer[128];
-
-	if (client == NULL) {
-		while(1)
-			printf("error\n");
-	}
+	KolaClient *client =& KolaClient::Instance();
 
 	if (client->UrlGet("", text, url.c_str()) == false)
 		return false;
@@ -198,7 +192,7 @@ std::string KolaVideo::GetVideoUrl(void)
 
 	char buf[256];
 	size_t count = segmentList.size();
-	std::string text;
+	std::string text, ret;
 	StringList videos;
 	KolaClient *client =& KolaClient::Instance();
 
@@ -217,13 +211,11 @@ std::string KolaVideo::GetVideoUrl(void)
 	}
 
 	text = "{\"sets\": [" + videos.ToString() + "]}";
-	sprintf(buf, "/video/getplayer?step=2&cid=%d", cid);
+	sprintf(buf, "/video/getplayer?step=3&cid=%d", cid);
 
-	if (client->UrlPost(buf, text.c_str(), text) == false)
+	if (client->UrlPost(buf, text.c_str(), ret) == false)
 		return "";
 
-	std::cout << text << std::endl;
-
-	return text;
+	return ret;
 }
 

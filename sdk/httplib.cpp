@@ -678,8 +678,6 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 	uint16_t port;
 	const char *old_host;
 	struct hostent *host;
-	struct sockaddr_in sockaddr;
-	int result;
 
 	if (strncasecmp(name, "http://", strlen("http://")) != 0) {
 		return -1;

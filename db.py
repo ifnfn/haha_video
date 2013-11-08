@@ -43,7 +43,7 @@ class DB:
 
     def SetVideoCache(self, key, value):
         self.video_cachedb.set(key, value)
-        self.video_cachedb.expire(key, 60) # 1 分钟有效
+        self.video_cachedb.expire(key, 600) # 10 分钟有效
 
     def GetVideoCache(self, key):
         return self.video_cachedb.get(key)

@@ -287,8 +287,10 @@ class SohuVideoMenu(VideoMenuBase):
     def GetRealPlayer(self, text, definition, step, url=''):
         if step == '1':
             res = self._ParserRealUrlStep1(text)
-        else:
-            res = self._ParserRealUrlStep2(text, url)
+        elif step == '2': # 为了兼容上一个版本的代码
+            res = self._ParserRealUrlStep2(text)
+        elif step == '3':
+            res = self._ParserRealUrlStep3(text, url)
 
         return json.dumps(res, indent=4, ensure_ascii=False)
 
@@ -350,20 +352,46 @@ class SohuVideoMenu(VideoMenuBase):
 
         return res;
 
-    def _ParserRealUrlStep2(self, text, url):
+    def _ParserRealUrlStep2(self, text):
+        ret = {}
+        try:
+            ret = tornado.escape.json_decode(text)
+
+            if 'sets' in ret:
+                urls = []
+                for url in ret['sets']:
+                    new = url['new']
+                    text = base64.decodebytes(url['url'].encode()).decode()
+
+                    start, _, _, key, _, _, _, _ = text.split('|')
+                    u = '%s%s?key=%s' % (start[:-1], new, key)
+                    urls.append(u)
+
+                ret['sets'] = urls
+        except:
+            t, v, tb = sys.exc_info()
+            log.error('SohuEngine._ParserRealUrlStep2: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
+
+        return ret
+
+    def _ParserRealUrlStep3(self, text, url):
         try:
             ret = tornado.escape.json_decode(text)
 
             if 'sets' in ret:
                 max_duration = 0.0
                 m3u8 = ''
+                video_count = len(ret['sets'])
                 for u in ret['sets']:
-                    new = u['new']
-                    url_tmp = u['url']
+                    new      = u['new']
+                    url_tmp  = u['url']
                     duration = float(u['duration'])
 
                     start, _, _, key, _, _, _, _ = url_tmp.split('|')
                     u_tmp = '%s%s?key=%s' % (start[:-1], new, key)
+
+                    if video_count == 1:
+                        return u_tmp
                     m3u8 += '#EXTINF:%.0f\n%s\n' % (duration, u_tmp)
                     if duration > max_duration:
                         max_duration = duration

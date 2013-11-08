@@ -24,7 +24,7 @@ void KolaAlbum::VideosClear() {
 	videos.clear();
 }
 
-int KolaAlbum::GetVideoCount()
+size_t KolaAlbum::GetVideoCount()
 {
 	if (directVideos == false || totalSet == 0) {
 		LowVideoGetPage(0, 0);
@@ -35,7 +35,7 @@ int KolaAlbum::GetVideoCount()
        return totalSet;
 }
 
-bool KolaAlbum::LowVideoGetPage(int pageNo, int pageSize)
+bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 {
 	if (pageNo == videoPageId)
 		return true;
@@ -136,8 +136,8 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 
 KolaVideo *KolaAlbum::GetVideo(int id)
 {
-	int pageNo = id / videoPageSize;
-	int pos = id % videoPageSize;
+	size_t pageNo = id / videoPageSize;
+	size_t pos = id % videoPageSize;
 
 	if (pageNo != videoPageId && directVideos == false)
 		LowVideoGetPage(pageNo, videoPageSize);

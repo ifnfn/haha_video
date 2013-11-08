@@ -106,6 +106,7 @@ void test_video(const char *menuName)
 
 	printf("%d album in menu!\n", m->GetAlbumCount());
 #if 1
+	m->SetPageSize(10);
 	do {
 		m->GetPage(page);
 
@@ -115,9 +116,9 @@ void test_video(const char *menuName)
 			printf("[%d] %s\n", i, album->albumName.c_str());
 		}
 
-		if (page.Count() < DEFAULT_PAGE_SIZE)
+		if (page.Count() < m->GetPageSize())
 			break;
-	} while(0);
+	} while(1);
 #endif
 
 	m->GetPage(page, 0);
@@ -185,13 +186,13 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	test_custommenu();
 	printf("Test LiveTV\n"); test_livetv();
 
 	printf("Test Video\n"); test_video("电影");
 
 	printf("Test TV\n");    test_video("电视剧");
 
+	test_custommenu();
 	printf("end\n");
-//	test_task(); return 0;
+	test_task(); return 0;
 }

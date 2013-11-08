@@ -299,6 +299,7 @@ class KolaMenu {
 		int GetPage(AlbumPage &page, int pageNo = -1);
 		bool SetQuickFilter(std:: string);
 		void SetPageSize(int size) {PageSize = size;}
+		size_t GetPageSize() { return PageSize;}
 		int GetAlbumCount();
 		int Search(AlbumPage &page, std::string keyword, int pageNo);
 	protected:

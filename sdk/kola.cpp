@@ -22,7 +22,7 @@
 #include "pcre.hpp"
 #include "threadpool.hpp"
 
-#if 1
+#if 0
 #define SERVER_HOST "127.0.0.1"
 #define PORT 9991
 #else

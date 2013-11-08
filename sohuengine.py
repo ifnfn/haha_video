@@ -285,14 +285,16 @@ class SohuVideoMenu(VideoMenuBase):
         TemplateAlbumHotList(self, url).Execute()
 
     def GetRealPlayer(self, text, definition, step, url=''):
-        if step == '1':
-            res = self._ParserRealUrlStep1(text)
-        elif step == '2': # 为了兼容上一个版本的代码
-            res = self._ParserRealUrlStep2(text)
+        if step in ['1', '2']:
+            if step == '1':
+                res = self._ParserRealUrlStep1(text)
+            elif step == '2':
+                res = self._ParserRealUrlStep2(text)
+            return json.dumps(res, indent=4, ensure_ascii=False)
         elif step == '3':
-            res = self._ParserRealUrlStep3(text, url)
+            return self._ParserRealUrlStep3(text, url)
 
-        return json.dumps(res, indent=4, ensure_ascii=False)
+        return ''
 
     def _ParserRealUrlStep1(self, text):
         res = {}

@@ -215,6 +215,7 @@ class KolaAlbum {
 		KolaAlbum(json_t *js);
 		~KolaAlbum();
 
+		std::string vid;
 		std::string albumName;
 		std::string albumDesc;
 		std::string area;            // 地区
@@ -242,7 +243,6 @@ class KolaAlbum {
 
 		int cid;
 		std::string pid;
-		std::string vid;
 		std::string playlistid;
 
 		std::string videoPlayUrl;
@@ -301,6 +301,7 @@ class KolaMenu {
 		void SetPageSize(int size) {PageSize = size;}
 		size_t GetPageSize() { return PageSize;}
 		int GetAlbumCount();
+		int Seek(std::string vid);
 		int Search(AlbumPage &page, std::string keyword, int pageNo);
 	protected:
 		KolaClient *client;

@@ -38,8 +38,10 @@ void test_custommenu()
 		for (size_t j = 0; j < video_count; j++) {
 			std::string player_url;
 			KolaVideo *video = album->GetVideo(j);
-			player_url = video->GetVideoUrl();
-			printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+			if (video) {
+				player_url = video->GetVideoUrl();
+				printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+			}
 		}
 	}
 
@@ -77,8 +79,10 @@ void test_livetv()
 		for (size_t j = 0; j < video_count; j++) {
 			std::string player_url;
 			KolaVideo *video = album->GetVideo(j);
-			player_url = video->GetVideoUrl();
-			printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+			if (video) {
+				player_url = video->GetVideoUrl();
+				printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+			}
 		}
 	}
 
@@ -131,8 +135,10 @@ void test_video(const char *menuName)
 		for (size_t j = 0; j < video_count; j++) {
 			std::string player_url;
 			KolaVideo *video = album->GetVideo(j);
-			player_url = video->GetVideoUrl();
-			printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+			if (video) {
+				player_url = video->GetVideoUrl();
+				printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+			}
 		}
 	}
 

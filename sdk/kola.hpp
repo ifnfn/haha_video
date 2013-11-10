@@ -231,7 +231,6 @@ class KolaAlbum {
 		double dailyIndexScore;      // 每日指数
 		StringList mainActors;
 		StringList directors;
-		std::vector<KolaVideo*> videos;
 
 		size_t GetVideoCount();
 		std::string &GetPictureUrl(enum PicType type);
@@ -244,6 +243,7 @@ class KolaAlbum {
 		int cid;
 		std::string pid;
 		std::string playlistid;
+		std::vector<KolaVideo*> videos;
 
 		std::string videoPlayUrl;
 		std::string largePicUrl;      // 大图片网址

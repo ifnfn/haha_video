@@ -249,6 +249,114 @@ static int httpgzdecompress(Byte *zdata, uLong nzdata, Byte *data, uLong *ndata)
 	return 0;
 }
 
+int is_reallyconnect(int socket_fd)
+{
+	int ret;
+	int count = 0;
+	fd_set fds_write;
+	fd_set fds_read;
+
+	while (count++ < 30) {
+		struct timeval tv;
+		FD_ZERO(&fds_write);
+		FD_SET(socket_fd, &fds_write);
+		FD_ZERO(&fds_read);
+		FD_SET(socket_fd, &fds_read);
+		tv.tv_sec = 0;
+		tv.tv_usec = 200 * 1000;
+
+		ret = select(socket_fd + 1, &fds_read, &fds_write, NULL, &tv);
+		if (ret < 0) {
+			if(errno != EINTR){
+				printf("connect socket select failed!\n");
+				return -1;
+			}
+		}
+		else if(ret > 0){
+			if(FD_ISSET(socket_fd, &fds_read)||FD_ISSET(socket_fd, &fds_write)){
+				int err;
+				socklen_t err_len = sizeof(int);
+
+				ret = getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &err, &err_len);
+
+				if (ret == 0)
+					break;
+				else
+					return -1;
+			}
+		}
+	}
+
+	if (count >= 30)
+		return -1;
+
+	return 0;
+}
+
+int tcp_connect2(const char *host, int port, int block)
+{
+	int sockfd, n;
+	struct addrinfo hints, *res, *ressave;
+	char serv[64];
+
+	bzero(&hints,sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	sprintf(serv, "%d", port);
+
+	if( (n = getaddrinfo(host, serv, &hints,&res)) != 0)
+		printf("tcp_connect error for %s %s : %s\n",host,serv, gai_strerror(n));
+
+	ressave = res;
+
+	do{
+		int opt = 1;
+		sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if(sockfd < 0)
+			continue;
+
+		if (ioctl(sockfd, FIONBIO, &opt) < 0) {
+			close(sockfd);
+			sockfd = -1;
+			continue;
+		}
+
+		if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0) {
+			if( errno != EINPROGRESS ) {
+				printf("connect error : %s\n", strerror(errno));
+				close(sockfd);
+				sockfd = -1;
+				continue;
+			}
+
+			if( block == NONBLOCK ) {
+				if (is_reallyconnect(sockfd) != 0) {
+					close(sockfd);
+					sockfd = -1;
+					continue;
+				}
+			}
+			opt = 0;
+			if (ioctl(sockfd, FIONBIO, &opt) < 0) {
+				close(sockfd);
+				sockfd = -1;
+				continue;
+			}
+		}
+
+		if (sockfd > 0)
+			break;
+	} while( (res = res->ai_next) != NULL);
+
+	if(res == NULL)
+		printf("tcp_connect error for %s %s\n",host,serv);
+
+	freeaddrinfo(ressave);
+
+	return (sockfd);
+}
+
 int tcp_connect(struct in_addr addr, unsigned short port, int block)
 {
 	int sock;
@@ -318,6 +426,7 @@ int tcp_connect(struct in_addr addr, unsigned short port, int block)
 
 	return sock;
 }
+
 /*
  * http_init_connection()
  * decode url and make connection
@@ -705,109 +814,48 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 		// Compare strings, first
 		if (strcasecmp(old_host, cptr->m_host) == 0) {
 			// match
-			if (port == cptr->m_port) {
+			if (port == cptr->m_port)
 				match = 1;
-			}
-		} else {
+		}
+#if 0
+		else {
 			// Might be same - resolve new address and compare
 			host = gethostbyname(cptr->m_host);
-			if (host == NULL) {
-#ifdef _WIN32
+			if (host == NULL)
 				return -1;
-#else
-				if (h_errno > 0) h_errno = 0 - h_errno;
-				return h_errno;
-#endif
-			}
-			if (memcmp(host->h_addr, &cptr->m_server_addr,
-						sizeof(struct in_addr)) == 0 && (port == cptr->m_port)) {
+
+			if (memcmp(host->h_addr, &cptr->m_server_addr, sizeof(struct in_addr)) == 0 && (port == cptr->m_port))
 				match = 1;
-			} else {
+			else
 				cptr->m_server_addr = *(struct in_addr *)host->h_addr;
-			}
 		}
+#endif
 		free((void *)old_host); // free off the old one we saved
+
 		if (match == 0) {
 			cptr->m_state = HTTP_STATE_CLOSED;
 			closesocket(cptr->m_server_socket);
 			cptr->m_server_socket = -1;
-		} else {
+		}
+		else {
 			// keep using the same socket...
 			return 0;
 		}
-
-	} else {
+	}
+#if 0
+	else {
 		// No existing connection - get the new address.
 		host = gethostbyname(cptr->m_host);
-		if (host == NULL) {
-#ifdef _WIN32
+		if (host == NULL)
 			return -1;
-#else
-			if (h_errno > 0) h_errno = 0 - h_errno;
-			return h_errno;
-#endif
-		}
+
 		cptr->m_server_addr = *(struct in_addr *)host->h_addr;
 	}
-
-	cptr->m_server_socket = tcp_connect(cptr->m_server_addr, cptr->m_port, NONBLOCK);
-	if (cptr->m_server_socket == -1)
-		return -1;
-#if 0
-	// Create and connect the socket
-	cptr->m_server_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (cptr->m_server_socket == -1)
-		return -1;
-
-	sockaddr.sin_family = AF_INET;
-	sockaddr.sin_port = htons(cptr->m_port);
-	sockaddr.sin_addr = cptr->m_server_addr;
-	set_nonblock(cptr->m_server_socket);
-
-	result = connect(cptr->m_server_socket, (struct sockaddr *)&sockaddr, sizeof(sockaddr));
-
-	if( result < 0 ) {
-		fd_set rset, wset;
-		int n, maxfd;
-		struct timeval tval;
-		unsigned int len, error;
-
-		if( errno != EINPROGRESS ) {
-			printf("connect error : %s\n", strerror(errno));
-			return -1;
-		}
-
-		FD_ZERO(&rset);
-		FD_SET(cptr->m_server_socket, &rset);
-		wset = rset;
-		maxfd = cptr->m_server_socket;
-		tval.tv_sec = 2;
-		tval.tv_usec = 0;
-
-		if( (n = select(maxfd + 1, &rset, &wset, NULL, &tval)) == 0 ) {
-			close(cptr->m_server_socket);
-			errno = ETIMEDOUT;
-			return -1;
-		}
-
-		if( FD_ISSET(cptr->m_server_socket, &rset) || FD_ISSET(cptr->m_server_socket, &wset) ) {
-			len = sizeof(error);
-			if( getsockopt(cptr->m_server_socket, SOL_SOCKET, SO_ERROR, &error, &len) < 0 )
-				return -1;
-		}
-		else
-			printf("select error : sockfd not set\n");
-
-		if( set_block(cptr->m_server_socket) == -1 )
-			printf("set_block error\n");
-
-		if(error) {
-			close(cptr->m_server_socket);
-			errno = error;
-			return -1;
-		}
-	}
 #endif
+
+	cptr->m_server_socket = tcp_connect2(cptr->m_host, cptr->m_port, NONBLOCK);
+	if (cptr->m_server_socket == -1)
+		return -1;
 
 	cptr->m_state = HTTP_STATE_CONNECTED;
 	return 0;

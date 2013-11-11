@@ -22,9 +22,9 @@ Task::Task() {
 	status = Task::StatusFree;
 }
 
-Task::~Task() {
+Task::~Task()
+{
 	Wait();
-	Destroy();
 
 	pthread_mutex_destroy(&mutex);
 	pthread_cond_destroy(&ready);

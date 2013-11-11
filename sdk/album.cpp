@@ -230,16 +230,16 @@ Picture* AlbumPage::GetPicture(std::string fileName)
 
 void AlbumPage::Clear()
 {
-	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		delete (*it);
-	}
-
-	albumList.clear();
-
 	for (std::map<std::string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
 		it->second->Cancel();
 		delete it->second;
 	}
 
+	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		delete (*it);
+	}
+
 	pictureList.clear();
+	albumList.clear();
+
 }

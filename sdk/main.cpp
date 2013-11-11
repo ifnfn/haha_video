@@ -5,7 +5,7 @@
 
 void test_task()
 {
-	int c = 4;
+	int c = 100;
 	std::vector<Task*> tasks;
 	for (int i=0; i < c; i ++)
 		tasks.push_back(new Task());
@@ -14,7 +14,7 @@ void test_task()
 	for (int i=0; i <c ; i++) {
 		delete tasks[i];
 	}
-	tasks.clear();
+//	tasks.clear();
 	printf("end\n");
 }
 
@@ -110,7 +110,7 @@ void test_video(const char *menuName)
 
 	printf("%d album in menu!\n", m->GetAlbumCount());
 #if 1
-	m->SetPageSize(10);
+	m->SetPageSize(8);
 	do {
 		m->GetPage(page);
 
@@ -122,7 +122,7 @@ void test_video(const char *menuName)
 
 		if (page.Count() < m->GetPageSize())
 			break;
-	} while(1);
+	} while(0);
 #endif
 
 	m->GetPage(page, 0);
@@ -165,7 +165,7 @@ void test_video(const char *menuName)
 	}
 #endif
 
-#if 1
+#if 0
 	while (count) {
 		for (size_t i = 0; i < page.Count(); i++) {
 			KolaAlbum *album = page.GetAlbum(i);
@@ -192,15 +192,13 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	do {
-		printf("Test LiveTV\n"); test_livetv();
+	printf("Test LiveTV\n"); test_livetv();
 
-		printf("Test Video\n"); test_video("电影");
+	printf("Test Video\n"); test_video("电影");
 
-		printf("Test TV\n");    test_video("电视剧");
+	printf("Test TV\n");    test_video("电视剧");
 
-		test_custommenu();
-		printf("end\n");
-	}while(1);
+	test_custommenu();
+	printf("end\n");
 	test_task(); return 0;
 }

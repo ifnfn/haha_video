@@ -14,6 +14,7 @@
 #include <netdb.h>
 #include <zlib.h>
 #include <openssl/md5.h>
+#include <signal.h>
 
 #include "json.h"
 #include "httplib.h"
@@ -22,7 +23,8 @@
 #include "pcre.hpp"
 #include "threadpool.hpp"
 
-#if 0
+#define TEST 1
+#if TEST
 #define SERVER_HOST "127.0.0.1"
 #define PORT 9991
 #else
@@ -93,13 +95,13 @@ static char *GetIP(const char *host)
 	char str[32] = "";
 
 	bzero(&hints, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_CANONNAME | AI_NUMERICHOST;
-	hints.ai_protocol = IPPROTO_TCP;
+//	hints.ai_protocol = IPPROTO_TCP;
 
 	sprintf(serv, "%d", PORT);
-	if( (n = getaddrinfo(host, NULL, &hints, &res)) != 0)
+	if( (n = getaddrinfo(host, "80", NULL, &res)) != 0)
 		printf("tcp_connect error for %s %s : %s\n",host,serv, gai_strerror(n));
 
 	printf("Hostname:\t%s\n", res->ai_canonname);
@@ -241,6 +243,7 @@ Picture::Picture()
 
 Picture::~Picture()
 {
+	Wait();
 	if (data) {
 		free(data);
 		data = NULL;
@@ -248,18 +251,12 @@ Picture::~Picture()
 	size = 0;
 }
 
-bool Picture::Destroy() {
-
-	return true;
-}
-
-bool Picture::Run()
+void Picture::Run()
 {
 	if (inCache == true)
-		return inCache;
+		return;
 	KolaClient *client = &KolaClient::Instance();
 
-	bool ok = false;
 	http_resp_t *http_resp = NULL;
 
 	if (client->UrlGet("", fileName.c_str(), (void**)&http_resp)) {
@@ -269,27 +266,26 @@ bool Picture::Run()
 			memcpy(data, http_resp->body, size);
 //			printf("wget %s, data=%p, size=%d\n", fileName.c_str(), data, size);
 			inCache = true;
-			ok = true;
 		}
 		else
 			printf("Picture get timeout error %s\n", fileName.c_str());
 	}
-	http_resp_free(http_resp);
 
-	return ok;
+	http_resp_free(http_resp);
 }
 
 void *kola_login_thread(void *arg);
 
 KolaClient::KolaClient(void)
 {
+	signal(SIGPIPE, SIG_IGN);
 	char buffer[512];
-	char *p = GetIP(SERVER_HOST);
+	char *ip = GetIP(SERVER_HOST);
 
-	if (p) {
-		sprintf(buffer, "http://%s:%d", p, PORT);
+	if (ip) {
+		sprintf(buffer, "http://%s:%d", ip, PORT);
 		baseUrl = buffer;
-		free(p);
+		free(ip);
 	}
 
 	nextLoginSec = 3;
@@ -481,10 +477,15 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 
 //	name = "album";
 //	source = "http://tv.sohu.com/s2012/azhx/";
-	printf("[%s]: %s\n", name, source);
+//	printf("[%s]: %s\n", name, source);
 
+#if TEST
 	if (UrlGetCache("", text, source) == false)
 		return false;
+#else
+	if (UrlGet("", text, source) == false)
+		return false;
+#endif
 
 	if (text.size() == 0)
 		return false;
@@ -690,7 +691,7 @@ void *kola_login_thread(void *arg)
 	return NULL;
 }
 
-KolaClient& KolaClient::Instance(void)
+KolaClient& KolaClient::Instance(const char *user_id)
 {
 	static KolaClient m_kola;
 

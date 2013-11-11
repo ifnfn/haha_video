@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unistd.h>
 
 #include <algorithm>
 #include <pthread.h>
@@ -46,8 +47,7 @@ class Task {
 		Task(void);
 		virtual ~Task();
 
-		virtual bool Run()     {return false;}
-		virtual bool Destroy() {return false;}
+		virtual void Run(void)     {}
 
 		void Start();
 
@@ -79,9 +79,8 @@ class VideoSegment: public Task {
 	public:
 		VideoSegment(void);
 		VideoSegment(KolaVideo *video, json_t *js);
-		VideoSegment(std::string u, std::string n, double d, size_t s);
 
-		virtual bool Run(void);
+		virtual void Run(void);
 		bool LoadFromJson(json_t *js);
 	private:
 		std::string url;
@@ -153,8 +152,7 @@ class Picture: public Task {
 		size_t size;
 		std::string fileName;
 		bool inCache;
-		virtual bool Run();
-		virtual bool Destroy();
+		virtual void Run();
 		bool used;
 };
 
@@ -178,12 +176,8 @@ class FilterValue: public StringList {
 		FilterValue(const std::string items);
 		FilterValue() {}
 		~FilterValue() {}
-		void Set(std::string v) {
-			value = v;
-		}
-		std::string Get(void) {
-			return value;
-		}
+		void Set(std::string v) { value = v; }
+		std::string Get(void) { return value; }
 	private:
 		std::string value;
 };
@@ -286,7 +280,6 @@ class AlbumPage {
 class KolaMenu {
 	public:
 		KolaMenu(void);
-		KolaMenu(const KolaMenu& m);
 		KolaMenu(json_t *js);
 		virtual ~KolaMenu(void) {}
 
@@ -295,21 +288,22 @@ class KolaMenu {
 		StringList  quickFilters;
 		KolaFilter  Filter;
 		KolaSort    Sort;
+		std::string Language;
 
-		int GetPage(AlbumPage &page, int pageNo = -1);
-		bool SetQuickFilter(std:: string);
-		void SetPageSize(int size) {PageSize = size;}
+		void   SetLanguage(std::string lang);
+		int    GetPage(AlbumPage &page, int pageNo = -1);
+		bool   SetQuickFilter(std:: string);
+		void   SetPageSize(int size) {PageSize = size;}
 		size_t GetPageSize() { return PageSize;}
-		int GetAlbumCount();
-		int Seek(std::string vid);
-		int Search(AlbumPage &page, std::string keyword, int pageNo);
+		int    GetAlbumCount();
+		int    Seek(std::string vid);
+		int    Search(AlbumPage &page, std::string keyword, int pageNo);
 	protected:
 		KolaClient *client;
 		int PageSize;
 		int PageId;
 		int albumCount;
 		std::string quickFilter;
-		std::string language;
 		virtual int LowGetPage(AlbumPage &page, int pageId, int pageSize);
 		int ParserJson(AlbumPage &page, json_t *js);
 		int ParserJson(AlbumPage &page, std::string &jsonstr);
@@ -333,7 +327,7 @@ class CustomMenu: public KolaMenu {
 
 class KolaClient {
 	public:
-		static KolaClient& Instance(void);
+		static KolaClient& Instance(const char *user_id = NULL);
 		~KolaClient(void);
 
 		void Quit(void);

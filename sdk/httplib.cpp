@@ -13,7 +13,6 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <time.h>
-#include <stdarg.h>
 #include <zlib.h>
 #include <sys/ioctl.h>
 

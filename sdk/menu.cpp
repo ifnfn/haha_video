@@ -6,7 +6,7 @@
 KolaMenu::KolaMenu() {
 	cid = -1;
 	PageId = -1;
-	language = "zh";
+	Language = "zh";
 	//quickFilter = "";
 	PageSize = DEFAULT_PAGE_SIZE;
 	albumCount = 0;
@@ -56,21 +56,6 @@ KolaMenu::KolaMenu(json_t *js)
 				quickFilters << s;
 		}
 	}
-}
-
-KolaMenu::KolaMenu(const KolaMenu &m)
-{
-	name         = m.name;
-	cid          = m.cid;
-	PageSize     = m.PageSize;
-	PageId       = m.PageId;
-	client       = m.client;
-	Filter       = m.Filter;
-	Sort         = m.Sort;
-	albumCount   = m.albumCount;;
-	language     = m.language;
-	quickFilter  = m.quickFilter;
-	quickFilters = m.quickFilters;
 }
 
 bool KolaMenu::SetQuickFilter(std:: string name)

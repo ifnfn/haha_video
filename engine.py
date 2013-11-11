@@ -6,6 +6,7 @@ import json
 import configparser
 import tornado.escape
 import redis
+import threading
 from utils import autostr, autoint, GetQuickFilter
 
 class Template:
@@ -23,6 +24,7 @@ class Commands:
         self.time = time.time()
         self.urlmap = {}
         self.pipe = None
+        self.mutex = threading.Lock()
 
         self.map_table = map_table
         self.db = redis.Redis(host='127.0.0.1', port=6379, db=1)
@@ -64,12 +66,15 @@ class Commands:
             ret = []
             print(time.time() - self.time)
             self.time = time.time()
+            self.mutex.acquire()
             for _ in range(count):
                 cmd = self.db.lpop('command')
                 if cmd:
                     ret.append(tornado.escape.json_decode(cmd))
                 else:
                     break
+            self.mutex.release()
+
             return ret
         return None
 

@@ -18,15 +18,6 @@ VideoSegment::VideoSegment(KolaVideo *video, json_t *js)
 	LoadFromJson(js);
 }
 
-VideoSegment::VideoSegment(std::string u, std::string n, double d, size_t s)
-{
-	url = u;
-	newfile = n;
-	duration = d;
-	size = s;
-	video = NULL;
-}
-
 bool VideoSegment::LoadFromJson(json_t *js)
 {
 	url      = json_gets   (js, "url", "");
@@ -49,17 +40,15 @@ std::string VideoSegment::GetJsonStr(std::string *newUrl)
 	return std::string(buffer);
 }
 
-bool VideoSegment::Run()
+void VideoSegment::Run()
 {
 	std::string text;
 	KolaClient *client =& KolaClient::Instance();
 
-	if (client->UrlGet("", text, url.c_str()) == false)
-		return false;
-
-	realUrl = GetJsonStr(&text);
-
-	return true;
+	if (client->UrlGet("", text, url.c_str()) == true)
+		realUrl = GetJsonStr(&text);
+	else
+		realUrl = "";
 }
 
 KolaVideo::KolaVideo(json_t *js)
@@ -118,27 +107,26 @@ bool KolaVideo::UpdatePlayInfo(json_t *js)
 bool KolaVideo::GetPlayInfo(void)
 {
 	std::string text;
-	json_t *js;
-	json_error_t error;
 	KolaClient *client = &KolaClient::Instance();
+	bool ret = false;
 	char buffer[128];
 
 	if (client->UrlGet("", text, playUrl.c_str()) == false)
 		return false;
 
 	sprintf(buffer, "/video/getplayer?cid=%d", cid);
-	if (client->UrlPost(buffer, text.c_str(), text) == false)
-		return false;
+	if (client->UrlPost(buffer, text.c_str(), text) == true) {
+		json_t *js;
+		json_error_t error;
 
-	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-	if (js == NULL)
-		return false;
+		js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+		if (js) {
+			ret = UpdatePlayInfo(js);
+			json_decref(js);
+		}
+	}
 
-	return UpdatePlayInfo(js);
-
-	json_decref(js);
-
-	return true;
+	return ret;
 }
 
 bool KolaVideo::LoadFromJson(json_t *js)

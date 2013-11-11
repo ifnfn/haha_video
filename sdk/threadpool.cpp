@@ -46,9 +46,8 @@ Thread::~Thread()
 }
 
 void Thread::Execute() {
-	if (task) {
+	if (task)
 		task->lowRun();
-	}
 }
 
 void ThreadPool::ExecuteThread(Thread *thread)
@@ -70,15 +69,14 @@ void ThreadPool::ExecuteThread(Thread *thread)
 
 		/*等待队列长度减去1，并取出链表中的头元素*/
 		Task *task = taskList.front();
-		taskList.pop_front();
-		//task->lock();
-		task->SetStatus(Task::StatusDownloading);
-		//task->unlock();
-		thread->SetTask(task);
-		pr_debug("thread 0x%lx is starting to work, task=%p\n", pthread_self(), task);
-		pthread_mutex_unlock(&queue_lock);
-		if (task)
+		if (task) {
+			taskList.pop_front();
+			task->SetStatus(Task::StatusDownloading);
+			thread->SetTask(task);
+			pr_debug("thread 0x%lx is starting to work, task=%p\n", pthread_self(), task);
+			pthread_mutex_unlock(&queue_lock);
 			thread->Execute();
+		}
 	}
 }
 
@@ -121,7 +119,7 @@ bool ThreadPool::AddTask(Task *task)
 {
 	pthread_mutex_lock(&queue_lock);
 	taskList.push_back(task);
-	pr_debug("cur_queue_size = %d, task=%p, stauts=%d\n", taskList.size(), task, task->status);
+	pr_debug("cur_queue_size = %d, task=%p\n", taskList.size(), task);
 
 	pthread_cond_signal(&queue_ready);
 	pthread_mutex_unlock(&queue_lock);
@@ -136,7 +134,7 @@ bool ThreadPool::RemoveTask(Task *task)
 	for (std::deque<Task*>::iterator it = taskList.begin(); it != taskList.end(); it++) {
 		if (*it == task) {
 			taskList.erase(it);
-			pr_debug("cur_queue_size = (%d) %d\n", task->status, taskList.size());
+			pr_debug("cur_queue_size = %d\n", taskList.size());
 			pthread_mutex_unlock(&queue_lock);
 			return true;
 		}

@@ -32,7 +32,7 @@ class TextvVideo(VideoBase):
 
 class TextvAlbum(AlbumBase):
     def __init__(self, parent):
-        AlbumBase.__init__(self, parent)
+        super().__init__(parent)
         self.VideoClass = TextvVideo
 
     # 更新节目完整信息
@@ -41,7 +41,7 @@ class TextvAlbum(AlbumBase):
 
 class TextvTV(VideoMenuBase):
     def __init__(self, name, engine):
-        VideoMenuBase.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage    = ''
         self.HomeUrlList = []
         self.albumClass  = TextvAlbum
@@ -95,7 +95,7 @@ class TextvTV(VideoMenuBase):
 # Letv 搜索引擎
 class TextvEngine(VideoEngine):
     def __init__(self, db, command):
-        VideoEngine.__init__(self, db, command)
+        super().__init__(db, command)
 
         self.engine_name = 'TextvEngine'
         self.albumClass = TextvAlbum
@@ -107,7 +107,7 @@ class TextvEngine(VideoEngine):
         }
 
         self.parserList = {
-                   'text_livetv_list' : self._CmdParserLiveTVList,
+            'text_livetv_list' : self._CmdParserLiveTVList,
         }
 
     # 从分页的页面上解析该页上的节目

@@ -255,14 +255,14 @@ int is_reallyconnect(int socket_fd)
 	fd_set fds_write;
 	fd_set fds_read;
 
-	while (count++ < 30) {
+	while (count++ < 100) {
 		struct timeval tv;
 		FD_ZERO(&fds_write);
 		FD_SET(socket_fd, &fds_write);
 		FD_ZERO(&fds_read);
 		FD_SET(socket_fd, &fds_read);
 		tv.tv_sec = 0;
-		tv.tv_usec = 200 * 1000;
+		tv.tv_usec = 100 * 1000;
 
 		ret = select(socket_fd + 1, &fds_read, &fds_write, NULL, &tv);
 		if (ret < 0) {
@@ -315,32 +315,34 @@ int tcp_connect2(const char *host, int port, int block)
 		if(sockfd < 0)
 			continue;
 
-		if (ioctl(sockfd, FIONBIO, &opt) < 0) {
-			close(sockfd);
-			sockfd = -1;
-			continue;
-		}
-
-		if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0) {
-			if( errno != EINPROGRESS ) {
-				printf("connect error : %s\n", strerror(errno));
+		if( block == NONBLOCK ) {
+			if (ioctl(sockfd, FIONBIO, &opt) < 0) {
 				close(sockfd);
 				sockfd = -1;
 				continue;
 			}
+		}
 
+		if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0) {
 			if( block == NONBLOCK ) {
+				if( errno != EINPROGRESS ) {
+					printf("connect error : %s\n", strerror(errno));
+					close(sockfd);
+					sockfd = -1;
+					continue;
+				}
+
 				if (is_reallyconnect(sockfd) != 0) {
 					close(sockfd);
 					sockfd = -1;
 					continue;
 				}
-			}
-			opt = 0;
-			if (ioctl(sockfd, FIONBIO, &opt) < 0) {
-				close(sockfd);
-				sockfd = -1;
-				continue;
+				opt = 0;
+				if (ioctl(sockfd, FIONBIO, &opt) < 0) {
+					close(sockfd);
+					sockfd = -1;
+					continue;
+				}
 			}
 		}
 

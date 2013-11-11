@@ -119,7 +119,7 @@ class DB:
     #        "vid": -1
     #    }
     # disablePage 为Ture时，页的大小不能为 0
-    def GetAlbumListJson(self, arg, cid=-1,All=False, disablePage=False):
+    def GetAlbumListJson(self, arg, cid=-1, All=False, disablePage=False):
         self.ConvertJson(arg)
         ret = []
         count = 0

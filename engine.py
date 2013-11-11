@@ -220,53 +220,51 @@ class AlbumBase:
         self.engineList = []
         self.engineList.append(engine.engine_name)
 
-        self.sources = {}        # 直接节目
-        self.albumName = ''      # 名称
-        self.enAlbumName = ''    # 英文名称
+        self.sources = {}        # 直接节目    [*]
+        self.albumName = ''      # 名称       [*]
+        self.enAlbumName = ''    # 英文名称    [*]
         self.albumPageUrl = ''
         self.pid = ''
         self.playlistid = ''
-        self.vid = ''
-        self.area = ''            # 地区
-        self.categories  = []     # 类型
-        self.publishYear = ''     # 发布年份
-        self.isHigh      = 0      # 是否是高清
+        self.vid = ''             #           [*]
+        self.area = ''            # 地区       [*]
+        self.categories  = []     # 类型       [*]
+        self.publishYear = ''     # 发布年份    [*]
+        self.isHigh      = 0      # 是否是高清  [*]
 
-        self.largePicUrl = ''     # 大图片网址
-        self.smallPicUrl = ''     # 小图片网址
-        self.largeHorPicUrl = ''
-        self.smallHorPicUrl = ''
-        self.largeVerPicUrl = ''
-        self.smallVerPicUrl = ''
+        self.largePicUrl = ''     # 大图片网址  [*]
+        self.smallPicUrl = ''     # 小图片网址  [*]
+        self.largeHorPicUrl = ''  # [*]
+        self.smallHorPicUrl = ''  # [*]
+        self.largeVerPicUrl = ''  # [*]
+        self.smallVerPicUrl = ''  # [*]
 
-        self.playLength = 0.0
-        self.publishTime = ''
-        self.updateTime = 0
+        self.playLength = 0.0     # [*]
+        self.publishTime = ''     # [*]
+        self.updateTime = 0       # [*]
 
-        self.albumDesc = ''
-        self.videoScore = ''
+        self.albumDesc = ''       # [*]
+        self.videoScore = ''      # [*]
 
-        self.defaultPageUrl  = '' # 当前播放集
-        self.filmType        = '' # "TV" or ""
-        self.totalSet        = 0  # 总集数
-        self.updateSet       = 0  # 当前更新集
-        self.dailyPlayNum    = 0  # 每日播放次数
-        self.weeklyPlayNum   = 0  # 每周播放次数
-        self.monthlyPlayNum  = 0  # 每月播放次数
-        self.totalPlayNum    = 0  # 总播放资料
-        self.dailyIndexScore = 0  # 每日指数
+        self.totalSet        = 0  # 总集数      [*]
+        self.updateSet       = 0  # 当前更新集   [*]
+        self.dailyPlayNum    = 0  # 每日播放次数 [*]
+        self.weeklyPlayNum   = 0  # 每周播放次数 [*]
+        self.monthlyPlayNum  = 0  # 每月播放次数 [*]
+        self.totalPlayNum    = 0  # 总播放次数   [*]
+        self.dailyIndexScore = 0  # 每日指数    [*]
 
-        self.mainActors = []
-        self.directors = []
+        self.mainActors = []      # [*]
+        self.directors = []       # [*]
 
         self.videos = []
 
     def SaveToJson(self):
         ret = {}
-        if self.cid :        ret['cid']        = self.cid
-        if self.vid :        ret['vid']        = self.vid
-        if self.playlistid : ret['playlistid'] = self.playlistid
-        if self.engineList : ret['engineList'] = self.engineList
+        if self.cid             : ret['cid']            = self.cid
+        if self.vid             : ret['vid']            = self.vid
+        if self.playlistid      : ret['playlistid']     = self.playlistid
+        if self.engineList      : ret['engineList']     = self.engineList
 
         if self.albumName       : ret['albumName']      = self.albumName
         if self.albumPageUrl    : ret['albumPageUrl']   = self.albumPageUrl
@@ -277,7 +275,6 @@ class AlbumBase:
         if self.categories      : ret['categories']     = self.categories
         if self.publishYear     : ret['publishYear']    = self.publishYear
 
-        if self.defaultPageUrl  : ret['defaultPageUrl'] = self.defaultPageUrl
         if self.albumDesc       : ret['albumDesc']      = self.albumDesc
         if self.videoScore      : ret['videoScore']     = self.videoScore
         if self.totalSet        : ret['totalSet']       = self.totalSet
@@ -326,8 +323,6 @@ class AlbumBase:
         if 'categories' in json     : self.categories      = json['categories']
         if 'publishYear' in json    : self.publishYear     = json['publishYear']
 
-        if 'defaultPageUrl' in json : self.defaultPageUrl  = json['defaultPageUrl']
-
         if 'playLength' in json     : self.playLength      = json['playLength']
         if 'publishTime' in json    : self.publishTime     = json['publishTime']
         if 'updateTime' in json     : self.updateTime      = json['updateTime']
@@ -343,6 +338,7 @@ class AlbumBase:
         if 'albumDesc' in json      : self.albumDesc       = json['albumDesc']
         if 'videoScore' in json     : self.videoScore      = json['videoScore']
         if 'totalSet' in json       : self.totalSet        = json['totalSet']
+        if 'updateSet' in json      : self.updateSet       = json['updateSet']
 
         if 'mainActors' in json     : self.mainActors      = json['mainActors']
         if 'directors' in json      : self.directors       = json['directors']

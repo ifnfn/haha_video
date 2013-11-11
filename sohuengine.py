@@ -18,6 +18,9 @@ from utils import autostr, autoint, json_get, log
 SOHU_HOST = 'tv.sohu.com'
 MAX_TRY = 3
 
+global Debug
+Debug = True
+
 # 搜狐节目列表
 class TemplateVideoAll(Template):
     def __init__(self, menu):
@@ -48,7 +51,7 @@ class TemplateAlbumPage(Template):
             'regular' : [
                 'var ((playlistId|pid|vid|PLAYLIST_ID|cid|playAble)\s*=\W*([\d,]+))'
             ],
-            'cache' : True
+            'cache' : True or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -62,7 +65,7 @@ class TemplateAlbumScore(Template):
                 'attachment.album',
                 'attachment.index'
             ],
-            'cache' : False
+            'cache' : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -72,7 +75,7 @@ class TemplateAlbumTotalPlayNum(Template):
         cmd = {
             'name'    : 'sohu_album_total_playnum',
             'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=%s,' % album.vid,
-            'cache' : False
+            'cache' : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -92,7 +95,7 @@ class TemplateAlbumFullInfo(Template):
         cmd = {
             'name' : 'sohu_album_fullinfo',
             'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s&vid=%s' % (album.playlistid, album.vid),
-            'cache' : True
+            'cache' : True or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -104,7 +107,7 @@ class TemplateAlbumMvInfo(Template):
             'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
             'homePage': source_url,
             'regular' : ['var video_album_videos_result=(\{.*.\})'],
-            'cache' : False
+            'cache' : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -116,7 +119,7 @@ class TemplateAlbumMvInfoMini(Template):
             'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
             'homePage': source_url,
             'regular' : ['("playlistId":\w+)'],
-            'cache' : False
+            'cache' : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -134,7 +137,7 @@ class TemplateAlbumPlayInfo(Template):
                 'data.relativeId',
                 'id'
             ],
-            'cache' : False
+            'cache' : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -158,10 +161,28 @@ class SohuVideo(VideoBase):
         else:
             return ''
 
+    def SaveToJson(self):
+        ret = super().SaveToJson()
+
+        return ret
+
+    def LoadFromJson(self, json):
+        super().super().SaveToJson(json)
+
 class SohuAlbum(AlbumBase):
     def __init__(self, parent):
-        AlbumBase.__init__(self, parent)
+        super().__init__(parent)
+
         self.VideoClass = SohuVideo
+
+    def SaveToJson(self):
+        ret = super().SaveToJson()
+
+        return ret
+
+    def LoadFromJson(self, json):
+        super().LoadFromJson(json)
+        pass
 
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
@@ -189,7 +210,7 @@ class SohuAlbum(AlbumBase):
 
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name, engine):
-        VideoMenuBase.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage = ''
         self.HomeUrlList = []
         if hasattr(self, 'number'):
@@ -414,7 +435,7 @@ class SohuVideoMenu(VideoMenuBase):
 class SohuMovie(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 100
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
 #        self.HomeUrlList = [
 #            'http://so.tv.sohu.com/list_p1100_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html',
 #        ]
@@ -520,7 +541,7 @@ class SohuMovie(SohuVideoMenu):
 class SohuTV(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 101
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.cid = 2
 
         self.homePage = 'http://tv.sohu.com/tvall/'
@@ -612,7 +633,7 @@ class SohuTV(SohuVideoMenu):
 class SohuComic(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 115
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage = 'http://tv.sohu.com/comicall/'
         self.filter = {
             '年份' : self.filter_year,
@@ -676,7 +697,7 @@ class SohuComic(SohuVideoMenu):
 class SohuShow(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 106
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage = ''
         self.filter = {
             '类型' : {
@@ -712,7 +733,7 @@ class SohuShow(SohuVideoMenu):
 class SohuDocumentary(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 107
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage = ''
         self.filter = {
             '类型': {
@@ -739,7 +760,7 @@ class SohuDocumentary(SohuVideoMenu):
 class SohuEdu(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 119
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage = ''
         self.filter = {
             '类型': {
@@ -762,7 +783,7 @@ class SohuEdu(SohuVideoMenu):
 class SohuNew(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 122
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.filter = {
             '类型':{
                 '国内':'122204',
@@ -788,7 +809,7 @@ class SohuNew(SohuVideoMenu):
 class SohuYule(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 112
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.filter = {
             '类型':{
                 '明星':'112103',
@@ -814,7 +835,7 @@ class SohuYule(SohuVideoMenu):
 class SohuTour(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 131
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.filter = {
             '类型': {
                 '自驾游' : '131100',
@@ -839,7 +860,7 @@ class SohuTour(SohuVideoMenu):
 class SohuLiveTV(SohuVideoMenu):
     def __init__(self, name, engine):
         self.number = 200
-        SohuVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage = 'http://tv.sohu.com/live/'
         self.cid = 200
         self.filter = {
@@ -900,7 +921,7 @@ class SohuLiveTV(SohuVideoMenu):
 # Sohu 搜索引擎
 class SohuEngine(VideoEngine):
     def __init__(self, db, command):
-        VideoEngine.__init__(self, db, command)
+        super().__init__(db, command)
 
         self.engine_name = 'SohuEngine'
         self.albumClass = SohuAlbum
@@ -1027,6 +1048,7 @@ class SohuEngine(VideoEngine):
 
             if 'albumDesc' in json      : album.albumDesc      = json['albumDesc']
             if 'totalSet' in json       : album.totalSet       = json['totalSet']
+            if 'updateSet' in json      : album.updateSet      = json['updateSet']
 
             if 'mainActors' in json     : album.mainActors     = json['mainActors']
             if 'directors' in json      : album.directors      = json['directors']

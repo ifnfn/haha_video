@@ -46,6 +46,7 @@ void test_custommenu()
 	}
 
 	menu->SaveToFile();
+	delete menu;
 
 	printf("%s End!!!\n", __func__);
 }
@@ -192,13 +193,13 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	printf("Test LiveTV\n"); test_livetv();
+//	printf("Test LiveTV\n"); test_livetv();
 
 	printf("Test Video\n"); test_video("电影");
 
-	printf("Test TV\n");    test_video("电视剧");
-
-	test_custommenu();
-	printf("end\n");
-	test_task(); return 0;
+//	printf("Test TV\n");    test_video("电视剧");
+//
+//	test_custommenu();
+//	printf("end\n");
+//	test_task(); return 0;
 }

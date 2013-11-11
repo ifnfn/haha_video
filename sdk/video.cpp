@@ -9,12 +9,10 @@ VideoSegment::VideoSegment()
 {
 	duration = 0;
 	size = 0;
-	video = NULL;
 }
 
-VideoSegment::VideoSegment(KolaVideo *video, json_t *js)
+VideoSegment::VideoSegment(json_t *js)
 {
-	this->video = video;
 	LoadFromJson(js);
 }
 
@@ -74,8 +72,8 @@ KolaVideo::~KolaVideo()
 
 void KolaVideo::Clear() {
 	for (size_t i=0, count = segmentList.size(); i < count; i++) {
-		segmentList[i]->Cancel();
-		delete segmentList[i];
+		segmentList[i].Cancel();
+//		delete segmentList[i];
 	}
 
 	segmentList.clear();
@@ -96,8 +94,9 @@ bool KolaVideo::UpdatePlayInfo(json_t *js)
 		json_t *sets, *value;
 		sets = json_geto(js, "sets");
 		json_array_foreach(sets, value) {
-			VideoSegment *seg = new VideoSegment(this, value);
-			segmentList.push_back(seg);
+			//VideoSegment *seg = new VideoSegment(value);
+			//segmentList.push_back(seg);
+			segmentList.push_back(VideoSegment(value));
 		}
 	}
 
@@ -188,12 +187,12 @@ std::string KolaVideo::GetVideoUrl(void)
 		return directPlayUrl;
 
 	for (size_t i = 0; i < count; i++) {
-		VideoSegment *seg = segmentList[i];
+		VideoSegment *seg = &segmentList[i];
 		seg->Start();
 	}
 
 	for (size_t i = 0; i < count; i++) {
-		VideoSegment *seg = segmentList[i];
+		VideoSegment *seg = &segmentList[i];
 		seg->Wait();
 		videos << seg->realUrl;
 	}

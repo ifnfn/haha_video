@@ -36,7 +36,8 @@ class LetvVideo(VideoBase):
 
 class LetvAlbum(AlbumBase):
     def __init__(self, parent):
-        AlbumBase.__init__(self, parent)
+        super().__init__(parent)
+
         self.VideoClass = LetvVideo
 
     # 更新节目完整信息
@@ -47,7 +48,7 @@ class LetvAlbum(AlbumBase):
 
 class LetvVideoMenu(VideoMenuBase):
     def __init__(self, name, engine):
-        VideoMenuBase.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage    = ''
         self.HomeUrlList = []
         self.albumClass  = LetvAlbum
@@ -82,7 +83,7 @@ class LetvVideoMenu(VideoMenuBase):
 class LetvLiveTV(LetvVideoMenu):
     def __init__(self, name, engine):
         self.number = 200
-        LetvVideoMenu.__init__(self, name, engine)
+        super().__init__(name, engine)
         self.homePage = 'http://tv.sohu.com/live/'
         self.cid = 200
         self.filter = {
@@ -102,7 +103,7 @@ class LetvLiveTV(LetvVideoMenu):
 # Letv 搜索引擎
 class LetvEngine(VideoEngine):
     def __init__(self, db, command):
-        VideoEngine.__init__(self, db, command)
+        super().__init__(db, command)
 
         self.engine_name = 'LetvEngine'
         self.albumClass = LetvAlbum

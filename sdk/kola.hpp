@@ -38,11 +38,12 @@ enum PicType {
 class Task {
 	public:
 		enum {
-			StatusFree = 0,
-			StatusWait = 1,
-			StatusDownloading = 2,
-			StatusFinish = 3,
-			StatusCancel = 4
+			StatusInit = 0,
+			StatusFree = 1,
+			StatusWait = 2,
+			StatusDownloading = 3,
+			StatusFinish = 4,
+			StatusCancel = 5
 		};
 		Task(void);
 		virtual ~Task();
@@ -78,7 +79,7 @@ class Task {
 class VideoSegment: public Task {
 	public:
 		VideoSegment(void);
-		VideoSegment(KolaVideo *video, json_t *js);
+		VideoSegment(json_t *js);
 
 		virtual void Run(void);
 		bool LoadFromJson(json_t *js);
@@ -89,7 +90,6 @@ class VideoSegment: public Task {
 		double duration;
 		size_t size;
 
-		KolaVideo *video;
 		std::string GetJsonStr(std::string *newUrl);
 		friend class KolaVideo;
 };
@@ -135,7 +135,7 @@ class KolaVideo {
 		std::string directPlayUrl;
 		int haveOriginalData;
 		bool UpdatePlayInfo(json_t *js);
-		std::vector<VideoSegment*> segmentList;
+		std::vector<VideoSegment> segmentList;
 
 		bool GetPlayInfo(void);
 		void deleteLocalVideoFile();

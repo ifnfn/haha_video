@@ -19,19 +19,25 @@ Task::Task() {
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&ready, NULL);
 
-	status = Task::StatusFree;
+	status = Task::StatusInit;
 }
 
 Task::~Task()
 {
-	Wait();
-
-	pthread_mutex_destroy(&mutex);
-	pthread_cond_destroy(&ready);
+	if (status != Task::StatusInit) {
+		Wait();
+		pthread_mutex_destroy(&mutex);
+		pthread_cond_destroy(&ready);
+	}
 }
 
 void Task::Start() {
 	KolaClient *client = &KolaClient::Instance();
+
+	if (status == Task::StatusInit) {
+		pthread_mutex_init(&mutex, NULL);
+		pthread_cond_init(&ready, NULL);
+	}
 
 	SetStatus(Task::StatusWait);
 	client->threadPool->AddTask(this);

@@ -25,7 +25,7 @@ Debug = True
 class TemplateVideoAll(Template):
     def __init__(self, menu):
         cmd = {
-            'name' : 'sohu_videoall',
+            'name'  : 'sohu_videoall',
             'source': menu.homePage
         }
         super().__init__(menu.command, cmd)
@@ -34,11 +34,13 @@ class TemplateVideoAll(Template):
 class TemplateVideoList(Template):
     def __init__(self, menu, url):
         cmd = {
-            'name': 'sohu_videolist',
-            'source': url,
+            'name'   : 'sohu_videolist',
+            'source' : url,
+            #'regular': ['<p class="tit tit-p"><a target="_blank"\s*(.+)>.*</a>'],
             'regular': [
-                '<p class="tit tit-p"><a target="_blank"\s*(.+)>.*</a>'
-            ]
+                        '(<li class="clear">|<p class="tit tit-p.*|<em class="pay"></em>|\t</li>)'
+                        ],
+            'cache'  : False or Debug
         }
         super().__init__(menu.command, cmd)
 
@@ -48,10 +50,8 @@ class TemplateAlbumPage(Template):
         cmd = {
             'name'    : 'sohu_album',
             'source'  : album.albumPageUrl,
-            'regular' : [
-                'var ((playlistId|pid|vid|PLAYLIST_ID|cid|playAble)\s*=\W*([\d,]+))'
-            ],
-            'cache' : True or Debug
+            'regular' : ['var ((pid = PLAYLIST_ID = playlistId|playlistId|playlistid|PLAYLIST_ID|pid|vid|cid|playAble|playable)\s*=\W*([\d,]+))'],
+            'cache'   : True or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -65,7 +65,7 @@ class TemplateAlbumScore(Template):
                 'attachment.album',
                 'attachment.index'
             ],
-            'cache' : False or Debug
+            'cache'   : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -75,7 +75,7 @@ class TemplateAlbumTotalPlayNum(Template):
         cmd = {
             'name'    : 'sohu_album_total_playnum',
             'source'  : 'http://count.vrs.sohu.com/count/query.action?videoId=%s,' % album.vid,
-            'cache' : False or Debug
+            'cache'   : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -86,6 +86,7 @@ class TemplateAlbumHotList(Template):
         cmd = {
             'name'    : 'sohu_albumlist_hot',
             'source'  : url,
+            'cache'   : False or Debug
         }
         super().__init__(menu.command, cmd)
 
@@ -93,9 +94,9 @@ class TemplateAlbumHotList(Template):
 class TemplateAlbumFullInfo(Template):
     def __init__(self, album):
         cmd = {
-            'name' : 'sohu_album_fullinfo',
+            'name'   : 'sohu_album_fullinfo',
             'source' : 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s&vid=%s' % (album.playlistid, album.vid),
-            'cache' : True or Debug
+            'cache'  : True or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -107,7 +108,7 @@ class TemplateAlbumMvInfo(Template):
             'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
             'homePage': source_url,
             'regular' : ['var video_album_videos_result=(\{.*.\})'],
-            'cache' : False or Debug
+            'cache'   : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -119,7 +120,7 @@ class TemplateAlbumMvInfoMini(Template):
             'source'  : 'http://search.vrs.sohu.com/mv_i%s.json' % album.vid,
             'homePage': source_url,
             'regular' : ['("playlistId":\w+)'],
-            'cache' : False or Debug
+            'cache'   : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -129,7 +130,7 @@ class TemplateAlbumPlayInfo(Template):
         cmd = {
             'name'   : 'sohu_album_playinfo',
             'source' : url, #'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s',
-            'json' : [
+            'json'   : [
                 'data.highVid',
                 'data.norVid',
                 'data.oriVid',
@@ -137,7 +138,7 @@ class TemplateAlbumPlayInfo(Template):
                 'data.relativeId',
                 'id'
             ],
-            'cache' : False or Debug
+            'cache'  : False or Debug
         }
         super().__init__(album.command, cmd)
 
@@ -146,7 +147,8 @@ class TemplateLiveTVInfo(Template):
     def __init__(self, menu):
         cmd = {
             'name'   : 'sohu_livetv_list',
-            'source' : 'http://tvimg.tv.itc.cn/live/top.json'
+            'source' : 'http://tvimg.tv.itc.cn/live/top.json',
+            'cache'  : False or Debug
         }
         super().__init__(menu.command, cmd)
 
@@ -167,7 +169,7 @@ class SohuVideo(VideoBase):
         return ret
 
     def LoadFromJson(self, json):
-        super().super().SaveToJson(json)
+        super().LoadFromJson(json)
 
 class SohuAlbum(AlbumBase):
     def __init__(self, parent):
@@ -1117,31 +1119,37 @@ class SohuEngine(VideoEngine):
         try:
             text = tornado.escape.to_basestring(js['data'])
 
-            tv = self.NewAlbum()
-            tv.albumPageUrl = js['source']
-            t = re.findall('(playlistId|pid|vid|PLAYLIST_ID|cid|playAble)\s*=\W*([\d,]+)', text)
+            album = self.NewAlbum()
+            album.albumPageUrl = js['source']
+            pay = False
+            t = re.findall('(pid = PLAYLIST_ID = playlistId|playlistId|playlistid|PLAYLIST_ID|pid|vid|cid|playAble|playable)\s*=\W*([\d,]+)', text)
             if t:
                 for u in t:
                     if u[0] == 'pid':
-                        tv.pid = autostr(u[1])
+                        album.pid = autostr(u[1])
                     elif u[0] == 'vid':
                         if u[1] in ['-1', '', '1']:
                             return ret
-                        tv.vid = autostr(u[1])
-                    elif u[0] == 'playlistId' or u[0] == 'PLAYLIST_ID':
-                        tv.playlistid = autostr(u[1])
+                        album.vid = autostr(u[1])
+                    elif u[0] in ['playlistId', 'PLAYLIST_ID', 'playlistid']:
+                        album.playlistid = autostr(u[1])
+                    elif u[0] == 'pid = PLAYLIST_ID = playlistId':
+                        album.pid = album.playlistid = autostr(u[1])
                     elif u[0] == 'cid':
-                        tv.cid = autoint(u[1])
-                    elif u[0] == 'playAble':
-                        if u[1] == 0:
-                            return []
+                        album.cid = autoint(u[1])
+                    elif u[0] in ['playAble', 'playable']:
+                        if u[1] == '0':
+                            pay = True
 
-                self._save_update_append(ret, tv, _filter={'albumPageUrl' : tv.albumPageUrl})#, False)
+                if pay:
+                    self.db.DeleteAlbum(album)
+                    return []
 
-                #TODO
+                self._save_update_append(ret, album)#, _filter={'albumPageUrl' : tv.albumPageUrl})#, False)
+
                 # 如果得不到 playlistId 的话
-                if tv.playlistid == '':
-                    TemplateAlbumMvInfoMini(tv, js['source']).Execute()
+                if album.playlistid == '':
+                    TemplateAlbumMvInfoMini(album, js['source']).Execute()
                 #tv.UpdateFullInfoCommand().Execute()
                 #tv.UpdateScoreCommand().Execute()
 
@@ -1259,6 +1267,7 @@ class SohuEngine(VideoEngine):
         try:
             if not js['data']:
                 return ret
+
             g = re.search('p10(\d+)', js['source'])
             if g:
                 current_page = int(g.group(1))
@@ -1266,25 +1275,33 @@ class SohuEngine(VideoEngine):
                 newurl = re.sub(link, 'p10%d' % (current_page + 1), js['source'])
                 TemplateVideoList(self, newurl).Execute()
 
-            playlist = js['data'].split("\n")
+            soup = bs(js['data'])#, from_encoding = 'GBK')
+            playlist = soup.findAll('li')
+            for a in playlist:
+                text = a.prettify()
+                x = re.findall('pay', text)
+                if x:
+                    continue
 
-            for text in playlist:
-                if text:
-                    tv = self.NewAlbum()
+                album = self.NewAlbum()
 
-                    urls = re.findall('(href|title)="([\s\S]*?)"', text)
-                    for u in urls:
-                        if u[0] == 'href':
-                            tv.albumPageUrl = self.command.GetUrl(u[1])
-                        elif u[0] == 'title':
-                            tv.albumName = u[1]
+                urls = re.findall('(href|title|_s_v|_s_a)="([\s\S]*?)"', text)
+                for u in urls:
+                    if u[0] == 'href':
+                        album.albumPageUrl = self.command.GetUrl(u[1])
+                    elif u[0] == 'title':
+                        album.albumName = u[1]
+                    elif u[0] == '_s_v':
+                        album.vid = u[1]
+                    elif u[0] == '_s_a':
+                        album.playlistid = u[1]
 
-                    if tv.albumPageUrl and tv.albumName:
-                        self._save_update_append(ret, tv, _filter={'albumPageUrl' : tv.albumPageUrl})
+                if album.albumPageUrl and album.albumName:
+                    self._save_update_append(ret, album, _filter={'albumPageUrl' : album.albumPageUrl})
 
-                        # 访问该节目主页，获取更多的信息
-                        #TODO
-                        #tv.UpdateAlbumPageCommand().Execute()
+                    # 访问该节目主页，获取更多的信息
+                    #TODO
+                    #tv.UpdateAlbumPageCommand().Execute()
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))

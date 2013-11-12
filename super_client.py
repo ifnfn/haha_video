@@ -64,6 +64,7 @@ class KolaClient:
                         x += i.group(1).decode("GB18030") + '\n'
                     else:
                         x += i.group(1) + '\n'
+                text = x
         return x
 
     def ProcessCommand(self, cmd, dest, times = 0):
@@ -172,19 +173,13 @@ def main_thread():
 
 if __name__ == "__main__":
     haha = KolaClient()
-    #a = haha.RegularMatchUrl('http://www.letvlive.com',
-    #                         '(<a href="tv.php.*</a>)'.encode())
-    #                         '<h1 class="lm_1">(.*)</h1>'.encode())
-    #print(a)
 
-    #a = haha.RegularMatchUrl("http://search.vrs.sohu.com/mv_i1268037.json",
-    #                         '("playlistId":\w+)'.encode())
-    #print(a)
-    #a = haha.RegularMatchUrl('http://so.tv.sohu.com/list_p1100_p20_p3_p40_p5_p6_p73_p80_p9_2d1_p101_p11.html',
-    #                         '<p class="tit tit-p"><a target="_blank"\s*(.+)>.*</a>'.encode())
-    #                         #'var video_album_videos_result=(\{.*.\})'.encode())
-    #print(a)
-    #main_thread()
+    #regular = [ '(<li class="clear">|<p class="tit tit-p.*|<em class="pay"></em>|\t</li>)' ]
+    #url = 'http://so.tv.sohu.com/list_p1100_p20_p3_p40_p5_p6_p74_p80_p9_2d1_p101_p11.html'
+    #text = haha.GetCacheUrl(url).decode()
+    #haha.RegularMatch(regular, text)
+
+    main_thread()
     #main_one()
-    main()
+    #main()
     #main_loop()

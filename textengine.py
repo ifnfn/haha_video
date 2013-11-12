@@ -30,6 +30,14 @@ class TextvVideo(VideoBase):
         else:
             return ''
 
+    def SaveToJson(self):
+        ret = super().SaveToJson()
+
+        return ret
+
+    def LoadFromJson(self, json):
+        super().LoadFromJson(json)
+
 class TextvAlbum(AlbumBase):
     def __init__(self, parent):
         super().__init__(parent)

@@ -62,9 +62,11 @@ class DB:
                        {'$set' : js},
                        upsert=True, multi=True)
 
-    def SaveAlbum(self, album, key={}, upsert=True):
+    def _GetKeyAndJson(self, album, key):
         album.playlistid = autostr(album.playlistid)
         album.vid        = autostr(album.vid)
+        key = ''
+        js = {}
         if album.albumName or album.albumPageUrl or album.playlistid or album.vid:
             js = album.SaveToJson()
 
@@ -78,13 +80,21 @@ class DB:
                 elif album.playlistid:
                     key = {'playlistid' : album.playlistid}
 
-            if key:
-                self.album_table.update(key,
-                                        {"$set" : js},
-                                        upsert=upsert, multi=True)
+        return key, js
 
-                for v in album.videos:
-                    self.SaveVideo(v)
+    def DeleteAlbum(self, album, key={}):
+        key, _ = self._GetKeyAndJson(album, key)
+        if key:
+            self.album_table.remove(key)
+
+    def SaveAlbum(self, album, key={}, upsert=True):
+        key, js = self._GetKeyAndJson(album, key)
+
+        if key:
+            self.album_table.update(key, {"$set" : js}, upsert=upsert, multi=True)
+
+            for v in album.videos:
+                self.SaveVideo(v)
 
     # 从数据库中找到 album
     def FindAlbumJson(self, playlistid='', albumName='', albumPageUrl='', vid='', auto=False):

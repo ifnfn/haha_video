@@ -497,9 +497,11 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 		json_array_foreach(regular, value) {
 			const char *r = json_string_value(value);
 			pcre.AddRule(r);
+			text = pcre.MatchAll(text.c_str());
+			pcre.ClearRules();
 		}
 
-		text = pcre.MatchAll(text.c_str());
+//		text = pcre.MatchAll(text.c_str());
 	}
 
 	json_t *json_filter = json_geto(cmd, "json");

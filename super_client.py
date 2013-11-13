@@ -174,12 +174,21 @@ def main_thread():
 if __name__ == "__main__":
     haha = KolaClient()
 
-    #regular = [ '(<li class="clear">|<p class="tit tit-p.*|<em class="pay"></em>|\t</li>)' ]
-    #url = 'http://so.tv.sohu.com/list_p1100_p20_p3_p40_p5_p6_p74_p80_p9_2d1_p101_p11.html'
-    #text = haha.GetCacheUrl(url).decode()
-    #haha.RegularMatch(regular, text)
+    # regular = [ '(<div id="pplist">[\s\S]*.?)<div class="ddes">' ]
+    # url = 'http://www.wolidou.com/tvc/weishi/204.html'
+    # text = haha.GetCacheUrl(url)
+    # text = text.decode("GBK")
+    # x = haha.RegularMatch(regular, text)
+    # print(x)
 
-    main_thread()
+    #regular = [ '(<li>\s*<div class="left">[\s\S]*.?</div>\s*</li>|<option value=.*html\'>)' ]
+    #url = 'http://www.wolidou.com/tvz/cctv/70_1.html'
+    #text = haha.GetCacheUrl(url)
+    #text = text.decode("GBK")
+    #x = haha.RegularMatch(regular, text)
+    #print(x)
+
+    #main_thread()
     #main_one()
-    #main()
+    main()
     #main_loop()

@@ -177,7 +177,7 @@ class ShowHandler(BaseHandler):
 
     def get(self):
         vid = self.get_argument('vid')
-        album = tv.db.FindAlbumJson(albumName='', vid=vid, auto=False)
+        album = tv.db.FindAlbumJson(vid=vid, auto=False)
 
         if 'largeVerPicUrl' in album:
             album['pic'] = album['largeVerPicUrl']

@@ -24,15 +24,19 @@ void KolaAlbum::VideosClear() {
 	videos.clear();
 }
 
+size_t KolaAlbum::GetTotalSet() {
+	return totalSet;
+}
+
 size_t KolaAlbum::GetVideoCount()
 {
-	if (directVideos == false || totalSet == 0) {
+	if (directVideos == false || totalSet == 0 || updateSet == 0) {
 		LowVideoGetPage(0, 0);
 		videoPageSize = VIDEO_COUNT;
 		videoPageId = -1;
 	}
 
-       return totalSet;
+       return updateSet;
 }
 
 bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
@@ -56,7 +60,7 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 		return false;
 
 	videos = json_geto(js, "videos");
-	totalSet = json_geti(js, "count", totalSet);
+	updateSet = json_geti(js, "count", updateSet);
 
 	videoPageId = pageNo;
 	videoPageSize = pageSize;
@@ -82,6 +86,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	isHigh         = json_geti(js, "isHigh"     , 0);
 	publishYear    = json_geti(js, "publishYear", 0);
 	totalSet       = json_geti(js, "totalSet"   , 0);
+	updateSet      = json_geti(js, "updateSet"  , totalSet);
 	area           = json_gets(js, "area"       , "");
 
 	videoPlayUrl   = json_gets(js, "videoPlayUrl"  , "");

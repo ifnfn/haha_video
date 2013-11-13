@@ -193,9 +193,12 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-//	printf("Test LiveTV\n"); test_livetv();
+//	KolaClient &kola = KolaClient::Instance();
+//	while(1)
+//		sleep(1);
+	printf("Test LiveTV\n"); test_livetv();
 
-	printf("Test Video\n"); test_video("电影");
+//	printf("Test Video\n"); test_video("电影");
 
 //	printf("Test TV\n");    test_video("电视剧");
 //

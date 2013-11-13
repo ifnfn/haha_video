@@ -4,7 +4,7 @@
 import redis
 import logging
 import tornado.escape
-import sohuengine, letvengine, textengine
+import sohuengine, letvengine, textengine, wolidouengine
 import engine as eg
 from db import DB
 import utils
@@ -24,8 +24,9 @@ class Kolatv:
         self.MenuList = {}
         self.UpdateAlbumFlag = False
 
-        self.AddEngine(sohuengine.SohuEngine)
+        #self.AddEngine(sohuengine.SohuEngine)
         #self.AddEngine(letvengine.LetvEngine)
+        self.AddEngine(wolidouengine.WolidouEngine)
         #self.AddEngine(textengine.TextvEngine)
 
     def AddEngine(self, egClass):
@@ -135,12 +136,12 @@ class Kolatv:
         argument = {}
         argument['fields'] = {'engineList' : True,
                               'albumName': True,
-                              'albumPageUrl': True,
+                              'private': True,
                               'vid': True,
                               'playlistid': True}
 
         albumList = []
-        data, _ = self.db.GetAlbumListJson(argument, All=All, disablePage=True)
+        data, _ = self.db.GetAlbumListJson(argument, disablePage=True, full=True)
         for p in data:
             for (name, engine) in list(self.engines.items()):
                 if 'engineList' in p and name in p['engineList']:

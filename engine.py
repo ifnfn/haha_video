@@ -223,7 +223,6 @@ class AlbumBase:
         self.sources = {}        # 直接节目    [*]
         self.albumName = ''      # 名称       [*]
         self.enAlbumName = ''    # 英文名称    [*]
-        self.albumPageUrl = ''
         self.pid = ''
         self.playlistid = ''
         self.vid = ''             #           [*]
@@ -267,7 +266,6 @@ class AlbumBase:
         if self.engineList      : ret['engineList']     = self.engineList
 
         if self.albumName       : ret['albumName']      = self.albumName
-        if self.albumPageUrl    : ret['albumPageUrl']   = self.albumPageUrl
         if self.pid             : ret['pid']            = self.pid
         if self.isHigh          : ret['isHigh']         = self.isHigh
 
@@ -314,8 +312,6 @@ class AlbumBase:
         if 'pid' in json            : self.pid             = autostr(json['pid'])
         if 'playlistid' in json     : self.playlistid      = autostr(json['playlistid'])
         if 'vid' in json            : self.vid             = autostr(json['vid'])
-
-        if 'albumPageUrl' in json   : self.albumPageUrl    = json['albumPageUrl']
 
         if 'isHigh' in json         : self.isHigh          = json['isHigh']
 
@@ -470,19 +466,16 @@ class VideoEngine:
         return None
 
     # 从数据库中找到album
-    def GetAlbumFormDB(self, playlistid='', albumName='', albumPageUrl='', vid='', auto=False):
+    def GetAlbumFormDB(self, playlistid='', albumName='', vid='', auto=False):
         tv = None
-        json = self.db.FindAlbumJson(playlistid, albumName, albumPageUrl, vid, auto)
+        json = self.db.FindAlbumJson(playlistid, albumName, vid, auto)
         if json:
             tv = self.albumClass(self)
             tv.LoadFromJson(json)
         elif auto:
             tv = self.albumClass(self)
-
-        if tv:
             if playlistid   : tv.playlistid   = playlistid
             if albumName    : tv.albumName    = albumName
-            if albumPageUrl : tv.albumPageUrl = albumPageUrl
 
         return tv
 

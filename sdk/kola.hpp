@@ -216,8 +216,6 @@ class KolaAlbum {
 		std::string categories;      // 类型
 		std::string isHigh;          // 是否是高清
 		int publishYear;             // 发布年份
-		int totalSet;                // 总集数
-		int updateSet;               // 当前更新集
 		int dailyPlayNum;            // 每日播放次数
 		int weeklyPlayNum;           // 每周播放次数
 		int monthlyPlayNum;          // 每月播放次数
@@ -226,6 +224,7 @@ class KolaAlbum {
 		StringList mainActors;
 		StringList directors;
 
+		size_t GetTotalSet();
 		size_t GetVideoCount();
 		std::string &GetPictureUrl(enum PicType type);
 		KolaVideo *GetVideo(int id);
@@ -239,6 +238,8 @@ class KolaAlbum {
 		std::string playlistid;
 		std::vector<KolaVideo*> videos;
 
+		int totalSet;                // 总集数
+		int updateSet;               // 当前更新集
 		std::string videoPlayUrl;
 		std::string largePicUrl;      // 大图片网址
 		std::string smallPicUrl;      // 小图片网址

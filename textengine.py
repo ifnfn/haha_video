@@ -7,17 +7,31 @@ import tornado.escape
 
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
 from utils import log, autostr, GetNameByUrl
+from urllib.parse import quote
 
 #================================= 以下是视频的搜索引擎 =======================================
-
+global Debug
+Debug = False
 # 更新节目的播放信息
 class TemplateTextvInfo(Template):
     def __init__(self, menu):
         cmd = {
             'name'   : 'text_livetv_list',
             'source' : 'http://files.cloudtv.bz/media/20130927.txt',
+            'cache'  : False or Debug
         }
         super().__init__(menu.command, cmd)
+
+class TemplateTextvUrlParser(Template):
+    def __init__(self, album):
+        cmd = {
+            'name'   : 'text_livetv_url_parser',
+            'source' : 'http://ip.chinaz.com/IP/?IP=' + quote(album.sources[0]['directPlayUrl']),
+            'regular': ['(来自:<strong>.*?</strong>|<strong class="red">查询结果.*?</strong>)'],
+            'cache'  : False or Debug,
+            'vid'    : album.vid,
+        }
+        super().__init__(album.command, cmd)
 
 class TextvVideo(VideoBase):
     def __init__(self, js = None):
@@ -116,7 +130,18 @@ class TextvEngine(VideoEngine):
 
         self.parserList = {
             'text_livetv_list' : self._CmdParserLiveTVList,
+            'text_livetv_url_parser' : self._CmdParserLiveTVUrlParser
         }
+
+    def _CmdParserLiveTVUrlParser(self, js):
+        vid = js['vid']
+        text = js['data']
+        #a = re.findall('来自:<strong>(.*)</strong>', text)
+        #
+        #print(a)
+        a = re.findall('<strong class="red">(.*) ==>> (.*) ==>> (.*)</strong>', text)
+        if a and len(a[0]) >= 3:
+            print(vid, a[0][2], js['source'])
 
     # 从分页的页面上解析该页上的节目
     # videolist
@@ -146,17 +171,19 @@ class TextvEngine(VideoEngine):
                     if x not in tv[key]:
                         tv[key].append(x)
         for k,v in list(tv.items()):
-            v.sort(key=lambda x:x['order'])
-            album  = self.NewAlbum()
-            album.cid         = 200
-            album.vid         = k
-            album.playlistid  = k
-            album.pid         = k
-            album.albumName   = k
-            album.categories  = tvmenu.GetCategories(k)
-            album.sources     = v
-            album.totalSet    = len(v)
-            self._save_update_append(None, album)
+            if k and v:
+                v.sort(key=lambda x:x['order'])
+                album  = self.NewAlbum()
+                album.cid         = 200
+                album.vid         = k
+                album.playlistid  = k
+                album.pid         = k
+                album.albumName   = k
+                album.categories  = tvmenu.GetCategories(k)
+                album.sources     = v
+                album.totalSet    = len(v)
+                self._save_update_append(None, album)
+                TemplateTextvUrlParser(album).Execute()
 
     def _save_update_append(self, sets, album, _filter={}, upsert=True):
         if album:

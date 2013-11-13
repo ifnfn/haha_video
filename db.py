@@ -97,16 +97,15 @@ class DB:
                 self.SaveVideo(v)
 
     # 从数据库中找到 album
-    def FindAlbumJson(self, playlistid='', albumName='', albumPageUrl='', vid='', auto=False):
+    def FindAlbumJson(self, playlistid='', albumName='', vid='', auto=False):
         playlistid = autostr(playlistid)
         vid = autostr(vid)
-        if playlistid == '' and albumName == '' and albumPageUrl == '' and vid == '':
+        if playlistid == '' and albumName == '' and vid == '':
             return None
 
         f = []
         if playlistid :   f.append({'playlistid'   : playlistid})
         if albumName :    f.append({'albumName'    : albumName})
-        if albumPageUrl : f.append({'albumPageUrl' : albumPageUrl})
         if vid :          f.append({'vid'          : vid})
 
         return self.album_table.find_one({"$or" : f})
@@ -129,18 +128,14 @@ class DB:
     #        "vid": -1
     #    }
     # disablePage 为Ture时，页的大小不能为 0
-    def GetAlbumListJson(self, arg, cid=-1, All=False, disablePage=False):
+    def GetAlbumListJson(self, arg, cid=-1, disablePage=False, full=False):
         self.ConvertJson(arg)
         ret = []
         count = 0
         try:
             _filter = {}
             if cid != -1:
-                _filter['cid']        = cid
-            if All == False:
-                _filter['playlistid'] = {'$ne' : ''}
-                _filter['vid']        = {'$ne' : ''}
-
+                _filter['cid'] = cid
             if 'filter' in arg:
                 _filter.update(arg['filter'])
 
@@ -164,6 +159,12 @@ class DB:
             if size or disablePage:
                 for x in cursor:
                     del x['_id']
+                    if not full:
+                        if 'private' in x:
+                            del x['private']
+                        if 'engineList' in x:
+                            del x['engineList']
+
                     ret.append(x)
         except:
             t, v, tb = sys.exc_info()

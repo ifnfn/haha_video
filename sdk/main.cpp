@@ -3,6 +3,7 @@
 
 #include "kola.hpp"
 
+extern int lua_main();
 void test_task()
 {
 	int c = 100;
@@ -193,6 +194,9 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
+	lua_main();
+
+	return 0;
 //	KolaClient &kola = KolaClient::Instance();
 //	while(1)
 //		sleep(1);

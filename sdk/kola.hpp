@@ -26,6 +26,8 @@ class Task;
 
 extern void split(const std::string &s, std::string delim, std::vector< std::string > *ret);
 
+extern "C" const char *UrlGet(const char *url);
+
 enum PicType {
 	PIC_LARGE,      // 大图片网址
 	PIC_SMALL,      // 小图片网址
@@ -342,6 +344,10 @@ class KolaClient {
 		int MenuCount() { return menuMap.size(); };
 		bool haveCommand() { return havecmd; }
 		inline std::string GetFullUrl(std::string url) { return baseUrl + url; }
+		bool UrlGet(std::string url, const char *home_url, void **http_resp, int times = 0);
+		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL);
+		bool UrlGetCache(std::string url, std::string &ret, const char *home_url = NULL);
+		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
 	private:
 		KolaClient(void);
 		std::string baseUrl;
@@ -350,10 +356,6 @@ class KolaClient {
 		int nextLoginSec;
 		ThreadPool *threadPool;
 
-		bool UrlGet(std::string url, const char *home_url, void **http_resp, int times = 0);
-		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL);
-		bool UrlGetCache(std::string url, std::string &ret, const char *home_url = NULL);
-		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
 		bool Login(bool quick=false);
 		char *Run(const char *cmd);
 		bool ProcessCommand(json_t *cmd, const char *dest);

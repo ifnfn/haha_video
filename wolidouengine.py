@@ -187,17 +187,35 @@ class WolidouEngine(VideoEngine):
         for a in playlist:
             text = str(a)
             b = re.findall('<span class="ppls_s">(\S*)\s*?', text)
+            
+            if b == None:
+                continue
 
-            if b and b[0] in set(['基本收视服务器：', 'M3U8专线服务器：', '超速服务器：', '飞速服务器：', '极速服务器【节目可回放】：']):
+            if b[0] == '基本收视服务器：':
+                print(b)
+                b = re.findall('<li><a href="(.*0.html)" target="_blank">.*</a></li>', text)
+                if b:
+                    for url in b:
+                        print(HOST_URL + url)
+                        TemplateWolidouAlbumVideoUrl(self, HOST_URL + url).Execute()
+                
+            if b == '极速服务器：':
                 print(b)
                 b = re.findall('<li><a href="(.*)" target="_blank">.*</a></li>', text)
                 if b:
                     for url in b:
                         print(HOST_URL + url)
-                        TemplateWolidouAlbumVideoUrl(self, HOST_URL + url).Execute()
-            else:
-                print("No server", b) #<input type="hidden" id="zsurl" name="zsurl"
-
+                
+#            if b and b[0] in set(['基本收视服务器：', 'M3U8专线服务器：', '超速服务器：', '飞速服务器：', '极速服务器【节目可回放】：']):
+#                print(b)
+#                b = re.findall('<li><a href="(.*)" target="_blank">.*</a></li>', text)
+#                if b:
+#                    for url in b:
+#                        print(HOST_URL + url)
+#                        TemplateWolidouAlbumVideoUrl(self, HOST_URL + url).Execute()
+#            else:
+#                print("No server", b) #<input type="hidden" id="zsurl" name="zsurl"
+        
     # 从分页的页面上解析该页上的节目
     # videolist
     def _CmdParserWolidouList(self, js):
@@ -223,13 +241,9 @@ class WolidouEngine(VideoEngine):
             album  = self.NewAlbum()
             album.cid         = 200
             album.vid         = name
-            album.playlistid  = name
-            album.pid         = name
             album.albumName   = name
             album.categories  = tvmenu.GetCategories(name)
             album.albumPageUrl = url
-            #album.sources     = [{'directPlayUrl' : url}]
-            #album.totalSet    = len(album.sources)
 
             self._save_update_append(None, album)
 

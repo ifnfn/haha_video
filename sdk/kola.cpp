@@ -699,3 +699,15 @@ KolaClient& KolaClient::Instance(const char *user_id)
 
 	return m_kola;
 }
+
+const char *UrlGet(const char *url)
+{
+	KolaClient &kola = KolaClient::Instance();
+	std::string ret;
+
+	if (kola.UrlGet("", ret, url) == true); {
+		return strdup(ret.c_str());
+	}
+
+	return NULL;
+}

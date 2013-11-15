@@ -1,0 +1,162 @@
+#include <stdio.h>
+#include <string.h>
+#include <map>
+#include <string>
+
+extern "C" {
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
+int luaopen_kola(lua_State *L);
+int luaopen_cjson(lua_State *L);
+}
+
+#include "kola.hpp"
+
+const char *lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
+{
+	int i;
+
+	if (luaL_dostring(L, fn)) {
+	//if (luaL_dofile(L, fn)) {
+		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
+		return NULL;
+	}
+
+	lua_getglobal(L, func);
+
+	for (i=0; i < argc; i++)
+		lua_pushstring(L, argv[i]);
+
+	//下面的第二个参数表示带调用的lua函数存在两个参数。
+	//第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
+	//lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
+	if (lua_pcall(L, argc, 1,0)) {
+		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
+		return NULL;
+	}
+
+	//此时结果已经被压入栈中。
+	if (!lua_isstring(L, -1)) {
+		printf("function 'add' must return a string.\n");
+		lua_pop(L,-1);
+		return NULL;
+	}
+
+	const char *ret = lua_tostring(L,-1);
+	if (ret)
+		ret = strdup(ret);
+
+	lua_pop(L,-1);
+
+	return ret;
+}
+
+static const luaL_Reg lualibs[] = {
+	{""             , luaopen_base}   ,
+	{LUA_TABLIBNAME , luaopen_table}  ,
+	{LUA_IOLIBNAME  , luaopen_io}     ,
+	{LUA_OSLIBNAME  , luaopen_os}     ,
+	{LUA_STRLIBNAME , luaopen_string} ,
+	{"kola"         , luaopen_kola}   ,
+	{"cjson"        , luaopen_cjson}  ,
+
+	//{LUA_LOADLIBNAME, luaopen_package},
+	{LUA_MATHLIBNAME, luaopen_math},
+	//{LUA_DBLIBNAME, luaopen_debug},
+	{NULL, NULL}
+};
+
+
+static void luaL_openmini(lua_State *L) {
+	const luaL_Reg *lib = lualibs;
+	for (; lib->func; lib++) {
+		lua_pushcfunction(L, lib->func);
+		lua_pushstring(L, lib->name);
+		lua_call(L, 1, 0);
+	}
+}
+
+class script {
+	public:
+		script() {
+			time(&dtime);
+		}
+		script(std::string t) {
+			text = t;
+			time(&dtime);
+		}
+		std::string text;
+		time_t dtime;
+};
+
+class LuaScript {
+	public:
+		LuaScript() {
+			L = luaL_newstate();
+			luaL_openmini(L);
+		}
+
+		static LuaScript& Instance() {
+			static LuaScript _lua;
+
+			return _lua;
+		}
+
+		~LuaScript() {
+			lua_close(L);
+		}
+		std::string RunScript(const char *name, int argc, const char **argv) {
+			std::string text;
+			bool ret = GetScript(name, text);
+			if (ret)
+				return lua_runscript(L, text.c_str(), "kola_main", argc, argv);
+			else
+				return "";
+		}
+
+	private:
+		lua_State *L;
+		std::map<std::string, script> scripts;
+		bool GetScript(const char *name, std::string &text) {
+			std::map<std::string ,script>::iterator it = scripts.find(name);
+			if (it != scripts.end()) {
+				time_t now = time(NULL);
+				if (now - it->second.dtime > 60)
+					scripts.erase(it);
+				else {
+					text = it->second.text;
+					return true;
+				}
+			}
+			KolaClient &kola = KolaClient::Instance();
+
+			std::string url("/scripts/");
+
+			if (kola.UrlGet(url + name + ".lua", text) == true) {
+				scripts.insert(std::pair<std::string, script>(name, script(text)));
+				return true;
+			}
+
+			return false;
+		}
+};
+
+int lua_main()
+{
+	LuaScript& lua = LuaScript::Instance();
+
+	const char *cz_argv[] = {"102"};
+	const char *uc_argv[] = {"163"};
+	std::string ret;
+//	ret = lua.RunScript("cztv", 1, cz_argv);
+//	printf("ret= %s\n", ret.c_str());
+//	ret = lua.RunScript("uctv", 1, uc_argv);
+//	printf("ret= %s\n", ret.c_str());
+
+	const char *jln_argv[] = {"http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6"};
+	ret = lua.RunScript("jlntv", 1, jln_argv);
+	printf("ret= %s\n", ret.c_str());
+	return 0;
+}
+

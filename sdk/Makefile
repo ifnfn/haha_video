@@ -1,4 +1,4 @@
-LUA=export_kola.c lua_test.c -Ilua/src -Llua -llua
+LUA=export_kola.c luascript.cpp -Ilua/src -Llua -llua
 
 all:
 	g++ -O0 -g -o a \

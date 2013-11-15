@@ -12,3 +12,6 @@ _build*
 *.pyc
 *.log
 *.*~
+build_x
+libs
+sdk.tar.bz2

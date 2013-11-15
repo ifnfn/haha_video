@@ -46,6 +46,7 @@
 #include "strbuf.h"
 #include "fpconv.h"
 
+#define ENABLE_CJSON_GLOBAL 1
 #ifndef CJSON_MODNAME
 #define CJSON_MODNAME   "cjson"
 #endif

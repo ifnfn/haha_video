@@ -29,7 +29,8 @@ SRC += src/lstate.c
 SRC += src/ltable.c
 SRC += src/lvm.c
 
-SRC += lua-cjson/dtoa.c lua-cjson/fpconv.c  lua-cjson/g_fmt.c  lua-cjson/lua_cjson.c  lua-cjson/strbuf.c
+#SRC += lua-cjson/dtoa.c lua-cjson/fpconv.c  lua-cjson/g_fmt.c  lua-cjson/lua_cjson.c  lua-cjson/strbuf.c
+SRC += lua-cjson/lua_cjson.c lua-cjson/strbuf.c lua-cjson/fpconv.c
 LIB=liblua.a
 
 

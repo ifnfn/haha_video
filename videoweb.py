@@ -482,6 +482,7 @@ class Application(tornado.web.Application):
             (r'/',                 IndexHandler),
 
             (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),
+            (r"/scripts/(.*)",     tornado.web.StaticFileHandler, {"path": "scripts"}),
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

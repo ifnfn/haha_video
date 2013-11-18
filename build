@@ -50,7 +50,7 @@ build_py() {
 
 if [ $# -le 1 ]; then
     if [ "$1" = "all" ]; then
-        build csky
+#        build csky
         build_py
     elif [ "$1" = "clean" ]; then
         rm -rf build

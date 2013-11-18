@@ -9,6 +9,7 @@ extern "C" {
 #include "lualib.h"
 int luaopen_kola(lua_State *L);
 int luaopen_cjson(lua_State *L);
+int luaopen_LuaXML_lib(lua_State *L);
 }
 
 #include "kola.hpp"
@@ -60,7 +61,7 @@ static const luaL_Reg lualibs[] = {
 	{LUA_STRLIBNAME , luaopen_string} ,
 	{"kola"         , luaopen_kola}   ,
 	{"cjson"        , luaopen_cjson}  ,
-
+	{"xml"          , luaopen_LuaXML_lib},
 	//{LUA_LOADLIBNAME, luaopen_package},
 	{LUA_MATHLIBNAME, luaopen_math},
 	//{LUA_DBLIBNAME, luaopen_debug},
@@ -106,11 +107,12 @@ class LuaScript {
 		~LuaScript() {
 			lua_close(L);
 		}
-		std::string RunScript(const char *name, int argc, const char **argv) {
+
+		std::string RunScript(int argc, const char **argv, const char *name, const char *fname="kola_main") {
 			std::string text;
 			bool ret = GetScript(name, text);
 			if (ret)
-				return lua_runscript(L, text.c_str(), "kola_main", argc, argv);
+				return lua_runscript(L, text.c_str(), fname, argc, argv);
 			else
 				return "";
 		}
@@ -155,7 +157,7 @@ int lua_main()
 //	printf("ret= %s\n", ret.c_str());
 
 	const char *jln_argv[] = {"http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6"};
-	ret = lua.RunScript("jlntv", 1, jln_argv);
+	ret = lua.RunScript(1, jln_argv, "jlntv", "kola_main");
 	printf("ret= %s\n", ret.c_str());
 	return 0;
 }

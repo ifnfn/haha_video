@@ -36,7 +36,6 @@ def main_thread():
     for _ in range(10):
         thread_pool.add_job(main)
 
-
 def GetURL(id):
     haha = KolaClient()
     url = 'http://59.175.153.182/api/getCDNByChannelId/' + id
@@ -56,15 +55,6 @@ def GetURL(id):
         pass
 
 if __name__ == "__main__":
-    haha = KolaClient()
-
-    ids = ['210', '211', '212', '213', '214', '215', '216', '216', '217',
-           '218', '219', '232', '513', '220', '221', '222', '223', '514',
-           '1181']
-
-    for id in ids:
-        GetURL(id)
-
     #text = haha.GetCacheUrl('http://59.175.153.182/api/getChannels')
     #js = json.loads(text.decode())
     #print(json.dumps(js, indent=4, ensure_ascii=False))
@@ -87,5 +77,5 @@ if __name__ == "__main__":
 
     #main_thread()
     #main_one()
-    #main()
+    main()
     #main_loop()

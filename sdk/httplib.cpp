@@ -49,6 +49,7 @@ struct http_client_ {
 	const char *m_content_location;
 	http_state_t m_state;
 	uint16_t m_redirect_count;
+	uint16_t m_redirect_count_max;
 	const char *m_redir_location;
 	uint16_t m_port;
 	struct in_addr m_server_addr;
@@ -74,7 +75,7 @@ int http_decode_and_connect_url (const char *name,
 
 int http_build_header(char *buffer, uint32_t maxlen, uint32_t *at,
 		http_client_t *cptr, const char *method,
-		const char *add_header, const char *content_body);
+		const char *add_header, const char *content_body, const char *referer);
 
 int http_get_response(http_client_t *handle, http_resp_t **resp);
 
@@ -459,6 +460,7 @@ http_client_t *http_init_connection(const char *name)
 	memset(ptr, 0, sizeof(http_client_t));
 	ptr->m_state = HTTP_STATE_INIT;
 	url = convert_url(name);
+	ptr->m_redirect_count_max = 5;
 	http_debug(LOG_INFO, "Connecting to %s", url);
 	if (http_decode_and_connect_url(url, ptr) < 0) {
 		free(url);
@@ -491,10 +493,14 @@ void http_free_connection (http_client_t *ptr)
 #endif
 }
 
+void http_set_location(http_client_t *cptr, int maxlen)
+{
+	cptr->m_redirect_count_max = maxlen;
+}
 /*
  * http_get - get from url after client already set up
  */
-int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const char *cookie)
+int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const char *cookie, const char *referer)
 {
 	char header_buffer[4096];
 	uint32_t buffer_len;
@@ -529,7 +535,7 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 	 * build header and send message
 	 */
 	ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET",
-			cookie, NULL);
+			cookie, NULL, referer);
 	http_debug(LOG_DEBUG, "%s", header_buffer);
 	if (send(cptr->m_server_socket,
 				header_buffer,
@@ -557,8 +563,8 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 				return 1;
 			case 3:
 				cptr->m_redirect_count++;
-				if (cptr->m_redirect_count > 5) {
-					return -1;
+				if (cptr->m_redirect_count > cptr->m_redirect_count_max) {
+					return 1;
 				}
 				if (http_decode_and_connect_url(cptr->m_redir_location, cptr) < 0) {
 					http_debug(LOG_CRIT, "Couldn't reup location %s", cptr->m_redir_location);
@@ -566,7 +572,7 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 				}
 				buffer_len = 0;
 				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET",
-						cookie, NULL);
+						cookie, NULL, referer);
 				http_debug(LOG_DEBUG, "%s", header_buffer);
 				if (send(cptr->m_server_socket, header_buffer, buffer_len, 0) < 0) {
 					http_debug(LOG_CRIT,"Send failure");
@@ -583,7 +589,7 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 	return ret;
 }
 
-int http_post(http_client_t *cptr, const char *url, http_resp_t **resp, const char *body, const char *cookie)
+int http_post(http_client_t *cptr, const char *url, http_resp_t **resp, const char *body, const char *cookie, const char *referer)
 {
 	char *header_buffer;
 	uint32_t buffer_len, max_len = 2048;
@@ -618,7 +624,7 @@ int http_post(http_client_t *cptr, const char *url, http_resp_t **resp, const ch
 	/*
 	 * build header and send message
 	 */
-	ret = http_build_header(header_buffer, max_len - 1, &buffer_len, cptr, "POST", cookie, encode_body);
+	ret = http_build_header(header_buffer, max_len - 1, &buffer_len, cptr, "POST", cookie, encode_body, referer);
 	if (ret == -1) {
 		http_debug(LOG_ERR, "Could not build header");
 		goto out;
@@ -662,7 +668,7 @@ int http_post(http_client_t *cptr, const char *url, http_resp_t **resp, const ch
 				}
 				buffer_len = 0;
 				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "POST",
-						cookie,  encode_body);
+						cookie,  encode_body, referer);
 				http_debug(LOG_DEBUG, "%s", header_buffer);
 				if (send(cptr->m_server_socket,
 							header_buffer,
@@ -862,7 +868,7 @@ int http_decode_and_connect_url (const char *name, http_client_t *cptr)
 	return 0;
 }
 
-static const char *user_agent = "kolatv http library 0.1";
+static const char *user_agent = "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0";
 
 /*
  * http_build_header - create a header string
@@ -874,8 +880,7 @@ int http_build_header (char *buffer,
 		uint32_t *at,
 		http_client_t *cptr,
 		const char *method,
-		const char *add_header,
-		const char *content_body)
+		const char *add_header, const char *content_body, const char *referer)
 {
 	int ret;
 #define SNPRINTF_CHECK(fmt, ...) \
@@ -892,10 +897,17 @@ int http_build_header (char *buffer,
 		SNPRINTF_CHECK("%s", cptr->m_content_location);
 	}
 	SNPRINTF_CHECK("%s HTTP/1.1\r\n"         , cptr->m_resource);
-	SNPRINTF_CHECK("Host: %s:%d\r\n"         , cptr->m_host, cptr->m_port);
+	if (cptr->m_port != 80) {
+		SNPRINTF_CHECK("Host: %s:%d\r\n" , cptr->m_host, cptr->m_port);
+	}
+	else {
+		SNPRINTF_CHECK("Host: %s\r\n"    , cptr->m_host);
+	}
 	SNPRINTF_CHECK("User-Agent: %s\r\n"      , user_agent);
+	SNPRINTF_CHECK("Accept: %s\r\n"          , "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 	SNPRINTF_CHECK("Connection: %s\r\n"      , "Kepp-Alive");
 	SNPRINTF_CHECK("Accept-Encoding: %s\r\n" , "gzip");
+	SNPRINTF_CHECK("Referer: %s\r\n"         , referer);
 	if (add_header != NULL) {
 		SNPRINTF_CHECK("%s\r\n", add_header);
 	}
@@ -1409,7 +1421,6 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 			http_debug(LOG_INFO, "Len bytes added - %d", len);
 		}
 		cptr->m_resp->body[cptr->m_resp->body_len] = '\0';
-
 	}
 
 	if (cptr->m_gzip_encoding != 0) {

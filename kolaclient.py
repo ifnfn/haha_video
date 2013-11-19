@@ -66,6 +66,8 @@ class KolaClient:
                     else:
                         x += i.group(1) + '\n'
                 text = x
+        if x:
+            x = x[0:len(x)-1]
         return x
 
     def ProcessCommand(self, cmd, dest, times = 0):

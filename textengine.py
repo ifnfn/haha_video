@@ -12,6 +12,7 @@ from urllib.parse import quote
 #================================= 以下是视频的搜索引擎 =======================================
 global Debug
 Debug = False
+
 # 更新节目的播放信息
 class TemplateTextvInfo(Template):
     def __init__(self, menu):

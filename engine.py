@@ -125,6 +125,7 @@ class VideoBase:
         self.publishTime = ''
         self.videoDesc = ''
         self.isHigh = -1
+        self.priority = 100
 
         self.videoPlayCount = 0
         self.videoScore = 0.0
@@ -134,12 +135,14 @@ class VideoBase:
         self.playUrl = ''
 
         self.originalData = []
+        self.script = {}
+
         if js:
             self.LoadFromJson(js)
 
     def GetVid(self, definition=0):
         vid = self.vid
-        maplist = self.vid,self.norVid,self.highVid,self.superVid,self.oriVid,self.relativeId
+        maplist = self.vid, self.norVid, self.highVid, self.superVid, self.oriVid, self.relativeId
         if definition < len(maplist):
             vid = maplist[definition]
             if vid == '':
@@ -176,11 +179,15 @@ class VideoBase:
         if self.largePicUrl     : ret['largePicUrl'] = self.largePicUrl
         if self.smallPicUrl     : ret['smallPicUrl'] = self.smallPicUrl
         if self.originalData    : ret['originalData'] = self.originalData
+        if self.script          : ret['script'] = self.script
+        if self.priority        : ret['priority'] = self.priority
 
         if self.playUrl:
             ret['playUrl'] = self.playUrl
         else:
-            ret['playUrl'] = self.GetVideoPlayUrl()
+            u = self.GetVideoPlayUrl()
+            if u:
+                ret['playUrl'] = u
 
         return ret
 
@@ -209,6 +216,8 @@ class VideoBase:
         if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
         if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
         if 'originalData' in json   : self.originalData   = json['originalData']
+        if 'script' in json         :  self.script        = json['script']
+        if 'priority' in json       :  self.priority      = json['priority']
 
 class AlbumBase:
     def __init__(self, engine):
@@ -257,6 +266,10 @@ class AlbumBase:
         self.directors = []       # [*]
 
         self.videos = []
+
+    def GetVideos(self):
+        self.videos, _ = self.engine.db.GetVideoListJson(pid=self.vid)
+        return self.videos
 
     def SaveToJson(self):
         ret = {}

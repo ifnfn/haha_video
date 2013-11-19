@@ -194,3 +194,6 @@ class Kolatv:
     def CommandEmptyMessage(self):
         if self.UpdateAlbumFlag == True:
             self.UpdateAlbumFlag = False
+
+    def AddAlbum(self, js):
+        pass

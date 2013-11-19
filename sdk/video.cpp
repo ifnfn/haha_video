@@ -4,6 +4,7 @@
 #include "kola.hpp"
 #include "json.h"
 #include "base64.hpp"
+#include "script.hpp"
 
 VideoSegment::VideoSegment()
 {
@@ -130,7 +131,7 @@ bool KolaVideo::GetPlayInfo(void)
 
 bool KolaVideo::LoadFromJson(json_t *js)
 {
-	json_t *originalData;
+	json_t *sub;
 
 	name             = json_gets(js   , "name"           , "");
 	playlistid       = json_gets(js   , "playlistid"     , "");
@@ -153,12 +154,16 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	playUrl          = json_gets(js   , "playUrl"        , "");
 	directPlayUrl    = json_gets(js   , "directPlayUrl"  , "");
 
+	sub = json_geto(js, "script");
+	if (sub) {
+		Script.LoadFromJson(sub);
+	}
 #if 1
 	haveOriginalData = json_geti(js   , "haveOriginalData", 0);
-	originalData     = json_geto(js   , "originalData");
+	sub = json_geto(js   , "originalData");
 
-	if (directPlayUrl == "" && originalData)
-		UpdatePlayInfo(originalData);
+	if (directPlayUrl == "" && sub)
+		UpdatePlayInfo(sub);
 #endif
 
 	return true;
@@ -174,6 +179,9 @@ void KolaVideo::deleteLocalVideoFile()
 
 std::string KolaVideo::GetVideoUrl(void)
 {
+	if (Script.Exists())
+		return Script.Run();
+
 	if (directPlayUrl == "" && haveOriginalData == false)
 		GetPlayInfo();
 

@@ -218,7 +218,10 @@ void AlbumPage::PutAlbum(KolaAlbum *album)
 
 KolaAlbum* AlbumPage::GetAlbum(int index)
 {
-	return albumList.at(index);
+	if (index < albumList.size() )
+		return albumList.at(index);
+
+	return NULL;
 }
 
 Picture* AlbumPage::GetPicture(std::string fileName)

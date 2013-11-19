@@ -26,8 +26,6 @@ class Task;
 
 extern void split(const std::string &s, std::string delim, std::vector< std::string > *ret);
 
-extern "C" const char *UrlGet(const char *url);
-
 enum PicType {
 	PIC_LARGE,      // 大图片网址
 	PIC_SMALL,      // 小图片网址
@@ -76,6 +74,20 @@ class Task {
 		inline void broadcast() { pthread_cond_broadcast(&ready);    }
 		void lowRun();
 		friend class Thread;
+};
+
+class ScriptCommand {
+	public:
+		ScriptCommand();
+		~ScriptCommand();
+		bool LoadFromJson(json_t *js);
+		std::string Run();
+		bool Exists() {return script_name != ""; }
+	private:
+		std::string script_name;
+		std::string func_name;
+		char **argv;
+		int argc;
 };
 
 class VideoSegment: public Task {
@@ -138,7 +150,7 @@ class KolaVideo {
 		int haveOriginalData;
 		bool UpdatePlayInfo(json_t *js);
 		std::vector<VideoSegment> segmentList;
-
+		ScriptCommand Script;
 		bool GetPlayInfo(void);
 		void deleteLocalVideoFile();
 		friend class VideoSegment;
@@ -344,10 +356,10 @@ class KolaClient {
 		int MenuCount() { return menuMap.size(); };
 		bool haveCommand() { return havecmd; }
 		inline std::string GetFullUrl(std::string url) { return baseUrl + url; }
-		bool UrlGet(std::string url, const char *home_url, void **http_resp, int times = 0);
-		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL);
-		bool UrlGetCache(std::string url, std::string &ret, const char *home_url = NULL);
-		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, int times = 0);
+		bool UrlGet(void **http_resp, std::string url, const char *home_url, const char *referer = NULL, int times = 0);
+		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL, const char *referer = NULL);
+		bool UrlGetCache(std::string url, std::string &ret, const char *home_url = NULL, const char *referer = NULL);
+		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, const char *referer = NULL, int times = 0);
 	private:
 		KolaClient(void);
 		std::string baseUrl;

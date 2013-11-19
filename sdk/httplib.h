@@ -29,6 +29,7 @@ extern "C" {
 	 * particular destination.
 	 */
 	http_client_t *http_init_connection(const char *url);
+	void http_set_location(http_client_t *, int maxlen);
 	/*
 	 * http_free_connection - when done talking to this particular destination,
 	 * call this.
@@ -38,12 +39,12 @@ extern "C" {
 	/*
 	 * http_get - get from a particular url on the location specified above
 	 */
-	int http_get (http_client_t *, const char *url, http_resp_t **resp, const char *cookie);
+	int http_get (http_client_t *, const char *url, http_resp_t **resp, const char *cookie, const char *referer);
 	int http_post(http_client_t *cptr,
 			const char *url,
 			http_resp_t **resp,
 			const char *body,
-			const char *cookie);
+			const char *cookie, const char *referer);
 	/*
 	 * http_resp_free - free up response structure passed as a result of
 	 * http_get

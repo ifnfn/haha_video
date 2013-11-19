@@ -4,17 +4,10 @@
 
 import sys, os
 import traceback
-import json
 import re
 import time, datetime
-import hashlib
 import tornado.escape
-from urllib.parse import unquote
 from xml.etree import ElementTree
-import httplib2
-
-
-from ThreadPool import ThreadPool
 import utils
 from kolaclient import KolaClient
 
@@ -106,7 +99,6 @@ class JLNTV(TVStation):
                     self.channels.append(ch)
 #                print(i, self.base_url + '/' + v, n)
 
-
     def GetVideoUrl(self, ch):
         text = self.haha.GetCacheUrl(ch.channel_url)
         if text:
@@ -137,6 +129,7 @@ class TVIEStation(TVStation):
 
     def GetChannel(self):
         url = 'http://' + self.base_url + '/api/getChannels'
+        print(url)
         text = self.haha.GetCacheUrl(url)
         if text:
             jdata = tornado.escape.json_decode(text)
@@ -159,8 +152,8 @@ class TVIEStation(TVStation):
         url = 'http://' + self.base_url + '/api/getCDNByChannelId/' + ch.cid
         text = self.haha.GetCacheUrl(url)
         if text:
-            jdata = tornado.escape.json_decode(text)
             try:
+                jdata = tornado.escape.json_decode(text)
                 if 'result' in jdata:
                     datarates = jdata['result']['datarates']
                     if datarates != None:
@@ -178,8 +171,7 @@ class TVIEStation(TVStation):
 
                     return True
             except:
-                t, v, tb = sys.exc_info()
-                print("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+                print('Get', url, 'error:', text)
 
         return False
 
@@ -200,6 +192,11 @@ class NBTV(TVIEStation):
     def __init__(self):
         self.area = '淅江省,宁波市'
         super().__init__('宁波电视台', 'ming-api.nbtv.cn')
+
+class UCATV(TVIEStation):
+    def __init__(self):
+        self.area = '新疆'
+        super().__init__('新疆电视台', 'epgsrv01.ucatv.com.cn')
 
 class ZJTV(TVIEStation):
     def __init__(self):
@@ -260,7 +257,7 @@ class DHTV(TVStation):
             ch_list = re.findall('(http://v.dhtv.cn/tv/\?channal=(.+))">(.*)</a></li>', text)
             for u, source, name in ch_list:
                 ch = Channel()
-                ch.source = source 
+                ch.source = source
                 ch.name = name
                 ch.channel_url = u
                 if self.GetVideoUrl(ch):
@@ -289,7 +286,7 @@ class DHTV(TVStation):
         if ch.cid == '':
             return False
 
-        url = 'http://www.dhtv.cn/api/programs/?ac=get&_channel=' + ch.cid 
+        url = 'http://www.dhtv.cn/api/programs/?ac=get&_channel=' + ch.cid
         text = self.haha.GetCacheUrl(url)
         try:
             jdata = tornado.escape.json_decode(text)
@@ -360,33 +357,34 @@ class CutvStation(TVStation):
 cutv = CUTV()
 
 TVStationList = {
-    '浙江电视台' : ZJTV,
-    '杭州电视台' : HZTV,
-    '宁波电视台' : NBTV,
-    '吉林电视台' : JLNTV,
-    '温州电视台' : DHTV,
-    '绍兴电视台' : CutvStation('绍兴台'),
-    '深圳电视台' : CutvStation('深圳台'),
-    '太原电视台' : CutvStation('太原台'),
-    '荆州电视台' : CutvStation('荆州台'),
-    '湖北电视台' : CutvStation('湖北台'),
-    '襄阳电视台' : CutvStation('襄阳台'),
-    '石家庄电视台' : CutvStation('石家庄台'),
-    '南通电视台' : CutvStation('南通台'),
-    '柳州电视台' : CutvStation('柳州台'),
-    '济南电视台' : CutvStation('济南台'),
-    '武汉电视台' : CutvStation('武汉台'),
-    '苏州电视台' : CutvStation('苏州台'),
-    '西安电视台' : CutvStation('西安台'),
-    '西宁电视台' : CutvStation('西宁台'),
-    '郑州电视台' : CutvStation('郑州台'),
-    '泰州电视台' : CutvStation('泰州台'),
-    '台州电视台' : CutvStation('台州台'),
-    '安阳电视台' : CutvStation('安阳台'),
-    '南宁电视台' : CutvStation('南宁台'),
-    '大连电视台' : CutvStation('大连台'),
-    '兰州电视台' : CutvStation('兰州台'),
-    '珠海电视台' : CutvStation('珠海台'),
+    '新疆电视台' : UCATV,
+#    '浙江电视台' : ZJTV,
+#    '杭州电视台' : HZTV,
+#    '宁波电视台' : NBTV,
+#    '吉林电视台' : JLNTV,
+#    '温州电视台' : DHTV,
+#    '绍兴电视台' : CutvStation('绍兴台'),
+#    '深圳电视台' : CutvStation('深圳台'),
+#    '太原电视台' : CutvStation('太原台'),
+#    '荆州电视台' : CutvStation('荆州台'),
+#    '湖北电视台' : CutvStation('湖北台'),
+#    '襄阳电视台' : CutvStation('襄阳台'),
+#    '石家庄电视台' : CutvStation('石家庄台'),
+#    '南通电视台' : CutvStation('南通台'),
+#    '柳州电视台' : CutvStation('柳州台'),
+#    '济南电视台' : CutvStation('济南台'),
+#    '武汉电视台' : CutvStation('武汉台'),
+#    '苏州电视台' : CutvStation('苏州台'),
+#    '西安电视台' : CutvStation('西安台'),
+#    '西宁电视台' : CutvStation('西宁台'),
+#    '郑州电视台' : CutvStation('郑州台'),
+#    '泰州电视台' : CutvStation('泰州台'),
+#    '台州电视台' : CutvStation('台州台'),
+#    '安阳电视台' : CutvStation('安阳台'),
+#    '南宁电视台' : CutvStation('南宁台'),
+#    '大连电视台' : CutvStation('大连台'),
+#    '兰州电视台' : CutvStation('兰州台'),
+#    '珠海电视台' : CutvStation('珠海台'),
 }
 
 TVList = {

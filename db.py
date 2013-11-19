@@ -52,8 +52,8 @@ class DB:
         if video.vid:
             js = video.SaveToJson()
             upert = {}
-            if video.vid:
-                upert['vid'] = video.vid
+
+            upert['vid'] = video.vid
             if video.pid:
                 upert['pid'] = video.pid
 
@@ -143,6 +143,8 @@ class DB:
                 fields = arg['fields']
             else:
                 fields = None
+            if 'full' in arg:
+                full = arg['full']
 
             cursor = self.album_table.find(_filter, fields = fields)
             count = cursor.count()
@@ -211,6 +213,12 @@ class DB:
                 return ret, 0
 
             cursor = self.videos_table.find(_filter, fields = fields)
+
+            if 'sort' in arg:
+                cursor = cursor.sort(arg['sort'])
+            else:
+                cursor = cursor.sort([('priority', 1)])
+
             count = cursor.count()
 
             if 'sort' in arg:

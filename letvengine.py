@@ -152,7 +152,7 @@ class LetvEngine(VideoEngine):
                 album.pid         = nameid
                 album.albumName   = text
 
-                v = album.VideoClass()
+                v = self.NewVideo()
                 v.playlistid = album.playlistid
                 v.pid = album.vid
                 v.cid = album.cid

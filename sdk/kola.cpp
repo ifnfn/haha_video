@@ -259,7 +259,7 @@ void Picture::Run()
 
 	http_resp_t *http_resp = NULL;
 
-	if (client->UrlGet("", fileName.c_str(), (void**)&http_resp)) {
+	if (client->UrlGet((void**)&http_resp, "", fileName.c_str())) {
 		size = http_resp->body_len;
 		if (size > 0) {
 			data = malloc(size);
@@ -314,7 +314,7 @@ KolaClient::~KolaClient(void)
 	Quit();
 }
 
-bool KolaClient::UrlGet(std::string url, const char *home_url, void **resp, int times)
+bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, const char *referer, int times)
 {
 	bool ok = false;
 	int rc;
@@ -338,8 +338,8 @@ bool KolaClient::UrlGet(std::string url, const char *home_url, void **resp, int 
 	cookie = loginKeyCookie;
 	UNLOCK(lock);
 
-	rc = http_get(http_client, url.c_str(), http_resp, cookie.c_str());
-	if (rc && *http_resp && (*http_resp)->body) {
+	rc = http_get(http_client, url.c_str(), http_resp, cookie.c_str(), referer);
+	if (rc > 0 && *http_resp && (*http_resp)->body) {
 		if ((*http_resp)->xsrf_cookie)
 			xsrf_cookie = (*http_resp)->xsrf_cookie;
 		ok = true;
@@ -350,18 +350,18 @@ bool KolaClient::UrlGet(std::string url, const char *home_url, void **resp, int 
 	if (ok == false) {
 		http_resp_free(*http_resp);
 		*resp = NULL;
-		return UrlGet(url, home_url, resp, times + 1);
+		return UrlGet(resp, url, home_url, referer, times + 1);
 	}
 	else
 		return ok;
 }
 
-bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url)
+bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url, const char *referer)
 {
 	bool ok = false;
 	http_resp_t *http_resp = NULL;
 
-	if (UrlGet(url, home_url, (void**)&http_resp)) {
+	if (UrlGet((void**)&http_resp, url, home_url, referer)) {
 		ret = http_resp->body;
 		ok = true;
 
@@ -371,7 +371,7 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url)
 	return ok;
 }
 
-bool KolaClient::UrlGetCache(std::string url, std::string &ret, const char *home_url)
+bool KolaClient::UrlGetCache(std::string url, std::string &ret, const char *home_url, const char *referer)
 {
 	bool rc = false;
 	std::string key = MD5STR(home_url);
@@ -392,7 +392,7 @@ bool KolaClient::UrlGetCache(std::string url, std::string &ret, const char *home
 		printf("download ... %s", home_url);
 		fflush(stdout);
 
-		rc = UrlGet(url, ret, home_url);
+		rc = UrlGet(url, ret, home_url, referer);
 		if (rc) {
 			printf("OK\n");
 			std::ofstream out(filename);
@@ -406,7 +406,7 @@ bool KolaClient::UrlGetCache(std::string url, std::string &ret, const char *home
 	}
 }
 
-bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, const char *home_url, int times)
+bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, const char *home_url, const char *referer, int times)
 {
 	bool ok = false;
 	int rc;
@@ -442,7 +442,7 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 
 	if (body)
 		new_body = gzip_base64(body, strlen(body));
-	rc = http_post(http_client, url.c_str(), &http_resp, new_body.c_str(), cookie.c_str());
+	rc = http_post(http_client, url.c_str(), &http_resp, new_body.c_str(), cookie.c_str(), referer);
 	if (rc) {
 		if (http_resp && http_resp->body)
 			ret = http_resp->body;
@@ -453,7 +453,7 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 	http_free_connection(http_client);
 
 	if (ok == false)
-		return UrlPost(url, body, ret, home_url, times + 1);
+		return UrlPost(url, body, ret, home_url, referer, times + 1);
 	else
 		return ok;
 }
@@ -700,14 +700,3 @@ KolaClient& KolaClient::Instance(const char *user_id)
 	return m_kola;
 }
 
-const char *UrlGet(const char *url)
-{
-	KolaClient &kola = KolaClient::Instance();
-	std::string ret;
-
-	if (kola.UrlGet("", ret, url) == true); {
-		return strdup(ret.c_str());
-	}
-
-	return NULL;
-}

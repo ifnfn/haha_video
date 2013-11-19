@@ -12,7 +12,9 @@ int luaopen_cjson(lua_State *L);
 int luaopen_LuaXML_lib(lua_State *L);
 }
 
+#include "json.h"
 #include "kola.hpp"
+#include "script.hpp"
 
 const char *lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
 {
@@ -34,6 +36,10 @@ const char *lua_runscript(lua_State* L, const char *fn, const char *func, int ar
 	//lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
 	if (lua_pcall(L, argc, 1,0)) {
 		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
+		printf("function ""%s"", parameters: \n", func);
+		for (i = 0; i < argc; i++)
+			printf("\targv[%d] : %s\n", i, argv[i]);
+
 		return NULL;
 	}
 
@@ -78,71 +84,88 @@ static void luaL_openmini(lua_State *L) {
 	}
 }
 
-class script {
-	public:
-		script() {
-			time(&dtime);
+LuaScript::LuaScript() {
+	L = luaL_newstate();
+	luaL_openmini(L);
+}
+
+LuaScript& LuaScript::Instance() {
+	static LuaScript _lua;
+
+	return _lua;
+}
+
+LuaScript::~LuaScript() {
+	lua_close(L);
+}
+
+std::string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname) {
+	std::string text;
+	bool ret = GetScript(name, text);
+	if (ret) {
+		const char *r = lua_runscript(L, text.c_str(), fname, argc, argv);
+		if (r)
+			return r;
+	}
+
+	return "";
+}
+
+bool LuaScript::GetScript(const char *name, std::string &text) {
+	std::map<std::string ,script>::iterator it = scripts.find(name);
+	if (it != scripts.end()) {
+		time_t now = time(NULL);
+		if (now - it->second.dtime > 60)
+			scripts.erase(it);
+		else {
+			text = it->second.text;
+			return true;
 		}
-		script(std::string t) {
-			text = t;
-			time(&dtime);
+	}
+	KolaClient &kola = KolaClient::Instance();
+
+	std::string url("/scripts/");
+
+	if (kola.UrlGet(url + name + ".lua", text) == true) {
+		scripts.insert(std::pair<std::string, script>(name, script(text)));
+		return true;
+	}
+
+	return false;
+}
+
+ScriptCommand::ScriptCommand() {
+	func_name = "kola_main";
+	argv = NULL;
+	argc = 0;
+}
+ScriptCommand::~ScriptCommand() {
+	for (int i = 0; i < argc; i++)
+		free(argv[i]);
+
+	free(argv);
+}
+
+bool ScriptCommand::LoadFromJson(json_t *js) {
+	script_name = json_gets(js, "script", "");
+	json_t *params = json_geto(js, "parameters");
+	func_name = json_gets(js, "func_name", "kola_main");
+	if (params) {
+		argc = json_array_size(params);
+		argv = (char **)malloc(sizeof(void*) * argc);
+		for (int i = 0; i < argc; i++) {
+			json_t *value = json_array_get(params, i);
+			argv[i] = strdup(json_string_value(value));
 		}
-		std::string text;
-		time_t dtime;
-};
+	}
 
-class LuaScript {
-	public:
-		LuaScript() {
-			L = luaL_newstate();
-			luaL_openmini(L);
-		}
+	return script_name != "";
+}
 
-		static LuaScript& Instance() {
-			static LuaScript _lua;
-
-			return _lua;
-		}
-
-		~LuaScript() {
-			lua_close(L);
-		}
-
-		std::string RunScript(int argc, const char **argv, const char *name, const char *fname="kola_main") {
-			std::string text;
-			bool ret = GetScript(name, text);
-			if (ret)
-				return lua_runscript(L, text.c_str(), fname, argc, argv);
-			else
-				return "";
-		}
-
-	private:
-		lua_State *L;
-		std::map<std::string, script> scripts;
-		bool GetScript(const char *name, std::string &text) {
-			std::map<std::string ,script>::iterator it = scripts.find(name);
-			if (it != scripts.end()) {
-				time_t now = time(NULL);
-				if (now - it->second.dtime > 60)
-					scripts.erase(it);
-				else {
-					text = it->second.text;
-					return true;
-				}
-			}
-			KolaClient &kola = KolaClient::Instance();
-
-			std::string url("/scripts/");
-
-			if (kola.UrlGet(url + name + ".lua", text) == true) {
-				scripts.insert(std::pair<std::string, script>(name, script(text)));
-				return true;
-			}
-
-			return false;
-		}
-};
+std::string ScriptCommand::Run() {
+	LuaScript& lua = LuaScript::Instance();
+	return lua.RunScript(argc, (const char **)argv, script_name.c_str(), func_name.c_str());
+}
 
 int lua_main()
 {

@@ -68,8 +68,9 @@ void test_livetv()
 #endif
 
 	m = kola["直播"];
-	m->Filter.KeyAdd("类型", "CCTV");
+//	m->Filter.KeyAdd("类型", "CCTV");
 
+	m->SetPageSize(50);
 	m->GetPage(page);
 
 	for (size_t i = 0; i < page.Count(); i++) {
@@ -194,9 +195,8 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	lua_main();
+//	lua_main(); return 0;
 
-	return 0;
 //	KolaClient &kola = KolaClient::Instance();
 //	while(1)
 //		sleep(1);

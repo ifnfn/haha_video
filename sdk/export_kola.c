@@ -11,20 +11,44 @@ LUALIB_API int luaopen_kola(lua_State *L);
 
 #include "kola.hpp"
 #include "pcre.hpp"
+#include "httplib.h"
 
 static int f_wget(lua_State *L)
 {
+	int argc = lua_gettop(L);
 	const char *url= lua_tostring(L, 1);
-	KolaClient &kola = KolaClient::Instance();
-	std::string ret;
+	const char *referer = NULL;
+	bool location = true;
+	int rc;
 
-	if (kola.UrlGet("", ret, url) == true) {
-		lua_pushstring(L, ret.c_str());
+	if (argc >= 2)
+		referer = lua_tostring(L, 2);
 
-		return 1;
+	if (argc >= 3)
+		location = lua_toboolean(L, 3);
+
+	http_client_t *http_client;
+	http_resp_t *http_resp = NULL;
+
+	http_client = http_init_connection(url);
+	if (http_client == NULL) {
+		printf("%s error: %s\n", __func__, url);
+		return 0;
 	}
+	http_set_location(http_client, 0);
+	rc = http_get(http_client, "", &http_resp, NULL, referer);
+	if (rc > 0 && http_resp && (http_resp)->body) {
+		const char * ret = http_resp->body;
+		lua_pushstring(L, ret);
+		rc =  1;
+	}
+	else
+		rc = 0;
 
-	return 0;
+	http_free_connection(http_client);
+	http_resp_free(http_resp);
+
+	return rc;
 }
 
 static int f_pcre(lua_State *L)
@@ -32,6 +56,13 @@ static int f_pcre(lua_State *L)
 	const char *regular = lua_tostring(L, 1);
 	const char *text = lua_tostring(L, 2);
 	Pcre pcre;
+
+	if (text == NULL)
+		return 0;
+	if (regular == NULL) {
+		lua_pushstring(L, text);
+		return 1;
+	}
 
 	pcre.AddRule(regular);
 	std::string ret = pcre.MatchAll(text);

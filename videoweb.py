@@ -26,6 +26,7 @@ class AlbumListHandler(BaseHandler):
         args = {}
         args['page'] = int(self.get_argument('page', 0))
         args['size'] = int(self.get_argument('size', 20))
+        args['full'] = int(self.get_argument('full', 0))
 
         return args, self.get_argument('menu', ''), self.get_argument('cid', ''), self.get_argument('vid', '')
 
@@ -243,11 +244,12 @@ class UpdateCommandHandle(BaseHandler):
 
     def get(self):
         cmdlist = {}
-        cmdlist['list']     = tv.UpdateAllAlbumList
-        cmdlist['home']     = tv.UpdateAllAlbumPage
-        cmdlist['fullinfo'] = tv.UpdateAllFullInfo
-        cmdlist['score']    = tv.UpdateAllScore
-        cmdlist['playinfo'] = tv.UpdateAllPlayInfo
+        cmdlist['list']      = tv.UpdateAllAlbumList
+        cmdlist['home']      = tv.UpdateAllAlbumPage
+        cmdlist['fullinfo']  = tv.UpdateAllFullInfo
+        cmdlist['score']     = tv.UpdateAllScore
+        cmdlist['playinfo']  = tv.UpdateAllPlayInfo
+        cmdlist['add_album'] = tv.AddAlbum
 
         command = self.get_argument('cmd', '')
         for cmd in command.split(','):

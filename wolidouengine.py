@@ -4,6 +4,7 @@
 import sys, traceback
 import re
 import tornado.escape
+import hashlib
 
 from bs4 import BeautifulSoup as bs
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
@@ -13,7 +14,7 @@ from urllib.parse import quote
 #================================= 以下是视频的搜索引擎 =======================================
 global Debug
 Debug = True
-HOST_URL='http://www.wolidou.com'
+HOST_URL = 'http://www.wolidou.com'
 
 # 更新节目的播放信息
 class TemplateWolidouAlbumList(Template):
@@ -38,26 +39,24 @@ class TemplateWolidouAlbumPage(Template):
         super().__init__(album.command, cmd)
 
 class TemplateWolidouAlbumVideoUrl(Template):
-    def __init__(self, engine, url):
+    def __init__(self, engine, vid, server, url):
         cmd = {
             'name'   : 'wolidou_album_video_url',
             'source' : url,
             'regular': [ '<input type="hidden" id="zsurl" name="zsurl" value="(.*)"\s*/>' ],
             'cache'  : False or Debug,
+            'server' : server,
+            'vid'    : vid
         }
         super().__init__(engine.command, cmd)
 
 
 class WolidouVideo(VideoBase):
-    def __init__(self, js = None):
+    def __init__(self, js=None):
         super().__init__(js)
 
     def GetVideoPlayUrl(self, definition=0):
-        vid = self.GetVid(definition)
-        if vid:
-            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
-        else:
-            return ''
+        pass
 
     def SaveToJson(self):
         ret = super().SaveToJson()
@@ -77,7 +76,7 @@ class WolidouAlbum(AlbumBase):
     def SaveToJson(self):
         ret = super().SaveToJson()
         pri = {}
-        if self.albumPageUrl    : pri['albumPageUrl']   = self.albumPageUrl
+        if self.albumPageUrl    : pri['albumPageUrl'] = self.albumPageUrl
 
         if pri:
             ret['private'] = pri
@@ -88,8 +87,7 @@ class WolidouAlbum(AlbumBase):
         super().LoadFromJson(json)
         if 'private' in json:
             pri = json['private']
-            if 'albumPageUrl' in pri   : self.albumPageUrl    = pri['albumPageUrl']
-
+            if 'albumPageUrl' in pri   : self.albumPageUrl = pri['albumPageUrl']
 
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
@@ -103,9 +101,9 @@ class WolidouAlbum(AlbumBase):
 class WolidouTV(VideoMenuBase):
     def __init__(self, name, engine):
         super().__init__(name, engine)
-        self.homePage    = ''
+        self.homePage = ''
         self.HomeUrlList = []
-        self.albumClass  = WolidouAlbum
+        self.albumClass = WolidouAlbum
         self.cid = 200
         self.sort = {
             '周播放最多' : 7,
@@ -129,7 +127,7 @@ class WolidouTV(VideoMenuBase):
 
     def GetCategories(self, name):
         ret = []
-        for k,v in self.filter['类型'].items():
+        for k, v in self.filter['类型'].items():
             x = re.findall(v, name)
             if x:
                 ret.append(k)
@@ -137,6 +135,7 @@ class WolidouTV(VideoMenuBase):
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
+        url = HOST_URL + '/tvl/weishi/2_1.html'
         url = HOST_URL + '/tvz/cctv/70_1.html'
         TemplateWolidouAlbumList(self, url).Execute()
 
@@ -174,38 +173,75 @@ class WolidouEngine(VideoEngine):
             'wolidou_album_video_url' : self._CmdParserWolidouAlbumVideoUrl
         }
 
+    def _exclude_host(self, url):
+        hosts = ('dxnm.php', 'dxifeng.php', 'basicflv.php')
+        for h in hosts:
+            if h in url:
+                return False
+        return True
+
+    def _get_priority(self, url):
+        hosts = ("sohu.php", "dxtx.php", "dxnm.php", "sxmsp.php")
+        prior = 1
+        for h in hosts:
+            if h in url:
+                return prior
+            prior+= 1
+
+        return 100
+
     def _CmdParserWolidouAlbumVideoUrl(self, js):
         text = js['data']
-        print(text)
+        if not text:
+            return
+        if self._exclude_host(text) == False:
+            return
+        album = self.GetAlbumFormDB(vid=js['vid'])
+        if album:
+            v = self.NewVideo()
+            v.playlistid = album.playlistid
+            v.pid = album.vid
+            v.cid = album.cid
+            v.priority = self._get_priority(text)
+            v.vid = hashlib.md5(js['source'].encode()).hexdigest()[16:]
+            v.script = {
+                    'script' : 'wolidu',
+                    'parameters' : [text, js['source'], js['server']]
+            }
+
+            album.videos.append(v)
+            self._save_update_append(None, album)
 
     def _CmdParserWolidouAlbumPage(self, js):
-        vid = js['vid']
         text = js['data']
 
-        soup = bs(js['data'])#, from_encoding = 'GBK')
+        soup = bs(js['data'])  # , from_encoding = 'GBK')
         playlist = soup.findAll('div', { "class" : "ppls" })
         for a in playlist:
             text = str(a)
             b = re.findall('<span class="ppls_s">(\S*)\s*?', text)
-            
+
             if b == None:
+                continue
+
+            album = self.GetAlbumFormDB(vid=js['vid'])
+            if not album:
                 continue
 
             if b[0] == '基本收视服务器：':
                 print(b)
-                b = re.findall('<li><a href="(.*0.html)" target="_blank">.*</a></li>', text)
-                if b:
-                    for url in b:
-                        print(HOST_URL + url)
-                        TemplateWolidouAlbumVideoUrl(self, HOST_URL + url).Execute()
-                
-            if b == '极速服务器：':
+                u = re.findall('<li><a href="(.*0.html)" target="_blank">.*</a></li>', text)
+                if u:
+                    for url in u:
+                        TemplateWolidouAlbumVideoUrl(self, js['vid'], b[0], HOST_URL + url).Execute()
+
+            if b[0] == '超速服务器：':
                 print(b)
-                b = re.findall('<li><a href="(.*)" target="_blank">.*</a></li>', text)
-                if b:
-                    for url in b:
-                        print(HOST_URL + url)
-                
+                u = re.findall('<li><a href="(.*)" target="_blank">.*</a></li>', text)
+                if u:
+                    for url in u:
+                        TemplateWolidouAlbumVideoUrl(self, js['vid'], b[0], HOST_URL + url).Execute()
+
 #            if b and b[0] in set(['基本收视服务器：', 'M3U8专线服务器：', '超速服务器：', '飞速服务器：', '极速服务器【节目可回放】：']):
 #                print(b)
 #                b = re.findall('<li><a href="(.*)" target="_blank">.*</a></li>', text)
@@ -215,19 +251,19 @@ class WolidouEngine(VideoEngine):
 #                        TemplateWolidouAlbumVideoUrl(self, HOST_URL + url).Execute()
 #            else:
 #                print("No server", b) #<input type="hidden" id="zsurl" name="zsurl"
-        
+
     # 从分页的页面上解析该页上的节目
     # videolist
     def _CmdParserWolidouList(self, js):
         text = js['data']
-        soup = bs(js['data'])#, from_encoding = 'GBK')
+        soup = bs(js['data'])  # , from_encoding = 'GBK')
         playlist = soup.findAll('li')
         tvmenu = WolidouTV('直播', self)
         for a in playlist:
             img = ''
             name = ''
             url = ''
-            text = str(a) #.prettify(formatter='html')
+            text = str(a)  # .prettify(formatter='html')
             x = re.findall('img alt.*src="(.*)"', text)
             if x:
                 img = HOST_URL + x[0]
@@ -238,11 +274,11 @@ class WolidouEngine(VideoEngine):
             print('img=%s, name=%s, url=%s' % (img, name, url))
 
 
-            album  = self.NewAlbum()
-            album.cid         = 200
-            album.vid         = name
-            album.albumName   = name
-            album.categories  = tvmenu.GetCategories(name)
+            album = self.NewAlbum()
+            album.cid = 200
+            album.vid = name
+            album.albumName = name
+            album.categories = tvmenu.GetCategories(name)
             album.albumPageUrl = url
 
             self._save_update_append(None, album)
@@ -262,7 +298,7 @@ class WolidouEngine(VideoEngine):
                 if startUpdate:
                     TemplateWolidouAlbumList(self, url).Execute()
 
-        #self._save_update_append(None, album)
+        # self._save_update_append(None, album)
 
     def _save_update_append(self, sets, album, _filter={}, upsert=True):
         if album:

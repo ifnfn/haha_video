@@ -1,13 +1,8 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, os
-import traceback
 import json
-import re
 import time
-import hashlib
-import tornado.escape
 
 from ThreadPool import ThreadPool
 from kolaclient import KolaClient
@@ -36,9 +31,9 @@ def main_thread():
     for _ in range(10):
         thread_pool.add_job(main)
 
-def GetURL(id):
+def GetURL(xid):
     haha = KolaClient()
-    url = 'http://59.175.153.182/api/getCDNByChannelId/' + id
+    url = 'http://59.175.153.182/api/getCDNByChannelId/' + xid
     text = haha.GetCacheUrl(url)
     try:
         js = json.loads(text.decode())

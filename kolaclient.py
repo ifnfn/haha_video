@@ -5,12 +5,8 @@ import sys, os
 import traceback
 import json
 import re
-import time
 import hashlib
 import tornado.escape
-from urllib.parse import unquote
-
-from ThreadPool import ThreadPool
 import utils
 
 HOST = 'http://127.0.0.1:9991'

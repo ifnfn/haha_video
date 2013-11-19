@@ -45,8 +45,8 @@ const char *lua_runscript(lua_State* L, const char *fn, const char *func, int ar
 
 	//此时结果已经被压入栈中。
 	if (!lua_isstring(L, -1)) {
-		printf("function 'add' must return a string.\n");
-		lua_pop(L,-1);
+		printf("function '%s' must return a string.\n", func);
+		lua_pop(L, -1);
 		return NULL;
 	}
 
@@ -60,23 +60,24 @@ const char *lua_runscript(lua_State* L, const char *fn, const char *func, int ar
 }
 
 static const luaL_Reg lualibs[] = {
-	{""             , luaopen_base}   ,
-	{LUA_TABLIBNAME , luaopen_table}  ,
-	{LUA_IOLIBNAME  , luaopen_io}     ,
-	{LUA_OSLIBNAME  , luaopen_os}     ,
-	{LUA_STRLIBNAME , luaopen_string} ,
-	{"kola"         , luaopen_kola}   ,
-	{"cjson"        , luaopen_cjson}  ,
+	{""             , luaopen_base      },
+	{LUA_TABLIBNAME , luaopen_table     },
+	{LUA_IOLIBNAME  , luaopen_io        },
+	{LUA_OSLIBNAME  , luaopen_os        },
+	{LUA_STRLIBNAME , luaopen_string    },
+	{LUA_MATHLIBNAME, luaopen_math      },
+	{LUA_DBLIBNAME  , luaopen_debug     },
+	{"kola"         , luaopen_kola      },
+	{"cjson"        , luaopen_cjson     },
 	{"xml"          , luaopen_LuaXML_lib},
-	//{LUA_LOADLIBNAME, luaopen_package},
-	{LUA_MATHLIBNAME, luaopen_math},
-	//{LUA_DBLIBNAME, luaopen_debug},
 	{NULL, NULL}
 };
 
 
-static void luaL_openmini(lua_State *L) {
+static void luaL_openmini(lua_State *L)
+{
 	const luaL_Reg *lib = lualibs;
+
 	for (; lib->func; lib++) {
 		lua_pushcfunction(L, lib->func);
 		lua_pushstring(L, lib->name);
@@ -84,22 +85,26 @@ static void luaL_openmini(lua_State *L) {
 	}
 }
 
-LuaScript::LuaScript() {
+LuaScript::LuaScript()
+{
 	L = luaL_newstate();
 	luaL_openmini(L);
 }
 
-LuaScript& LuaScript::Instance() {
+LuaScript& LuaScript::Instance()
+{
 	static LuaScript _lua;
 
 	return _lua;
 }
 
-LuaScript::~LuaScript() {
+LuaScript::~LuaScript()
+{
 	lua_close(L);
 }
 
-std::string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname) {
+std::string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname)
+{
 	std::string text;
 	bool ret = GetScript(name, text);
 	if (ret) {
@@ -165,23 +170,5 @@ bool ScriptCommand::LoadFromJson(json_t *js) {
 std::string ScriptCommand::Run() {
 	LuaScript& lua = LuaScript::Instance();
 	return lua.RunScript(argc, (const char **)argv, script_name.c_str(), func_name.c_str());
-}
-
-int lua_main()
-{
-	LuaScript& lua = LuaScript::Instance();
-
-	const char *cz_argv[] = {"102"};
-	const char *uc_argv[] = {"163"};
-	std::string ret;
-//	ret = lua.RunScript("cztv", 1, cz_argv);
-//	printf("ret= %s\n", ret.c_str());
-//	ret = lua.RunScript("uctv", 1, uc_argv);
-//	printf("ret= %s\n", ret.c_str());
-
-	const char *jln_argv[] = {"http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6"};
-	ret = lua.RunScript(1, jln_argv, "jlntv", "kola_main");
-	printf("ret= %s\n", ret.c_str());
-	return 0;
 }
 

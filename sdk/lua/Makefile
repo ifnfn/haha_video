@@ -29,11 +29,10 @@ SRC += src/lstate.c
 SRC += src/ltable.c
 SRC += src/lvm.c
 
-SRC += lua-cjson-xml/lua_cjson.c lua-cjson-xml/strbuf.c lua-cjson-xml/fpconv.c lua-cjson-xml/LuaXML_lib.c
+SRC += lua-cjson-xml/lua_cjson.c lua-cjson-xml/strbuf.c lua-cjson-xml/fpconv.c lua-cjson-xml/lua_xml.c
 LIB=liblua.a
 
 
-#CFLAGS += -DTEST_CODE_VERSION=$(shell svn info|grep Revision|awk '{print $$2}')
 CFLAGS +=-Isrc
 
 default: all

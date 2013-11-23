@@ -33,7 +33,7 @@ void test_custommenu()
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
-		printf("[%d] %s: Video:Count %d\n", i, album->albumName.c_str(), video_count);
+		printf("[%ld] %s: Video:Count %ld\n", i, album->albumName.c_str(), video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
 			std::string player_url;
@@ -76,7 +76,7 @@ void test_livetv()
 		KolaAlbum *album = page.GetAlbum(i);
 
 		size_t video_count = album->GetVideoCount();
-		printf("[%d] %s: Video:Count %d\n", i, album->albumName.c_str(), video_count);
+		printf("[%ldd] %s: Video:Count %ld\n", i, album->albumName.c_str(), video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
 			std::string player_url;
@@ -119,7 +119,7 @@ void test_video(const char *menuName)
 		for (size_t i = 0; i < page.Count(); i++) {
 			KolaAlbum *album = page.GetAlbum(i);
 
-			printf("[%d] %s\n", i, album->albumName.c_str());
+			printf("[%ld] %s\n", i, album->albumName.c_str());
 		}
 
 		if (page.Count() < m->GetPageSize())
@@ -132,7 +132,7 @@ void test_video(const char *menuName)
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
-		printf("[%d]: Video:Count %d\n", i, video_count);
+		printf("[%ld]: Video:Count %ld\n", i, video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
 			std::string player_url;
@@ -145,7 +145,7 @@ void test_video(const char *menuName)
 	}
 
 	size_t count = page.PictureCount();
-	printf("Picture count %d\n", count);
+	printf("Picture count %ld\n", count);
 #if 0
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);

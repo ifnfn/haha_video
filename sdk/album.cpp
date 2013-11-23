@@ -50,7 +50,7 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 	json_t *js, *videos, *v;
 	json_error_t error;
 
-	sprintf(url_buffer, "/video/getvideo?full=1&pid=%s&page=%d&size=%d", vid.c_str(), pageNo, pageSize);
+	sprintf(url_buffer, "/video/getvideo?full=1&pid=%s&page=%ld&size=%ld", vid.c_str(), pageNo, pageSize);
 
 	if (client->UrlPost(url_buffer, NULL, text) == false)
 		return false;

@@ -2,6 +2,7 @@
 
 #include "json.h"
 #include "kola.hpp"
+#include "httplib.h"
 
 KolaMenu::KolaMenu() {
 	cid = -1;
@@ -205,24 +206,23 @@ bool CustomMenu::SaveToFile(std::string otherFile) {
 
 int CustomMenu::LowGetPage(AlbumPage &page, int pageId, int pageSize)
 {
-	int count = 0;
-	std::string url = "/video/list?";
-	std::string text = "";
-	std::string body = GetPostData();
+	std::string text;
 	int pos = pageId * pageSize;
-	char buf[128];
 
-	sprintf(buf, "page=%d&size=%d", pageId, pageSize);
-	url = url + buf + "&vid=";
-	for (; count < pageSize; count++) {
-		url = url + albumIdList[pos];
-		pos ++;
-		if (pos == albumCount)
-			break;
-		url = url + ",";
-	}
+	text = albumIdList.ToString(pos, pageSize);
+	if (text.size() > 0) {
+		char buf[128];
+		char *pvid;
+		std::string url;
+		std::string body = GetPostData();
 
-	if (count > 0) {
+		sprintf(buf, "video/list?page=%d&size=%d&vid=", pageId, pageSize);
+
+		pvid = URLencode(text.c_str());
+		text = pvid;
+		free(pvid);
+		url = buf + text;
+		printf("%s\n", url.c_str());
 		if (client->UrlPost(url, body.c_str(), text) == true)
 			return ParserJson(page, text);
 	}

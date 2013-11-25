@@ -180,6 +180,7 @@ class StringList: public std::vector<std::string> {
 		void operator>> (std::string v);
 		bool Find(std::string v);
 		std::string ToString(std::string s = "", std::string e = "", std::string split = ",");
+		std::string ToString(int offset, int count, std::string s = "", std::string e = "", std::string split = ",");
 		void Split(const std::string items, std::string sp=",");
 		bool SaveToFile(std::string fileName);
 		bool LoadFromFile(std::string fileName);
@@ -201,7 +202,7 @@ class KolaFilter {
 		KolaFilter() {}
 		~KolaFilter() {}
 		void KeyAdd(std::string key, std::string value);
-		void KeyRemove(std::string key, std::string value);
+		void KeyRemove(std::string key);
 		std::string GetJsonStr(void);
 		FilterValue& operator[] (std::string key);
 		std::map<std::string, FilterValue> filterKey;

@@ -23,7 +23,7 @@ void KolaFilter::KeyAdd(std::string key, std::string value)
 	v.Set(value);
 }
 
-void KolaFilter::KeyRemove(std::string key, std::string value)
+void KolaFilter::KeyRemove(std::string key)
 {
 	filterKey.erase(key);
 }

@@ -23,10 +23,10 @@ void test_custommenu()
 	CustomMenu *menu = new CustomMenu("abc");
 
 //	menu->AlbumAdd("845690");
-	menu->AlbumAdd("582923");
+//	menu->AlbumAdd("582923");
 //	menu->AlbumAdd("841316");
 //	menu->AlbumAdd("220791");
-	menu->AlbumAdd("221079");
+//	menu->AlbumAdd("221079");
 
 	AlbumPage page;
 	menu->GetPage(page);
@@ -194,13 +194,14 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
+	test_custommenu();
+	return 0;
 	printf("Test LiveTV\n"); test_livetv();
 
 //	printf("Test Video\n"); test_video("电影");
 
 //	printf("Test TV\n");    test_video("电视剧");
 //
-//	test_custommenu();
 //	printf("end\n");
 //	test_task(); return 0;
 }

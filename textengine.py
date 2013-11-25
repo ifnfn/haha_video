@@ -184,7 +184,7 @@ class TextvEngine(VideoEngine):
                 album.sources     = v
                 album.totalSet    = len(v)
                 self._save_update_append(None, album)
-                TemplateTextvUrlParser(album).Execute()
+                #TemplateTextvUrlParser(album).Execute()
 
     def _save_update_append(self, sets, album, _filter={}, upsert=True):
         if album:

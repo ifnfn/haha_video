@@ -26,8 +26,8 @@ class Kolatv:
 
         self.AddEngine(sohuengine.SohuEngine)
         #self.AddEngine(letvengine.LetvEngine)
-        self.AddEngine(wolidouengine.WolidouEngine)
-        #self.AddEngine(textengine.TextvEngine)
+        #self.AddEngine(wolidouengine.WolidouEngine)
+        self.AddEngine(textengine.TextvEngine)
 
     def AddEngine(self, egClass):
         e = egClass(self.db, self.command)

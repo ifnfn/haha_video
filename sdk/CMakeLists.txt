@@ -6,13 +6,26 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(lua/src)
 
-AUX_SOURCE_DIRECTORY( .                   SRCS )
 AUX_SOURCE_DIRECTORY(./lua/src/           SRCS)
 AUX_SOURCE_DIRECTORY(./lua/lua-cjson-xml/ SRCS)
 
 ADD_GX_LIBRARY(kolatv
 	${SRCS}
+	album.cpp
+	export_kola.cpp
+	httplib.cpp
+	pcre.cpp
+	stringlist.cpp
+	threadpool.cpp
+	base64.cpp
+	filter.cpp
+	kola.cpp
+	menu.cpp
+	script.cpp
+	task.cpp
+	video.cpp
 )
+
 ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
 
 ###############################################################################

@@ -61,7 +61,7 @@ KolaMenu::KolaMenu(json_t *js)
 
 bool KolaMenu::SetQuickFilter(std:: string name)
 {
-	bool ret = quickFilters.Find(name);
+	bool ret = quickFilters.Find(name) || name == "";
 	if (ret)
 		quickFilter = name;
 
@@ -136,7 +136,7 @@ std::string KolaMenu::GetPostData()
 	}
 
 	body = body + "}";
-//	std::cout << "Filter Body: " << body << std::endl;
+	std::cout << "Filter Body: " << body << std::endl;
 
 	return body;
 }

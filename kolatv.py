@@ -24,7 +24,7 @@ class Kolatv:
         self.MenuList = {}
         self.UpdateAlbumFlag = False
 
-        #self.AddEngine(sohuengine.SohuEngine)
+        self.AddEngine(sohuengine.SohuEngine)
         #self.AddEngine(letvengine.LetvEngine)
         self.AddEngine(wolidouengine.WolidouEngine)
         #self.AddEngine(textengine.TextvEngine)

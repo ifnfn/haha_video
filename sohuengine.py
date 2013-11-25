@@ -248,22 +248,13 @@ class SohuVideoMenu(VideoMenuBase):
         }
         self.quickFilter = {
             '热门电影' : {
-                    'filter': {
-                        '地区' : '香港,台湾'
-                    },
-                    'sort' : '日播放最多'
+                    'sort' : '周播放最多'
             },
             '最新电影' :{
-                    'filter': {
-                        '地区' : '香港,台湾'
-                    },
                     'sort' : '日播放最多'
             },
             '推荐电影' :{
-                    'filter': {
-                        '地区' : '香港,台湾'
-                    },
-                    'sort' : '日播放最多'
+                    'sort' : '评分最高'
             },
             '港台电影' : {
                     'filter': {
@@ -487,23 +478,14 @@ class SohuMovie(SohuVideoMenu):
             }
         }
         self.quickFilter = {
-            '热门电影' :{
-                    'filter': {
-                        '地区' : '香港,台湾'
-                    },
-                    'sort' : '日播放最多'
+            '热门电影' : {
+                    'sort' : '周播放最多'
             },
             '最新电影' :{
-                    'filter': {
-                        '地区' : '香港,台湾'
-                    },
                     'sort' : '日播放最多'
             },
             '推荐电影' :{
-                    'filter': {
-                        '地区' : '香港,台湾'
-                    },
-                    'sort' : '日播放最多'
+                    'sort' : '评分最高'
             },
             '国产电影' : {
                     'filter': {
@@ -585,16 +567,13 @@ class SohuTV(SohuVideoMenu):
             }
         }
         self.quickFilter = {
-            '热播剧' :{
-                    'filter': {
-                        '地区' : '香港,台湾'
-                    },
+            '热门电影' : {
+                    'sort' : '周播放最多'
+            },
+            '最新电影' :{
                     'sort' : '日播放最多'
             },
-            '最新更新' :{
-                    'sort' : '最新发布'
-            },
-            '推荐' :{
+            '推荐电影' :{
                     'sort' : '评分最高'
             },
             '国内剧' : {
@@ -1160,11 +1139,11 @@ class SohuEngine(VideoEngine):
         try:
             data = tornado.escape.json_decode(js['data'])
             if 'album' in data:
-                album = data['album']
-                if album:
+                js = data['album']
+                if js:
                     album = self.NewAlbum()
-                    if 'id' in album:
-                        album.playlistid = autostr(album['id'])
+                    if 'id' in js:
+                        album.playlistid = autostr(js['id'])
                         if not album.playlistid:
                             return []
 

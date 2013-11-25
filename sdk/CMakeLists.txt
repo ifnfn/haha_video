@@ -26,7 +26,7 @@ ADD_GX_LIBRARY(kolatv
 	video.cpp
 )
 
-ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
+ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wno-deprecated-declarations)
 
 ###############################################################################
 # 编译可执行程序

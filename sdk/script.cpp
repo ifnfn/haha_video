@@ -7,9 +7,9 @@ extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
-int luaopen_kola(lua_State *L);
-int luaopen_cjson(lua_State *L);
-int luaopen_LuaXML_lib(lua_State *L);
+	int luaopen_kola(lua_State *L);
+	int luaopen_cjson(lua_State *L);
+	int luaopen_LuaXML_lib(lua_State *L);
 }
 
 #include "json.h"
@@ -21,7 +21,6 @@ const char *lua_runscript(lua_State* L, const char *fn, const char *func, int ar
 	int i;
 
 	if (luaL_dostring(L, fn)) {
-	//if (luaL_dofile(L, fn)) {
 		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
 		return NULL;
 	}
@@ -31,10 +30,10 @@ const char *lua_runscript(lua_State* L, const char *fn, const char *func, int ar
 	for (i=0; i < argc; i++)
 		lua_pushstring(L, argv[i]);
 
-	//下面的第二个参数表示带调用的lua函数存在两个参数。
-	//第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
-	//lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
-	if (lua_pcall(L, argc, 1,0)) {
+	// 下面的第二个参数表示带调用的lua函数存在两个参数。
+	// 第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
+	// lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
+	if (lua_pcall(L, argc, 1, 0)) {
 		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
 		printf("function ""%s"", parameters: \n", func);
 		for (i = 0; i < argc; i++)
@@ -43,18 +42,18 @@ const char *lua_runscript(lua_State* L, const char *fn, const char *func, int ar
 		return NULL;
 	}
 
-	//此时结果已经被压入栈中。
+	// 此时结果已经被压入栈中。
 	if (!lua_isstring(L, -1)) {
 		printf("function '%s' must return a string.\n", func);
 		lua_pop(L, -1);
 		return NULL;
 	}
 
-	const char *ret = lua_tostring(L,-1);
+	const char *ret = lua_tostring(L, -1);
 	if (ret)
 		ret = strdup(ret);
 
-	lua_pop(L,-1);
+	lua_pop(L, -1);
 
 	return ret;
 }
@@ -105,15 +104,18 @@ LuaScript::~LuaScript()
 
 std::string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname)
 {
-	std::string text;
-	bool ret = GetScript(name, text);
-	if (ret) {
+	std::string text, ret("");
+
+	if ( GetScript(name, text)) {
 		const char *r = lua_runscript(L, text.c_str(), fname, argc, argv);
-		if (r)
-			return r;
+		if (r) {
+			ret = r;
+
+			free(r);
+		}
 	}
 
-	return "";
+	return ret;
 }
 
 bool LuaScript::GetScript(const char *name, std::string &text) {

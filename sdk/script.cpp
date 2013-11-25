@@ -16,7 +16,7 @@ extern "C" {
 #include "kola.hpp"
 #include "script.hpp"
 
-const char *lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
+char *lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
 {
 	int i;
 
@@ -55,7 +55,7 @@ const char *lua_runscript(lua_State* L, const char *fn, const char *func, int ar
 
 	lua_pop(L, -1);
 
-	return ret;
+	return (char*)ret;
 }
 
 static const luaL_Reg lualibs[] = {
@@ -107,7 +107,7 @@ std::string LuaScript::RunScript(int argc, const char **argv, const char *name, 
 	std::string text, ret("");
 
 	if ( GetScript(name, text)) {
-		const char *r = lua_runscript(L, text.c_str(), fname, argc, argv);
+		char *r = lua_runscript(L, text.c_str(), fname, argc, argv);
 		if (r) {
 			ret = r;
 

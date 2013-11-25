@@ -195,6 +195,7 @@ void test_video(const char *menuName)
 int main(int argc, char **argv)
 {
 	test_custommenu();
+	while(1) sleep(3);
 	return 0;
 	printf("Test LiveTV\n"); test_livetv();
 

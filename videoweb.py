@@ -167,10 +167,16 @@ class UploadHandler(BaseHandler):
         pass
 
     def post(self):
-        body = self.request.body.decode()
-        if body and len(body) > 0:
-            tv.ParserHtml(body)
-            #tv.AddTask(body)
+        try:
+            if type(self.request.body) == bytes:
+                body = self.request.body.decode()
+            else:
+                body = self.request.body
+            if body and len(body) > 0:
+                tv.ParserHtml(body)
+                #tv.AddTask(body)
+        except:
+            pass
 
 class ShowHandler(BaseHandler):
     def initialize(self):

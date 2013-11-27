@@ -502,8 +502,7 @@ static int lua_array_length(lua_State *l, json_config_t *cfg, strbuf_t *json)
     /* table, startkey */
     while (lua_next(l, -2) != 0) {
         /* table, key, value */
-        if (lua_type(l, -2) == LUA_TNUMBER &&
-            (k = lua_tonumber(l, -2))) {
+        if (lua_type(l, -2) == LUA_TNUMBER && (k = lua_tonumber(l, -2))) {
             /* Integer >= 1 ? */
             if (floor(k) == k && k >= 1) {
                 if (k > max)

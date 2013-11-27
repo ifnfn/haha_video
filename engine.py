@@ -134,7 +134,6 @@ class VideoBase:
         self.largePicUrl = ''
         self.playUrl = ''
 
-        self.originalData = []
         self.script = {}
 
         if js:
@@ -178,7 +177,6 @@ class VideoBase:
         if self.videoScore      : ret['videoScore'] = self.videoScore
         if self.largePicUrl     : ret['largePicUrl'] = self.largePicUrl
         if self.smallPicUrl     : ret['smallPicUrl'] = self.smallPicUrl
-        if self.originalData    : ret['originalData'] = self.originalData
         if self.script          : ret['script'] = self.script
         if self.priority        : ret['priority'] = self.priority
 
@@ -215,7 +213,6 @@ class VideoBase:
         if 'videoScore' in json     : self.videoScore     = json['videoScore']
         if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
         if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
-        if 'originalData' in json   : self.originalData   = json['originalData']
         if 'script' in json         :  self.script        = json['script']
         if 'priority' in json       :  self.priority      = json['priority']
 

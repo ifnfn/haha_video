@@ -208,6 +208,13 @@ class SohuAlbum(AlbumBase):
         if url != '':
             TemplateAlbumPlayInfo(self, url)
 
+    def GetVideoPlayUrl(self, definition=0):
+        vid = self.vid
+        if vid:
+            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
+        else:
+            return ''
+
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name, engine):
         super().__init__(name, engine)
@@ -389,7 +396,10 @@ class SohuVideoMenu(VideoMenuBase):
     def _ParserRealUrlStep3(self, text, url):
         try:
             ret = tornado.escape.json_decode(text)
+            if type(ret) == str:
+                ret = tornado.escape.json_decode(ret)
 
+            self.engine._UpdateVideoVid(ret)
             if 'sets' in ret:
                 max_duration = 0.0
                 m3u8 = ''
@@ -1043,6 +1053,11 @@ class SohuEngine(VideoEngine):
                     v.pid = album.vid
                     v.cid = album.cid
                     v.LoadFromJson(video)
+                    v.script = {
+                        'script' : 'sohu',
+                        'parameters' : [v.GetVideoPlayUrl(), autostr(album.cid)]
+                    }
+
                     album.videos.append(v)
             if album.vid:
                 self._save_update_append(ret, album, key={'vid' : album.vid}, upsert=False)
@@ -1170,22 +1185,26 @@ class SohuEngine(VideoEngine):
         return ret
 
     def _UpdateVideoVid(self, js, res=[]):
-        if 'id' not in js or 'data' not in js:
+        if ('id' not in js) and ('vid' not in js):
             return
 
         try:
             video = self.NewVideo()
-            video.vid = autostr(js['id'])
-            data = js['data']
+            if 'id' in js:
+                video.vid = autostr(js['id'])
+            elif 'vid' in js:
+                video.vid = autostr(js['vid'])
+            else:
+                return
 
-            if 'highVid' in data:    video.highVid    = autostr(data['highVid'])
-            if 'norVid' in data:     video.norVid     = autostr(data['norVid'])
-            if 'oriVid' in data:     video.oriVid     = autostr(data['oriVid'])
-            if 'superVid' in data:   video.superVid   = autostr(data['superVid'])
-            if 'relativeId' in data: video.relativeId = autostr(data['relativeId'])
+            if 'highVid' in js:    video.highVid    = autostr(js['highVid'])
+            if 'norVid' in js:     video.norVid     = autostr(js['norVid'])
+            if 'oriVid' in js:     video.oriVid     = autostr(js['oriVid'])
+            if 'superVid' in js:   video.superVid   = autostr(js['superVid'])
+            if 'relativeId' in js: video.relativeId = autostr(js['relativeId'])
 
-            video.originalData = res
-            self.db.SaveVideo(video)
+            if video.highVid or video.norVid or video.oriVid or video.superVid or video.relativeId:
+                self.db.SaveVideo(video)
         except:
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.UpdateVideoPid:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))

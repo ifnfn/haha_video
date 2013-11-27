@@ -8,10 +8,65 @@ LUALIB_API int luaopen_kola(lua_State *L);
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
+#include <math.h>
 
 #include "kola.hpp"
 #include "pcre.hpp"
 #include "httplib.h"
+
+class WgetTask: public Task {
+	public:
+		WgetTask(std::string url) {
+			this->Url = url;
+		}
+		void Run() {
+			KolaClient &kola = KolaClient::Instance();
+
+			if (kola.UrlGet("", text, Url.c_str()) == false)
+				text = "";
+		}
+		std::string text;
+	private:
+		std::string Url;
+};
+
+static int f_mwget(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	double k;
+	const char *v = NULL;
+	std::vector<WgetTask> taskList;
+
+	lua_pushnil(L);
+	/* table, startkey */
+	while (lua_next(L, 1) != 0) {
+		/* table, key, value */
+		if (lua_type(L, -2) == LUA_TNUMBER && (k = lua_tonumber(L, -2))) {
+			if (lua_type(L, -1) == LUA_TSTRING && (v = lua_tostring(L, -1))) {
+				taskList.push_back(WgetTask(v));
+			}
+		}
+		lua_pop(L, 1);
+	}
+
+	for (size_t i = 0; i < taskList.size(); i++) {
+		WgetTask *t = &taskList[i];
+		t->Start();
+	}
+
+	lua_newtable(L);
+
+	for (size_t i = 0; i < taskList.size(); i++) {
+		WgetTask *t = &taskList[i];
+		t->Wait();
+		lua_pushinteger(L, i + 1);
+		lua_pushlstring(L, t->text.c_str(), t->text.size());
+		lua_settable(L, -3);
+	}
+
+	return 1;
+}
 
 static int f_wget(lua_State *L)
 {
@@ -51,6 +106,36 @@ static int f_wget(lua_State *L)
 	return rc;
 }
 
+/**
+ * wpost(url, data, referer)
+ */
+
+static int f_wpost(lua_State *L)
+{
+	std::string ret;
+	int argc = lua_gettop(L);
+
+	if (argc < 2)
+		return 0;
+
+	const char *url = lua_tostring(L, 1);
+	const char *data = lua_tostring(L, 2);
+	const char *referer = NULL;
+
+	if (argc >= 3)
+		referer = lua_tostring(L, 3);
+
+	KolaClient &kola = KolaClient::Instance();
+
+	if (kola.UrlPost("", data, ret, url, referer) == true) {
+		lua_pushstring(L, ret.c_str());
+
+		return 1;
+	}
+
+	return 0;
+}
+
 static int f_pcre(lua_State *L)
 {
 	const char *regular = lua_tostring(L, 1);
@@ -72,10 +157,21 @@ static int f_pcre(lua_State *L)
 	return 1;
 }
 
+static int f_getserver(lua_State *L)
+{
+	KolaClient &kola = KolaClient::Instance();
+	lua_pushstring(L, kola.GetServer().c_str());
+
+	return 1;
+}
+
 static const struct luaL_reg wget_lib[] = {
-	{"wget", f_wget},
-	{"pcre", f_pcre},
-	{NULL, NULL},
+	{"wget"      , f_wget}      ,
+	{"mwget"     , f_mwget}     ,
+	{"wpost"     , f_wpost}     ,
+	{"pcre"      , f_pcre}      ,
+	{"getserver" , f_getserver} ,
+	{NULL        , NULL}        ,
 };
 
 LUALIB_API int luaopen_kola(lua_State *L) {

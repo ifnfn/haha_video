@@ -1,7 +1,19 @@
 #include <iostream>
 #include <unistd.h>
 
+#include "script.hpp"
 #include "kola.hpp"
+
+void test_script()
+{
+	LuaScript &lua = LuaScript::Instance();
+	const char *argv[] = {
+		"http://hot.vrs.sohu.com/vrs_flash.action?vid=8414",
+		"1"
+		};
+
+	std::string ret = lua.RunScript(2, argv, "sohu");
+}
 
 void test_task()
 {
@@ -194,12 +206,12 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	test_custommenu();
-	while(1) sleep(3);
-	return 0;
-	printf("Test LiveTV\n"); test_livetv();
+//	test_script();
+//	return 0;
+//	test_custommenu();
+//	printf("Test LiveTV\n"); test_livetv();
 
-//	printf("Test Video\n"); test_video("电影");
+	printf("Test Video\n"); test_video("电影");
 
 //	printf("Test TV\n");    test_video("电视剧");
 //

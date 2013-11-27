@@ -90,24 +90,6 @@ class ScriptCommand {
 		int argc;
 };
 
-class VideoSegment: public Task {
-	public:
-		VideoSegment(void);
-		VideoSegment(json_t *js);
-
-		virtual void Run(void);
-		bool LoadFromJson(json_t *js);
-	private:
-		std::string url;
-		std::string newfile;
-		std::string realUrl;
-		double duration;
-		size_t size;
-
-		std::string GetJsonStr(std::string *newUrl);
-		friend class KolaVideo;
-};
-
 class KolaVideo {
 	public:
 		KolaVideo(json_t *js = NULL);
@@ -147,13 +129,7 @@ class KolaVideo {
 		std::string pageUrl;
 		std::string playUrl;
 		std::string directPlayUrl;
-		int haveOriginalData;
-		bool UpdatePlayInfo(json_t *js);
-		std::vector<VideoSegment> segmentList;
 		ScriptCommand Script;
-		bool GetPlayInfo(void);
-		void deleteLocalVideoFile();
-		friend class VideoSegment;
 };
 
 class Picture: public Task {
@@ -361,6 +337,7 @@ class KolaClient {
 		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL, const char *referer = NULL);
 		bool UrlGetCache(std::string url, std::string &ret, const char *home_url = NULL, const char *referer = NULL);
 		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, const char *referer = NULL, int times = 0);
+		std::string& GetServer() { return baseUrl; }
 	private:
 		KolaClient(void);
 		std::string baseUrl;
@@ -384,6 +361,5 @@ class KolaClient {
 		friend class CustomMenu;
 		friend class Picture;
 		friend class Task;
-		friend class VideoSegment;
 };
 

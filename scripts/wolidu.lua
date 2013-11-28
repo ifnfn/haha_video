@@ -43,7 +43,9 @@ function kola_main(url, referer, server)
 			ux[1] = 'http://www.wolidou.com/s/key.php?f=k&t=' .. t
 			ux[2] = url .. "&ts=" .. t
 			text = kola.wget(ux, referer)
-			url = cjson.decode(text).wolidou
+			if text ~= nil then
+				url = cjson.decode(text).wolidou
+			end
 		else
 			text = kola.wget(url, referer)
 			url = kola.pcre('<a HREF="(.*)">', text)

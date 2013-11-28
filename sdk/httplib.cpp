@@ -512,6 +512,10 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 	if (cptr == NULL)
 		return -1;
 
+	if (*resp != NULL) {
+		http_resp_clear(*resp);
+	}
+
 	http_debug(LOG_DEBUG, "url is %s\n", url);
 	if (url != NULL) {
 		if (http_decode_and_connect_url(url, cptr) < 0) {
@@ -523,10 +527,6 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 		cptr->m_resource = cptr->m_content_location;
 		cptr->m_content_location = NULL;
 	}
-
-//	if (*resp != NULL) {
-//		http_resp_clear(*resp);
-//	}
 
 	if (cookie) {
 		sprintf(cookie_buffer, "Cookie: %s", cookie);
@@ -1400,8 +1400,8 @@ int http_get_response (http_client_t *cptr, http_resp_t **resp)
 			}
 			te_size = to_hex(&p);
 		}
-		cptr->m_resp->body[cptr->m_resp->body_len] = '\0'; // null terminate
-
+		if (cptr->m_resp->body_len > 0)
+			cptr->m_resp->body[cptr->m_resp->body_len] = '\0'; // null terminate
 	} else {
 		// No termination - just keep reading, I guess...
 		len = cptr->m_buffer_len - cptr->m_offset_on;

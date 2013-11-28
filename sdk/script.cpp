@@ -45,7 +45,7 @@ char *lua_runscript(lua_State* L, const char *fn, const char *func, int argc, co
 
 	// 此时结果已经被压入栈中。
 	if (!lua_isstring(L, -1)) {
-		printf("function '%s' must return a string.\n", func);
+		printf("[Warning] function '%s' must return a string.\n", func);
 		lua_pop(L, -1);
 		return NULL;
 	}

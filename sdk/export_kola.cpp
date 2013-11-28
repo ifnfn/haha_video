@@ -111,7 +111,6 @@ static int f_wget(lua_State *L)
 	}
 	for (int i = 0; i < urlList.size(); i++) {
 		http_set_location(http_client, 0);
-		printf("%d: %s\n", i, urlList[i].c_str());
 		rc = http_get(http_client, urlList[i].c_str(), &http_resp, NULL, referer);
 		if (rc > 0 && http_resp && (http_resp)->body) {
 			const char * ret = http_resp->body;

@@ -54,6 +54,37 @@ class TemplateWolidouAlbumVideoUrl(Template):
 class WolidouVideo(VideoBase):
     def __init__(self, js=None):
         super().__init__(js)
+        self.TVList = {
+            '浙江电视台' : {
+                'channels' : [{
+                    'script'     : 'zjtv.lua',
+                    'function'   : 'get_channel',
+                    'parameters' : 'api.cztv.com',
+                    'area'       : '浙江省'},
+                ]
+            },
+            '杭州电视台' : {
+                'channels' : [{
+                    'script'   : 'hztv.lua',
+                    'function' : 'get_channel',
+                    'area'     : '浙江省杭州市'}
+                ]
+            },
+            '宁波电视台' : {
+                'channels' : [
+                    {'script'     : 'jztv.lua',
+                     'parameters' : 'ming-api.nbtv.com',
+                     'area'       : '浙江省杭州市' },
+                ]
+            },
+            '卫视' :{
+                   'channels': [
+                    {'script' : 'wolidu.lua',
+                     'parameters' : []}
+                    ]
+            }
+        }
+
 
     def GetVideoPlayUrl(self, definition=0):
         pass
@@ -135,9 +166,14 @@ class WolidouTV(VideoMenuBase):
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
-        url = HOST_URL + '/tvl/weishi/2_1.html'
         url = HOST_URL + '/tvz/cctv/70_1.html'
         TemplateWolidouAlbumList(self, url).Execute()
+        url = HOST_URL + '/tvl/weishi/2_1.html'
+        TemplateWolidouAlbumList(self, url).Execute()
+        #url = HOST_URL + '/tvl/shengshi/3_1.html'
+        #TemplateWolidouAlbumList(self, url).Execute()
+        #url = HOST_URL + '/tvl/guonei/10_1.html'
+        #TemplateWolidouAlbumList(self, url).Execute()
 
     def GetRealPlayer(self, text, definition, step):
         jdata = tornado.escape.json_decode(text)
@@ -174,14 +210,14 @@ class WolidouEngine(VideoEngine):
         }
 
     def _exclude_host(self, url):
-        hosts = ('dxnm.php', 'dxifeng.php', 'basicflv.php')
+        hosts = ()
         for h in hosts:
             if h in url:
                 return False
         return True
 
     def _get_priority(self, url):
-        hosts = ("sohu.php", "dxtx.php", "dxnm.php", "sxmsp.php")
+        hosts = ("sohu.php", "dxtx.php", "dxnm.php", 'dxnm.php', 'dxifeng.php', 'basicflv.php', "sxmsp.php", "jstv.php", "moon.php", "dxcctv.php")
         prior = 1
         for h in hosts:
             if h in url:
@@ -235,7 +271,7 @@ class WolidouEngine(VideoEngine):
                     for url in u:
                         TemplateWolidouAlbumVideoUrl(self, js['vid'], b[0], HOST_URL + url).Execute()
 
-            if b[0] == '超速服务器：':
+            if b[0] in set(['超速服务器：', 'M3U8专线服务器：']):
                 print(b)
                 u = re.findall('<li><a href="(.*)" target="_blank">.*</a></li>', text)
                 if u:
@@ -276,7 +312,7 @@ class WolidouEngine(VideoEngine):
 
             album = self.NewAlbum()
             album.cid = 200
-            album.vid = name
+            album.vid = hashlib.md5(name.encode()).hexdigest()[16:]
             album.albumName = name
             album.categories = tvmenu.GetCategories(name)
             album.albumPageUrl = url

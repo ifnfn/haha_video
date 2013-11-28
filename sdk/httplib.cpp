@@ -47,6 +47,7 @@ struct http_client_ {
 	const char *m_host;
 	const char *m_resource;
 	const char *m_content_location;
+	const char *m_cookie;
 	http_state_t m_state;
 	uint16_t m_redirect_count;
 	uint16_t m_redirect_count_max;
@@ -70,8 +71,7 @@ struct http_client_ {
 
 #define FREE_CHECK(a,b){ if (a->b != NULL) { free((void *)a->b); a->b = NULL;}}
 
-int http_decode_and_connect_url (const char *name,
-		http_client_t *ptr);
+int http_decode_and_connect_url (const char *name, http_client_t *ptr);
 
 int http_build_header(char *buffer, uint32_t maxlen, uint32_t *at,
 		http_client_t *cptr, const char *method,
@@ -397,7 +397,7 @@ int tcp_connect(struct in_addr addr, unsigned short port, int block)
 			FD_SET(sock, &rset);
 			wset = rset;
 			maxfd = sock;
-			tval.tv_sec = 10;
+			tval.tv_sec = 30;
 			tval.tv_usec = 0;
 
 			if( (n = select(maxfd + 1, &rset, &wset, NULL, &tval)) == 0 ) {
@@ -487,6 +487,7 @@ void http_free_connection (http_client_t *ptr)
 	FREE_CHECK(ptr, m_resource);
 	FREE_CHECK(ptr, m_redir_location);
 	FREE_CHECK(ptr, m_content_location);
+	FREE_CHECK(ptr, m_cookie);
 	free(ptr);
 #ifdef _WIN32
 	WSACleanup();
@@ -506,27 +507,33 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 	uint32_t buffer_len;
 	int ret;
 	int more;
-	char cookie_buffer[128];
+	char cookie_buffer[2048];
 
 	if (cptr == NULL)
 		return -1;
 
 	http_debug(LOG_DEBUG, "url is %s\n", url);
 	if (url != NULL) {
-		http_debug(LOG_DEBUG, "resource is now %s", url);
-		CHECK_AND_FREE(cptr->m_resource);
-		cptr->m_resource = strdup(url);
+		if (http_decode_and_connect_url(url, cptr) < 0) {
+			http_debug(LOG_DEBUG, "resource is now %s", url);
+			CHECK_AND_FREE(cptr->m_resource);
+			cptr->m_resource = strdup(url);
+		}
 	} else {
 		cptr->m_resource = cptr->m_content_location;
 		cptr->m_content_location = NULL;
 	}
 
-	if (*resp != NULL) {
-		http_resp_clear(*resp);
-	}
+//	if (*resp != NULL) {
+//		http_resp_clear(*resp);
+//	}
 
 	if (cookie) {
 		sprintf(cookie_buffer, "Cookie: %s", cookie);
+		cookie = cookie_buffer;
+	}
+	else if (cptr->m_cookie) {
+		sprintf(cookie_buffer, "Cookie: %s", cptr->m_cookie);
 		cookie = cookie_buffer;
 	}
 
@@ -534,8 +541,7 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 	/*
 	 * build header and send message
 	 */
-	ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET",
-			cookie, NULL, referer);
+	ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET", cookie, NULL, referer);
 	http_debug(LOG_DEBUG, "%s", header_buffer);
 	if (send(cptr->m_server_socket,
 				header_buffer,
@@ -571,8 +577,7 @@ int http_get(http_client_t *cptr, const char *url, http_resp_t **resp, const cha
 					return -1;
 				}
 				buffer_len = 0;
-				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET",
-						cookie, NULL, referer);
+				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "GET", cookie, NULL, referer);
 				http_debug(LOG_DEBUG, "%s", header_buffer);
 				if (send(cptr->m_server_socket, header_buffer, buffer_len, 0) < 0) {
 					http_debug(LOG_CRIT,"Send failure");
@@ -667,8 +672,7 @@ int http_post(http_client_t *cptr, const char *url, http_resp_t **resp, const ch
 					goto out;
 				}
 				buffer_len = 0;
-				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "POST",
-						cookie,  encode_body, referer);
+				ret = http_build_header(header_buffer, 4096, &buffer_len, cptr, "POST", cookie,  encode_body, referer);
 				http_debug(LOG_DEBUG, "%s", header_buffer);
 				if (send(cptr->m_server_socket,
 							header_buffer,
@@ -1138,6 +1142,7 @@ HTTP_CMD_DECODE_FUNC(http_cmd_gzip_encoding)
 
 HTTP_CMD_DECODE_FUNC(http_cmd_set_cookie)
 {
+	cptr->m_cookie = strdup(lptr);
 	do {
 		if (strncasecmp(lptr, "_xsrf", strlen("_xsrf")) == 0) {
 			const char *p = (char *)strstr(lptr, ";");

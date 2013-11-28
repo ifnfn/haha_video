@@ -10,6 +10,7 @@ extern "C" {
 	int luaopen_kola(lua_State *L);
 	int luaopen_cjson(lua_State *L);
 	int luaopen_LuaXML_lib(lua_State *L);
+	int luaopen_cURL(lua_State* L);
 }
 
 #include "json.h"
@@ -69,6 +70,8 @@ static const luaL_Reg lualibs[] = {
 	{"kola"         , luaopen_kola      },
 	{"cjson"        , luaopen_cjson     },
 	{"xml"          , luaopen_LuaXML_lib},
+//	{"cURL"         , luaopen_cURL      },
+
 	{NULL, NULL}
 };
 

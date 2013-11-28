@@ -22,6 +22,7 @@
 #include "kola.hpp"
 #include "pcre.hpp"
 #include "threadpool.hpp"
+#include "script.hpp"
 
 #define TEST 1
 #if TEST
@@ -700,3 +701,11 @@ KolaClient& KolaClient::Instance(const char *user_id)
 	return m_kola;
 }
 
+
+std::string KolaClient::GetArea()
+{
+	LuaScript &lua = LuaScript::Instance();
+	const char *argv[] = { "" };
+
+	return lua.RunScript(1, argv, "getip");
+}

@@ -338,6 +338,7 @@ class KolaClient {
 		bool UrlGetCache(std::string url, std::string &ret, const char *home_url = NULL, const char *referer = NULL);
 		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, const char *referer = NULL, int times = 0);
 		std::string& GetServer() { return baseUrl; }
+		std::string GetArea();
 	private:
 		KolaClient(void);
 		std::string baseUrl;

@@ -7,12 +7,9 @@
 void test_script()
 {
 	LuaScript &lua = LuaScript::Instance();
-	const char *argv[] = {
-		"http://hot.vrs.sohu.com/vrs_flash.action?vid=8414",
-		"1"
-		};
+	const char *argv[] = { "" };
 
-	std::string ret = lua.RunScript(2, argv, "sohu");
+	std::string ret = lua.RunScript(1, argv, "getip");
 }
 
 void test_task()
@@ -81,7 +78,7 @@ void test_livetv()
 	m = kola["直播"];
 //	m->Filter.KeyAdd("类型", "CCTV");
 
-	m->SetPageSize(50);
+	m->SetPageSize(500);
 	m->GetPage(page);
 
 	for (size_t i = 0; i < page.Count(); i++) {
@@ -206,12 +203,15 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
+//	KolaClient &kola = KolaClient::Instance();
+//	std::cout << kola.GetArea() << std::endl;
+
 //	test_script();
 //	return 0;
 //	test_custommenu();
-//	printf("Test LiveTV\n"); test_livetv();
+	printf("Test LiveTV\n"); test_livetv();
 
-	printf("Test Video\n"); test_video("电影");
+//	printf("Test Video\n"); test_video("电影");
 
 //	printf("Test TV\n");    test_video("电视剧");
 //

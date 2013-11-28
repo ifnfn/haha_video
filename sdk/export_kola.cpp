@@ -61,7 +61,7 @@ static int f_mwget(lua_State *L)
 		WgetTask *t = &taskList[i];
 		t->Wait();
 		lua_pushinteger(L, i + 1);
-		lua_pushlstring(L, t->text.c_str(), t->text.size());
+		lua_pushstring(L, t->text.c_str());
 		lua_settable(L, -3);
 	}
 
@@ -71,10 +71,29 @@ static int f_mwget(lua_State *L)
 static int f_wget(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	const char *url= lua_tostring(L, 1);
+	const char *url;
 	const char *referer = NULL;
 	bool location = true;
 	int rc;
+	std::vector<std::string> urlList;
+
+	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {
+		urlList.push_back(url);
+		urlList.push_back("");
+	}
+	else if (lua_type(L, 1) == LUA_TTABLE) {
+		lua_pushnil(L);
+		while (lua_next(L, 1) != 0) {
+			if (lua_type(L, -1) == LUA_TSTRING && (url = lua_tostring(L, -1))) {
+				urlList.push_back(url);
+			}
+
+			lua_pop(L, 1);
+		}
+	}
+
+	if (urlList.size()  == 0)
+		return 0;
 
 	if (argc >= 2)
 		referer = lua_tostring(L, 2);
@@ -85,20 +104,22 @@ static int f_wget(lua_State *L)
 	http_client_t *http_client;
 	http_resp_t *http_resp = NULL;
 
-	http_client = http_init_connection(url);
+	http_client = http_init_connection(urlList[0].c_str());
 	if (http_client == NULL) {
-		printf("%s error: %s\n", __func__, url);
+		printf("%s error: %s\n", __func__, urlList[0].c_str());
 		return 0;
 	}
-	http_set_location(http_client, 0);
-	rc = http_get(http_client, "", &http_resp, NULL, referer);
-	if (rc > 0 && http_resp && (http_resp)->body) {
-		const char * ret = http_resp->body;
-		lua_pushstring(L, ret);
-		rc =  1;
+	for (int i = 0; i < urlList.size(); i++) {
+		http_set_location(http_client, 0);
+		rc = http_get(http_client, urlList[i].c_str(), &http_resp, NULL, referer);
+		if (rc > 0 && http_resp && (http_resp)->body) {
+			const char * ret = http_resp->body;
+			lua_pushstring(L, ret);
+			rc =  1;
+		}
+		else
+			rc = 0;
 	}
-	else
-		rc = 0;
 
 	http_free_connection(http_client);
 	http_resp_free(http_resp);
@@ -165,12 +186,37 @@ static int f_getserver(lua_State *L)
 	return 1;
 }
 
+static int f_urlencode(lua_State *L)
+{
+	const char *txt = lua_tostring(L, 1);
+	txt = URLencode(txt);
+
+	lua_pushstring(L, txt);
+	free((void*)txt);
+
+	return 1;
+}
+
+static int f_urldecode(lua_State *L)
+{
+	const char *txt = lua_tostring(L, 1);
+	char *x = strdup(txt);
+	txt = URLdecode(x);
+
+	lua_pushstring(L, x);
+	free(x);
+
+	return 1;
+}
+
 static const struct luaL_reg wget_lib[] = {
 	{"wget"      , f_wget}      ,
 	{"mwget"     , f_mwget}     ,
 	{"wpost"     , f_wpost}     ,
 	{"pcre"      , f_pcre}      ,
 	{"getserver" , f_getserver} ,
+	{"urlencode" , f_urlencode} ,
+	{"urldecode" , f_urldecode} ,
 	{NULL        , NULL}        ,
 };
 

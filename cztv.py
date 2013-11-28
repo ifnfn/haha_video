@@ -389,15 +389,26 @@ TVStationList = {
 
 TVList = {
     '浙江电视台' : {
-        'channels' : {'script' : 'zjtv.lua', 'function' : 'get_channel',
-                      'parameters' : 'api.cztv.com'},
+        'channels' : [{
+            'script'     : 'zjtv.lua',
+            'function'   : 'get_channel',
+            'parameters' : 'api.cztv.com',
+            'area'       : '浙江省'},
+        ]
     },
     '杭州电视台' : {
-        'script' : 'hztv.lua'
+        'channels' : [{
+            'script'   : 'hztv.lua',
+            'function' : 'get_channel',
+            'area'     : '浙江省杭州市'}
+        ]
     },
     '宁波电视台' : {
-        'script' : 'jztv.lua',
-        'parameters' : 'ming-api.nbtv.com'
+        'channels' : [
+            {'script'     : 'jztv.lua',
+             'parameters' : 'ming-api.nbtv.com'
+             'area'       : '浙江省杭州市' },
+        ]
     },
 }
 

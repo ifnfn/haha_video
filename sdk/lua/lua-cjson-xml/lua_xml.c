@@ -50,7 +50,7 @@ static const char CLS=29;
 
 static const char* char2code(unsigned char ch, char buf[8]) {
 	unsigned char i=0;
-	buf[i++]='&'; 
+	buf[i++]='&';
 	buf[i++]='#';
 	if(ch>99) buf[i++]=ch/100+48;
 	if(ch>9) buf[i++]=(ch%100)/10+48;
@@ -128,13 +128,13 @@ const char* Tokenizer_next(Tokenizer* tok) {
 	const char* OPEN_str = "\034";
 	const char* CLOSE_str = "\035";
 
-	
+
 	if(tok->m_token) {
 		free(tok->m_token);
 		tok->m_token = 0;
 		tok->m_token_size=tok->m_token_capacity = 0;
 	}
-	
+
 	int quotMode=0;
 	int tokenComplete = 0;
 	while(tok->m_next_size || (tok->i < tok->s_size)) {
@@ -178,13 +178,13 @@ const char* Tokenizer_next(Tokenizer* tok) {
 				else {
 					tok->m_next = OPEN_str;
 					tok->m_next_size = 1;
-					tok->tagMode=1; 
+					tok->tagMode=1;
 				}
 				tokenComplete = 1;
 			}
 			else Tokenizer_append(tok, tok->s[tok->i]);
 			break;
-		    case '/': 
+		    case '/':
 			if(tok->tagMode&&!quotMode) {
 				tokenComplete = 1;
 				if((tok->i+1 < tok->s_size) && (tok->s[tok->i+1]=='>')) {
@@ -194,16 +194,16 @@ const char* Tokenizer_next(Tokenizer* tok) {
 					++tok->i;
 				}
 				else Tokenizer_append(tok, tok->s[tok->i]);
-			}                    
+			}
 			else Tokenizer_append(tok, tok->s[tok->i]);
 			break;
-		    case '>': 
+		    case '>':
 			if(!quotMode&&tok->tagMode) {
 				tok->tagMode=0;
 				tokenComplete = 1;
 				tok->m_next = CLOSE_str;
 				tok->m_next_size = 1;
-			}                    
+			}
 			else Tokenizer_append(tok, tok->s[tok->i]);
 			break;
 		    case ' ':
@@ -236,7 +236,7 @@ static size_t sv_code_size=0;
 /// stores currently allocated capacity for special character codes
 static size_t sv_code_capacity=16;
 /// stores code table for special characters
-static char** sv_code=0; 
+static char** sv_code=0;
 
 //--- public methods -----------------------------------------------
 
@@ -290,30 +290,30 @@ int Xml_eval(lua_State *L) {
 		}
 		else {
 			if (firstStatement) {
-				lua_newtable(L); 
+				lua_newtable(L);
 				firstStatement = 0;
 			}
 			else return lua_gettop(L);
 		}
-		// set metatable:    
+		// set metatable:
 		lua_newtable(L);
 		lua_pushliteral(L, "__index");
 		lua_getglobal(L, "xml");
 		lua_settable(L, -3);
-			
+
 		lua_pushliteral(L, "__tostring"); // set __tostring metamethod
 		lua_getglobal(L, "xml");
 		lua_pushliteral(L,"str");
 		lua_gettable(L, -2);
 		lua_remove(L, -2);
-		lua_settable(L, -3);			
+		lua_settable(L, -3);
 		lua_setmetatable(L, -2);
-		
+
 		// parse tag and content:
 		lua_pushnumber(L,0); // use index 0 for storing the tag
 		lua_pushstring(L, Tokenizer_next(tok));
 		lua_settable(L, -3);
-		
+
 		while(((token = Tokenizer_next(tok))!=0)&&(token[0]!=CLS)&&(token[0]!=ESC)) { // parse tag header
 			size_t sepPos=find(token, "=", 0);
 			if(token[sepPos]) { // regular attribute
@@ -324,7 +324,7 @@ int Xml_eval(lua_State *L) {
 				else Xml_pushDecode(L, aVal, lenVal);
 				lua_settable(L, -3);
 			}
-		}            
+		}
 		if(!token||(token[0]==ESC)) {
 			if(lua_gettop(L)>1) lua_settop(L,-2); // this tag has no content, only attributes
 			else break;
@@ -364,7 +364,7 @@ int Xml_load (lua_State *L) {
 int Xml_registerCode(lua_State *L) {
     const char * decoded = luaL_checkstring(L,1);
     const char * encoded = luaL_checkstring(L,2);
-    
+
     size_t i;
     for(i=0; i<sv_code_size; i+=2)
         if(strcmp(sv_code[i],decoded)==0)

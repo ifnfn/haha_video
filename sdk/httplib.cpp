@@ -16,7 +16,13 @@
 #include <zlib.h>
 #include <sys/ioctl.h>
 
+#ifdef CURL
+#include <curl/curl.h>
+#include <curl/types.h>
+#include <curl/easy.h>
+#else
 #include "httplib.h"
+#endif
 
 #define LOG_EMERG 0
 #define LOG_ALERT 1

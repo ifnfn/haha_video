@@ -207,6 +207,7 @@ int main(int argc, char **argv)
 	std::cout << kola.GetArea() << std::endl;
 	std::cout << kola.GetTime() << std::endl;
 
+	printf(".................................................\n");
 //	test_script();
 //	return 0;
 //	test_custommenu();

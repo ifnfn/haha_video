@@ -4,6 +4,7 @@
 import sys, traceback
 import re
 import tornado.escape
+import hashlib
 
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
 from utils import log, autostr
@@ -15,11 +16,9 @@ class TemplateLiveTVInfo(Template):
     def __init__(self, menu):
         cmd = {
             'name'   : 'letv_livetv_list',
-            'source' : 'http://www.letvlive.com',
-            'regular' : [
-                            '(<a href="tv.php.*</a>)',
-                            '<h1 class="lm_1">(.*)</h1>'
-            ]
+            'source' : 'http://www.leshizhibo.com',
+            'regular' : ["<dt>(<a title=.*</a>)</dt>"],
+            'cache' : True
         }
         super().__init__(menu.command, cmd)
 
@@ -28,11 +27,7 @@ class LetvVideo(VideoBase):
         super().__init__(js)
 
     def GetVideoPlayUrl(self, definition=0):
-        vid = self.GetVid(definition)
-        if vid:
-            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
-        else:
-            return ''
+        pass
 
 class LetvAlbum(AlbumBase):
     def __init__(self, parent):
@@ -84,7 +79,7 @@ class LetvLiveTV(LetvVideoMenu):
     def __init__(self, name, engine):
         self.number = 200
         super().__init__(name, engine)
-        self.homePage = 'http://tv.sohu.com/live/'
+        self.homePage = 'http://www.leshizhibo.com'
         self.cid = 200
         self.filter = {
             '类型': {
@@ -111,7 +106,7 @@ class LetvEngine(VideoEngine):
 
         # 引擎主菜单
         self.menu = {
-#            '直播'   : LetvLiveTV
+            '直播'   : LetvLiveTV
         }
 
         self.parserList = {
@@ -123,41 +118,37 @@ class LetvEngine(VideoEngine):
     def _CmdParserLiveTVList(self, js):
         ret = []
 
-        text = js['data']
-
         playlist = js['data'].split("</a>")
 
         for t in playlist:
             #print(t)
-            if re.findall('target="play"', t):
-                href=''
-                nameid=''
-                text=''
-                t += '</a>'
-                urls = re.findall('tv.php\?(id)=([\s\S]*?)"', t)
-                for u in urls:
-                    if u[0] == 'id':
-                        nameid = u[1]
-                        href = 'http://live.gslb.letv.com/gslb?ext=m3u8&sign=live_tv&format=1&stream_id=' + u[1]
-
-                urls = re.findall('>([\s\S]*?)<', t)
-                if urls:
-                    text = urls[0]
-                print(href, nameid, text)
+            x = re.findall('<a title="(.*)" href=".*/channel/(.*)" target="_blank"><img alt=.* src="(.*)"><span class', t)
+            if x:
+                name = x[0][0]
+                vid = x[0][1]
+                print(name, x[0][1], x[0][2])
 
                 album  = self.NewAlbum()
                 album.cid         = 200
-                album.vid         = nameid
-                album.playlistid  = nameid
-                album.pid         = nameid
-                album.albumName   = text
+                album.vid         = hashlib.md5(name.encode()).hexdigest()[16:]
+                album.playlistid  = ''
+                album.pid         = ''
+                album.albumName   = name
 
                 v = self.NewVideo()
+                v.playUrl = 'http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1' % vid
                 v.playlistid = album.playlistid
                 v.pid = album.vid
                 v.cid = album.cid
-                v.vid = album.vid
-                v.playUrl = href
+                v.vid = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
+                v.largePicUrl = x[0][2]
+                v.priority = 1
+                v.name = "乐视"
+                v.script = {
+                    'script' : 'letv',
+                    'parameters' : [v.playUrl]
+                }
+
                 album.videos.append(v)
                 self._save_update_append(ret, album)
 

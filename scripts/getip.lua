@@ -1,13 +1,36 @@
-function kola_main(url)
-	x =  ""
-	url = "http://ip.chinaz.com/IP/?IP=" .. kola.urlencode(url)
-
+function get_info()
+	desc = ""
+	url = "http://g3.letv.cn/recommend"
 	local text = kola.wget(url)
 	if text ~= nil then
-		x = kola.pcre('来自:<strong>(.*?) .*</strong>|<strong class="red">查询结果.*?</strong>', text)
+		local js = cjson.decode(text)
+		desc = js.desc
+		time = js.curtime
 	end
 
-	return x
+	return desc, time
 end
 
+function getip(url)
+	desc, time = get_info()
 
+	return desc
+end
+
+function gettime()
+	url ="http://api.letv.com/time"
+	local text = kola.wget(url)
+	if text ~= nil then
+		local js = cjson.decode(text)
+		time = js.stime
+	else
+		time = os.time()
+	end
+
+	return tostring(time)
+end
+
+function kola_main(url)
+	print(get_ip())
+
+end

@@ -7,9 +7,9 @@
 void test_script()
 {
 	LuaScript &lua = LuaScript::Instance();
-	const char *argv[] = { "" };
+	const char *argv[] = { "http://live.letv.com/lunbo" };
 
-	std::string ret = lua.RunScript(1, argv, "getip");
+	std::string ret = lua.RunScript(1, argv, "letv");
 }
 
 void test_task()
@@ -203,8 +203,9 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-//	KolaClient &kola = KolaClient::Instance();
-//	std::cout << kola.GetArea() << std::endl;
+	KolaClient &kola = KolaClient::Instance();
+	std::cout << kola.GetArea() << std::endl;
+	std::cout << kola.GetTime() << std::endl;
 
 //	test_script();
 //	return 0;

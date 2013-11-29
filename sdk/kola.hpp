@@ -339,6 +339,7 @@ class KolaClient {
 		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, const char *referer = NULL, int times = 0);
 		std::string& GetServer() { return baseUrl; }
 		std::string GetArea();
+		time_t GetTime();
 	private:
 		KolaClient(void);
 		std::string baseUrl;

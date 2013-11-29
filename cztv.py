@@ -406,7 +406,7 @@ TVList = {
     '宁波电视台' : {
         'channels' : [
             {'script'     : 'jztv.lua',
-             'parameters' : 'ming-api.nbtv.com'
+             'parameters' : 'ming-api.nbtv.com',
              'area'       : '浙江省杭州市' },
         ]
     },

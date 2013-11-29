@@ -701,11 +701,21 @@ KolaClient& KolaClient::Instance(const char *user_id)
 	return m_kola;
 }
 
-
 std::string KolaClient::GetArea()
 {
 	LuaScript &lua = LuaScript::Instance();
 	const char *argv[] = { "" };
 
-	return lua.RunScript(1, argv, "getip");
+	return lua.RunScript(1, argv, "getip", "getip");
+}
+
+
+time_t KolaClient::GetTime()
+{
+	LuaScript &lua = LuaScript::Instance();
+	const char *argv[] = { "" };
+
+	std::string ret = lua.RunScript(1, argv, "getip", "gettime");
+
+	return atol(ret.c_str());
 }

@@ -70,7 +70,7 @@ static const luaL_Reg lualibs[] = {
 	{"kola"         , luaopen_kola      },
 	{"cjson"        , luaopen_cjson     },
 	{"xml"          , luaopen_LuaXML_lib},
-//	{"cURL"         , luaopen_cURL      },
+	{"cURL"         , luaopen_cURL      },
 
 	{NULL, NULL}
 };

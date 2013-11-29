@@ -4,7 +4,7 @@ function kola_main(id)
 
 	if text ~= nil then
 		local data_obj = cjson.decode(text)
-		if data_obj != nil then
+		if data_obj ~= nil then
 			local k = ''
 			local v = ''
 			table.foreach(data_obj.result.datarates, function(a, b) k=a v=b return true end)

@@ -33,9 +33,25 @@ class LetvVideo(VideoBase):
 class LetvAlbum(AlbumBase):
     def __init__(self, parent):
         super().__init__(parent)
+        self.albumPageUrl = ''
 
         self.VideoClass = LetvVideo
 
+    def SaveToJson(self):
+        ret = super().SaveToJson()
+        pri = {}
+        if self.albumPageUrl    : pri['albumPageUrl'] = self.albumPageUrl
+
+        if pri:
+            ret['private'] = pri
+
+        return ret
+
+    def LoadFromJson(self, json):
+        super().LoadFromJson(json)
+        if 'private' in json:
+            pri = json['private']
+            if 'albumPageUrl' in pri   : self.albumPageUrl = pri['albumPageUrl']
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
         if self.albumPageUrl:

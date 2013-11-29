@@ -11,7 +11,6 @@ end
 function kola_main(url)
 	print(url)
 	text = kola.wget(url)
---	print(text)
 	if text ~= nil then
 		local js = cjson.decode(text)
 		if js ~= nil then

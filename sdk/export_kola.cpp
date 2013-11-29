@@ -79,7 +79,6 @@ static int f_wget(lua_State *L)
 
 	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {
 		urlList.push_back(url);
-		urlList.push_back("");
 	}
 	else if (lua_type(L, 1) == LUA_TTABLE) {
 		lua_pushnil(L);
@@ -101,32 +100,16 @@ static int f_wget(lua_State *L)
 	if (argc >= 3)
 		location = lua_toboolean(L, 3);
 
-	http_client_t *http_client;
-	http_resp_t *http_resp = NULL;
-
-	http_client = http_init_connection(urlList[0].c_str());
-	if (http_client == NULL) {
-		printf("%s error: %s\n", __func__, urlList[0].c_str());
-		return 0;
-	}
+	KolaClient &kola = KolaClient::Instance();
 	for (int i = 0; i < urlList.size(); i++) {
-		http_set_location(http_client, 0);
-		rc = http_get(http_client, urlList[i].c_str(), &http_resp, NULL, referer);
-		if (rc > 0 && http_resp && (http_resp)->body) {
-			const char * ret = http_resp->body;
-			lua_pushstring(L, ret);
-			rc =  1;
-		}
+		std::string text;
+		if (kola.UrlGet("", text, urlList[i].c_str()) == true)
+			lua_pushstring(L, text.c_str());
 		else
-			rc = 0;
-		http_resp_free(http_resp);
-		http_resp = NULL;
+			lua_pushstring(L, "");
 	}
 
-	http_free_connection(http_client);
-	http_resp_free(http_resp);
-
-	return rc;
+	return 1;
 }
 
 /**

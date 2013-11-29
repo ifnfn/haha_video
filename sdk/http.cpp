@@ -8,6 +8,24 @@
 char * curlGetCurlURL(const char *, struct curl_buffer *, CURL *);
 char * curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
 
+
+static void curl_head_init(CURL *curl)
+{
+	return;
+	struct curl_slist *headers = NULL;
+
+	headers = curl_slist_append(headers, "HTTP/1.1");
+	headers = curl_slist_append(headers, "User-agent: Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0");
+	headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded;charset=UTF-8");
+	headers = curl_slist_append(headers, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	headers = curl_slist_append(headers, "Accept-Encoding: gzip,deflate");
+	headers = curl_slist_append(headers, "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7");
+	headers = curl_slist_append(headers, "X-ManualHeader: true");
+	headers = curl_slist_append(headers, "Connection: Kepp-Alive");
+
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+}
+
 void curl_buffer_free(struct curl_buffer *buf)
 {
 	if (buf && buf->size > 0 && buf->mem != NULL) {
@@ -48,6 +66,7 @@ char *http_post(const char *url, const char *body, const char *cookie, const cha
 		return NULL;
 	}
 	
+	curl_head_init(curl);
 	curl_easy_setopt(curl, CURLOPT_REFERER, referer);
 	curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
 	char *memptr = curlPostCurlURL(url, curlData, curl, body);
@@ -67,6 +86,8 @@ char *http_get(const char *url, const char *cookie, const char *referer, struct 
 		syslog(LOG_ERR, "wget: cant initialize curl!");
 		return NULL;
 	}
+
+	curl_head_init(curl);
 	curl_easy_setopt(curl, CURLOPT_REFERER, referer);
 	curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
 

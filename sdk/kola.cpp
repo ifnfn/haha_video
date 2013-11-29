@@ -23,12 +23,11 @@
 #include "threadpool.hpp"
 #include "script.hpp"
 
-//#define CURL 1
-#ifdef CURL
+#define CURL 0
+#if CURL
 #	include "http.hpp"
-#else
-#	include "httplib.h"
 #endif
+#include "httplib.h"
 
 #define TEST 1
 #if TEST
@@ -264,7 +263,7 @@ void Picture::Run()
 		return;
 	KolaClient *client = &KolaClient::Instance();
 
-#ifdef CURL
+#if CURL
 	curl_buffer buffer;
 
 	if (client->UrlGet((void**)&buffer, "", fileName.c_str())) {
@@ -339,7 +338,7 @@ KolaClient::~KolaClient(void)
 
 bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, const char *referer, int times)
 {
-#ifdef CURL
+#if CURL
 	if (times > TRY_TIMES)
 		return false;
 
@@ -405,7 +404,7 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url, const char *referer)
 {
 	bool ok = false;
-#ifdef CURL
+#if CURL
 	struct curl_buffer buffer;
 
 	if (UrlGet((void**)&buffer, url, home_url, referer)) {
@@ -491,12 +490,13 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 	if (body)
 		new_body = gzip_base64(body, strlen(body));
 
-#ifdef CURL
+#if CURL
 	struct curl_buffer buffer;
 
+	char *encode_body = URLencode(new_body.c_str());
 	url = home_url + url;
 
-	if (http_post(url.c_str(), body, cookie.c_str(), referer, &buffer) == NULL) {
+	if (http_post(url.c_str(), encode_body, cookie.c_str(), referer, &buffer) == NULL) {
 		return UrlPost(url, body, ret, home_url, referer, times + 1);
 	}
 
@@ -504,6 +504,7 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 		ret = buffer.mem;
 
 	curl_buffer_free(&buffer);
+	free(encode_body);
 
 	return true;
 

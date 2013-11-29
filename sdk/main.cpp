@@ -213,9 +213,9 @@ int main(int argc, char **argv)
 //	test_custommenu();
 	printf("Test LiveTV\n"); test_livetv();
 
-//	printf("Test Video\n"); test_video("电影");
+	printf("Test Video\n"); test_video("电影");
 
-//	printf("Test TV\n");    test_video("电视剧");
+	printf("Test TV\n");    test_video("电视剧");
 //
 //	printf("end\n");
 //	test_task(); return 0;

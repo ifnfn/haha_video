@@ -8,6 +8,7 @@ import hashlib
 
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
 from utils import log, autostr
+import tv
 
 #================================= 以下是视频的搜索引擎 =======================================
 
@@ -79,7 +80,7 @@ class LetvLiveTV(LetvVideoMenu):
     def __init__(self, name, engine):
         self.number = 200
         super().__init__(name, engine)
-        self.homePage = 'http://www.leshizhibo.com'
+        self.homePage = 'http://www.leshizhibo.com/channel/index.php'
         self.cid = 200
         self.filter = {
             '类型': {
@@ -99,7 +100,7 @@ class LetvLiveTV(LetvVideoMenu):
 class LetvEngine(VideoEngine):
     def __init__(self, db, command):
         super().__init__(db, command)
-
+        self.tvCate = tv.TVCategory()
         self.engine_name = 'LetvEngine'
         self.albumClass = LetvAlbum
         self.videoClass = LetvVideo
@@ -134,6 +135,7 @@ class LetvEngine(VideoEngine):
                 album.playlistid  = ''
                 album.pid         = ''
                 album.albumName   = name
+                album.categories = self.tvCate.GetCategories(name)
 
                 v = self.NewVideo()
                 v.playUrl = 'http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1' % vid

@@ -38,31 +38,30 @@ class TVIEStation(TVStation):
 
 class NBTV(TVIEStation):
     def __init__(self):
-        self.area = '淅江省,宁波市'
+        self.area = '中国-淅江省-宁波市'
         super().__init__('宁波电视台', 'ming-api.nbtv.cn')
 
 class UCATV(TVIEStation):
     def __init__(self):
-        self.area = '新疆'
+        self.area = '中国-新疆'
         super().__init__('新疆电视台', 'epgsrv01.ucatv.com.cn')
 
 class ZJTV(TVIEStation):
     def __init__(self):
-        self.area = '淅江省'
+        self.area = '中国-淅江省'
         super().__init__('浙江电视台', 'api.cztv.com')
 
 class HZTV(TVStation):
     def __init__(self):
         super().__init__()
         self.name = '杭州电视台'
-        self.area = '淅江省,杭州市'
-
+        self.area = '中国-淅江省-杭州市'
 
 class DHTV(TVStation):
     def __init__(self):
         super().__init__()
         self.name = '温州电视台'
-        self.area = '淅江省,温州市'
+        self.area = '中国-淅江省-温州市'
 
 
 class CUTV(TVStation):

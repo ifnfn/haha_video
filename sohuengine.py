@@ -577,13 +577,13 @@ class SohuTV(SohuVideoMenu):
             }
         }
         self.quickFilter = {
-            '热门电影' : {
+            '热播剧' : {
                     'sort' : '周播放最多'
             },
-            '最新电影' :{
-                    'sort' : '日播放最多'
+            '最新更新' :{
+                    'sort' : '最新发布'
             },
-            '推荐电影' :{
+            '推荐' :{
                     'sort' : '评分最高'
             },
             '国内剧' : {
@@ -925,7 +925,7 @@ class SohuEngine(VideoEngine):
            # '教育'   : SohuEdu,
            # '旅游'   : SohuTour,
            # '新闻'   : SohuNew,
-           # '直播'   : SohuLiveTV
+            '直播'   : SohuLiveTV
         }
 
         self.parserList = {
@@ -1284,22 +1284,27 @@ class SohuEngine(VideoEngine):
         '''
         tvlist = tornado.escape.json_decode(js['data'])
         for v in tvlist['attachment']:
+            name = json_get(v, 'name', '')
+            pid = json_get(v, 'id', '')
+            vid = hashlib.md5(name.encode()).hexdigest()[16:]
             album  = self.NewAlbum()
             album.cid         = 200
-            album.pid         = json_get(v, 'programaId', '')
-            album.vid         = json_get(v, 'videoId', '')
-            album.playlistid  = json_get(v, 'id', '')
             album.albumName   = json_get(v, 'name', '')
-            album.enAlbumName = json_get(v, 'enName', '')
+            album.vid         = vid
+            #album.enAlbumName = json_get(v, 'enName', '')
             album.smallPicUrl = json_get(v, 'ico', '')
-            album.albumDesc   = json_get(v, 'VideoName', '')
 
             v = album.VideoClass()
-            v.playlistid = album.playlistid
-            v.pid = album.vid
-            v.cid = album.cid
-            v.vid = album.vid
-            v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % album.playlistid
+            v.pid = vid
+            v.cid = 200
+            v.vid = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
+            v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
+            v.priority = 2
+            v.name = "搜狐"
+            v.script = {
+                'script' : 'sohutv',
+                'parameters' : [v.playUrl]
+            }
             album.videos.append(v)
             self._save_update_append(ret, album)
 

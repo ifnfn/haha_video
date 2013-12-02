@@ -31,11 +31,11 @@ void test_custommenu()
 {
 	CustomMenu *menu = new CustomMenu("abc");
 
-//	menu->AlbumAdd("845690");
-//	menu->AlbumAdd("582923");
-//	menu->AlbumAdd("841316");
-//	menu->AlbumAdd("220791");
-//	menu->AlbumAdd("221079");
+	menu->AlbumAdd("845690");
+	menu->AlbumAdd("582923");
+	menu->AlbumAdd("841316");
+	menu->AlbumAdd("220791");
+	menu->AlbumAdd("221079");
 
 	AlbumPage page;
 	menu->GetPage(page);
@@ -120,8 +120,8 @@ void test_video(const char *menuName)
 	//m->Sort.Set("评分最高");
 
 	printf("%d album in menu!\n", m->GetAlbumCount());
-#if 1
-	m->SetPageSize(8);
+	m->SetPageSize(4);
+#if 0
 	do {
 		m->GetPage(page);
 
@@ -204,8 +204,8 @@ void test_video(const char *menuName)
 int main(int argc, char **argv)
 {
 	KolaClient &kola = KolaClient::Instance();
-	std::cout << kola.GetArea() << std::endl;
-	std::cout << kola.GetTime() << std::endl;
+//	std::cout << kola.GetArea() << std::endl;
+//	std::cout << kola.GetTime() << std::endl;
 
 	printf(".................................................\n");
 //	test_script();

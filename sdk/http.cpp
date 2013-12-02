@@ -5,13 +5,12 @@
 
 #include "http.hpp"
 
-char * curlGetCurlURL(const char *, struct curl_buffer *, CURL *);
-char * curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
+static char *curlGetCurlURL (const char *, struct curl_buffer *, CURL *);
+static char *curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
 
 
 static void curl_head_init(CURL *curl)
 {
-	return;
 	struct curl_slist *headers = NULL;
 
 	headers = curl_slist_append(headers, "HTTP/1.1");
@@ -52,6 +51,7 @@ static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data
 		mem->size += realsize;
 		mem->mem[mem->size] = 0;
 	}
+
 	return realsize;
 }
 
@@ -98,7 +98,7 @@ char *http_get(const char *url, const char *cookie, const char *referer, struct 
 	return memptr;
 }
 
-char * curlGetCurlURL(const char *url, struct curl_buffer *curlData, CURL * curl)
+static char *curlGetCurlURL(const char *url, struct curl_buffer *curlData, CURL * curl)
 {
 	char     errormsg[CURL_ERROR_SIZE];
 	CURLcode res;
@@ -126,7 +126,7 @@ char * curlGetCurlURL(const char *url, struct curl_buffer *curlData, CURL * curl
 	return curlData->mem;
 }
 
-char * curlPostCurlURL(const char *url, struct curl_buffer *curlData, CURL * curl, const char *postdata)
+static char *curlPostCurlURL(const char *url, struct curl_buffer *curlData, CURL * curl, const char *postdata)
 {
 	curl_easy_setopt(curl, CURLOPT_POST, 1);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);

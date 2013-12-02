@@ -23,7 +23,7 @@
 #include "threadpool.hpp"
 #include "script.hpp"
 
-#define CURL 0
+#define CURL 1
 #if CURL
 #	include "http.hpp"
 #endif

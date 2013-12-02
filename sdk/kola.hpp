@@ -287,7 +287,7 @@ class KolaMenu {
 		bool   SetQuickFilter(std:: string);
 		void   SetPageSize(int size) {PageSize = size;}
 		size_t GetPageSize() { return PageSize;}
-		int    GetAlbumCount();
+		virtual int GetAlbumCount();
 		int    Seek(std::string vid);
 		int    Search(AlbumPage &page, std::string keyword, int pageNo);
 	protected:
@@ -310,6 +310,7 @@ class CustomMenu: public KolaMenu {
 		void AlbumRemove(KolaAlbum *album);
 		void AlbumRemove(std::string vid);
 		bool SaveToFile(std::string otherFile = "");
+		virtual int GetAlbumCount();
 	protected:
 		virtual int LowGetPage(AlbumPage &page, int pageId, int pageSize);
 	private:

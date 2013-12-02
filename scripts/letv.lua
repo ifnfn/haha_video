@@ -9,7 +9,7 @@ function get_html(url)
 end
 
 function kola_main(url)
-	print(url)
+	--print(url)
 	text = kola.wget(url)
 	if text ~= nil then
 		local js = cjson.decode(text)

@@ -466,7 +466,7 @@ class VideoEngine:
     def GetMenu(self, MenuList):
         for m, cls in list(self.menu.items()):
             if cls:
-                MenuList[m] = cls(m, self)
+                MenuList[self.engine_name + '-' + m] = cls(m, self)
 
     # 解析菜单网页解析
     def ParserHtml(self, js):

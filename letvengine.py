@@ -17,7 +17,7 @@ class TemplateLiveTVInfo(Template):
     def __init__(self, menu):
         cmd = {
             'name'   : 'letv_livetv_list',
-            'source' : 'http://www.leshizhibo.com',
+            'source' : 'http://www.leshizhibo.com/channel/index.php',
             'regular' : ["<dt>(<a title=.*</a>)</dt>"],
             'cache' : True
         }

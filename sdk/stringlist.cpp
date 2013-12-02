@@ -45,10 +45,11 @@ std::string StringList::ToString(int offset, int len, std::string s, std::string
 
 	if (count > 0) {
 		ret = s;
-		for (int i = 0; i < count - 1; i++)
+		for (int i = 0; i < count - 2; i++)
 			ret += at(i + offset) + split;
 
-		ret += at(count - 1) + e;
+		if (count > 0)
+			ret += at(count - 1) + e;
 	}
 
 	return ret;
@@ -57,19 +58,6 @@ std::string StringList::ToString(int offset, int len, std::string s, std::string
 std::string StringList::ToString(std::string s, std::string e, std::string split)
 {
 	return ToString(0, size(), s, e, split);
-#if 0
-	std::string ret;
-	int count = size();
-
-	if (count > 0) {
-		ret = s;
-		for (int i = 0; i < count - 1; i++)
-			ret += at(i) + split;
-
-		ret += at(count - 1) + e;
-	}
-	return ret;
-#endif
 }
 
 void StringList::Split(const std::string items, std::string sp)

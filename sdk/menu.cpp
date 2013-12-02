@@ -197,6 +197,11 @@ void CustomMenu::AlbumRemove(std::string vid) {
 	albumCount = albumIdList.size();
 }
 
+int CustomMenu::GetAlbumCount() {
+	albumCount = albumIdList.size();
+	return albumCount;
+}
+
 bool CustomMenu::SaveToFile(std::string otherFile) {
 	if (otherFile != "")
 		return albumIdList.SaveToFile(otherFile);

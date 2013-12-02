@@ -17,7 +17,7 @@ extern "C" {
 #include "kola.hpp"
 #include "script.hpp"
 
-char *lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
+static char *lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
 {
 	int i;
 
@@ -119,6 +119,8 @@ std::string LuaScript::RunScript(int argc, const char **argv, const char *name, 
 
 			free(r);
 		}
+		else
+			printf("RunScript %s error\n", name);
 	}
 
 	return ret;

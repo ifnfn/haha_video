@@ -3,6 +3,21 @@
 
 #include "kola.hpp"
 
+void split(const std::string &s, std::string delim, std::vector< std::string > *ret)
+{
+	size_t last = 0;
+	size_t index=s.find_first_of(delim, last);
+
+	while (index!=std::string::npos) {
+		ret->push_back(s.substr(last,index-last));
+		last = index + 1;
+		index=s.find_first_of(delim, last);
+	}
+	if (index - last > 0)
+		ret->push_back(s.substr(last,index-last));
+}
+
+
 void StringList::Add(std::string v)
 {
 	StringList::iterator iter = find(begin(), end(), v);
@@ -45,7 +60,7 @@ std::string StringList::ToString(int offset, int len, std::string s, std::string
 
 	if (count > 0) {
 		ret = s;
-		for (int i = 0; i < count - 2; i++)
+		for (int i = 0; i < count - 1; i++)
 			ret += at(i + offset) + split;
 
 		if (count > 0)
@@ -68,10 +83,11 @@ void StringList::Split(const std::string items, std::string sp)
 
 bool StringList::SaveToFile(std::string fileName)
 {
-	std::string ret = ToString();
 	std::ofstream out(fileName.c_str());
 	if (out.is_open()) {
-		out << ret;
+		for (int i = 0; i < size() ; i++)
+			out << at(i) << std::endl;
+
 		out.close();
 		return true;
 	}
@@ -82,13 +98,15 @@ bool StringList::SaveToFile(std::string fileName)
 bool StringList::LoadFromFile(std::string fileName)
 {
 	std::ifstream in(fileName.c_str());
+	std::string s;
 
 	if (in.is_open()) {
-		std::istreambuf_iterator<char> beg(in), end;
-		std::string ret = std::string(beg, end);
+		while(getline(in, s)) {
+			push_back(s);
+		}
 
 		in.close();
-		Split(ret);
+
 		return true;
 	}
 

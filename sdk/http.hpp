@@ -10,6 +10,7 @@ struct curl_buffer {
 	size_t size;
 };
 
+char *uri_join(const char * base, const char * uri);
 void curl_buffer_free(struct curl_buffer *buffer);
 char *http_get (const char *url, const char *cookie, const char *referer, struct curl_buffer *curlData);
 char *http_post(const char *url, const char *body, const char *cookie, const char *referer, struct curl_buffer *curlData);

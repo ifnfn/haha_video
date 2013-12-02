@@ -227,7 +227,6 @@ int CustomMenu::LowGetPage(AlbumPage &page, int pageId, int pageSize)
 		text = pvid;
 		free(pvid);
 		url = buf + text;
-		printf("%s\n", url.c_str());
 		if (client->UrlPost(url, body.c_str(), text) == true)
 			return ParserJson(page, text);
 	}

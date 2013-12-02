@@ -8,9 +8,57 @@
 static char *curlGetCurlURL (const char *, struct curl_buffer *, CURL *);
 static char *curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
 
-
-static void curl_head_init(CURL *curl)
+char *uri_join(const char * base, const char * uri)
 {
+	int location_len;
+	const char *p, *path;
+	char *ret = NULL;
+
+	if (strstr(uri, "://"))
+		return strdup(uri);
+
+	p = strstr (base, "://");
+	if (!p)
+		return NULL;
+
+	if (strlen(uri) == 0)
+		return strdup(base);
+
+	p += 3;
+	while (*p && *p != '/')
+		p++;
+
+	path = p;
+	location_len = path - base;
+
+	if (uri[0] == '/') {
+		asprintf(&ret, "%.*s%s", location_len, base, uri);
+	} else {
+		int path_len;
+
+		p = strrchr (path, '/');
+		if (!p)
+			path_len = 0;
+		else
+			path_len = p - path;
+
+		asprintf(&ret, "%.*s/%s", location_len + path_len, base, uri);
+	}
+
+	return ret;
+}
+
+static void curl_head_init(CURL *curl, const char *referer, const char *cookie)
+{
+//	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
+	curl_easy_setopt(curl, CURLOPT_USERAGENT      , "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0");
+	if (referer)
+		curl_easy_setopt(curl, CURLOPT_REFERER, referer);
+	if (cookie)
+		curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
+#if 0
 	struct curl_slist *headers = NULL;
 
 	headers = curl_slist_append(headers, "HTTP/1.1");
@@ -19,10 +67,10 @@ static void curl_head_init(CURL *curl)
 	headers = curl_slist_append(headers, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 	headers = curl_slist_append(headers, "Accept-Encoding: gzip,deflate");
 	headers = curl_slist_append(headers, "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7");
-	headers = curl_slist_append(headers, "X-ManualHeader: true");
 	headers = curl_slist_append(headers, "Connection: Kepp-Alive");
 
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+#endif
 }
 
 void curl_buffer_free(struct curl_buffer *buf)
@@ -66,9 +114,7 @@ char *http_post(const char *url, const char *body, const char *cookie, const cha
 		return NULL;
 	}
 	
-	curl_head_init(curl);
-	curl_easy_setopt(curl, CURLOPT_REFERER, referer);
-	curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
+	curl_head_init(curl, referer, cookie);
 	char *memptr = curlPostCurlURL(url, curlData, curl, body);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
@@ -87,9 +133,7 @@ char *http_get(const char *url, const char *cookie, const char *referer, struct 
 		return NULL;
 	}
 
-	curl_head_init(curl);
-	curl_easy_setopt(curl, CURLOPT_REFERER, referer);
-	curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
+	curl_head_init(curl, referer, cookie);
 
 	char * memptr = curlGetCurlURL(url, curlData, curl);
 	curl_easy_cleanup(curl);
@@ -108,8 +152,6 @@ static char *curlGetCurlURL(const char *url, struct curl_buffer *curlData, CURL 
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errormsg);
-	// curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, "nntpswitch-libcurl/1.0");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)curlData);
 

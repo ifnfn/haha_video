@@ -29,9 +29,10 @@
 #endif
 #include "httplib.h"
 
-#define TEST 1
+#define TEST 0
 #if TEST
-#define SERVER_HOST "127.0.0.1"
+#define SERVER_HOST "192.168.1.25"
+//#define SERVER_HOST "127.0.0.1"
 #define PORT 9991
 #else
 //#define SERVER_HOST "121.199.20.175"
@@ -344,11 +345,18 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 
 	std::string cookie;
 	struct curl_buffer *buffer = (struct curl_buffer*)resp;
+	char *new_url;
 
 	if (home_url == NULL)
 		home_url = baseUrl.c_str();
 
-	url = home_url + url;
+	new_url = uri_join(home_url, url.c_str());
+	if (new_url == NULL)
+		return false;
+
+	url = new_url;
+	free(new_url);
+
 	LOCK(lock);
 	cookie = loginKeyCookie;
 	UNLOCK(lock);
@@ -494,7 +502,12 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 	struct curl_buffer buffer;
 
 	char *encode_body = URLencode(new_body.c_str());
-	url = home_url + url;
+	char *new_url = uri_join(home_url, url.c_str());
+	if (new_url == NULL)
+		return false;
+
+	url = new_url;
+	free(new_url);
 
 	if (http_post(url.c_str(), encode_body, cookie.c_str(), referer, &buffer) == NULL) {
 		return UrlPost(url, body, ret, home_url, referer, times + 1);

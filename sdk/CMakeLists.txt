@@ -8,6 +8,7 @@ INCLUDE_DIRECTORIES(lua/src)
 
 AUX_SOURCE_DIRECTORY(./lua/src/           SRCS)
 AUX_SOURCE_DIRECTORY(./lua/lua-cjson-xml/ SRCS)
+AUX_SOURCE_DIRECTORY(./lua/lua-curl/src/  SRCS)
 
 ADD_GX_LIBRARY(kolatv
 	${SRCS}

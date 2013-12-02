@@ -64,6 +64,9 @@ inline void json_seto(json_t *js, const char *key, json_t *value)
 	json_object_set(js, key, value);
 }
 
+#ifdef json_array_foreach
+#undef json_array_foreach
+#endif
 #define json_array_foreach(object, value) \
 	for (int count = json_array_size(object), i = 0; \
 			i < count && (value = json_array_get(object, i)) != NULL; i++) \

@@ -31,6 +31,7 @@ void test_custommenu()
 {
 	CustomMenu *menu = new CustomMenu("abc");
 
+	menu->SetPageSize(4);
 	menu->AlbumAdd("845690");
 	menu->AlbumAdd("582923");
 	menu->AlbumAdd("841316");
@@ -38,20 +39,25 @@ void test_custommenu()
 	menu->AlbumAdd("221079");
 
 	AlbumPage page;
-	menu->GetPage(page);
-	for (size_t i = 0; i < page.Count(); i++) {
-		KolaAlbum *album = page.GetAlbum(i);
-		size_t video_count = album->GetVideoCount();
-		printf("[%ld] %s: Video:Count %ld\n", i, album->albumName.c_str(), video_count);
+	while(1) {
+		menu->GetPage(page);
+		for (size_t i = 0; i < page.Count(); i++) {
+			KolaAlbum *album = page.GetAlbum(i);
+			size_t video_count = album->GetVideoCount();
+			printf("[%ld] %s: Video:Count %ld\n", i, album->albumName.c_str(), video_count);
 
-		for (size_t j = 0; j < video_count; j++) {
-			std::string player_url;
-			KolaVideo *video = album->GetVideo(j);
-			if (video) {
-				player_url = video->GetVideoUrl();
-				printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+			for (size_t j = 0; j < video_count; j++) {
+				std::string player_url;
+				KolaVideo *video = album->GetVideo(j);
+				if (video) {
+					player_url = video->GetVideoUrl();
+					printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				}
 			}
 		}
+
+		if (page.Count() != menu->GetPageSize())
+			break;
 	}
 
 	menu->SaveToFile();
@@ -76,6 +82,8 @@ void test_livetv()
 #endif
 
 	m = kola["直播"];
+	if (m == NULL)
+		return;
 //	m->Filter.KeyAdd("类型", "CCTV");
 
 	m->SetPageSize(500);
@@ -204,13 +212,14 @@ void test_video(const char *menuName)
 int main(int argc, char **argv)
 {
 	KolaClient &kola = KolaClient::Instance();
-//	std::cout << kola.GetArea() << std::endl;
-//	std::cout << kola.GetTime() << std::endl;
+	std::cout << kola.GetArea() << std::endl;
+	std::cout << kola.GetTime() << std::endl;
 
 	printf(".................................................\n");
 //	test_script();
 //	return 0;
-//	test_custommenu();
+	test_custommenu();
+	return 0;
 	printf("Test LiveTV\n"); test_livetv();
 
 	printf("Test Video\n"); test_video("电影");

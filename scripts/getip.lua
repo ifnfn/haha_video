@@ -2,7 +2,6 @@ function get_info()
 	desc = ""
 	url = "http://g3.letv.cn/recommend"
 	local text = kola.wget(url)
-	print(text)
 	if text ~= nil then
 		local js = cjson.decode(text)
 		desc = js.desc

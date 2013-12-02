@@ -285,6 +285,7 @@ class KolaMenu {
 		void   SetLanguage(std::string lang);
 		int    GetPage(AlbumPage &page, int pageNo = -1);
 		bool   SetQuickFilter(std:: string);
+		std::string GetQuickFilter() { return quickFilter; }
 		void   SetPageSize(int size) {PageSize = size;}
 		size_t GetPageSize() { return PageSize;}
 		virtual int GetAlbumCount();

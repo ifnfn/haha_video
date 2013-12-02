@@ -8,13 +8,14 @@ INCLUDE_DIRECTORIES(lua/src)
 
 AUX_SOURCE_DIRECTORY(./lua/src/           SRCS)
 AUX_SOURCE_DIRECTORY(./lua/lua-cjson-xml/ SRCS)
-AUX_SOURCE_DIRECTORY(./lua/lua-curl/src/  SRCS)
+#AUX_SOURCE_DIRECTORY(./lua/lua-curl/src/  SRCS)
 
 ADD_GX_LIBRARY(kolatv
 	${SRCS}
 	album.cpp
 	export_kola.cpp
 	httplib.cpp
+	http.cpp
 	pcre.cpp
 	stringlist.cpp
 	threadpool.cpp
@@ -35,6 +36,6 @@ ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wno-deprecated-dec
 # test
 #SET(CMAKE_EXE_LINKER_FLAGS "--static")
 ADD_EXECUTABLE(kola main.cpp)
-TARGET_LINK_LIBRARIES(kola kolatv jansson pcre crypto z ${GXCORE_LIB} dl pthread)
+TARGET_LINK_LIBRARIES(kola kolatv jansson pcre crypto z ${GXCORE_LIB} dl pthread curl)
 
 INSTALL(FILES kola.hpp DESTINATION ${GOXCEED_PATH}/include)

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import re
@@ -16,7 +16,7 @@ class TVStation:
         self.script = '',
         self.parameters = ''
         self.area = ''
-        
+
     def GetScript(self):
         return {'script'     : self.script,
                 'parameters' : self.parameters}
@@ -34,7 +34,8 @@ class TVIEStation(TVStation):
         self.name = name
         self.base_url = url
         self.script = 'tvie'
-        
+        url = 'http://' + self.base_url + '/api/getChannels'
+
 
 class NBTV(TVIEStation):
     def __init__(self):
@@ -134,7 +135,7 @@ class TV:
             '兰州电视台' : CutvStation('兰州台'),
             '珠海电视台' : CutvStation('珠海台'),
         }
-        
+
     def GetScript(self, name):
         if name in self.TVStationList:
             return self.TVStationList[name].GetScript()

@@ -1,6 +1,6 @@
 function get_info()
-	desc = ""
-	url = "http://g3.letv.cn/recommend"
+	local desc = ""
+	local url = "http://g3.letv.cn/recommend"
 	local text = kola.wget(url)
 	if text ~= nil then
 		local js = cjson.decode(text)
@@ -12,13 +12,15 @@ function get_info()
 end
 
 function getip(url)
+	local desc = ""
+	local time = ""
 	desc, time = get_info()
 
 	return desc
 end
 
 function gettime()
-	url ="http://api.letv.com/time"
+	local url ="http://api.letv.com/time"
 	local text = kola.wget(url)
 	if text ~= nil then
 		local js = cjson.decode(text)
@@ -31,6 +33,5 @@ function gettime()
 end
 
 function kola_main(url)
-	print(get_ip())
-
+	return get_ip()
 end

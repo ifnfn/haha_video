@@ -8,7 +8,7 @@ function kola_main(url, cid)
 	local ret = {}
 	local data_obj = cjson.decode(text)
 	if data_obj ~= nil then
-		data = data_obj.data
+		local data = data_obj.data
 		if data == nil then
 			return ret
 		end

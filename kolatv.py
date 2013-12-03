@@ -1,10 +1,10 @@
-#! env /usr/bin/python3
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import redis
 import logging
 import tornado.escape
-import sohuengine, letvengine, textengine, wolidouengine
+import sohuengine, livetvengine, wolidouengine
 import engine as eg
 from db import DB
 import utils
@@ -24,10 +24,13 @@ class Kolatv:
         self.MenuList = {}
         self.UpdateAlbumFlag = False
 
-        self.AddEngine(sohuengine.SohuEngine)
-        self.AddEngine(letvengine.LetvEngine)
+        #self.AddEngine(sohuengine.SohuEngine)
+        self.AddEngine(livetvengine.LiveEngine)
         #self.AddEngine(wolidouengine.WolidouEngine)
         #self.AddEngine(textengine.TextvEngine)
+
+    def GetMenuAlias(self, name):
+        return name
 
     def AddEngine(self, egClass):
         e = egClass(self.db, self.command)

@@ -1,8 +1,7 @@
-#!/usr/bin/python3
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys
-import traceback
+import sys, traceback
 import tornado.ioloop
 import tornado.web
 import tornado.options

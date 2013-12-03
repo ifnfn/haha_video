@@ -9,21 +9,21 @@ function get_timestamp()
 end
 
 function server_find(url, list)
-	ret = false
+	local ret = false
 	table.foreach(list, function(a, b) if string.find(url, b) then ret = true return end end)
 	return ret
 end
 
 function kola_main1(url, referer, server)
-	url = "http://wolidou.gotoip3.com/zjm.php?u=cctv8"
-	referer = "http://www.wolidou.com/tvp/217/play217_2_0.html"
+	local url = "http://wolidou.gotoip3.com/zjm.php?u=cctv8"
+	local referer = "http://www.wolidou.com/tvp/217/play217_2_0.html"
 	text = kola.wget(url, referer)
 	print(text)
 end
 
 function kola_main(url, referer, server)
 	--print(url, referer, server)
-	server_list = {
+	local server_list = {
 		"sohu.php", "dxtx.php", "dxnm.php", "sxmsp.php", "jstv.php", "moon.php", "dxcctv.php",
 		'dxnm.php', 'dxifeng.php', 'basicflv.php', "yu.php", "sdsj.php", "zjm.php", "zjm.php"
 	}
@@ -38,8 +38,8 @@ function kola_main(url, referer, server)
 		end
 	elseif server_find(url, server_list) then
 		if server_find(url, {"www.wolidou.com/s/"}) then
-			t = tostring(get_timestamp())
-			ux = {}
+			local t = tostring(get_timestamp())
+			local ux = {}
 			ux[1] = 'http://www.wolidou.com/s/key.php?f=k&t=' .. t
 			ux[2] = url .. "&ts=" .. t
 			text = kola.wget(ux, referer)

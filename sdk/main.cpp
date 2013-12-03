@@ -81,7 +81,9 @@ void test_livetv()
 	}
 #endif
 
-	m = kola["直播"];
+	//m = kola["直播"];
+	m = kola.GetMenuByCid(200);
+//	m = kola[200];
 	if (m == NULL)
 		return;
 //	m->Filter.KeyAdd("类型", "CCTV");
@@ -215,11 +217,10 @@ int main(int argc, char **argv)
 	std::cout << kola.GetArea() << std::endl;
 	std::cout << kola.GetTime() << std::endl;
 
-	printf(".................................................\n");
 //	test_script();
 //	return 0;
-	test_custommenu();
-	return 0;
+//	test_custommenu();
+//	return 0;
 	printf("Test LiveTV\n"); test_livetv();
 
 	printf("Test Video\n"); test_video("电影");

@@ -148,7 +148,6 @@ static int f_pcre(lua_State *L)
 	const char *text = lua_tostring(L, 2);
 	Pcre pcre;
 
-	printf("regular: %s\n", regular);
 	if (text == NULL)
 		return 0;
 	if (regular == NULL) {

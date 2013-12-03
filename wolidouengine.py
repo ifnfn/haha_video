@@ -1,4 +1,4 @@
-#! env /usr/bin/python3
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import sys, traceback
@@ -335,9 +335,3 @@ class WolidouEngine(VideoEngine):
                     TemplateWolidouAlbumList(self, url).Execute()
 
         # self._save_update_append(None, album)
-
-    def _save_update_append(self, sets, album, _filter={}, upsert=True):
-        if album:
-            self.db.SaveAlbum(album, _filter, upsert)
-        if sets:
-            sets.append(album)

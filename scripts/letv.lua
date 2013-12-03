@@ -1,13 +1,3 @@
-function get_html(url)
-	local result = ""
-	c = cURL.easy_init()
-	c:setopt_url(url)
-	local ok = c:perform({writefunction = function(str)
-		result = result .. str
-	end})
-	return ok, result
-end
-
 function kola_main(url)
 	--print(url)
 	text = kola.wget(url)

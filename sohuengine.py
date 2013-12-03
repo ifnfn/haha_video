@@ -1,4 +1,4 @@
-#! env /usr/bin/python3
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import traceback
@@ -12,7 +12,7 @@ import tornado.escape
 
 from bs4 import BeautifulSoup as bs
 from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
-from utils import autostr, autoint, json_get, log
+from utils import autostr, autoint, log
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
 MAX_TRY = 3
@@ -131,16 +131,6 @@ class TemplateAlbumPlayInfo(Template):
             'cache'  : False or Debug
         }
         super().__init__(album.command, cmd)
-
-# 更新节目的播放信息
-class TemplateLiveTVInfo(Template):
-    def __init__(self, menu):
-        cmd = {
-            'name'   : 'sohu_livetv_list',
-            'source' : 'http://tvimg.tv.itc.cn/live/top.json',
-            'cache'  : False or Debug
-        }
-        super().__init__(menu.command, cmd)
 
 class SohuVideo(VideoBase):
     def __init__(self, js = None):
@@ -843,68 +833,6 @@ class SohuTour(SohuVideoMenu):
     def UpdateHotInfo(self):
         pass
 
-# 直播电视
-class SohuLiveTV(SohuVideoMenu):
-    def __init__(self, name, engine):
-        self.number = 200
-        super().__init__(name, engine)
-        self.homePage = 'http://tv.sohu.com/live/'
-        self.cid = 200
-        self.filter = {
-            '类型': {
-                '卫视台':1,
-                '地方台':2,
-                '央视台':3,
-                '境外台':4,
-            }
-        }
-    # 更新该菜单下所有节目列表
-    def UpdateAlbumList(self):
-        if self.homePage != "":
-            TemplateLiveTVInfo(self).Execute()
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
-    def _ParserRealUrlStep1(self, text):
-        res = {}
-        jdata = tornado.escape.json_decode(text)
-        if 'data' in jdata:
-            data = jdata['data']
-            if 'live' in data:
-                res['live'] = data['live']
-                urls = []
-                x = {}
-                x['url'] = res['live']
-                urls.append(x)
-
-                res['sets'] = urls
-                res['vid'] = jdata['lid']
-        return res
-
-    def _ParserRealUrlStep2(self, text):
-    # {"code":"000000","msg":"OK","url":"http://122.228.223.139:80/live/31?key=H7mpogs3o-c84CTkTvx7PB6ME-QWypUS&ver=seg&n=1&a=1012&cip=115.236.90.218","cid":"31","nid":"347","cip":"115.236.90.218","key":"H7mpogs3o-c84CTkTvx7PB6ME-QWypUS","sp":"0"}
-        ret = {}
-        try:
-            ret = tornado.escape.json_decode(text)
-
-            if 'sets' in ret:
-                urls = []
-                for url in ret['sets']:
-                    text = base64.decodebytes(url['url'].encode()).decode()
-                    jdata = tornado.escape.json_decode(text)
-                    if jdata['msg'] == 'OK':
-                        u = jdata['url']
-                        urls.append(u)
-
-                ret['sets'] = urls
-        except:
-            t, v, tb = sys.exc_info()
-            log.error('SohuEngine._ParserRealUrlStep2: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
-
-        return ret
-
 # Sohu 搜索引擎
 class SohuEngine(VideoEngine):
     def __init__(self, db, command):
@@ -924,8 +852,7 @@ class SohuEngine(VideoEngine):
            # '纪录片' : SohuDocumentary,
            # '教育'   : SohuEdu,
            # '旅游'   : SohuTour,
-           # '新闻'   : SohuNew,
-            '直播'   : SohuLiveTV
+           # '新闻'   : SohuNew
         }
 
         self.parserList = {
@@ -938,7 +865,6 @@ class SohuEngine(VideoEngine):
                    'sohu_album_mvinfo_mini'   : self._CmdParserAlbumMvInfo,
                    'sohu_album_playinfo'      : self._CmdParserAlbumPlayInfo,
                    'sohu_album_total_playnum' : self._CmdParserAlbumTotalPlayNum,
-                   'sohu_livetv_list'         : self._CmdParserLiveTVList,
         }
 
     # 解析热门节目
@@ -1270,45 +1196,3 @@ class SohuEngine(VideoEngine):
             log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
         return ret
 
-    # 从分页的页面上解析该页上的节目
-    # videolist
-    def _CmdParserLiveTVList(self, js):
-        ret = []
-
-        '''
-        {'cu': 249, 'id': 147,
-            'programaId': 76372, 'percentage': 0.1530424093423479,
-            'enName': 'zjtv', 'name': '浙江卫视',
-            'ico': 'http://i2.itc.cn/20120119/2cea_d8216f64_5ba9_b7dd_4b3d_f2ea360e895f_17.png',
-            'videoId': 136573770, 'videoName': '浙江新闻联播'}
-        '''
-        tvlist = tornado.escape.json_decode(js['data'])
-        for v in tvlist['attachment']:
-            name = json_get(v, 'name', '')
-            pid = json_get(v, 'id', '')
-            vid = hashlib.md5(name.encode()).hexdigest()[16:]
-            album  = self.NewAlbum()
-            album.cid         = 200
-            album.albumName   = json_get(v, 'name', '')
-            album.vid         = vid
-            #album.enAlbumName = json_get(v, 'enName', '')
-            album.smallPicUrl = json_get(v, 'ico', '')
-
-            v = album.VideoClass()
-            v.pid = vid
-            v.cid = 200
-            v.vid = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
-            v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
-            v.priority = 2
-            v.name = "搜狐"
-            v.script = {
-                'script' : 'sohutv',
-                'parameters' : [v.playUrl]
-            }
-            album.videos.append(v)
-            self._save_update_append(ret, album)
-
-    def _save_update_append(self, sets, album, key={}, upsert=True):
-        if album:
-            self.db.SaveAlbum(album, key, upsert)
-            sets.append(album)

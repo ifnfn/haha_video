@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import time
@@ -264,6 +264,13 @@ class AlbumBase:
 
         self.videos = []
 
+    def NewVideo(self, js=None):
+        v = self.videoClass(js)
+        v.pid = self.vid
+        v.cid = self.cid
+
+        return v
+
     def GetVideos(self):
         self.videos, _ = self.engine.db.GetVideoListJson(pid=self.vid)
         return self.videos
@@ -387,6 +394,13 @@ class VideoMenuBase:
         self.albumClass = AlbumBase
         self.cid = 0
 
+    def NewAlbum(self, js=None):
+        album = self.albumClass(self.engine)
+        if js and album:
+            album.LoadFromJson(js)
+
+        return album
+
     def CheckQuickFilter(self, argument):
         if 'quickFilter' in argument:
             qf = GetQuickFilter(self.name, self.quickFilter)
@@ -464,9 +478,14 @@ class VideoEngine:
 
     # 获取节目一级菜单, 返回分类列表
     def GetMenu(self, MenuList):
-        for m, cls in list(self.menu.items()):
-            if cls:
-                MenuList[self.engine_name + '-' + m] = cls(m, self)
+        for m, menu in list(self.menu.items()):
+            if type(menu) == type:
+                menu = menu(m, self)
+                # MenuList[self.engine_name + '-' + m] = cls(m, self)
+            if m not in MenuList:
+                MenuList[m] = menu
+#            else:
+#                MenuList[m].append(menu)
 
     # 解析菜单网页解析
     def ParserHtml(self, js):
@@ -488,6 +507,11 @@ class VideoEngine:
             if albumName    : tv.albumName    = albumName
 
         return tv
+
+    def _save_update_append(self, sets, album, key={}, upsert=True):
+        if album:
+            self.db.SaveAlbum(album, key, upsert)
+            sets.append(album)
 
     # 更新所有节目的排名数据
     def UpdateAllScore(self):

@@ -31,7 +31,7 @@
 
 #define TEST 1
 #if TEST
-#define SERVER_HOST "192.168.1.25"
+#define SERVER_HOST "192.168.1.23"
 //#define SERVER_HOST "127.0.0.1"
 #define PORT 9991
 #else

@@ -6,9 +6,11 @@ import re
 import tornado.escape
 import hashlib
 
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
+from xml.etree import ElementTree
+from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine
 from utils import json_get, GetNameByUrl
 import tv
+import kolaclient
 
 global Debug
 Debug = True
@@ -64,6 +66,23 @@ class LiveVideoMenu(VideoMenuBase):
             'cache' : False or Debug
         }
 
+        self.Alias = {}
+        self.ExcludeName = ()
+
+    def GetAliasName(self, name):
+        for p in list(self.ExcludeName):
+            if re.findall(p, name):
+                return ""
+
+        if name in self.ExcludeName:
+            return ""
+
+        if name in self.Alias:
+            return self.Alias[name]
+
+        return name
+
+
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         if self.command:
@@ -94,23 +113,18 @@ class LetvLiveMenu(LiveVideoMenu):
                 print(name, x[0][1], x[0][2])
 
                 album  = self.NewAlbum()
-                album.cid         = 200
-                album.vid         = hashlib.md5(name.encode()).hexdigest()[16:]
-                album.playlistid  = ''
-                album.pid         = ''
-                album.albumName   = name
+                album.cid        = 200
+                album.vid        = hashlib.md5(name.encode()).hexdigest()[16:]
+                album.albumName  = name
                 album.categories = self.tvCate.GetCategories(name)
 
                 v = album.NewVideo()
-                v.playUrl = 'http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1' % vid
-                v.playlistid = album.playlistid
-                # v.pid = album.vid
-                # v.cid = album.cid
-                v.vid = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
+                v.playUrl     = 'http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1' % vid
+                v.vid         = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
                 v.largePicUrl = x[0][2]
-                v.priority = 1
-                v.name = "乐视"
-                v.script = {
+                v.priority    = 1
+                v.name        = "乐视"
+                v.script      = {
                     'script' : 'letv',
                     'parameters' : [v.playUrl]
                 }
@@ -128,13 +142,6 @@ class SohuLiveMenu(LiveVideoMenu):
     def CmdParser(self, js):
         ret = []
 
-        '''
-        {'cu': 249, 'id': 147,
-            'programaId': 76372, 'percentage': 0.1530424093423479,
-            'enName': 'zjtv', 'name': '浙江卫视',
-            'ico': 'http://i2.itc.cn/20120119/2cea_d8216f64_5ba9_b7dd_4b3d_f2ea360e895f_17.png',
-            'videoId': 136573770, 'videoName': '浙江新闻联播'}
-        '''
         tvlist = tornado.escape.json_decode(js['data'])
         for v in tvlist['attachment']:
             name = json_get(v, 'name', '')
@@ -148,19 +155,72 @@ class SohuLiveMenu(LiveVideoMenu):
             album.smallPicUrl = json_get(v, 'ico', '')
 
             v = album.NewVideo()
-            # v.pid = album.vid
-            # v.cid = album.cid
-            v.vid = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
-            v.playUrl = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
+            v.vid      = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
+            v.playUrl  = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
             v.priority = 2
-            v.name = "搜狐"
-            v.script = {
+            v.name     = "搜狐"
+            v.script   = {
                 'script' : 'sohutv',
                 'parameters' : [v.playUrl]
             }
             album.videos.append(v)
             self.engine._save_update_append(ret, album)
 
+        return ret
+
+class HangZhouLiveMenu(LiveVideoMenu):
+    def __init__(self, name, engine):
+        super().__init__(name, engine)
+        self.cmd['source'] = 'http://www.hoolo.tv/'
+        self.cmd['script'] = {
+                'script' : 'hztvchannels',
+                'parameters' : ['']
+        }
+        self.Alias = {}
+        self.ExcludeName = ('交通918', 'FM1054', 'FM89')
+        self.area = '中国-淅江省-杭州市'
+
+    def CmdParser(self, js):
+        ret = []
+        client = kolaclient.KolaClient()
+        #for i in range(1, 60):
+        for i in (1, 2, 3, 5, 13, 14, 15):
+            url = 'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i
+            text = client.GetCacheUrl(url).decode()
+            root = ElementTree.fromstring(text)
+
+            name = self.GetAliasName(root.attrib['name'])
+            if name == '':
+                continue
+
+            ok = False
+            for p in root:
+                if p.tag == 'video':
+                    for item in p.getchildren():
+                        if 'url' in item.attrib:
+                            ok = True
+                            break
+
+            if ok == False:
+                continue
+
+            album  = self.NewAlbum()
+            album.cid       = 200
+            album.albumName = name
+            album.vid       = hashlib.md5(name.encode()).hexdigest()[16:]
+            album.area      = self.area
+
+            v = album.NewVideo()
+            v.playUrl  = url
+            v.vid      = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
+            v.priority = 2
+            v.name     = "hztv"
+            v.script   = {
+                'script' : 'hztv',
+                'parameters' : [v.playUrl]
+            }
+            album.videos.append(v)
+            self.engine._save_update_append(ret, album)
         return ret
 
 class WenZhouLiveMenu(LiveVideoMenu):
@@ -170,6 +230,7 @@ class WenZhouLiveMenu(LiveVideoMenu):
         self.cmd['regular'] = ['(http://v.dhtv.cn/tv/\?channal=.*</a></li>)']
         self.Alias = {}
         self.ExcludeName = ()
+        self.area = '中国-淅江省-温州市'
 
     def CmdParser(self, js):
         ret = []
@@ -177,18 +238,17 @@ class WenZhouLiveMenu(LiveVideoMenu):
         for u, source, name in ch_list:
             vid = hashlib.md5(name.encode()).hexdigest()[16:]
             album  = self.NewAlbum()
-            album.cid         = 200
-            album.albumName   = name
-            album.vid         = vid
+            album.cid       = 200
+            album.albumName = name
+            album.vid       = vid
+            album.area      = self.area
 
             v = album.NewVideo()
-            # v.pid = album.vid
-            # v.cid = album.cid
-            v.vid = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
+            v.playUrl  = u
+            v.vid      = hashlib.md5(v.playUrl.encode()).hexdigest()[24:]
             v.priority = 2
-            v.playUrl = u
-            v.name = "dhtv"
-            v.script = {
+            v.name     = "dhtv"
+            v.script   = {
                 'script' : 'wztv',
                 'parameters' : ['http://www.dhtv.cn/static/??js/tv.js?acm', source]
             }
@@ -201,26 +261,11 @@ class TVIELiveMenu(LiveVideoMenu):
         super().__init__(name, engine)
         self.base_url = url
         self.cmd['source'] = 'http://' + self.base_url + '/api/getChannels'
-        self.Alias = {}
-        self.ExcludeName = ()
-
-    def GetAliasName(self, name):
-        for p in list(self.ExcludeName):
-            if re.findall(p, name):
-                return ""
-
-        if name in self.ExcludeName:
-            return ""
-
-        if name in self.Alias:
-            return self.Alias[name]
-
-        return name
+        self.area = ''
 
     def CmdParser(self, js):
         ret = []
         jdata = tornado.escape.json_decode(js['data'])
-        #print(json.dumps(jdata, indent=4, ensure_ascii=False))
         try:
             for x in jdata['result']:
                 if 'group_names' in x and x['group_names'] == '':
@@ -237,6 +282,7 @@ class TVIELiveMenu(LiveVideoMenu):
                 album.cid       = 200
                 album.albumName = name
                 album.vid       = hashlib.md5(album.albumName.encode()).hexdigest()[16:]
+                album.area      = self.area
 
                 v = album.NewVideo()
                 # v.pid = album.vid
@@ -278,6 +324,7 @@ class ZJLiveMenu(TVIELiveMenu):
             #"频道111" : "好易购"
         }
         self.ExcludeName = ('频道109', '频道1[1,2,3]\w*', '频道[23].*')
+        self.area = '中国-淅江省'
 
 class NBLiveMenu(TVIELiveMenu):
     def __init__(self, name, engine):
@@ -290,14 +337,15 @@ class NBLiveMenu(TVIELiveMenu):
             'nbtv4直播' : '宁波-影视剧',
             'nbtv5直播' : '宁波-少儿',
         }
-
         self.ExcludeName = ('.*广播', '阳光调频', 'sunhotline')
+        self.area = '中国-淅江省-宁波市'
 
 class UCLiveMenu(TVIELiveMenu):
     def __init__(self, name, engine):
         self.tvName = '新疆电视台'
         super().__init__(name, engine, 'epgsrv01.ucatv.com.cn')
         self.ExcludeName = ('.*广播', '106点5旅游音乐', '天山云LIVE')
+        self.area = '中国-新疆'
 
 # 文本导入
 class TextLiveMenu(LiveVideoMenu):
@@ -343,7 +391,7 @@ class TextLiveMenu(LiveVideoMenu):
                 self.engine._save_update_append(None, album)
 
 
-# Letv 搜索引擎
+# LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
     def __init__(self, db, command):
         super().__init__(db, command)
@@ -351,15 +399,16 @@ class LiveEngine(VideoEngine):
         self.albumClass = LiveAlbum
         self.videoClass = LiveVideo
 
-        # 引擎主菜单
+        # 引擎菜单
         self.menu = {
             'Letv直播'   : LetvLiveMenu,
             'Sohu直播'   : SohuLiveMenu,
-            #'text直播'   : TextLiveMenu,
-            '浙江电视台'    : ZJLiveMenu,
-            '宁波电视台'    : NBLiveMenu,
-            '新疆电视台'    : UCLiveMenu,
-            '温州电视台'    : WenZhouLiveMenu,
+            'text直播'   : TextLiveMenu,
+            '浙江电视台' : ZJLiveMenu,
+            '宁波电视台' : NBLiveMenu,
+            '杭州电视台' : HangZhouLiveMenu,
+            '新疆电视台' : UCLiveMenu,
+            '温州电视台' : WenZhouLiveMenu,
         }
 
         self.parserList = {

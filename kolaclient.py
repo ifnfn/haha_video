@@ -38,9 +38,12 @@ class KolaClient:
         else:
             response = self.GetUrl(url)
             if response:
-                f = open(filename, 'wb')
-                f.write(response)
-                f.close()
+                try:
+                    f = open(filename, 'wb')
+                    f.write(response)
+                    f.close()
+                except:
+                    pass
 
         return response
 

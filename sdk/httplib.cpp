@@ -929,8 +929,6 @@ int http_build_header (char *buffer,
 		SNPRINTF_CHECK("%s", "\r\n");
 	}
 
-
-	printf("buffer=%s\n", buffer);
 #undef SNPRINTF_CHECK
 	return ret;
 }

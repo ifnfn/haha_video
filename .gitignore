@@ -13,5 +13,4 @@ _build*
 *.log
 *.*~
 build_x
-libs
 sdk.tar.bz2

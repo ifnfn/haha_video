@@ -50,27 +50,21 @@ char *uri_join(const char * base, const char * uri)
 
 static void curl_head_init(CURL *curl, const char *referer, const char *cookie)
 {
+//	curl_version_info_data *curlinfo = curl_version_info(CURLVERSION_NOW);
+
+//	if (curlinfo == NULL)
+//		return;
+
 //	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-	curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
-	curl_easy_setopt(curl, CURLOPT_USERAGENT      , "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0");
+//	curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+//	if (curlinfo->features & CURL_VERSION_LIBZ)
+		curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 5000);
+	curl_easy_setopt(curl, CURLOPT_USERAGENT , "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0");
 	if (referer)
 		curl_easy_setopt(curl, CURLOPT_REFERER, referer);
 	if (cookie)
 		curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
-#if 0
-	struct curl_slist *headers = NULL;
-
-	headers = curl_slist_append(headers, "HTTP/1.1");
-	headers = curl_slist_append(headers, "User-agent: Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0");
-	headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded;charset=UTF-8");
-	headers = curl_slist_append(headers, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-	headers = curl_slist_append(headers, "Accept-Encoding: gzip,deflate");
-	headers = curl_slist_append(headers, "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7");
-	headers = curl_slist_append(headers, "Connection: Kepp-Alive");
-
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-#endif
 }
 
 void curl_buffer_free(struct curl_buffer *buf)

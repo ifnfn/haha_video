@@ -1,46 +1,27 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import redis
 import logging
-import tornado.escape
-import sohuengine, livetvengine, wolidouengine
-import engine as eg
-from db import DB
-import utils
-
-from ThreadPool import ThreadPool
+import kola
+from kola import element, utils
+from kola import KolaCommand
+from kola import ThreadPool
 
 POOLSIZE = 10
 
 log = logging.getLogger('crawler')
 
-class Kolatv:
+class KolatvServer:
     def __init__(self):
         self.thread_pool = ThreadPool(POOLSIZE)
-        self.db = DB()
-        self.command = eg.Commands(self.db.map_table)
-        self.engines = {}
+        self.db = kola.DB()
+        self.command = KolaCommand()
         self.MenuList = {}
         self.UpdateAlbumFlag = False
+        self.MenuList['直播']   = element.LiveMenu('直播')
+        self.MenuList['电影']   = element.MovieMenu('电影')
+        self.MenuList['电视剧'] = element.TVMenu('电视剧')
 
-        #self.AddEngine(sohuengine.SohuEngine)
-        self.AddEngine(livetvengine.LiveEngine)
-        #self.AddEngine(wolidouengine.WolidouEngine)
-        #self.AddEngine(textengine.TextvEngine)
-
-    def GetMenuAlias(self, name):
-        return name
-
-    def AddEngine(self, egClass):
-        e = egClass(self.db, self.command)
-        self.engines[e.engine_name] = e
-        e.GetMenu(self.MenuList)
-
-    def GetEngine(self, name):
-        if name in self.engines:
-            return self.engines[name]
-        return None
 
     def GetMenuJsonInfoById(self, cid_list):
         ret = []
@@ -93,20 +74,6 @@ class Kolatv:
 
         return menu.GetRealPlayer(text, definition, step, url)
 
-    def ParserHtml(self, data):
-        js = tornado.escape.json_decode(data)
-        if (js == None) or ('data' not in js):
-            db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
-            db.rpush('urls', js['source'])
-            print("Error:", js['source'])
-            return False
-
-        for _, eg in list(self.engines.items()):
-            if eg.ParserHtml(js) != None:
-                break
-
-        return True
-
     def FindMenuById(self, cid):
         for _, menu in list(self.MenuList.items()):
             if menu.cid == cid:
@@ -119,21 +86,6 @@ class Kolatv:
             return self.MenuList[name]
         else:
             return None
-
-    def AddTask(self, data):
-        self.thread_pool.add_job(self.ParserHtml, [data])
-
-    def UpdateNewest(self): # 更新最新节目
-        print("UpdateNewest")
-        pass
-
-    def UpdateHottest(self): #　更新最热门的节目
-        print("UpdateHottest")
-        pass
-
-    def UpdateTop200(self):
-        print("UpdateTop200")
-        pass
 
     def _get_album(self, All=False):
         argument = {}
@@ -153,50 +105,7 @@ class Kolatv:
 
         return albumList
 
-    # 更新所有节目的排名数据
-    def UpdateAllScore(self):
-        print("UpdateAllScore")
-        for album in self._get_album(True):
-            album.UpdateScoreCommand()
-
-        self.command.Execute()
-
-    # 更新所有节目的完全信息
-    def UpdateAllFullInfo(self):
-        print("UpdateAllFullInfo")
-
-        for album in self._get_album(True):
-            album.UpdateFullInfoCommand()
-
-        self.command.Execute()
-
-    # 更新所有节目的播放信息
-    def UpdateAllPlayInfo(self):
-        for album in self._get_album():
-            album.UpdateAlbumPlayInfoCommand()
-
-        self.command.Execute()
-
-    # 更新所有节目主页
-    def UpdateAllAlbumPage(self):
-        for album in self._get_album(True):
-            album.UpdateAlbumPageCommand()
-
-        self.command.Execute()
-
-    def UpdateAllHotList(self):
-        for (_, menu) in list(self.MenuList.items()):
-            menu.UpdateHotList()
-
-    # 更新所有节目（增加新的节目）
-    def UpdateAllAlbumList(self):
-        self.UpdateAlbumFlag = True
-        for (_, menu) in list(self.MenuList.items()):
-            menu.UpdateAlbumList()
-
     def CommandEmptyMessage(self):
         if self.UpdateAlbumFlag == True:
             self.UpdateAlbumFlag = False
 
-    def AddAlbum(self, js):
-        pass

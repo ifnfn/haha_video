@@ -7,9 +7,9 @@ import tornado.escape
 import hashlib
 
 from bs4 import BeautifulSoup as bs
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine, Template
-from utils import log, autostr, GetNameByUrl
-from urllib.parse import quote
+from engine import VideoEngine, Template
+from kola import VideoBase, AlbumBase, VideoMenuBase
+from kola import log, autostr
 
 #================================= 以下是视频的搜索引擎 =======================================
 global Debug
@@ -191,8 +191,8 @@ class WolidouTV(VideoMenuBase):
 
 # Letv 搜索引擎
 class WolidouEngine(VideoEngine):
-    def __init__(self, db, command):
-        super().__init__(db, command)
+    def __init__(self, command):
+        super().__init__(command)
 
         self.engine_name = 'WolidouEngine'
         self.albumClass = WolidouAlbum

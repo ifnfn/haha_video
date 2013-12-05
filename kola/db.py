@@ -1,82 +1,10 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import time
-import json
-import configparser
-import tornado.escape
+import sys, traceback
+import pymongo
 import redis
-import threading
-from utils import autostr, autoint, GetQuickFilter
-
-class Template:
-    def __init__(self, command=None, cmd=None):
-        self.command = command
-        command.AddCommand(cmd)
-
-    def Execute(self):
-        if self.command:
-            self.command.Execute()
-
-# 命令管理器
-class Commands:
-    def __init__(self, map_table):
-        self.time = time.time()
-        self.urlmap = {}
-        self.pipe = None
-        self.mutex = threading.Lock()
-
-        self.map_table = map_table
-        self.db = redis.Redis(host='127.0.0.1', port=6379, db=1)
-
-        maps = self.map_table.find()
-        for url in maps:
-            self.AddUrlMap(url['source'], url['dest'])
-
-        # self.AddUrlMap('http://tv.sohu.com/s2011/fengsheng/', 'http://tv.sohu.com/20121109/n268282527.shtml')
-        # self.AddUrlMap('http://tv.sohu.com/s2011/nrb/', 'http://tv.sohu.com/20111023/n323122692.shtml')
-        self.AddUrlMap('http://tv.sohu.com/s2010/tctyjxl/', 'http://tv.sohu.com/20090930/n267111286.shtml')
-
-    def AddUrlMap(self, oldurl, newurl):
-        self.urlmap[oldurl] = newurl
-        self.map_table.update({'source': oldurl}, {"$set" : {'dest': newurl}}, upsert=True, multi=True)
-
-    def GetUrl(self, url):
-        if url in self.urlmap:
-            print(("Map: %s --> %s" % (url, self.urlmap[url])))
-            return self.urlmap[url]
-        else:
-            return url
-
-    def AddCommand(self, cmd):
-        if 'source' in cmd and 'name' in cmd:
-            cmd['source'] = self.GetUrl(cmd['source'])
-            if self.pipe == None:
-                self.pipe = self.db.pipeline()
-            self.pipe.rpush('command', json.dumps(cmd))
-        return self
-
-    def Execute(self):
-        if self.pipe:
-            self.pipe.execute()
-            self.pipe = None
-
-    def GetCommand(self, timeout = 0, count=1):
-        if time.time() - self.time > timeout: # 命令不要拿得太快，否则几百万个客户端同时跑来，服务器受不了
-            ret = []
-            print(time.time() - self.time)
-            self.time = time.time()
-            self.mutex.acquire()
-            for _ in range(count):
-                cmd = self.db.lpop('command')
-                if cmd:
-                    ret.append(tornado.escape.json_decode(cmd))
-                else:
-                    break
-            self.mutex.release()
-
-            return ret
-        return None
+from .utils import autostr, autoint, log, GetQuickFilter
 
 # 每个 Video 表示一个可以播放视频
 class VideoBase:
@@ -217,14 +145,9 @@ class VideoBase:
         if 'priority' in json       :  self.priority      = json['priority']
 
 class AlbumBase:
-    def __init__(self, engine):
-        self.engine = engine
-        self.command = engine.command
+    def __init__(self):
         self.VideoClass = VideoBase
         self.cid = 0
-
-        self.engineList = []
-        self.engineList.append(engine.engine_name)
 
         self.sources = {}        # 直接节目    [*]
         self.albumName = ''      # 名称       [*]
@@ -263,6 +186,8 @@ class AlbumBase:
         self.directors = []       # [*]
 
         self.videos = []
+        self.private = {}
+        self.engineList = {}
 
     def NewVideo(self, js=None):
         v = self.videoClass(js)
@@ -317,6 +242,7 @@ class AlbumBase:
         if self.dailyIndexScore : ret['dailyIndexScore']= self.dailyIndexScore  # 每日指数
 
         if self.sources :         ret['sources']        = self.sources
+        if self.private :         ret['private']        = self.private
 
         return ret
 
@@ -363,28 +289,13 @@ class AlbumBase:
         if 'dailyIndexScore' in json: self.dailyIndexScore = json['dailyIndexScore'] # 每日指数
 
         if 'sources' in json        : self.sources         = json['sources']
+        if 'private' in json        : self.private         = json['private']
 
-    # 更新节目完整信息
-    def UpdateFullInfoCommand(self):
-        pass
-
-    # 更新节目指数信息
-    def UpdateScoreCommand(self):
-        pass
-
-    # 更新节目主页
-    def UpdateAlbumPageCommand(self):
-        pass
-
-    # 更新节目播放信息
-    def UpdateAlbumPlayInfoCommand(self):
-        pass
 
 # 一级分类菜单
 class VideoMenuBase:
-    def __init__(self, name, engine):
-        self.engine = engine
-        self.command = engine.command
+    def __init__(self, name):
+        self.db = DB()
         self.filter = {}
         self.quickFilter = {}
         self.sort = {}
@@ -393,9 +304,19 @@ class VideoMenuBase:
         self.parserList = {}
         self.albumClass = AlbumBase
         self.cid = 0
+        self.filter_year = {
+            '2013' : '',
+            '2012' : '',
+            '2011' : '',
+            '2010' : '',
+            '00年代': '',
+            '90年代': '',
+            '80年代': '',
+            '更早'  : ''
+        }
 
     def NewAlbum(self, js=None):
-        album = self.albumClass(self.engine)
+        album = self.albumClass()
         if js and album:
             album.LoadFromJson(js)
 
@@ -436,103 +357,286 @@ class VideoMenuBase:
 
         ret['name']         = self.name
         ret['cid']          = self.cid
-        ret['count']        = self.engine.db.GetMenuAlbumCount(self.cid)
+        ret['count']        = self.db.GetMenuAlbumCount(self.cid)
         ret['filter']       = self.GetFilterJson()
         ret['quickFilters'] = self.GetQuickFilterJson()
         ret['sort']         = self.GetSortJson()
 
         return ret
 
-    # 更新该菜单下所有节目列表
-    def UpdateAlbumList(self):
-        pass
+class DB:
+    video_cachedb = redis.Redis(host='127.0.0.1', port=6379, db=3)
+    con = pymongo.Connection('localhost', 27017)
+    mongodb = con.kola
+    album_table  = mongodb.album
+    videos_table = mongodb.videos
+    map_table    = mongodb.urlmap
+    menu_table   = mongodb.menu
+    videos_table.drop_indexes()
+    videos_table.create_index([('pid', pymongo.ASCENDING)])
+    videos_table.create_index([('vid', pymongo.ASCENDING)])
+    videos_table.create_index([('pid', pymongo.ASCENDING), ('vid', pymongo.ASCENDING)])
 
-    # 更新热门节目表
-    def UpdateHotList(self):
-        pass
+    album_table.drop_indexes()
+    album_table.create_index([('albumName', pymongo.ASCENDING)])
+    album_table.create_index([('albumPageUrl', pymongo.ASCENDING)])
+    album_table.create_index([('vid', pymongo.ASCENDING)])
+    album_table.create_index([('cid', pymongo.ASCENDING)])
+    album_table.create_index([('playlistid', pymongo.ASCENDING)])
 
-    # 得到真实播放地址
-    def GetRealPlayer(self, text, definition, step, url=''):
-        return ''
+    def __init__(self):
+        self.fieldMapping = {
+            '类型' : 'categories',
+            '产地' : 'area',
+            '地区' : 'area', # Music
+            '年份' : 'publishYear',
+            '篇幅' : '',
+            '年龄' : '',
+            '范围' : '',
+            '语言' : '',
+            '周播放最多' : 'weeklyPlayNum',
+            '日播放最多' : 'dailyPlayNum',
+            '总播放最多' : 'totalPlayNum',
+            '最新发布'   : 'publishTime',
+            '评分最高'   : 'videoScore',
+            'vids'     : 'vid'
+        }
 
-class VideoEngine:
-    def __init__(self, db, command):
-        self.engine_name = 'EngineBase'
-        self.config = configparser.ConfigParser()
+    def SetVideoCache(self, key, value):
+        self.video_cachedb.set(key, value)
+        self.video_cachedb.expire(key, 600) # 10 分钟有效
 
-        self.albumClass = AlbumBase
-        self.videoClass = VideoBase
-        self.db = db
-        self.command = command
-        self.parserList = {}
+    def GetVideoCache(self, key):
+        return self.video_cachedb.get(key)
 
-    def NewVideo(self, js=None):
-        return self.videoClass(js)
+    def SaveVideo(self, video):
+        if video.vid:
+            js = video.SaveToJson()
+            upert = {}
 
-    def NewAlbum(self, js=None):
-        album = self.albumClass(self)
-        if js and album:
-            album.LoadFromJson(js)
+            upert['vid'] = video.vid
+            if video.pid:
+                upert['pid'] = video.pid
 
-        return album
+            self.videos_table.update(
+                       upert,
+                       {'$set' : js},
+                       upsert=True, multi=True)
 
-    # 获取节目一级菜单, 返回分类列表
-    def GetMenu(self, MenuList):
-        for m, menu in list(self.menu.items()):
-            if type(menu) == type:
-                menu = menu(m, self)
-                # MenuList[self.engine_name + '-' + m] = cls(m, self)
-            if m not in MenuList:
-                MenuList[m] = menu
-#            else:
-#                MenuList[m].append(menu)
+    def _GetKeyAndJson(self, album, key):
+        album.playlistid = autostr(album.playlistid)
+        album.vid        = autostr(album.vid)
+        key = ''
+        js = {}
+        if album.albumName or album.albumPageUrl or album.playlistid or album.vid:
+            js = album.SaveToJson()
 
-    # 解析菜单网页解析
-    def ParserHtml(self, js):
-        name = js['name']
-        if name in self.parserList:
-            return self.parserList[name](js)
-        return None
+            if not key:
+                if album.vid:
+                    key = {'vid' : album.vid}
+                elif album.albumPageUrl:
+                    key = {'albumPageUrl': album.albumPageUrl}
+                elif album.albumName:
+                    key = {'albumName': album.albumName}
+                elif album.playlistid:
+                    key = {'playlistid' : album.playlistid}
 
-    # 从数据库中找到album
-    def GetAlbumFormDB(self, playlistid='', albumName='', vid='', auto=False):
-        tv = None
-        json = self.db.FindAlbumJson(playlistid, albumName, vid, auto)
-        if json:
-            tv = self.albumClass(self)
-            tv.LoadFromJson(json)
-        elif auto:
-            tv = self.albumClass(self)
-            if playlistid   : tv.playlistid   = playlistid
-            if albumName    : tv.albumName    = albumName
+        return key, js
 
-        return tv
+    def DeleteAlbum(self, album, key={}):
+        key, _ = self._GetKeyAndJson(album, key)
+        if key:
+            self.album_table.remove(key)
+
+    def SaveAlbum(self, album, key={}, upsert=True):
+        key, js = self._GetKeyAndJson(album, key)
+
+        if key:
+            self.album_table.update(key, {"$set" : js}, upsert=upsert, multi=True)
+
+            for v in album.videos:
+                self.SaveVideo(v)
+
+    # 从数据库中找到 album
+    def FindAlbumJson(self, playlistid='', albumName='', vid='', auto=False):
+        playlistid = autostr(playlistid)
+        vid = autostr(vid)
+        if playlistid == '' and albumName == '' and vid == '':
+            return None
+
+        f = []
+        if playlistid :   f.append({'playlistid'   : playlistid})
+        if albumName :    f.append({'albumName'    : albumName})
+        if vid :          f.append({'vid'          : vid})
+
+        return self.album_table.find_one({"$or" : f})
+
+    # 得到节目列表
+    # arg参数：
+    # {
+    #    "page" : 0,
+    #    "size" : 20,
+    #    "filter" : {                 # 过滤字段
+    #        "cid":2,
+    #        "playlistid":123123,
+    #    },
+    #    "fields" : {                 # 显示字段
+    #        "albumName" : True,
+    #        "playlistid" : True
+    #    },
+    #    "sort" : {                   # 排序字段
+    #        "albumName": 1,
+    #        "vid": -1
+    #    }
+    # disablePage 为Ture时，页的大小不能为 0
+    def GetAlbumListJson(self, arg, cid=-1, disablePage=False, full=False):
+        self.ConvertJson(arg)
+        ret = []
+        count = 0
+        try:
+            _filter = {}
+            if cid != -1:
+                _filter['cid'] = cid
+            if 'filter' in arg:
+                _filter.update(arg['filter'])
+
+            if 'fields' in arg:
+                fields = arg['fields']
+            else:
+                fields = None
+            if 'full' in arg:
+                full = arg['full']
+
+            cursor = self.album_table.find(_filter, fields = fields)
+            count = cursor.count()
+
+            if 'sort' in arg:
+                cursor = cursor.sort(arg['sort'])
+
+            size = 0
+            if 'page' in arg and 'size' in arg:
+                page = autoint(arg['page'])
+                size = autoint(arg['size'])
+            if size:
+                cursor = cursor.skip(page * size).limit(size)
+            if size or disablePage:
+                for x in cursor:
+                    del x['_id']
+                    if not full:
+                        if 'private' in x:
+                            del x['private']
+                        if 'engineList' in x:
+                            del x['engineList']
+
+                    ret.append(x)
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret, count
+
+    def FindVideoJson(self, playlistid='', pid='', vid=''):
+        playlistid = autostr(playlistid)
+        pid        = autostr(pid)
+        vid        = autostr(vid)
+        if pid == '' and vid == '' and playlistid == '':
+            return None
+
+        f = []
+        if playlistid : f.append({'playlistid' : playlistid})
+        if pid        : f.append({'pid' : pid})
+        if vid        : f.append({'vid' : vid})
+
+        return self.videos_table.find_one({"$or" : f})
+
+    def GetVideoListJson(self, playlistid='', pid='', arg={}):
+        ret = []
+        playlistid = autostr(playlistid)
+        pid        = autostr(pid)
+        count = 0
+        try:
+            _filter = {}
+            if pid:
+                _filter['pid'] = pid
+
+            if playlistid:
+                _filter['playlistid'] = playlistid
+
+            if 'filter' in arg:
+                _filter.update(arg['filter'])
+
+            if 'fields' in arg:
+                fields = arg['fields']
+            else:
+                fields = None
+
+            if not _filter:
+                return ret, 0
+
+            cursor = self.videos_table.find(_filter, fields = fields)
+
+            if 'sort' in arg:
+                cursor = cursor.sort(arg['sort'])
+            else:
+                cursor = cursor.sort([('priority', 1)])
+
+            count = cursor.count()
+
+            if 'sort' in arg:
+                cursor = cursor.sort(arg['sort'])
+            else:
+                cursor = cursor.sort([('order', 1)])
+
+            allVideo = False
+            if 'page' in arg and 'size' in arg:
+                page = autoint(arg['page'])
+                size = autoint(arg['size'])
+            else:
+                allVideo = True
+                size = 0
+
+            if size or allVideo:
+                if size:
+                    cursor = cursor.skip(page * size).limit(size)
+                for x in cursor:
+                    del x['_id']
+                    ret.append(x)
+            elif size == 0 and page == 0:
+                pass
+        except:
+            t, v, tb = sys.exc_info()
+            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+
+        return ret, count
+
+    def GetMenuAlbumCount(self, cid):
+        return self.album_table.find({'cid': cid}).count()
+
+    def ConvertJson(self, arg):
+        if 'filter' in arg:
+            arg['filter'] = self._ConvertFilterJson(arg['filter'])
+        if 'sort' in arg:
+            arg['sort'] = self._ConvertSortJson(arg['sort'])
+
+        return arg
+
+    def _ConvertFilterJson(self, f):
+        for key in f:
+            if key in self.fieldMapping:
+                newkey = self.fieldMapping[key]
+                f[newkey] = { "$in" : f[key].split(',')}
+                del f[key]
+        return f
+
+    def _ConvertSortJson(self, v):
+        if v in self.fieldMapping:
+            newkey = self.fieldMapping[v]
+            return [(newkey, -1)]
+        else:
+            return [(v, -1)]
 
     def _save_update_append(self, sets, album, key={}, upsert=True):
         if album:
-            self.db.SaveAlbum(album, key, upsert)
+            self.SaveAlbum(album, key, upsert)
             sets.append(album)
 
-    # 更新所有节目的排名数据
-    def UpdateAllScore(self):
-        print("UpdateAllScore")
-
-    # 更新所有节目的完全信息
-    def UpdateAllFullInfo(self):
-        print("UpdateAllFullInfo")
-
-    # 更新所有节目的播放信息
-    def UpdateAllPlayInfo(self):
-        print("UpdateAllPlayInfo")
-
-    # 更新所有节目主页
-    def UpdateAllAlbumPage(self):
-        print("UpdateAllAlbumPage")
-
-    # 更新热门节目信息
-    def UpdateAllHotList(self):
-        print("UpdateAllHotList")
-
-    # 更新所有节目（增加新的节目）
-    def UpdateAllAlbumList(self):
-        print("UpdateAllAlbumList")

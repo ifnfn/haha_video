@@ -1,0 +1,168 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
+
+import tornado.ioloop
+import tornado.web
+import tornado.options
+import redis
+import json
+import uuid
+import hashlib
+
+from tornado.options import define, options
+from pymongo import Connection
+from kola import BaseHandler
+from kolatvengine import KolaEngine
+
+tv = KolaEngine()
+
+class UploadHandler(BaseHandler):
+    def get(self):
+        print('Upload get')
+        pass
+
+    def post(self):
+        try:
+            if type(self.request.body) == bytes:
+                body = self.request.body.decode()
+            else:
+                body = self.request.body
+            if body and len(body) > 0:
+                tv.ParserHtml(body)
+                #tv.AddTask(body)
+        except:
+            pass
+
+class RandomVideoUrlHandle(BaseHandler):
+    def get(self, name):
+        self.finish(tv.db.GetVideoCache(name))
+
+    def post(self, name):
+        if name == '':
+            body = self.request.body
+            name = hashlib.md5(body).hexdigest().upper()
+            self.db.set(name, body.decode())
+            self.db.expire(name, 60) # 1 分钟有效
+            self.finish(name)
+
+class UpdateCommandHandle(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        cmdlist = {}
+        cmdlist['list']      = tv.UpdateAllAlbumList
+        cmdlist['home']      = tv.UpdateAllAlbumPage
+        cmdlist['fullinfo']  = tv.UpdateAllFullInfo
+        cmdlist['score']     = tv.UpdateAllScore
+        cmdlist['playinfo']  = tv.UpdateAllPlayInfo
+        cmdlist['add_album'] = tv.AddAlbum
+
+        command = self.get_argument('cmd', '')
+        for cmd in command.split(','):
+            if cmd in cmdlist:
+                cmdlist[cmd]()
+
+        self.finish('OK\n')
+
+    def post(self):
+        pass
+
+class LoginHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def check_user_id(self):
+        self.user_id = self.get_argument('user_id')
+        status = 'YES'
+        con = Connection('localhost', 27017)
+        user_table = con.kola.users
+
+        json = user_table.find_one({'user_id' : self.user_id})
+        if json:
+            status = json['status']
+        else:
+            user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
+
+        if status == 'NO' or self.user_id == None or self.user_id == '':
+            raise tornado.web.HTTPError(401, 'Missing key %s' % self.user_id)
+
+        # 登录检查，生成随机 KEY
+        redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
+        if not redis_db.exists(self.user_id):
+            key = (self.user_id + uuid.uuid4().__str__() + self.request.remote_ip).encode()
+            key = hashlib.md5(key).hexdigest().upper()
+            redis_db.set(self.user_id, key)
+            redis_db.set(key, self.request.remote_ip)
+        else:
+            key = redis_db.get(self.user_id).decode()
+            redis_db.set(key, self.request.remote_ip)
+        redis_db.expire(self.user_id, 60) # 一分钟过期
+        redis_db.expire(key, 60) # 一分钟过期
+
+        return key
+
+    def get(self):
+        ret = {
+            'key'    : self.check_user_id(),
+            'server' : self.request.protocol + '://' + self.request.host,
+            'next'   : 60,   # 下次登录时间
+        }
+
+        cmd = self.get_argument('cmd', '1')
+        if cmd == '1':
+            if self.user_id == '000001':
+                timeout = 0
+            else:
+                timeout = 0.3
+            count = self.get_argument('count', 1)
+
+            cmd = tv.command.GetCommand(timeout, count)
+            if cmd:
+                ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
+                ret['command'] = cmd
+                if self.user_id == '000001':
+                    ret['next'] = 0
+            else:
+                tv.CommandEmptyMessage()
+
+        self.finish(json.dumps(ret))
+
+    def post(self):
+        self.finish('OK')
+
+
+define('port', default=9991, help='run on the given port', type=int)
+class Application(tornado.web.Application):
+    def __init__(self):
+        settings = dict(
+            debug = False,
+            gzip = True,
+            login_url = "/login",
+            template_path = "templates",
+            cookie_secret = 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To=',
+            #xsrf_cookies = True,
+            autoescape = None,
+            autoreload = True
+        )
+
+        handlers = [
+            (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
+            (r'/video/urls(.*)',   RandomVideoUrlHandle),
+            (r'/login',            LoginHandler),           # 登录认证
+            (r'/manage/update',    UpdateCommandHandle),
+        ]
+
+        tornado.web.Application.__init__(self, handlers, **settings)
+
+def main():
+    db = redis.Redis(host='127.0.0.1', port=6379, db=4)
+    db.flushdb()
+
+    tornado.options.parse_command_line()
+    http_server = Application()
+    http_server.listen(options.port, xheaders = True)
+    tornado.ioloop.IOLoop.instance().start()
+
+if __name__ == '__main__':
+    main()

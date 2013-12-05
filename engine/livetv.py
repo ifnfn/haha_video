@@ -5,12 +5,13 @@ import sys, traceback
 import re
 import tornado.escape
 import hashlib
-
 from xml.etree import ElementTree
-from engine import VideoBase, AlbumBase, VideoMenuBase, VideoEngine
-from utils import json_get, GetNameByUrl
-import tv
-import kolaclient
+
+from engine import VideoEngine, TVCategory, EngineCommands
+import kola
+from kola.element import LiveMenu
+from kola import json_get, GetNameByUrl
+from kola import VideoBase, AlbumBase
 
 global Debug
 Debug = True
@@ -19,47 +20,31 @@ class LiveVideo(VideoBase):
     def __init__(self, js = None):
         super().__init__(js)
 
-    def GetVideoPlayUrl(self, definition=0):
-        pass
-
 class LiveAlbum(AlbumBase):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
         self.albumPageUrl = ''
 
         self.videoClass = LiveVideo
 
     def SaveToJson(self):
+        if self.albumPageUrl: self.private['albumPageUrl'] = self.albumPageUrl
         ret = super().SaveToJson()
-        pri = {}
-        if self.albumPageUrl    : pri['albumPageUrl'] = self.albumPageUrl
-
-        if pri:
-            ret['private'] = pri
 
         return ret
 
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
-        if 'private' in json:
-            pri = json['private']
-            if 'albumPageUrl' in pri   : self.albumPageUrl = pri['albumPageUrl']
+        if 'albumPageUrl' in self.private: self.albumPageUrl = self.private['albumPageUrl']
 
-class LiveVideoMenu(VideoMenuBase):
-    def __init__(self, name, engine):
-        super().__init__(name, engine)
-        self.tvCate = tv.TVCategory()
+class LiveVideoMenu(LiveMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        self.command = EngineCommands()
+        self.tvCate = TVCategory()
         self.homePage    = ''
         self.albumClass  = LiveAlbum
-        self.cid = 200
-        self.filter = {
-            '类型': {
-                '卫视台':1,
-                '地方台':2,
-                '央视台':3,
-                '境外台':4,
-            }
-        }
+
         self.cmd = {
             'menu' :  name,
             'name' : 'livetv_list',
@@ -82,7 +67,6 @@ class LiveVideoMenu(VideoMenuBase):
 
         return name
 
-
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         if self.command:
@@ -94,8 +78,8 @@ class LiveVideoMenu(VideoMenuBase):
 
 # 乐视直播电视
 class LetvLiveMenu(LiveVideoMenu):
-    def __init__(self, name, engine):
-        super().__init__(name, engine)
+    def __init__(self, name):
+        super().__init__(name)
         self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
         self.cmd['regular'] = ["<dt>(<a title=.*</a>)</dt>"]
 
@@ -130,13 +114,13 @@ class LetvLiveMenu(LiveVideoMenu):
                 }
 
                 album.videos.append(v)
-                self.engine._save_update_append(ret, album)
+                self.db._save_update_append(ret, album)
         return ret
 
 # 搜狐直播电视
 class SohuLiveMenu(LiveVideoMenu):
-    def __init__(self, name, engine):
-        super().__init__(name, engine)
+    def __init__(self, name):
+        super().__init__(name)
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 
     def CmdParser(self, js):
@@ -164,13 +148,13 @@ class SohuLiveMenu(LiveVideoMenu):
                 'parameters' : [v.playUrl]
             }
             album.videos.append(v)
-            self.engine._save_update_append(ret, album)
+            self.db._save_update_append(ret, album)
 
         return ret
 
 class HangZhouLiveMenu(LiveVideoMenu):
-    def __init__(self, name, engine):
-        super().__init__(name, engine)
+    def __init__(self, name):
+        super().__init__(name)
         self.cmd['source'] = 'http://www.hoolo.tv/'
         self.cmd['script'] = {
                 'script' : 'hztvchannels',
@@ -182,11 +166,10 @@ class HangZhouLiveMenu(LiveVideoMenu):
 
     def CmdParser(self, js):
         ret = []
-        client = kolaclient.KolaClient()
         #for i in range(1, 60):
         for i in (1, 2, 3, 5, 13, 14, 15):
             url = 'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i
-            text = client.GetCacheUrl(url).decode()
+            text = kola.GetUrl(url).decode()
             root = ElementTree.fromstring(text)
 
             name = self.GetAliasName(root.attrib['name'])
@@ -220,12 +203,12 @@ class HangZhouLiveMenu(LiveVideoMenu):
                 'parameters' : [v.playUrl]
             }
             album.videos.append(v)
-            self.engine._save_update_append(ret, album)
+            self.db._save_update_append(ret, album)
         return ret
 
 class WenZhouLiveMenu(LiveVideoMenu):
-    def __init__(self, name, engine):
-        super().__init__(name, engine)
+    def __init__(self, name,):
+        super().__init__(name)
         self.cmd['source'] = 'http://v.dhtv.cn/tv/'
         self.cmd['regular'] = ['(http://v.dhtv.cn/tv/\?channal=.*</a></li>)']
         self.Alias = {}
@@ -253,12 +236,12 @@ class WenZhouLiveMenu(LiveVideoMenu):
                 'parameters' : ['http://www.dhtv.cn/static/??js/tv.js?acm', source]
             }
             album.videos.append(v)
-            self.engine._save_update_append(ret, album)
+            self.db._save_update_append(ret, album)
 
 
 class TVIELiveMenu(LiveVideoMenu):
-    def __init__(self, name, engine, url):
-        super().__init__(name, engine)
+    def __init__(self, name, url):
+        super().__init__(name)
         self.base_url = url
         self.cmd['source'] = 'http://' + self.base_url + '/api/getChannels'
         self.area = ''
@@ -299,17 +282,16 @@ class TVIELiveMenu(LiveVideoMenu):
                     'parameters' : [v.playUrl]
                 }
                 album.videos.append(v)
-                self.engine._save_update_append(ret, album)
-
+                self.db._save_update_append(ret, album)
         except:
             t, v, tb = sys.exc_info()
             print("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
 
 class ZJLiveMenu(TVIELiveMenu):
-    def __init__(self, name, engine):
+    def __init__(self, name):
         self.tvName = '浙江电视台'
-        super().__init__(name, engine, 'api.cztv.com')
+        super().__init__(name, 'api.cztv.com')
         self.Alias = {
             "频道101" : "浙江卫视",
             "频道102" : "钱江频道",
@@ -327,9 +309,9 @@ class ZJLiveMenu(TVIELiveMenu):
         self.area = '中国-淅江省'
 
 class NBLiveMenu(TVIELiveMenu):
-    def __init__(self, name, engine):
+    def __init__(self, name):
         self.tvName = '宁波电视台'
-        super().__init__(name, engine, 'ming-api.nbtv.cn')
+        super().__init__(name, 'ming-api.nbtv.cn')
         self.Alias = {
             'nbtv1直播' : '宁波-新闻综合',
             'nbtv2直播' : '宁波-社会生活',
@@ -341,16 +323,16 @@ class NBLiveMenu(TVIELiveMenu):
         self.area = '中国-淅江省-宁波市'
 
 class UCLiveMenu(TVIELiveMenu):
-    def __init__(self, name, engine):
+    def __init__(self, name):
         self.tvName = '新疆电视台'
-        super().__init__(name, engine, 'epgsrv01.ucatv.com.cn')
+        super().__init__(name, 'epgsrv01.ucatv.com.cn')
         self.ExcludeName = ('.*广播', '106点5旅游音乐', '天山云LIVE')
         self.area = '中国-新疆'
 
 # 文本导入
 class TextLiveMenu(LiveVideoMenu):
-    def __init__(self, name, engine):
-        super().__init__(name, engine)
+    def __init__(self, name):
+        super().__init__(name)
         self.cmd['source'] = 'http://files.cloudtv.bz/media/20130927.txt'
 
     def CmdParser(self, js):
@@ -388,13 +370,13 @@ class TextLiveMenu(LiveVideoMenu):
                 album.categories  = self.tvCate.GetCategories(k)
                 album.sources     = v
                 album.totalSet    = len(v)
-                self.engine._save_update_append(None, album)
+                self.db._save_update_append(None, album)
 
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
-    def __init__(self, db, command):
-        super().__init__(db, command)
+    def __init__(self, command):
+        super().__init__(command)
         self.engine_name = 'LiveEngine'
         self.albumClass = LiveAlbum
         self.videoClass = LiveVideo
@@ -420,7 +402,7 @@ class LiveEngine(VideoEngine):
         if menuName in self.menu:
             menu = self.menu[menuName]
             if type(menu) == type:
-                return menu(menuName, self).CmdParser(js)
+                return menu(menuName).CmdParser(js)
             else:
                 return menu.CmdParser(js)
         else:

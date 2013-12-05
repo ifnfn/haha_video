@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from fetchTools import fetch_httplib2 as fetch
+from .fetchTools import fetch_httplib2 as fetch
 import logging, sys
 import traceback
 import json

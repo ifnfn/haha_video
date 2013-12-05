@@ -14,3 +14,4 @@ _build*
 *.*~
 build_x
 sdk.tar.bz2
+__pycache__

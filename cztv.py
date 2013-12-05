@@ -1,14 +1,13 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, os
+import sys
 import traceback
 import re
 import time, datetime
 import tornado.escape
 from xml.etree import ElementTree
-import utils
-from kolaclient import KolaClient
+from engine.kolaclient import KolaClient
 
 class EPG:
     def __init__(self):

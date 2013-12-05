@@ -7,7 +7,7 @@ import json
 import re
 import hashlib
 import tornado.escape
-import utils
+import kola
 
 HOST = 'http://127.0.0.1:9991'
 #HOST = 'http://192.168.188.135:9991'
@@ -23,7 +23,7 @@ class KolaClient:
 
     def GetUrl(self, url):
         print("Download: ", url)
-        return utils.GetUrl(url)
+        return kola.utils.GetUrl(url)
 
     def GetCacheUrl(self, url):
         response = ''
@@ -48,7 +48,7 @@ class KolaClient:
         return response
 
     def PostUrl(self, url, body):
-        return utils.PostUrl(url, body, self.key)
+        return kola.utils.PostUrl(url, body, self.key)
 
     def RegularMatchUrl(self, url, regular):
         response = self.GetCacheUrl(url)

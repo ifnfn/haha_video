@@ -9,16 +9,16 @@ import redis
 import json
 import uuid
 import hashlib
-
+import tornado.escape
 from tornado.options import define, options
 from pymongo import Connection
-from basehandle import BaseHandler
-from kolatv import Kolatv
-from utils import log
-import utils
-import tornado.escape
 
-tv = Kolatv()
+from kola import BaseHandler
+from kola import log
+from kola import utils
+from kolaserver import KolatvServer
+
+tv = KolatvServer()
 
 class AlbumListHandler(BaseHandler):
     def argument(self):
@@ -106,16 +106,6 @@ class GetVideoHandler(BaseHandler):
 
         self.Finish(args, pid)
 
-class UrlMapHandler(BaseHandler):
-    def post(self):
-        try:
-            umap = tornado.escape.json_decode(self.request.body)
-            if umap:
-                tv.command.AddUrlMap(umap['source'], umap['dest'])
-        except:
-            raise tornado.web.HTTPError(400)
-        self.finish('OK')
-
 class GetPlayerHandler(BaseHandler):
     def get(self):
         pass
@@ -123,14 +113,47 @@ class GetPlayerHandler(BaseHandler):
     def post(self):
         body = self.request.body.decode()
         if body and len(body) > 0:
-            cid = self.get_argument('cid', 0)
-            step = self.get_argument('step', "1",)
-            definition = self.get_argument('hd', '0')
-            text = tv.GetRealPlayer(body, cid, definition, step,
-                                    url= self.request.protocol + '://' + self.request.host  + '/video/urls')
+            text = self.sohuVideoUrl(body, self.request.protocol + '://' + self.request.host  + '/video/urls')
             self.finish(text)
         else:
             raise tornado.web.HTTPError(404)
+
+    def sohuVideoUrl(self, text, url):
+        try:
+            ret = tornado.escape.json_decode(text)
+            if type(ret) == str:
+                ret = tornado.escape.json_decode(ret)
+
+#            self.engine._UpdateVideoVid(ret)
+            if 'sets' in ret:
+                max_duration = 0.0
+                m3u8 = ''
+                video_count = len(ret['sets'])
+                for u in ret['sets']:
+                    new      = u['new']
+                    url_tmp  = u['url']
+                    duration = float(u['duration'])
+
+                    start, _, _, key, _, _, _, _ = url_tmp.split('|')
+                    u_tmp = '%s%s?key=%s' % (start[:-1], new, key)
+
+                    if video_count == 1:
+                        return u_tmp
+                    m3u8 += '#EXTINF:%.0f\n%s\n' % (duration, u_tmp)
+                    if duration > max_duration:
+                        max_duration = duration
+
+                m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
+
+                name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
+                tv.db.SetVideoCache(name, m3u8)
+
+                return url + name
+        except:
+            t, v, tb = sys.exc_info()
+            log.error('SohuEngine._ParserRealUrlStep2: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
+
+        return ''
 
 # http://xxxxx/video/getmenu?cid=1,2
 # http://xxxxx/video/getmenu
@@ -472,7 +495,6 @@ class Application(tornado.web.Application):
             (r'/video/getvideo',   GetVideoHandler),
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
-            (r'/video/urlmap',     UrlMapHandler),          # 后台管理，增加网址映射
             (r'/video/getmenu',    GetMenuHandler),         #
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证

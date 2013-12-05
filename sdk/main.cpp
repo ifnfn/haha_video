@@ -122,6 +122,11 @@ void test_video(const char *menuName)
 
 	if (m == NULL)
 		return;
+
+
+	foreach(m->quickFilters, s) {
+		std::cout << *s << std::endl;
+	}
 	//m->Filter.KeyAdd("类型", "爱情片");
 	//m->Filter.KeyAdd("产地", "香港,台湾");
 	//m->SetQuickFilter("推荐电影");
@@ -221,7 +226,7 @@ int main(int argc, char **argv)
 //	return 0;
 //	test_custommenu();
 //	return 0;
-	printf("Test LiveTV\n"); test_livetv();
+//	printf("Test LiveTV\n"); test_livetv();
 
 	printf("Test Video\n"); test_video("电影");
 

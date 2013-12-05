@@ -42,7 +42,7 @@
 #define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE 8
+#define MAX_THREAD_POOL_SIZE 16
 #define TRY_TIMES 3
 
 static std::string loginKey;
@@ -314,6 +314,7 @@ KolaClient::KolaClient(void)
 	nextLoginSec = 3;
 	running = true;
 	havecmd = true;
+	debug = 0;
 
 	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
 
@@ -432,6 +433,9 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url,
 	}
 	http_resp_free(http_resp);
 #endif
+
+	if (ok && debug)
+		std::cout << ret << std::endl;
 
 	return ok;
 }

@@ -342,6 +342,7 @@ class KolaClient {
 		std::string& GetServer() { return baseUrl; }
 		std::string GetArea();
 		time_t GetTime();
+		int debug;
 	private:
 		KolaClient(void);
 		std::string baseUrl;

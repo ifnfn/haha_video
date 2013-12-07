@@ -69,6 +69,7 @@ class UpdateCommandHandle(BaseHandler):
         pass
 
 class LoginHandler(BaseHandler):
+    redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
     def initialize(self):
         pass
 
@@ -88,17 +89,16 @@ class LoginHandler(BaseHandler):
             raise tornado.web.HTTPError(401, 'Missing key %s' % self.user_id)
 
         # 登录检查，生成随机 KEY
-        redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
-        if not redis_db.exists(self.user_id):
+        if not self.redis_db.exists(self.user_id):
             key = (self.user_id + uuid.uuid4().__str__() + self.request.remote_ip).encode()
             key = hashlib.md5(key).hexdigest().upper()
-            redis_db.set(self.user_id, key)
-            redis_db.set(key, self.request.remote_ip)
+            self.redis_db.set(self.user_id, key)
+            self.redis_db.set(key, self.request.remote_ip)
         else:
-            key = redis_db.get(self.user_id).decode()
-            redis_db.set(key, self.request.remote_ip)
-        redis_db.expire(self.user_id, 60) # 一分钟过期
-        redis_db.expire(key, 60) # 一分钟过期
+            key = self.redis_db.get(self.user_id).decode()
+            self.redis_db.set(key, self.request.remote_ip)
+        self.redis_db.expire(self.user_id, 60) # 一分钟过期
+        self.redis_db.expire(key, 60) # 一分钟过期
 
         return key
 

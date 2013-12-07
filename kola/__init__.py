@@ -6,5 +6,6 @@ from .db import VideoBase, AlbumBase, VideoMenuBase, DB
 from .basehandle import BaseHandler
 from .commands import KolaCommand
 from .ThreadPool import ThreadPool
+from .singleton import Singleton
 
 __all__ = ['db', 'element', 'ThreadPool', 'commands', 'basehandle', 'utils', 'fetchTools']

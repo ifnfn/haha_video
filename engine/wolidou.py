@@ -7,7 +7,7 @@ import tornado.escape
 import hashlib
 
 from bs4 import BeautifulSoup as bs
-from engine import VideoEngine, Template
+from engine import VideoEngine, KolaParser
 from kola import VideoBase, AlbumBase, VideoMenuBase
 from kola import log, autostr
 
@@ -17,7 +17,7 @@ Debug = True
 HOST_URL = 'http://www.wolidou.com'
 
 # 更新节目的播放信息
-class TemplateWolidouAlbumList(Template):
+class TemplateWolidouAlbumList(KolaParser):
     def __init__(self, menu, url):
         cmd = {
             'name'   : 'wolidou_list',
@@ -27,7 +27,7 @@ class TemplateWolidouAlbumList(Template):
         }
         super().__init__(menu.command, cmd)
 
-class TemplateWolidouAlbumPage(Template):
+class TemplateWolidouAlbumPage(KolaParser):
     def __init__(self, album):
         cmd = {
             'name'   : 'wolidou_album_page',
@@ -38,7 +38,7 @@ class TemplateWolidouAlbumPage(Template):
         }
         super().__init__(album.command, cmd)
 
-class TemplateWolidouAlbumVideoUrl(Template):
+class TemplateWolidouAlbumVideoUrl(KolaParser):
     def __init__(self, engine, vid, server, url):
         cmd = {
             'name'   : 'wolidou_album_video_url',

@@ -6,14 +6,8 @@ import configparser
 from kola import DB
 from kola import KolaCommand
 
-class Template:
-    def __init__(self, command=None, cmd=None):
-        self.command = command
-        command.AddCommand(cmd)
-
-    def Execute(self):
-        if self.command:
-            self.command.Execute()
+global Debug
+Debug = True
 
 # 命令管理器
 class EngineCommands(KolaCommand):
@@ -55,6 +49,23 @@ class EngineCommands(KolaCommand):
         if self.pipe:
             self.pipe.execute()
             self.pipe = None
+
+class KolaParser:
+    def __init__(self):
+        self.cmd = {}
+        self.cmd['engine'] = self.__class__.__name__
+        self.cmd['cache']  = False or Debug
+
+        self.command = EngineCommands()
+
+    def AddCommand(self):
+        if self.cmd:
+            self.command.AddCommand(self.cmd)
+            self.cmd = None
+
+    def Execute(self):
+        self.AddCommand()
+        self.command.Execute()
 
 class VideoEngine:
     def __init__(self, command):

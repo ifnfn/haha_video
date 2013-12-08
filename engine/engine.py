@@ -17,7 +17,6 @@ class EngineCommands(KolaCommand):
         self.pipe = None
 
     def AddUrlMap(self, oldurl, newurl):
-
         self.urlmap[oldurl] = newurl
         DB().map_table.update({'source': oldurl}, {"$set" : {'dest': newurl}}, upsert=True, multi=True)
 
@@ -53,6 +52,8 @@ class EngineCommands(KolaCommand):
 class KolaParser:
     def __init__(self):
         self.cmd = {}
+        self.name = self.__class__.__name__
+
         self.cmd['engine'] = self.__class__.__name__
         self.cmd['cache']  = False or Debug
 
@@ -97,29 +98,9 @@ class VideoEngine:
 
     # 解析菜单网页解析
     def ParserHtml(self, js):
-        name = js['name']
-        if name in self.parserList:
-            return self.parserList[name](js)
-        return None
-
-    # 从数据库中找到album
-    def GetAlbumFormDB(self, playlistid='', albumName='', vid='', auto=False):
-        tv = None
-        json = self.db.FindAlbumJson(playlistid, albumName, vid, auto)
-        if json:
-            tv = self.albumClass(self)
-            tv.LoadFromJson(json)
-        elif auto:
-            tv = self.albumClass(self)
-            if playlistid   : tv.playlistid   = playlistid
-            if albumName    : tv.albumName    = albumName
-
-        return tv
-
-    def _save_update_append(self, sets, album, key={}, upsert=True):
-        if album:
-            self.db.SaveAlbum(album, key, upsert)
-            sets.append(album)
+        for engine in self.parserList:
+            if engine.name == js['engine']:
+                return engine.CmdParser(js)
 
     # 更新所有节目的排名数据
     def UpdateAllScore(self):

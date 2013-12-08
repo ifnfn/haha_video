@@ -304,16 +304,6 @@ class VideoMenuBase:
         self.parserList = {}
         self.albumClass = AlbumBase
         self.cid = 0
-        self.filter_year = {
-            '2013' : '',
-            '2012' : '',
-            '2011' : '',
-            '2010' : '',
-            '00年代': '',
-            '90年代': '',
-            '80年代': '',
-            '更早'  : ''
-        }
 
     def NewAlbum(self, js=None):
         album = self.albumClass()
@@ -456,20 +446,6 @@ class DB:
 
             for v in album.videos:
                 self.SaveVideo(v)
-
-    # 从数据库中找到 album
-    def FindAlbumJson(self, playlistid='', albumName='', vid='', auto=False):
-        playlistid = autostr(playlistid)
-        vid = autostr(vid)
-        if playlistid == '' and albumName == '' and vid == '':
-            return None
-
-        f = []
-        if playlistid :   f.append({'playlistid'   : playlistid})
-        if albumName :    f.append({'albumName'    : albumName})
-        if vid :          f.append({'vid'          : vid})
-
-        return self.album_table.find_one({"$or" : f})
 
     # 得到节目列表
     # arg参数：

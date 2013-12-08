@@ -56,7 +56,6 @@ class UpdateCommandHandle(BaseHandler):
         cmdlist['fullinfo']  = tv.UpdateAllFullInfo
         cmdlist['score']     = tv.UpdateAllScore
         cmdlist['playinfo']  = tv.UpdateAllPlayInfo
-        cmdlist['add_album'] = tv.AddAlbum
 
         command = self.get_argument('cmd', '')
         for cmd in command.split(','):

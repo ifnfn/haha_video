@@ -23,7 +23,7 @@ class KolaEngine:
         self.UpdateAlbumFlag = False
 
         self.AddEngine(engine.SohuEngine)
-        #self.AddEngine(engine.LiveEngine)
+        self.AddEngine(engine.LiveEngine)
         #self.AddEngine(engine.WolidouEngine)
 
     def GetMenuAlias(self, name):
@@ -194,6 +194,3 @@ class KolaEngine:
     def CommandEmptyMessage(self):
         if self.UpdateAlbumFlag == True:
             self.UpdateAlbumFlag = False
-
-    def AddAlbum(self, js):
-        pass

@@ -159,7 +159,7 @@ class ParserAlbumList(KolaParser):
         try:
             if not js['data']: return ret
 
-            needNextPage = True
+            needNextPage = False
             soup = bs(js['data'])#, from_encoding = 'GBK')
             playlist = soup.findAll('li')
             for a in playlist:
@@ -187,8 +187,8 @@ class ParserAlbumList(KolaParser):
                     continue
 
                 album.cid = js['cid']
-                if needNextPage and db.FindAlbumJson(vid=album.sohu['vid']):
-                    needNextPage = False
+                if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu['vid'])):
+                    needNextPage = True
 
                 if album.sohu['vid'] and album.albumName and album.sohu['playlistid']:
                     db._save_update_append(ret, album, key={'vid' : album.vid})

@@ -56,14 +56,25 @@ class LivetvAlbum(AlbumBase):
         self.engineList.append('LivetvEngine')
 
     def SaveToJson(self):
-        if self.albumPageUrl: self.private['albumPageUrl'] = self.albumPageUrl
         ret = super().SaveToJson()
 
         return ret
 
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
-        if 'albumPageUrl' in self.private: self.albumPageUrl = self.private['albumPageUrl']
+
+    # 更新节目完整信息
+    def UpdateFullInfoCommand(self):
+        pass
+
+    # 更新节目指数信息
+    def UpdateScoreCommand(self):
+        pass
+
+    # 更新节目播放信息
+    def UpdateAlbumPlayInfoCommand(self):
+        pass
+
 
 class LivetvVideoMenu(LivetvMenu):
     # 更新该菜单下所有节目列表

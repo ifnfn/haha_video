@@ -49,8 +49,6 @@ class SohuAlbum(AlbumBase):
         self.videoClass = SohuVideo
 
     def SaveToJson(self):
-        if self.albumPageUrl:
-            self.sohu['albumPageUrl'] = self.albumPageUrl
         if self.sohu:
             self.private['sohu'] = self.sohu
         ret = super().SaveToJson()
@@ -61,15 +59,13 @@ class SohuAlbum(AlbumBase):
         super().LoadFromJson(json)
         if 'sohu' in self.private:
             self.sohu = self.private['sohu']
-            if 'albumPageUrl' in self.sohu:
-                self.albumPageUrl = self.sohu['albumPageUrl']
 
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
         if self.sohu['playlistid']:
             ParserAlbumFullInfo(self).AddCommand()
         if self.sohu['vid']:
-            ParserAlbumMvInfo(self, self.albumPageUrl).AddCommand()
+            ParserAlbumMvInfo(self, self.albumName).AddCommand()
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):
@@ -318,14 +314,14 @@ class ParserAlbumTotalPlayNum(KolaParser):
 
 # 更新节目的完整信息
 class ParserAlbumMvInfo(KolaParser):
-    def __init__(self, album=None, source_url=None):
+    def __init__(self, album=None, albumName=None):
         super().__init__()
 
-        if album and source_url:
-            self.cmd['name']    = 'engine_parser'
-            self.cmd['regular'] = ['var video_album_videos_result=(\{.*.\})']
-            self.cmd['source'] = 'http://search.vrs.sohu.com/mv_i%s.json' % album.sohu['vid']
-            self.cmd['homePage'] = source_url
+        if album and albumName:
+            self.cmd['name']      = 'engine_parser'
+            self.cmd['regular']   = ['var video_album_videos_result=(\{.*.\})']
+            self.cmd['source']    = 'http://search.vrs.sohu.com/mv_i%s.json' % album.sohu['vid']
+            self.cmd['albumName'] = albumName
 
     # 通过 vid 获得节目更多的信息
     # http://search.vrs.sohu.com/mv_i1268037.json
@@ -336,18 +332,21 @@ class ParserAlbumMvInfo(KolaParser):
         ret = []
         try:
             text = tornado.escape.to_basestring(js['data'])
-            if js['name'] == 'sohu_album_mvinfo_mini':
+            if self.name == 'ParserAlbumMvInfoMini':
                 text = '{' + text + '}'
             json = tornado.escape.json_decode(text)
 
-            if 'homePage' in js:
-                album = SohuAlbum()
-                album.albumPageUrl = js['homePage']
-            else:
-                return []
+            albumName = ''
+            playlistid = ''
+            if 'albumName' in js:
+                albumName = js['albumName']
 
             if 'playlistId' in json :
-                album.sohu['playlistid'] = autostr(json['playlistId'])
+                playlistid = autostr(json['playlistId'])
+
+            album = db.GetAlbumFormDB(playlistid=playlistid, albumName=albumName) #, vid=vid)
+            if album == None:
+                return ret
 
             if 'videos' in json and json['videos']:
                 video = json['videos'][0]
@@ -371,8 +370,8 @@ class ParserAlbumMvInfo(KolaParser):
 
 # 更新节目的完整信息, 只是通过vid 拿到 playlistid
 class ParserAlbumMvInfoMini(ParserAlbumMvInfo):
-    def __init__(self, album=None, source_url=None):
-        super().__init__(album, source_url)
+    def __init__(self, album=None, alubmName=None):
+        super().__init__(album, alubmName)
         self.cmd['regular'] =  ['("playlistId":\w+)'],
 
 

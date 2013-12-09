@@ -150,6 +150,7 @@ class AlbumBase:
         self.categories  = []     # 类型       [*]
         self.publishYear = ''     # 发布年份    [*]
         self.isHigh      = 0      # 是否是高清  [*]
+        self.albumPageUrl = ''    # 节目主页
 
         self.largePicUrl = ''     # 大图片网址  [*]
         self.smallPicUrl = ''     # 小图片网址  [*]
@@ -209,6 +210,7 @@ class AlbumBase:
         if self.totalSet        : ret['totalSet']       = self.totalSet
         if self.updateSet       : ret['updateSet']      = self.updateSet
 
+        if self.albumPageUrl    : ret['albumPageUrl']   = self.albumPageUrl
         # 图片
         if self.largeHorPicUrl  : ret['largeHorPicUrl'] = self.largeHorPicUrl
         if self.smallHorPicUrl  : ret['smallHorPicUrl'] = self.smallHorPicUrl
@@ -252,6 +254,7 @@ class AlbumBase:
         if 'playLength' in json     : self.playLength      = json['playLength']
         if 'publishTime' in json    : self.publishTime     = json['publishTime']
         if 'updateTime' in json     : self.updateTime      = json['updateTime']
+        if 'albumPageUrl' in json   : self.albumPageUrl    = json['albumPageUrl']
 
         # 图片
         if 'largeHorPicUrl' in json : self.largeHorPicUrl  = json['largeHorPicUrl']

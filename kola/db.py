@@ -378,7 +378,7 @@ class DB:
             '总播放最多' : 'totalPlayNum',
             '最新发布'   : 'publishTime',
             '评分最高'   : 'videoScore',
-            'vids'     : 'vid'
+            'vids'      : 'vid'
         }
 
     def SetVideoCache(self, key, value):

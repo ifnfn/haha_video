@@ -14,7 +14,6 @@ from kola import VideoBase, AlbumBase, VideoMenuBase, DB
 from kola import utils
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
-MAX_TRY = 3
 
 global Debug
 Debug = True
@@ -187,12 +186,13 @@ class ParserAlbumList(KolaParser):
                     continue
 
                 album.cid = js['cid']
-                if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu['vid'])):
-                    needNextPage = True
+                #if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu['vid'])):
+                #    needNextPage = True
 
                 if album.sohu['vid'] and album.albumName and album.sohu['playlistid']:
                     db._save_update_append(ret, album, key={'vid' : album.vid})
 
+            needNextPage = True
             if needNextPage:
                 g = re.search('p10(\d+)', js['source'])
                 if g:
@@ -204,7 +204,6 @@ class ParserAlbumList(KolaParser):
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
         return ret
-
 
 # 更新节目的完整信息
 class ParserAlbumFullInfo(KolaParser):
@@ -367,13 +366,11 @@ class ParserAlbumMvInfo(KolaParser):
 
         return ret
 
-
 # 更新节目的完整信息, 只是通过vid 拿到 playlistid
 class ParserAlbumMvInfoMini(ParserAlbumMvInfo):
     def __init__(self, album=None, alubmName=None):
         super().__init__(album, alubmName)
         self.cmd['regular'] =  ['("playlistId":\w+)'],
-
 
 # 搜狐节目指数
 class ParserAlbumScore(KolaParser):
@@ -454,7 +451,6 @@ class ParserAlbumHotList(KolaParser):
             log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
         return ret
-
 
 # 更新节目的播放信息
 class ParserAlbumPlayInfo(KolaParser):

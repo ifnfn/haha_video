@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import json, re
+import json
 import configparser
 from kola import DB
 from kola import KolaCommand
@@ -51,13 +51,12 @@ class EngineCommands(KolaCommand):
 
 class KolaParser:
     def __init__(self):
-        self.cmd = {}
+        self.command = EngineCommands()
         self.name = self.__class__.__name__
 
+        self.cmd = {}
         self.cmd['engine'] = self.__class__.__name__
         self.cmd['cache']  = False or Debug
-
-        self.command = EngineCommands()
 
     def AddCommand(self):
         if self.cmd:
@@ -88,11 +87,8 @@ class VideoEngine:
         for m, menu in list(self.menu.items()):
             if type(menu) == type:
                 menu = menu(m)
-                # MenuList[self.engine_name + '-' + m] = cls(m)
             if m not in MenuList:
                 MenuList[m] = menu
-#            else:
-#                MenuList[m].append(menu)
 
     # 解析菜单网页解析
     def ParserHtml(self, js):

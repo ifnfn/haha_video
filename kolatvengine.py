@@ -21,11 +21,8 @@ class KolaEngine:
         self.UpdateAlbumFlag = False
 
         self.AddEngine(engine.SohuEngine)
-        #self.AddEngine(engine.LiveEngine)
+        self.AddEngine(engine.LiveEngine)
         #self.AddEngine(engine.WolidouEngine)
-
-    def GetMenuAlias(self, name):
-        return name
 
     def AddEngine(self, egClass):
         e = egClass()

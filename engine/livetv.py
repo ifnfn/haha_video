@@ -75,7 +75,6 @@ class LivetvAlbum(AlbumBase):
     def UpdateAlbumPlayInfoCommand(self):
         pass
 
-
 class LivetvVideoMenu(LivetvMenu):
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
@@ -87,7 +86,6 @@ class LivetvVideoMenu(LivetvMenu):
         ParserHangZhouLive().Execute()
         ParserUCLive().Execute()
         ParserWenZhouLive().Execute()
-
 
 class LivetvParser(KolaParser):
     def __init__(self):

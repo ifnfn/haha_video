@@ -281,7 +281,6 @@ class AlbumBase:
         if 'sources' in json        : self.sources         = json['sources']
         if 'private' in json        : self.private         = json['private']
 
-
 # 一级分类菜单
 class VideoMenuBase:
     def __init__(self, name):

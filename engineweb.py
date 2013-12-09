@@ -9,7 +9,6 @@ import json
 import uuid
 import hashlib
 
-from tornado.options import define, options
 from pymongo import Connection
 from kola import BaseHandler
 from kolatvengine import KolaEngine
@@ -130,9 +129,7 @@ class LoginHandler(BaseHandler):
     def post(self):
         self.finish('OK')
 
-
-define('port', default=9991, help='run on the given port', type=int)
-class Application(tornado.web.Application):
+class EngineApplication(tornado.web.Application):
     def __init__(self):
         settings = dict(
             debug = False,
@@ -159,8 +156,8 @@ def main():
     db.flushdb()
 
     tornado.options.parse_command_line()
-    http_server = Application()
-    http_server.listen(options.port, xheaders = True)
+    http_server = EngineApplication()
+    http_server.listen(9992, xheaders = True)
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':

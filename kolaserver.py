@@ -18,10 +18,9 @@ class KolatvServer:
         self.command = KolaCommand()
         self.MenuList = {}
         self.UpdateAlbumFlag = False
-        self.MenuList['直播']   = element.LiveMenu('直播')
+        self.MenuList['直播']   = element.LivetvMenu('直播')
         self.MenuList['电影']   = element.MovieMenu('电影')
         self.MenuList['电视剧'] = element.TVMenu('电视剧')
-
 
     def GetMenuJsonInfoById(self, cid_list):
         ret = []

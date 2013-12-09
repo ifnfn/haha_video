@@ -5,7 +5,8 @@ from . import db
 
 filter_year = [ '2013', '2012', '2011', '2010', '00年代', '90年代', '80年代', '更早' ]
 
-class LiveMenu(db.VideoMenuBase):
+# 直播
+class LivetvMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 200
@@ -13,6 +14,7 @@ class LiveMenu(db.VideoMenuBase):
             '类型': ['卫视台', '地方台', '央视台', '境外台', '本地台' ]
         }
 
+# 电影
 class MovieMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
@@ -58,7 +60,7 @@ class MovieMenu(db.VideoMenuBase):
             },
         }
 
-
+# 电视剧
 class TVMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)

@@ -37,7 +37,6 @@ class VideoBase:
 
         self.pid = ''
         self.name = ''
-        self.playlistid = ''  # 所属 ablum
         self.vid = ''
         self.cid = 0
 
@@ -61,6 +60,7 @@ class VideoBase:
         self.smallPicUrl = ''
         self.largePicUrl = ''
         self.playUrl = ''
+        self.private = {}
 
         self.script = {}
 
@@ -83,11 +83,10 @@ class VideoBase:
     def SaveToJson(self):
         ret = {}
 
-        if self.playlistid      : ret['playlistid'] = self.playlistid
-        if self.pid             : ret['pid'] = self.pid
-        if self.name            : ret['name'] = self.name
-        if self.vid             : ret['vid'] = self.vid
         if self.cid             : ret['cid'] = self.cid
+        if self.pid             : ret['pid'] = self.pid
+        if self.vid             : ret['vid'] = self.vid
+        if self.name            : ret['name'] = self.name
 
         if self.highVid         : ret['highVid'] = self.highVid
         if self.norVid          : ret['norVid'] = self.norVid
@@ -107,21 +106,14 @@ class VideoBase:
         if self.smallPicUrl     : ret['smallPicUrl'] = self.smallPicUrl
         if self.script          : ret['script'] = self.script
         if self.priority        : ret['priority'] = self.priority
-
-        if self.playUrl:
-            ret['playUrl'] = self.playUrl
-        else:
-            u = self.GetVideoPlayUrl()
-            if u:
-                ret['playUrl'] = u
+        if self.private :         ret['private']  = self.private
 
         return ret
 
     def LoadFromJson(self, json):
-        if 'playlistid' in json     : self.playlistid     = autostr(json['playlistid'])
+        if 'cid' in json            : self.cid            = autoint(json['cid'])
         if 'pid' in json            : self.pid            = autostr(json['pid'])
         if 'vid' in json            : self.vid            = autostr(json['vid'])
-        if 'cid' in json            : self.cid            = autoint(json['cid'])
 
         if 'highVid' in json        : self.highVid        = autostr(json['highVid'])
         if 'norVid' in json         : self.norVid         = autostr(json['norVid'])
@@ -143,6 +135,7 @@ class VideoBase:
         if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
         if 'script' in json         :  self.script        = json['script']
         if 'priority' in json       :  self.priority      = json['priority']
+        if 'private' in json        : self.private        = json['private']
 
 class AlbumBase:
     def __init__(self):
@@ -152,8 +145,6 @@ class AlbumBase:
         self.sources = {}        # 直接节目    [*]
         self.albumName = ''      # 名称       [*]
         self.enAlbumName = ''    # 英文名称    [*]
-        self.pid = ''
-        self.playlistid = ''
         self.vid = ''             #           [*]
         self.area = ''            # 地区       [*]
         self.categories  = []     # 类型       [*]
@@ -203,12 +194,10 @@ class AlbumBase:
     def SaveToJson(self):
         ret = {}
         if self.cid             : ret['cid']            = self.cid
-        if self.vid             : ret['vid']            = self.vid
-        if self.playlistid      : ret['playlistid']     = self.playlistid
         if self.engineList      : ret['engineList']     = self.engineList
 
         if self.albumName       : ret['albumName']      = self.albumName
-        if self.pid             : ret['pid']            = self.pid
+        if self.vid             : ret['vid']            = self.vid
         if self.isHigh          : ret['isHigh']         = self.isHigh
 
         if self.area            : ret['area']           = self.area
@@ -252,8 +241,6 @@ class AlbumBase:
         if 'albumName' in json      : self.albumName       = json['albumName']
         if 'engineList' in json     : self.engineList      = json['engineList']
 
-        if 'pid' in json            : self.pid             = autostr(json['pid'])
-        if 'playlistid' in json     : self.playlistid      = autostr(json['playlistid'])
         if 'vid' in json            : self.vid             = autostr(json['vid'])
 
         if 'isHigh' in json         : self.isHigh          = json['isHigh']
@@ -372,7 +359,6 @@ class DB:
     album_table.create_index([('albumPageUrl', pymongo.ASCENDING)])
     album_table.create_index([('vid', pymongo.ASCENDING)])
     album_table.create_index([('cid', pymongo.ASCENDING)])
-    album_table.create_index([('playlistid', pymongo.ASCENDING)])
 
     def __init__(self):
         self.fieldMapping = {
@@ -414,11 +400,10 @@ class DB:
                        upsert=True, multi=True)
 
     def _GetKeyAndJson(self, album, key):
-        album.playlistid = autostr(album.playlistid)
         album.vid        = autostr(album.vid)
         key = ''
         js = {}
-        if album.albumName or album.albumPageUrl or album.playlistid or album.vid:
+        if album.albumName or album.albumPageUrl or album.vid:
             js = album.SaveToJson()
 
             if not key:
@@ -428,8 +413,6 @@ class DB:
                     key = {'albumPageUrl': album.albumPageUrl}
                 elif album.albumName:
                     key = {'albumName': album.albumName}
-                elif album.playlistid:
-                    key = {'playlistid' : album.playlistid}
 
         return key, js
 
@@ -447,6 +430,17 @@ class DB:
             for v in album.videos:
                 self.SaveVideo(v)
 
+    def FindAlbumJson(self, albumName='', vid=''):
+        vid = autostr(vid)
+        if albumName == '' and vid == '':
+            return None
+
+        f = []
+        if albumName :    f.append({'albumName'  : albumName})
+        if vid :          f.append({'vid'        : vid})
+
+        return self.album_table.find_one({"$or" : f})
+
     # 得到节目列表
     # arg参数：
     # {
@@ -454,11 +448,11 @@ class DB:
     #    "size" : 20,
     #    "filter" : {                 # 过滤字段
     #        "cid":2,
-    #        "playlistid":123123,
+    #        "pid":123123,
     #    },
     #    "fields" : {                 # 显示字段
     #        "albumName" : True,
-    #        "playlistid" : True
+    #        "pid" : True
     #    },
     #    "sort" : {                   # 排序字段
     #        "albumName": 1,
@@ -511,32 +505,26 @@ class DB:
 
         return ret, count
 
-    def FindVideoJson(self, playlistid='', pid='', vid=''):
-        playlistid = autostr(playlistid)
+    def FindVideoJson(self, pid='', vid=''):
         pid        = autostr(pid)
         vid        = autostr(vid)
-        if pid == '' and vid == '' and playlistid == '':
+        if pid == '' and vid == '':
             return None
 
         f = []
-        if playlistid : f.append({'playlistid' : playlistid})
         if pid        : f.append({'pid' : pid})
         if vid        : f.append({'vid' : vid})
 
         return self.videos_table.find_one({"$or" : f})
 
-    def GetVideoListJson(self, playlistid='', pid='', arg={}):
+    def GetVideoListJson(self, pid='', arg={}):
         ret = []
-        playlistid = autostr(playlistid)
         pid        = autostr(pid)
         count = 0
         try:
             _filter = {}
             if pid:
                 _filter['pid'] = pid
-
-            if playlistid:
-                _filter['playlistid'] = playlistid
 
             if 'filter' in arg:
                 _filter.update(arg['filter'])

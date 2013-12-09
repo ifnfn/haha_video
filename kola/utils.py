@@ -6,6 +6,7 @@ import logging, sys
 import traceback
 import json
 import base64, zlib
+import hashlib
 
 def autostr(i):
     if type(i) == int:
@@ -24,6 +25,18 @@ def json_get(sets, key, default):
         return sets[key]
     else:
         return default
+
+def genAlbumId(name):
+    if type(name) == str:
+        name = name.encode()
+
+    return hashlib.md5(name).hexdigest()[16:]
+
+def getVidoId(name):
+    if type(name) == str:
+        name = name.encode()
+
+    return hashlib.md5(name).hexdigest()[24:]
 
 MAX_TRY = 3
 def GetUrl(url, times = 0):

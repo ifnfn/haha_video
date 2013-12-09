@@ -4,13 +4,11 @@
 import sys, traceback
 import tornado.ioloop
 import tornado.web
-import tornado.options
 import redis
 import json
 import uuid
 import hashlib
 import tornado.escape
-from tornado.options import define, options
 from pymongo import Connection
 
 from kola import BaseHandler
@@ -124,7 +122,6 @@ class GetPlayerHandler(BaseHandler):
             if type(ret) == str:
                 ret = tornado.escape.json_decode(ret)
 
-#            self.engine._UpdateVideoVid(ret)
             if 'sets' in ret:
                 max_duration = 0.0
                 m3u8 = ''
@@ -133,6 +130,8 @@ class GetPlayerHandler(BaseHandler):
                     new      = u['new']
                     url_tmp  = u['url']
                     duration = float(u['duration'])
+                    if not (new and url_tmp and duration):
+                        continue
 
                     start, _, _, key, _, _, _, _ = url_tmp.split('|')
                     u_tmp = '%s%s?key=%s' % (start[:-1], new, key)
@@ -198,7 +197,9 @@ class ShowHandler(BaseHandler):
 
     def get(self):
         vid = self.get_argument('vid')
-        album = tv.db.FindAlbumJson(vid=vid, auto=False)
+        album = tv.db.FindAlbumJson(vid=vid)
+        if not album:
+            return
 
         if 'largeVerPicUrl' in album:
             album['pic'] = album['largeVerPicUrl']
@@ -257,29 +258,6 @@ class RandomVideoUrlHandle(BaseHandler):
             self.db.set(name, body.decode())
             self.db.expire(name, 60) # 1 分钟有效
             self.finish(name)
-
-class UpdateCommandHandle(BaseHandler):
-    def initialize(self):
-        pass
-
-    def get(self):
-        cmdlist = {}
-        cmdlist['list']      = tv.UpdateAllAlbumList
-        cmdlist['home']      = tv.UpdateAllAlbumPage
-        cmdlist['fullinfo']  = tv.UpdateAllFullInfo
-        cmdlist['score']     = tv.UpdateAllScore
-        cmdlist['playinfo']  = tv.UpdateAllPlayInfo
-        cmdlist['add_album'] = tv.AddAlbum
-
-        command = self.get_argument('cmd', '')
-        for cmd in command.split(','):
-            if cmd in cmdlist:
-                cmdlist[cmd]()
-
-        self.finish('OK\n')
-
-    def post(self):
-        pass
 
 class LoginHandler(BaseHandler):
     def initialize(self):
@@ -476,8 +454,7 @@ class IndexHandler(BaseHandler):
 
         self.render("index.html",newtv=newtv,toptv=toptv,topmovie=topmovie,newmovie=newmovie)
 
-define('port', default=9991, help='run on the given port', type=int)
-class Application(tornado.web.Application):
+class ViewApplication(tornado.web.Application):
     def __init__(self):
         settings = dict(
             debug = False,
@@ -498,7 +475,6 @@ class Application(tornado.web.Application):
             (r'/video/getmenu',    GetMenuHandler),         #
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
-            (r'/manage/update',    UpdateCommandHandle),
             (r'/show',             ShowHandler),
             (r'/',                 IndexHandler),
 
@@ -509,12 +485,8 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 def main():
-    db = redis.Redis(host='127.0.0.1', port=6379, db=4)
-    db.flushdb()
-
-    tornado.options.parse_command_line()
-    http_server = Application()
-    http_server.listen(options.port, xheaders = True)
+    http_server = ViewApplication()
+    http_server.listen(9991, xheaders = True)
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':

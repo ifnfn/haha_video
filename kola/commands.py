@@ -13,7 +13,7 @@ class KolaCommand(Singleton):
     mutex = threading.Lock()
     def __init__(self):
         self.time = time.time()
- 
+
     def GetCommand(self, timeout = 0, count=1):
         if time.time() - self.time > timeout: # 命令不要拿得太快，否则几百万个客户端同时跑来，服务器受不了
             ret = []

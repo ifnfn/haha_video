@@ -5,9 +5,7 @@ import redis
 import logging
 import tornado.escape
 import engine
-from kola import DB
-from kola import utils
-from kola import ThreadPool
+from kola import DB, ThreadPool
 
 POOLSIZE = 10
 
@@ -23,14 +21,14 @@ class KolaEngine:
         self.UpdateAlbumFlag = False
 
         self.AddEngine(engine.SohuEngine)
-        self.AddEngine(engine.LiveEngine)
+        #self.AddEngine(engine.LiveEngine)
         #self.AddEngine(engine.WolidouEngine)
 
     def GetMenuAlias(self, name):
         return name
 
     def AddEngine(self, egClass):
-        e = egClass(self.command)
+        e = egClass()
         self.engines[e.engine_name] = e
         e.GetMenu(self.MenuList)
 
@@ -38,57 +36,6 @@ class KolaEngine:
         if name in self.engines:
             return self.engines[name]
         return None
-
-    def GetMenuJsonInfoById(self, cid_list):
-        ret = []
-        count = len(cid_list)
-        for _, menu in list(self.MenuList.items()):
-            if count == 0 or str(menu.cid) in cid_list:
-                ret.append(menu.GetJsonInfo())
-
-        return ret
-
-    def GetMenuJsonInfoByName(self, name_list):
-        ret = []
-        count = len(name_list)
-        for name, menu in list(self.MenuList.items()):
-            if count == 0 or name in name_list:
-                ret.append(menu.GetJsonInfo())
-
-        return ret
-
-    def _GetMenuAlbumList(self, menu, argument):
-        if menu:
-            menu.CheckQuickFilter(argument)
-            return self.db.GetAlbumListJson(argument, menu.cid)
-
-        return [], 0
-
-    def GetMenuAlbumListByVidList(self, vids, argument):
-        if 'filter' not in argument:
-            argument['filter'] = {}
-        argument['filter']['vids'] = vids
-        return self.db.GetAlbumListJson(argument)
-
-    def GetMenuAlbumListByName(self, menuName, argument):
-        menu = self.FindMenu(menuName)
-        return self._GetMenuAlbumList(menu, argument)
-
-    def GetMenuAlbumListByCid(self, cid, argument):
-        cid = utils.autoint(cid)
-        menu = self.FindMenuById(cid)
-        return self._GetMenuAlbumList(menu, argument)
-
-    def GetVideoListByPid(self, pid, argument):
-        return self.db.GetVideoListJson(pid=pid, arg=argument)
-
-    # 得到真实播放地址
-    def GetRealPlayer(self, text, cid, definition, step, url=''):
-        menu = self.FindMenuById(utils.autoint(cid))
-        if menu == None:
-            return {}
-
-        return menu.GetRealPlayer(text, definition, step, url)
 
     def ParserHtml(self, data):
         js = tornado.escape.json_decode(data)
@@ -103,19 +50,6 @@ class KolaEngine:
                 break
 
         return True
-
-    def FindMenuById(self, cid):
-        for _, menu in list(self.MenuList.items()):
-            if menu.cid == cid:
-                return menu
-
-        return None
-
-    def FindMenu(self, name):
-        if name in self.MenuList:
-            return self.MenuList[name]
-        else:
-            return None
 
     def AddTask(self, data):
         self.thread_pool.add_job(self.ParserHtml, [data])
@@ -137,8 +71,7 @@ class KolaEngine:
         argument['fields'] = {'engineList' : True,
                               'albumName': True,
                               'private': True,
-                              'vid': True,
-                              'playlistid': True}
+                              'vid': True}
 
         albumList = []
         data, _ = self.db.GetAlbumListJson(argument, disablePage=True, full=True)

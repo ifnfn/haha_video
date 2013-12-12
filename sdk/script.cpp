@@ -13,7 +13,7 @@ extern "C" {
 	int luaopen_cURL(lua_State* L);
 }
 
-#include "json.h"
+#include "json.hpp"
 #include "kola.hpp"
 #include "script.hpp"
 
@@ -149,12 +149,18 @@ bool LuaScript::GetScript(const char *name, std::string &text) {
 	return false;
 }
 
-ScriptCommand::ScriptCommand() {
+ScriptCommand::ScriptCommand(json_t *js)
+{
 	func_name = "kola_main";
 	argv = NULL;
 	argc = 0;
+
+	if (js)
+		LoadFromJson(js);
 }
-ScriptCommand::~ScriptCommand() {
+
+ScriptCommand::~ScriptCommand()
+{
 	for (int i = 0; i < argc; i++)
 		free(argv[i]);
 
@@ -162,9 +168,9 @@ ScriptCommand::~ScriptCommand() {
 }
 
 bool ScriptCommand::LoadFromJson(json_t *js) {
-	script_name = json_gets(js, "script", "");
+	script_name = json_gets(js, "name", "");
+	func_name = json_gets(js, "function", "kola_main");
 	json_t *params = json_geto(js, "parameters");
-	func_name = json_gets(js, "func_name", "kola_main");
 	if (params) {
 		argc = json_array_size(params);
 		argv = (char **)malloc(sizeof(void*) * argc);
@@ -178,7 +184,11 @@ bool ScriptCommand::LoadFromJson(json_t *js) {
 }
 
 std::string ScriptCommand::Run() {
-	LuaScript& lua = LuaScript::Instance();
-	return lua.RunScript(argc, (const char **)argv, script_name.c_str(), func_name.c_str());
+	if (Exists()) {
+		LuaScript& lua = LuaScript::Instance();
+		return lua.RunScript(argc, (const char **)argv, script_name.c_str(), func_name.c_str());
+	}
+
+	return "";
 }
 

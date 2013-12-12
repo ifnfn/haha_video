@@ -62,6 +62,11 @@ class KolatvServer:
         menu = self.FindMenuById(cid)
         return self._GetMenuAlbumList(menu, argument)
 
+    def GetVideoByVid(self, vid):
+        video = self.db.FindVideoJson(vid=vid)
+
+        return video
+
     def GetVideoListByPid(self, pid, argument):
         return self.db.GetVideoListJson(pid=pid, arg=argument)
 

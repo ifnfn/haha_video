@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 #include "kola.hpp"
-#include "json.h"
+#include "json.hpp"
 #include "base64.hpp"
 #include "script.hpp"
 
@@ -50,25 +50,39 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	playUrl        = json_gets(js   , "playUrl"        , "");
 	directPlayUrl  = json_gets(js   , "directPlayUrl"  , "");
 	totalDuration  = json_getreal(js, "totalDuration", 0.0);
-	width          = json_geti(js, "width", 0);
-	height         = json_geti(js, "height", 0);
-	totalBlocks    = json_geti(js, "totalBlocks", 0);
-	totalBytes     = json_geti(js, "totalBytes", 0);
-	fps            = json_geti(js, "fps", 0);
-
-	sub = json_geto(js, "script");
-	if (sub) {
-		Script.LoadFromJson(sub);
-	}
+	width          = json_geti(js   , "width", 0);
+	height         = json_geti(js   , "height", 0);
+	totalBlocks    = json_geti(js   , "totalBlocks", 0);
+	totalBytes     = json_geti(js   , "totalBytes", 0);
+	fps            = json_geti(js   , "fps", 0);
 
 	return true;
 }
 
-std::string KolaVideo::GetVideoUrl(void)
+std::string KolaVideo::GetVideoUrl(std::string res)
 {
-	if (Script.Exists())
-		return Script.Run();
-	else
-		return directPlayUrl;
+	std::string ret;
+	std::string url = "/video/geturl?vid=" + vid;
+
+	if (res != "")
+		url = url + "&resolution=" + res;
+
+	json_t *js = json_loadurl(url.c_str());
+
+	if (js == NULL)
+		return "";
+
+	if (json_is_array(js)) {
+		json_t *v;
+		json_array_foreach(js, v) {
+			if (res == json_gets(v, "name", "") || res == "") {
+				ret = json_gets(v, "url", "");
+				break;
+			}
+		}
+	}
+
+	json_decref(js);
+	return ret;
 }
 

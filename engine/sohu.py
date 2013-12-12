@@ -20,9 +20,8 @@ Debug = True
 
 class SohuVideo(VideoBase):
     def GetVideoPlayUrl(self, definition=0):
-        vid = self.GetVid(definition)
-        if vid:
-            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
+        if self.vid:
+            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % self.vid
         else:
             return ''
 
@@ -33,6 +32,27 @@ class SohuVideo(VideoBase):
 
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
+
+    def SetVideoScript(self, name, vid):
+        nameList = {
+            'default' : '自动',
+            'super'   : '超清',
+            'high'    : '高清',
+            'original': '原画',
+            'normal'  : '标清'
+        }
+
+        if name in nameList:
+            self.videos[name] = {
+                'name'   : nameList[name],
+                'url'    : {
+                    'script' : {
+                        'name'       : 'sohu',
+                        'function'   : 'kola_main',
+                        'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid, self.cid]
+                    }
+                }
+             }
 
 class SohuAlbum(AlbumBase):
     def __init__(self):
@@ -73,11 +93,10 @@ class SohuAlbum(AlbumBase):
 
     # 更新节目播放信息
     def UpdateAlbumPlayInfoCommand(self):
-        url = self.GetVideoPlayUrl()
-        if url != '':
-            ParserAlbumPlayInfo(url).AddCommand()
+        if self.sohu['vid'] != '':
+            ParserAlbumPlayInfo(self).AddCommand()
 
-    def GetVideoPlayUrl(self, definition=0):
+    def GetVideoPlayUrl(self):
         vid = self.sohu['vid']
         if vid:
             return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
@@ -96,7 +115,7 @@ class SohuDB(DB, Singleton):
             return None
 
         f = []
-        if albumName :    f.append({'albumName'    : albumName})
+        if albumName :    f.append({'albumName'               : albumName})
         if playlistid :   f.append({'private.sohu.playlistid' : playlistid})
         if vid :          f.append({'private.sohu.vid'        : vid})
 
@@ -113,34 +132,9 @@ class SohuDB(DB, Singleton):
             album = SohuAlbum()
             if playlistid   : album.sohu['playlistid'] = playlistid
             if vid          : album.sohu['vid']        = vid
-            if albumName    : album.mName    = albumName
+            if albumName    : album.mName = albumName
 
         return album
-
-    def UpdateVideoVid(self, js, res=[]):
-        if ('id' not in js) and ('vid' not in js):
-            return
-
-        try:
-            video = SohuVideo()
-            if 'id' in js:
-                video.vid = autostr(js['id'])
-            elif 'vid' in js:
-                video.vid = autostr(js['vid'])
-            else:
-                return
-
-            if 'highVid' in js:    video.highVid    = autostr(js['highVid'])
-            if 'norVid' in js:     video.norVid     = autostr(js['norVid'])
-            if 'oriVid' in js:     video.oriVid     = autostr(js['oriVid'])
-            if 'superVid' in js:   video.superVid   = autostr(js['superVid'])
-            if 'relativeId' in js: video.relativeId = autostr(js['relativeId'])
-
-            if video.highVid or video.norVid or video.oriVid or video.superVid or video.relativeId:
-                self.SaveVideo(video)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.UpdateVideoPid:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
 # 搜狐节目列表
 class ParserAlbumList(KolaParser):
@@ -265,10 +259,13 @@ class ParserAlbumFullInfo(KolaParser):
 
                     v = album.NewVideo()
                     v.LoadFromJson(video)
+                    v.SetVideoScript('default', v.vid)
+
+                    # 兼容旧版本
                     v.script = {
                         'script' : 'sohu',
                         'parameters' : [v.GetVideoPlayUrl(), autostr(album.cid)]
-                    }
+					}
 
                     album.videos.append(v)
             if vid:
@@ -454,11 +451,12 @@ class ParserAlbumHotList(KolaParser):
 
 # 更新节目的播放信息
 class ParserAlbumPlayInfo(KolaParser):
-    def __init__(self, url=None):
+    def __init__(self, album=None):
         super().__init__()
-        if url:
+        if album:
             self.cmd['name']   = 'engine_parser'
-            self.cmd['source'] = url
+            self.cmd['source'] = album.GetVideoPlayUrl()
+            self.cmd['cid']    = album.cid
             self.cmd['json'] = [
                     'data.highVid',
                     'data.norVid',
@@ -470,16 +468,47 @@ class ParserAlbumPlayInfo(KolaParser):
 
     def CmdParser(self, js):
         db = SohuDB()
-        ret = []
         try:
             data = tornado.escape.json_decode(js['data'])
-            db.UpdateVideoVid(data)
+            if ('id' not in data) and ('vid' not in data) and ('cid' not in js):
+                return
+
+            cid = js['cid']
+            vid = ''
+            if 'id' in data:
+                vid = autostr(data['id'])
+            elif 'vid' in js:
+                vid = autostr(data['vid'])
+
+            if vid and cid:
+                video = SohuVideo()
+                video.vid = vid
+                video.cid = cid
+            else:
+                return
+
+            if 'highVid' in data:
+                video.highVid    = autostr(data['highVid'])
+                video.SetVideoScript('high', video.highVid)
+            if 'norVid' in data:
+                video.norVid     = autostr(data['norVid'])
+                video.SetVideoScript('normal', video.norVid)
+            if 'oriVid' in data:
+                video.oriVid     = autostr(data['oriVid'])
+                video.SetVideoScript('original', video.oriVid)
+            if 'superVid' in data:
+                video.superVid   = autostr(data['superVid'])
+                video.SetVideoScript('super', video.superVid)
+            if 'relativeId' in data:
+                video.relativeId = autostr(data['relativeId'])
+                video.SetVideoScript('relative', video.relativeId)
+
+            if video.highVid or video.norVid or video.oriVid or video.superVid or video.relativeId:
+                db.SaveVideo(video)
         except:
-            print(js['source'])
             t, v, tb = sys.exc_info()
             log.error("SohuVideoMenu._CmdParserAlbumPlayInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
-        return ret
 
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name):

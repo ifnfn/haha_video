@@ -16,7 +16,7 @@
 #include <openssl/md5.h>
 #include <signal.h>
 
-#include "json.h"
+#include "json.hpp"
 #include "base64.hpp"
 #include "kola.hpp"
 #include "pcre.hpp"
@@ -29,7 +29,7 @@
 #endif
 #include "httplib.h"
 
-#define TEST 0
+#define TEST 1
 #if TEST
 #define SERVER_HOST "192.168.1.23"
 //#define SERVER_HOST "127.0.0.1"

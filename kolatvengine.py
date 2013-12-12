@@ -68,6 +68,7 @@ class KolaEngine:
         argument['fields'] = {'engineList' : True,
                               'albumName': True,
                               'private': True,
+                              'cid': True,
                               'vid': True}
 
         albumList = []

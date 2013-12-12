@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import re
-import sys
-import traceback
 from xml.etree import ElementTree
 
 import tornado.escape
@@ -146,8 +144,15 @@ class ParserLetvLive(LivetvParser):
                     'script' : 'letv',
                     'parameters' : [playUrl]
                 }
-
                 v.SetVideoUrl('default', v.script)
+
+                v.info = {
+                          'script' : 'letv',
+                          'function' : 'get_channel',
+                          'parameters' : [
+                                'http://st.live.letv.com/live/playlist/20131212/%s.json' % vid],
+                          }
+
                 album.videos.append(v)
                 db._save_update_append(ret, album)
         return ret
@@ -184,6 +189,11 @@ class ParserSohuLive(LivetvParser):
                 'parameters' : [playUrl]
             }
             v.SetVideoUrl('default', v.script)
+            v.info = {
+                'script' : 'sohutv',
+                'function' : 'get_channel',
+                'parameters' : [pid],
+            }
 
             album.videos.append(v)
             db._save_update_append(ret, album)
@@ -237,12 +247,19 @@ class ParserHangZhouLive(LivetvParser):
             v = album.NewVideo()
             v.vid      = utils.getVidoId(url)
             v.priority = 2
-            v.name     = "hztv"
+            v.name     = "HZTV"
             v.script   = {
                 'script' : 'hztv',
                 'parameters' : [url]
             }
             v.SetVideoUrl('default', v.script)
+            v.info = {
+                'script' : 'hztv',
+                'function' : 'get_channel',
+                'parameters' : [
+                      'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i],
+            }
+
             album.videos.append(v)
             db._save_update_append(ret, album)
         return ret
@@ -272,12 +289,17 @@ class ParserWenZhouLive(LivetvParser):
             v = album.NewVideo()
             v.vid      = utils.getVidoId(u)
             v.priority = 2
-            v.name     = "dhtv"
+            v.name     = "WZTV"
             v.script   = {
                 'script' : 'wztv',
                 'parameters' : ['http://www.dhtv.cn/static/??js/tv.js?acm', source]
             }
             v.SetVideoUrl('default', v.script)
+            v.info = {
+                'script'     : 'wztv',
+                'function'   : 'get_channel',
+                'parameters' : [source],
+            }
             album.videos.append(v)
             db._save_update_append(ret, album)
 
@@ -325,6 +347,13 @@ class ParserTVIELive(LivetvParser):
                 'parameters' : [playUrl]
             }
             v.SetVideoUrl('default', v.script)
+
+            v.info = {
+                'script' : 'tvie',
+                'function' : 'get_channel',
+                'parameters' : [x['id']],
+            }
+
             album.videos.append(v)
             db._save_update_append(ret, album)
 

@@ -62,6 +62,7 @@ class VideoBase:
 
         self.videos = {}
         self.script = {}
+        self.info = {}
 
         if js:
             self.LoadFromJson(js)
@@ -116,6 +117,7 @@ class VideoBase:
 
         if self.priority        : ret['priority'] = self.priority
         if self.private         : ret['private']  = self.private
+        if self.info            : ret['info']     = self.info
 
         resolution = self.GetVideoResolution()
         if resolution:
@@ -144,6 +146,7 @@ class VideoBase:
         if 'script' in json         :  self.script        = json['script']
         if 'priority' in json       : self.priority       = json['priority']
         if 'private' in json        : self.private        = json['private']
+        if 'info' in json           : self.info           = json['info']
 
 class AlbumBase:
     def __init__(self):

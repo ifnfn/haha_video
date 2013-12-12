@@ -55,6 +55,8 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	totalBlocks    = json_geti(js   , "totalBlocks", 0);
 	totalBytes     = json_geti(js   , "totalBytes", 0);
 	fps            = json_geti(js   , "fps", 0);
+	json_get_stringlist(js, "resolution", &resolution);
+	//std::cout << resolution.ToString() << std::endl;
 
 	return true;
 }

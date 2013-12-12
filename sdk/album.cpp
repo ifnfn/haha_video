@@ -46,16 +46,11 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 
 	KolaClient *client = &KolaClient::Instance();
 	char url_buffer[256];
-	std::string text;
 	json_t *js, *videos, *v;
-	json_error_t error;
 
 	sprintf(url_buffer, "/video/getvideo?full=1&pid=%s&page=%ld&size=%ld", vid.c_str(), pageNo, pageSize);
 
-	if (client->UrlPost(url_buffer, NULL, text) == false)
-		return false;
-
-	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+	js = json_loadurl(url_buffer);
 	if (js == NULL)
 		return false;
 
@@ -111,18 +106,9 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	totalPlayNum    =json_geti   (js , "totalPlayNum"    , 0);   // 总播放资料
 	dailyIndexScore =json_getreal(js , "dailyIndexScore" , 0.0); // 每日指数
 
-	sub = json_geto(js, "mainActors");
-	if (sub) {
-		json_t *v;
-		json_array_foreach(sub, v) {
-			const char *s = json_string_value(v);
-			if (s)
-				mainActors << s;
-		}
-	}
+	json_get_stringlist(js, "mainActors", &mainActors);
+	json_get_stringlist(js, "directors", &directors);
 
-	//directors  = json_gets(js, "directors", "");
-	//mainActors = json_gets(js, "mainActors", "");
 	//categories = json_gets(js, "categories", "");
 //	std::cout << "KolaAlbum:" << albumName << std::endl;
 

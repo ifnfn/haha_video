@@ -102,7 +102,7 @@ void test_livetv()
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
 				player_url = video->GetVideoUrl();
-				printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 			}
 		}
 	}
@@ -163,7 +163,9 @@ void test_video(const char *menuName)
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
 				player_url = video->GetVideoUrl();
-				printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				printf("\t%s %s %s [%s] -> %s\n",
+						video->pid.c_str(), video->vid.c_str(),
+						video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 			}
 		}
 	}
@@ -226,7 +228,7 @@ int main(int argc, char **argv)
 //	return 0;
 //	test_custommenu();
 //	return 0;
-//	printf("Test LiveTV\n"); test_livetv();
+	printf("Test LiveTV\n"); test_livetv();
 
 	printf("Test Video\n"); test_video("电影");
 

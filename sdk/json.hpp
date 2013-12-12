@@ -3,7 +3,12 @@
 
 #include "jansson.h"
 
+class StringList;
+
 json_t* json_loadurl(const char *url);
+
+bool json_get_stringlist(json_t *js, const char *key, StringList *list);
+
 inline bool json_key_exists(json_t *js, const char *key)
 {
 	return  json_object_get(js, key) != NULL;

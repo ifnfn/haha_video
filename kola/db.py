@@ -40,12 +40,6 @@ class VideoBase:
         self.vid = ''
         self.cid = 0
 
-#        self.highVid = ''
-#        self.norVid = ''
-#        self.oriVid = ''
-#        self.superVid = ''
-#        self.relativeId = ''
-
         self.order = -1
         self.playLength = 0.0
         self.showName = ''
@@ -68,6 +62,23 @@ class VideoBase:
         if js:
             self.LoadFromJson(js)
 
+
+    def SetVideoUrl(self, name, url):
+        nameList = {
+            'default' : '自动',
+            'super'   : '超清',
+            'high'    : '高清',
+            'original': '原画',
+            'normal'  : '标清'
+        }
+
+        if name in nameList:
+            self.videos[name] = {
+                'name' : nameList[name],
+                'url'  : url
+            }
+
+
     def GetVideoPlayUrl(self):
         pass
 
@@ -85,12 +96,6 @@ class VideoBase:
         if self.pid             : ret['pid'] = self.pid
         if self.vid             : ret['vid'] = self.vid
         if self.name            : ret['name'] = self.name
-
-#        if self.highVid         : ret['highVid'] = self.highVid
-#        if self.norVid          : ret['norVid'] = self.norVid
-#        if self.oriVid          : ret['oriVid'] = self.oriVid
-#        if self.superVid        : ret['superVid'] = self.superVid
-#        if self.relativeId      : ret['relativeId'] = self.relativeId
 
         if self.order != -1     : ret['order'] = self.order
         if self.playLength      : ret['playLength'] = self.playLength
@@ -119,12 +124,6 @@ class VideoBase:
         if 'pid' in json            : self.pid            = autostr(json['pid'])
         if 'vid' in json            : self.vid            = autostr(json['vid'])
 
-#        if 'highVid' in json        : self.highVid        = autostr(json['highVid'])
-#        if 'norVid' in json         : self.norVid         = autostr(json['norVid'])
-#        if 'oriVid' in json         : self.oriVid         = autostr(json['oriVid'])
-#        if 'superVid' in json       : self.superVid       = autostr(json['superVid'])
-#        if 'relativeId' in json     : self.relativeId     = autostr(json['relativeId'])
-
         if 'order' in json          : self.order          = autoint(json['order'])
         if 'name' in json           : self.name           = json['name']
         if 'videoName' in json      : self.name           = json['videoName']
@@ -147,44 +146,44 @@ class AlbumBase:
         self.VideoClass = VideoBase
         self.cid = 0
 
-        self.sources = {}        # 直接节目    [*]
-        self.albumName = ''      # 名称       [*]
-        self.enAlbumName = ''    # 英文名称    [*]
-        self.vid = ''             #           [*]
-        self.area = ''            # 地区       [*]
-        self.categories  = []     # 类型       [*]
-        self.publishYear = ''     # 发布年份    [*]
-        self.isHigh      = 0      # 是否是高清  [*]
-        self.albumPageUrl = ''    # 节目主页
+        self.sources         = {}  # 直接节目    [*]
+        self.albumName       = ''  # 名称        [*]
+        self.enAlbumName     = ''  # 英文名称    [*]
+        self.vid             = ''  # [*]
+        self.area            = ''  # 地区        [*]
+        self.categories      = []  # 类型        [*]
+        self.publishYear     = ''  # 发布年份    [*]
+        self.isHigh          = 0   # 是否是高清  [*]
+        self.albumPageUrl    = ''  # 节目主页
 
-        self.largePicUrl = ''     # 大图片网址  [*]
-        self.smallPicUrl = ''     # 小图片网址  [*]
-        self.largeHorPicUrl = ''  # [*]
-        self.smallHorPicUrl = ''  # [*]
-        self.largeVerPicUrl = ''  # [*]
-        self.smallVerPicUrl = ''  # [*]
+        self.largePicUrl     = ''  # 大图片网址  [*]
+        self.smallPicUrl     = ''  # 小图片网址  [*]
+        self.largeHorPicUrl  = ''  # [*]
+        self.smallHorPicUrl  = ''  # [*]
+        self.largeVerPicUrl  = ''  # [*]
+        self.smallVerPicUrl  = ''  # [*]
 
-        self.playLength = 0.0     # [*]
-        self.publishTime = ''     # [*]
-        self.updateTime = 0       # [*]
+        self.playLength      = 0.0 # [*]
+        self.publishTime     = ''  # [*]
+        self.updateTime      = 0   # [*]
 
-        self.albumDesc = ''       # [*]
-        self.videoScore = ''      # [*]
+        self.albumDesc       = ''  # [*]
+        self.videoScore      = ''  # [*]
 
-        self.totalSet        = 0  # 总集数      [*]
-        self.updateSet       = 0  # 当前更新集   [*]
-        self.dailyPlayNum    = 0  # 每日播放次数 [*]
-        self.weeklyPlayNum   = 0  # 每周播放次数 [*]
-        self.monthlyPlayNum  = 0  # 每月播放次数 [*]
-        self.totalPlayNum    = 0  # 总播放次数   [*]
-        self.dailyIndexScore = 0  # 每日指数    [*]
+        self.totalSet        = 0   # 总集数       [*]
+        self.updateSet       = 0   # 当前更新集   [*]
+        self.dailyPlayNum    = 0   # 每日播放次数 [*]
+        self.weeklyPlayNum   = 0   # 每周播放次数 [*]
+        self.monthlyPlayNum  = 0   # 每月播放次数 [*]
+        self.totalPlayNum    = 0   # 总播放次数   [*]
+        self.dailyIndexScore = 0   # 每日指数     [*]
 
-        self.mainActors = []      # [*]
-        self.directors = []       # [*]
+        self.mainActors      = []  # [*]
+        self.directors       = []  # [*]
 
-        self.videos = []
-        self.private = {}
-        self.engineList = {}
+        self.videos          = []
+        self.private         = {}
+        self.engineList      = {}
 
     def NewVideo(self, js=None):
         v = self.videoClass(js)
@@ -195,46 +194,46 @@ class AlbumBase:
 
     def SaveToJson(self):
         ret = {}
-        if self.cid             : ret['cid']            = self.cid
-        if self.engineList      : ret['engineList']     = self.engineList
+        if self.cid             : ret['cid']             = self.cid
+        if self.engineList      : ret['engineList']      = self.engineList
 
-        if self.albumName       : ret['albumName']      = self.albumName
-        if self.vid             : ret['vid']            = self.vid
-        if self.isHigh          : ret['isHigh']         = self.isHigh
+        if self.albumName       : ret['albumName']       = self.albumName
+        if self.vid             : ret['vid']             = self.vid
+        if self.isHigh          : ret['isHigh']          = self.isHigh
 
-        if self.area            : ret['area']           = self.area
-        if self.categories      : ret['categories']     = self.categories
-        if self.publishYear     : ret['publishYear']    = self.publishYear
+        if self.area            : ret['area']            = self.area
+        if self.categories      : ret['categories']      = self.categories
+        if self.publishYear     : ret['publishYear']     = self.publishYear
 
-        if self.albumDesc       : ret['albumDesc']      = self.albumDesc
-        if self.videoScore      : ret['videoScore']     = self.videoScore
-        if self.totalSet        : ret['totalSet']       = self.totalSet
-        if self.updateSet       : ret['updateSet']      = self.updateSet
+        if self.albumDesc       : ret['albumDesc']       = self.albumDesc
+        if self.videoScore      : ret['videoScore']      = self.videoScore
+        if self.totalSet        : ret['totalSet']        = self.totalSet
+        if self.updateSet       : ret['updateSet']       = self.updateSet
 
-        if self.albumPageUrl    : ret['albumPageUrl']   = self.albumPageUrl
+        if self.albumPageUrl    : ret['albumPageUrl']    = self.albumPageUrl
         # 图片
-        if self.largeHorPicUrl  : ret['largeHorPicUrl'] = self.largeHorPicUrl
-        if self.smallHorPicUrl  : ret['smallHorPicUrl'] = self.smallHorPicUrl
-        if self.largeVerPicUrl  : ret['largeVerPicUrl'] = self.largeVerPicUrl
-        if self.smallVerPicUrl  : ret['smallVerPicUrl'] = self.smallVerPicUrl
-        if self.largePicUrl     : ret['largePicUrl']    = self.largePicUrl
-        if self.smallPicUrl     : ret['smallPicUrl']    = self.smallPicUrl
+        if self.largeHorPicUrl  : ret['largeHorPicUrl']  = self.largeHorPicUrl
+        if self.smallHorPicUrl  : ret['smallHorPicUrl']  = self.smallHorPicUrl
+        if self.largeVerPicUrl  : ret['largeVerPicUrl']  = self.largeVerPicUrl
+        if self.smallVerPicUrl  : ret['smallVerPicUrl']  = self.smallVerPicUrl
+        if self.largePicUrl     : ret['largePicUrl']     = self.largePicUrl
+        if self.smallPicUrl     : ret['smallPicUrl']     = self.smallPicUrl
 
-        if self.mainActors      : ret['mainActors']     = self.mainActors
-        if self.directors       : ret['directors']      = self.directors
+        if self.mainActors      : ret['mainActors']      = self.mainActors
+        if self.directors       : ret['directors']       = self.directors
 
-        if self.playLength :      ret['playLength']     = self.playLength
-        if self.publishTime :     ret['publishTime']    = self.publishTime
-        if self.updateTime :      ret['updateTime']     = self.updateTime
+        if self.playLength      : ret['playLength']      = self.playLength
+        if self.publishTime     : ret['publishTime']     = self.publishTime
+        if self.updateTime      : ret['updateTime']      = self.updateTime
 
-        if self.dailyPlayNum :    ret['dailyPlayNum']   = self.dailyPlayNum     # 每日播放次数
-        if self.weeklyPlayNum :   ret['weeklyPlayNum']  = self.weeklyPlayNum    # 每周播放次数
-        if self.monthlyPlayNum :  ret['monthlyPlayNum'] = self.monthlyPlayNum   # 每月播放次数
-        if self.totalPlayNum :    ret['totalPlayNum']   = self.totalPlayNum     # 总播放资料
-        if self.dailyIndexScore : ret['dailyIndexScore']= self.dailyIndexScore  # 每日指数
+        if self.dailyPlayNum    : ret['dailyPlayNum']    = self.dailyPlayNum     # 每日播放次数
+        if self.weeklyPlayNum   : ret['weeklyPlayNum']   = self.weeklyPlayNum    # 每周播放次数
+        if self.monthlyPlayNum  : ret['monthlyPlayNum']  = self.monthlyPlayNum   # 每月播放次数
+        if self.totalPlayNum    : ret['totalPlayNum']    = self.totalPlayNum     # 总播放资料
+        if self.dailyIndexScore : ret['dailyIndexScore'] = self.dailyIndexScore  # 每日指数
 
-        if self.sources :         ret['sources']        = self.sources
-        if self.private :         ret['private']        = self.private
+        if self.sources         : ret['sources']         = self.sources
+        if self.private         : ret['private']         = self.private
 
         return ret
 
@@ -285,15 +284,15 @@ class AlbumBase:
 # 一级分类菜单
 class VideoMenuBase:
     def __init__(self, name):
-        self.db = DB()
-        self.filter = {}
+        self.db          = DB()
+        self.filter      = {}
         self.quickFilter = {}
-        self.sort = {}
-        self.name = name
-        self.homePage = ''
-        self.parserList = {}
-        self.albumClass = AlbumBase
-        self.cid = 0
+        self.sort        = {}
+        self.name        = name
+        self.homePage    = ''
+        self.parserList  = {}
+        self.albumClass  = AlbumBase
+        self.cid         = 0
 
     def NewAlbum(self, js=None):
         album = self.albumClass()

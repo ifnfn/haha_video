@@ -74,13 +74,16 @@ class KolaClient:
         if times > MAX_TRY or type(cmd) != dict:
             return False
         try:
-            cached = False
-            if 'cache' in cmd:
-                cached = cmd['cache']
-            if cached:
-                response = self.GetCacheUrl(cmd['source'])
+            if 'text' in cmd:
+                response = cmd['text']
             else:
-                response = self.GetUrl(cmd['source'])
+                cached = False
+                if 'cache' in cmd and 'source' in cmd:
+                    cached = cmd['cache']
+                    if cached:
+                        response = self.GetCacheUrl(cmd['source'])
+                    else:
+                        response = self.GetUrl(cmd['source'])
 
             coding = 'utf8'
             try:
@@ -116,16 +119,20 @@ class KolaClient:
                     response = response.decode(coding)
                 cmd['data'] = response
             else:
-                print("[WARNING] Data is empty: ", cmd['source'])
+                print("[WARNING] Data is empty")
 
             body = json.dumps(cmd) #, ensure_ascii = False)
             ret = self.PostUrl(dest, body) != None
         except:
             t, v, tb = sys.exc_info()
-            print("ProcessCommand playurl: %s %s, %s, %s" % (cmd['source'], t, v, traceback.format_tb(tb)))
+            print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
             return self.ProcessCommand(cmd, dest, times + 1)
 
-        print((ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', dest)
+        if 'source' in cmd:
+            print((ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', dest)
+        else:
+            print((ret == True and "OK:" or "ERROR:"), '-->', dest)
+
         return ret
 
     def Login(self):

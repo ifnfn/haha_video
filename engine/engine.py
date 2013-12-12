@@ -1,6 +1,8 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import traceback
+import sys
 import json
 import configparser
 from kola import DB
@@ -37,8 +39,9 @@ class EngineCommands(KolaCommand):
             return url
 
     def AddCommand(self, cmd):
-        if 'source' in cmd and 'name' in cmd:
-            cmd['source'] = self.GetUrl(cmd['source'])
+        if ('source' in cmd or 'text' in cmd) and 'name' in cmd:
+            if 'source' in cmd:
+                cmd['source'] = self.GetUrl(cmd['source'])
             if self.pipe == None:
                 self.pipe = self.db.pipeline()
             self.pipe.rpush('command', json.dumps(cmd))
@@ -92,9 +95,14 @@ class VideoEngine:
 
     # 解析菜单网页解析
     def ParserHtml(self, js):
-        for engine in self.parserList:
-            if engine.name == js['engine']:
-                return engine.CmdParser(js)
+        try:
+            for engine in self.parserList:
+                if engine.name == js['engine']:
+                    return engine.CmdParser(js)
+
+        except:
+            t, v, tb = sys.exc_info()
+            print("SohuVideoMenu._CmdParserAlbumPlayInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
         return None
 

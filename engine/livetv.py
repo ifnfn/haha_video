@@ -146,6 +146,7 @@ class ParserLetvLive(LivetvParser):
                     'parameters' : [playUrl]
                 }
 
+                v.SetVideoUrl('default', v.script)
                 album.videos.append(v)
                 db._save_update_append(ret, album)
         return ret
@@ -181,6 +182,8 @@ class ParserSohuLive(LivetvParser):
                 'script' : 'sohutv',
                 'parameters' : [playUrl]
             }
+            v.SetVideoUrl('default', v.script)
+
             album.videos.append(v)
             db._save_update_append(ret, album)
 
@@ -191,11 +194,12 @@ class ParserHangZhouLive(LivetvParser):
     def __init__(self):
         super().__init__()
         self.cmd['name']    = 'live_engine_parser'
-        self.cmd['source'] = 'http://www.hoolo.tv/'
-        self.cmd['script'] = {
-                'script' : 'hztvchannels',
-                'parameters' : ['']
-        }
+        #self.cmd['source'] = 'http://www.hoolo.tv/'
+        #self.cmd['text'] = {
+        #        'script' : 'hztvchannels',
+        #        'parameters' : ['']
+        #}
+        self.cmd['text'] = 'OK'
         self.Alias = {}
         self.ExcludeName = ('交通918', 'FM1054', 'FM89')
         self.area = '中国-淅江省-杭州市'
@@ -237,6 +241,7 @@ class ParserHangZhouLive(LivetvParser):
                 'script' : 'hztv',
                 'parameters' : [url]
             }
+            v.SetVideoUrl('default', v.script)
             album.videos.append(v)
             db._save_update_append(ret, album)
         return ret
@@ -271,6 +276,7 @@ class ParserWenZhouLive(LivetvParser):
                 'script' : 'wztv',
                 'parameters' : ['http://www.dhtv.cn/static/??js/tv.js?acm', source]
             }
+            v.SetVideoUrl('default', v.script)
             album.videos.append(v)
             db._save_update_append(ret, album)
 
@@ -287,41 +293,41 @@ class ParserTVIELive(LivetvParser):
         db = LivetvDB()
         ret = []
         jdata = tornado.escape.json_decode(js['data'])
-        try:
-            for x in jdata['result']:
-                if 'group_names' in x and x['group_names'] == '':
-                    continue
-                name = ''
-                if 'name' in x: name = x['name']
-                if 'display_name' in x: name = x['display_name']
 
-                name = self.GetAliasName(name)
-                if name == '':
-                    continue
+        for x in jdata['result']:
+            if 'group_names' in x and x['group_names'] == '':
+                continue
+            name = ''
+            if 'name' in x: name = x['name']
+            if 'display_name' in x: name = x['display_name']
 
-                album = LivetvAlbum()
-                album.albumName = name
-                album.vid       = utils.genAlbumId(name)
-                album.area      = self.area
+            name = self.GetAliasName(name)
+            if name == '':
+                continue
 
-                v = album.NewVideo()
-                playUrl = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
-                if self.base_url in ['api.cztv.com']:
-                    playUrl += '?domain=' + self.base_url
+            album = LivetvAlbum()
+            album.albumName = name
+            album.vid       = utils.genAlbumId(name)
+            album.area      = self.area
 
-                v.vid = utils.getVidoId(playUrl)
+            v = album.NewVideo()
+            playUrl = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
+            if self.base_url in ['api.cztv.com']:
+                playUrl += '?domain=' + self.base_url
 
-                v.priority = 2
-                v.name = "TVIE"
-                v.script = {
-                    'script' : 'tvie',
-                    'parameters' : [playUrl]
-                }
-                album.videos.append(v)
-                db._save_update_append(ret, album)
-        except:
-            t, v, tb = sys.exc_info()
-            print("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+            v.vid = utils.getVidoId(playUrl)
+
+            v.priority = 2
+            v.name = "TVIE"
+            v.script = {
+                'script' : 'tvie',
+                'parameters' : [playUrl]
+            }
+            v.SetVideoUrl('default', v.script)
+            album.videos.append(v)
+            db._save_update_append(ret, album)
+
+        return ret
 
 # 浙江电视台
 class ParserZJLive(ParserTVIELive):

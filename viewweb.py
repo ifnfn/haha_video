@@ -72,9 +72,14 @@ class GetVideoPlayerUrlHandle(BaseHandler):
         try:
             video = tv.GetVideoByVid(vid)
             if video:
-                for _,v in list(video['videos'].items()):
-                    if res == '' or v['name'] in res:
+                for k,v in list(video['videos'].items()):
+                    if (res == '' and k == 'default') or res == 'all' or v['name'] in res:
                         ret.append(v)
+                if len(ret) == 0: # 如果没有找到，就使用第一个
+                    for _,v in list(video['videos'].items()):
+                        ret.append(v)
+                        break
+
         finally:
             self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 

@@ -33,26 +33,15 @@ class SohuVideo(VideoBase):
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
 
-    def SetVideoScript(self, name, vid):
-        nameList = {
-            'default' : '自动',
-            'super'   : '超清',
-            'high'    : '高清',
-            'original': '原画',
-            'normal'  : '标清'
+    def SetVideoScript(self, name, vid, func_name='kola_main'):
+        url = {
+            'script'       : 'sohu',
+            'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid, autostr(self.cid)]
         }
+        if func_name and func_name != 'kola_main':
+                url['function'] = func_name
 
-        if name in nameList:
-            self.videos[name] = {
-                'name'   : nameList[name],
-                'url'    : {
-                    'script' : {
-                        'name'       : 'sohu',
-                        'function'   : 'kola_main',
-                        'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid, self.cid]
-                    }
-                }
-             }
+        self.SetVideoUrl(name, url)
 
 class SohuAlbum(AlbumBase):
     def __init__(self):
@@ -149,54 +138,52 @@ class ParserAlbumList(KolaParser):
     def CmdParser(self, js):
         db = SohuDB()
         ret = []
-        try:
-            if not js['data']: return ret
 
-            needNextPage = False
-            soup = bs(js['data'])#, from_encoding = 'GBK')
-            playlist = soup.findAll('li')
-            for a in playlist:
-                text = a.prettify()
-                x = re.findall('pay', text)
-                if x:
-                    continue
+        if not js['data']: return ret
 
-                album = SohuAlbum()
+        needNextPage = False
+        soup = bs(js['data'])#, from_encoding = 'GBK')
+        playlist = soup.findAll('li')
+        for a in playlist:
+            text = a.prettify()
+            x = re.findall('pay', text)
+            if x:
+                continue
 
-                urls = re.findall('(href|title|_s_v|_s_a)="([\s\S]*?)"', text)
-                for u in urls:
-                    if u[0] == 'href':
-                        album.albumPageUrl = self.command.GetUrl(u[1])
-                    elif u[0] == 'title':
-                        album.albumName = u[1]
-                    elif u[0] == '_s_v':
-                        album.sohu['vid'] = autostr(u[1])
-                    elif u[0] == '_s_a':
-                        album.sohu['playlistid'] = autostr(u[1])
+            album = SohuAlbum()
 
-                if album.albumName:
-                    album.vid = utils.genAlbumId(album.albumName)
-                else:
-                    continue
+            urls = re.findall('(href|title|_s_v|_s_a)="([\s\S]*?)"', text)
+            for u in urls:
+                if u[0] == 'href':
+                    album.albumPageUrl = self.command.GetUrl(u[1])
+                elif u[0] == 'title':
+                    album.albumName = u[1]
+                elif u[0] == '_s_v':
+                    album.sohu['vid'] = autostr(u[1])
+                elif u[0] == '_s_a':
+                    album.sohu['playlistid'] = autostr(u[1])
 
-                album.cid = js['cid']
-                #if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu['vid'])):
-                #    needNextPage = True
+            if album.albumName:
+                album.vid = utils.genAlbumId(album.albumName)
+            else:
+                continue
 
-                if album.sohu['vid'] and album.albumName and album.sohu['playlistid']:
-                    db._save_update_append(ret, album, key={'vid' : album.vid})
+            album.cid = js['cid']
+            #if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu['vid'])):
+            #    needNextPage = True
 
-            needNextPage = True
-            if needNextPage:
-                g = re.search('p10(\d+)', js['source'])
-                if g:
-                    current_page = int(g.group(1))
-                    link = re.compile('p10\d+')
-                    newurl = re.sub(link, 'p10%d' % (current_page + 1), js['source'])
-                    ParserAlbumList(newurl, js['cid']).Execute()
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserVideoList:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+            if album.sohu['vid'] and album.albumName and album.sohu['playlistid']:
+                db._save_update_append(ret, album, key={'vid' : album.vid})
+
+        needNextPage = True
+        if needNextPage:
+            g = re.search('p10(\d+)', js['source'])
+            if g:
+                current_page = int(g.group(1))
+                link = re.compile('p10\d+')
+                newurl = re.sub(link, 'p10%d' % (current_page + 1), js['source'])
+                ParserAlbumList(newurl, js['cid']).Execute()
+
         return ret
 
 # 更新节目的完整信息
@@ -214,65 +201,62 @@ class ParserAlbumFullInfo(KolaParser):
         db = SohuDB()
 
         ret = []
-        try:
-            json = tornado.escape.json_decode(js['data'])
-            playlistid = autostr(json['playlistid'])
-            vid = autostr(json['vid'])
-            pid = autostr(json['pid'])
 
-            album = db.GetAlbumFormDB(playlistid=playlistid, vid=vid)
-            if album == None:
-                return ret
+        json = tornado.escape.json_decode(js['data'])
+        playlistid = autostr(json['playlistid'])
+        vid = autostr(json['vid'])
+        pid = autostr(json['pid'])
 
-            if 'cid' in json            : album.cid            = autoint(json['cid'])
-            if 'playlistid' in json     : album.sohu['playlistid'] = playlistid
-            if 'pid' in json            : album.sohu['pid']        = pid
-            if 'vid' in json            : album.sohu['vid']        = vid
+        album = db.GetAlbumFormDB(playlistid=playlistid, vid=vid)
+        if album == None:
+            return ret
 
-            if 'isHigh' in json         : album.isHigh         = json['isHigh']
-            if 'area' in json           : album.area           = json['area']
-            if 'categories' in json     : album.categories     = json['categories']
-            if 'publishYear' in json    : album.publishYear    = json['publishYear']
-            if 'updateTime' in json     : album.updateTime     = json['updateTime']
+        if 'cid' in json            : album.cid            = autoint(json['cid'])
+        if 'playlistid' in json     : album.sohu['playlistid'] = playlistid
+        if 'pid' in json            : album.sohu['pid']        = pid
+        if 'vid' in json            : album.sohu['vid']        = vid
 
-            # 图片
-            if 'largeHorPicUrl' in json : album.largeHorPicUrl = json['largeHorPicUrl']
-            if 'smallHorPicUrl' in json : album.smallHorPicUrl = json['smallHorPicUrl']
-            if 'largeVerPicUrl' in json : album.largeVerPicUrl = json['largeVerPicUrl']
-            if 'smallVerPicUrl' in json : album.smallVerPicUrl = json['smallVerPicUrl']
-            if 'largePicUrl' in json    : album.largePicUrl    = json['largePicUrl']
-            if 'smallPicUrl' in json    : album.smallPicUrl    = json['smallPicUrl']
+        if 'isHigh' in json         : album.isHigh         = json['isHigh']
+        if 'area' in json           : album.area           = json['area']
+        if 'categories' in json     : album.categories     = json['categories']
+        if 'publishYear' in json    : album.publishYear    = json['publishYear']
+        if 'updateTime' in json     : album.updateTime     = json['updateTime']
 
-            if 'albumDesc' in json      : album.albumDesc      = json['albumDesc']
-            if 'totalSet' in json       : album.totalSet       = json['totalSet']
-            if 'updateSet' in json      : album.updateSet      = json['updateSet']
+        # 图片
+        if 'largeHorPicUrl' in json : album.largeHorPicUrl = json['largeHorPicUrl']
+        if 'smallHorPicUrl' in json : album.smallHorPicUrl = json['smallHorPicUrl']
+        if 'largeVerPicUrl' in json : album.largeVerPicUrl = json['largeVerPicUrl']
+        if 'smallVerPicUrl' in json : album.smallVerPicUrl = json['smallVerPicUrl']
+        if 'largePicUrl' in json    : album.largePicUrl    = json['largePicUrl']
+        if 'smallPicUrl' in json    : album.smallPicUrl    = json['smallPicUrl']
 
-            if 'mainActors' in json     : album.mainActors     = json['mainActors']
-            if 'directors' in json      : album.directors      = json['directors']
+        if 'albumDesc' in json      : album.albumDesc      = json['albumDesc']
+        if 'totalSet' in json       : album.totalSet       = json['totalSet']
+        if 'updateSet' in json      : album.updateSet      = json['updateSet']
 
-            if 'videos' in json:
-                for video in json['videos']:
-                    if 'vid' in video and 'vid' in album.sohu:
-                        if autostr(video['vid']) == album.sohu['vid'] and album.sohu['vid']:
-                            if 'playLength' in video  : album.playLength =  video['playLength']
-                            if 'publishTime' in video : album.publishTime = video['publishTime']
+        if 'mainActors' in json     : album.mainActors     = json['mainActors']
+        if 'directors' in json      : album.directors      = json['directors']
 
-                    v = album.NewVideo()
-                    v.LoadFromJson(video)
-                    v.SetVideoScript('default', v.vid)
+        if 'videos' in json:
+            for video in json['videos']:
+                if 'vid' in video and 'vid' in album.sohu:
+                    if autostr(video['vid']) == album.sohu['vid'] and album.sohu['vid']:
+                        if 'playLength' in video  : album.playLength =  video['playLength']
+                        if 'publishTime' in video : album.publishTime = video['publishTime']
 
-                    # 兼容旧版本
-                    v.script = {
-                        'script' : 'sohu',
-                        'parameters' : [v.GetVideoPlayUrl(), autostr(album.cid)]
-					}
+                v = album.NewVideo()
+                v.LoadFromJson(video)
+                v.SetVideoScript('default', v.vid)
 
-                    album.videos.append(v)
-            if vid:
-                db._save_update_append(ret, album, key={'vid' : album.vid}, upsert=False)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbumFullInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+                # 兼容旧版本
+                v.script = {
+                    'script' : 'sohu',
+                    'parameters' : [v.GetVideoPlayUrl(), autostr(album.cid)]
+				}
+
+                album.videos.append(v)
+        if vid:
+            db._save_update_append(ret, album, key={'vid' : album.vid}, upsert=False)
 
         return ret
 
@@ -289,22 +273,19 @@ class ParserAlbumTotalPlayNum(KolaParser):
     def CmdParser(self, js):
         db = SohuDB()
         ret = []
-        try:
-            data = tornado.escape.to_basestring(js['data'])
-            text = re.findall('var count=(\S+?);', data)
-            if text:
-                data = tornado.escape.json_decode(text[0])
-                for v in data['videos']:
-                    vid = autostr(v['videoid'])
-                    album = db.GetAlbumFormDB(vid=vid, auto=False)
-                    if album == None:
-                        return []
 
-                    album.totalPlayNum = v['count']
-                    db._save_update_append(ret, album)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu._CmdParserAlbumTotalPlayNum:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+        data = tornado.escape.to_basestring(js['data'])
+        text = re.findall('var count=(\S+?);', data)
+        if text:
+            data = tornado.escape.json_decode(text[0])
+            for v in data['videos']:
+                vid = autostr(v['videoid'])
+                album = db.GetAlbumFormDB(vid=vid, auto=False)
+                if album == None:
+                    return []
+
+                album.totalPlayNum = v['count']
+                db._save_update_append(ret, album)
 
         return ret
 
@@ -326,40 +307,37 @@ class ParserAlbumMvInfo(KolaParser):
     def CmdParser(self, js):
         db = SohuDB()
         ret = []
-        try:
-            text = tornado.escape.to_basestring(js['data'])
-            if self.name == 'ParserAlbumMvInfoMini':
-                text = '{' + text + '}'
-            json = tornado.escape.json_decode(text)
 
-            albumName = ''
-            playlistid = ''
-            if 'albumName' in js:
-                albumName = js['albumName']
+        text = tornado.escape.to_basestring(js['data'])
+        if self.name == 'ParserAlbumMvInfoMini':
+            text = '{' + text + '}'
+        json = tornado.escape.json_decode(text)
 
-            if 'playlistId' in json :
-                playlistid = autostr(json['playlistId'])
+        albumName = ''
+        playlistid = ''
+        if 'albumName' in js:
+            albumName = js['albumName']
 
-            album = db.GetAlbumFormDB(playlistid=playlistid, albumName=albumName) #, vid=vid)
-            if album == None:
-                return ret
+        if 'playlistId' in json :
+            playlistid = autostr(json['playlistId'])
 
-            if 'videos' in json and json['videos']:
-                video = json['videos'][0]
+        album = db.GetAlbumFormDB(playlistid=playlistid, albumName=albumName) #, vid=vid)
+        if album == None:
+            return ret
 
-                if 'isHigh' in video          : album.isHigh = str(video['isHigh'])
-                if 'videoScore' in video      : album.videoScore = str(video['videoScore'])
+        if 'videos' in json and json['videos']:
+            video = json['videos'][0]
+
+            if 'isHigh' in video          : album.isHigh = str(video['isHigh'])
+            if 'videoScore' in video      : album.videoScore = str(video['videoScore'])
 
 #                 for video in json['videos']:
 #                     v = album.newVideo()
 #                     v.LoadFromJson(video)
 #
 #                     tv.videos.append(v)
-            if album.sohu['playlistid']:
-                db._save_update_append(ret, album, upsert=False)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbumMvInfo: %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+        if album.sohu['playlistid']:
+            db._save_update_append(ret, album, upsert=False)
 
         return ret
 
@@ -383,39 +361,35 @@ class ParserAlbumScore(KolaParser):
 
     def CmdParser(self, js):
         ret = []
-        try:
-            data = tornado.escape.json_decode(js['data'])
-            if 'album' in data and 'index' in data:
-                js = data['album']
-                index = data['index']
-                if js and index:
-                    playlistid = ''
-                    if 'id' in js:
-                        playlistid = autostr(js['id'])
-                    if not playlistid:
-                        return []
 
-                    db = SohuDB()
-                    album = db.GetAlbumFormDB(playlistid=playlistid)
-                    if album == None:
-                        return []
+        data = tornado.escape.json_decode(js['data'])
+        if 'album' in data and 'index' in data:
+            js = data['album']
+            index = data['index']
+            if js and index:
+                playlistid = ''
+                if 'id' in js:
+                    playlistid = autostr(js['id'])
+                if not playlistid:
+                    return []
 
-                    if 'dailyPlayNum' in index:
-                        album.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
-                    if 'weeklyPlayNum' in index:
-                        album.weeklyPlayNum   = index['weeklyPlayNum']   # 每周播放次数
-                    if 'monthlyPlayNum' in index:
-                        album.monthlyPlayNum  = index['monthlyPlayNum']  # 每月播放次数
-                    if 'totalPlayNum' in index:
-                        album.totalPlayNum    = index['totalPlayNum']    # 总播放资料
-                    if 'dailyIndexScore' in index:
-                        album.dailyIndexScore = index['dailyIndexScore'] # 每日指数
+                db = SohuDB()
+                album = db.GetAlbumFormDB(playlistid=playlistid)
+                if album == None:
+                    return []
 
-                    db._save_update_append(ret, album, upsert=False)
-        except:
-            print(js['source'])
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserAlbumScore:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+                if 'dailyPlayNum' in index:
+                    album.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
+                if 'weeklyPlayNum' in index:
+                    album.weeklyPlayNum   = index['weeklyPlayNum']   # 每周播放次数
+                if 'monthlyPlayNum' in index:
+                    album.monthlyPlayNum  = index['monthlyPlayNum']  # 每月播放次数
+                if 'totalPlayNum' in index:
+                    album.totalPlayNum    = index['totalPlayNum']    # 总播放资料
+                if 'dailyIndexScore' in index:
+                    album.dailyIndexScore = index['dailyIndexScore'] # 每日指数
+
+                db._save_update_append(ret, album, upsert=False)
 
         return ret
 
@@ -431,21 +405,18 @@ class ParserAlbumHotList(KolaParser):
     def CmdParser(self, js):
         db = SohuDB()
         ret = []
-        try:
-            js = tornado.escape.json_decode(js['data'])
 
-            album = None
-            if 'r' in js:
-                for p in js['r']:
-                    if 'aid' in p:
-                        album = db.GetAlbumFormDB(playlistid=p['aid'])
-                        if album:
-                            album.UpdateFullInfoCommand()
-                            album.UpdateScoreCommand()
-                            ret.append(album)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+        js = tornado.escape.json_decode(js['data'])
+
+        album = None
+        if 'r' in js:
+            for p in js['r']:
+                if 'aid' in p:
+                    album = db.GetAlbumFormDB(playlistid=p['aid'])
+                    if album:
+                        album.UpdateFullInfoCommand()
+                        album.UpdateScoreCommand()
+                        ret.append(album)
 
         return ret
 
@@ -468,47 +439,44 @@ class ParserAlbumPlayInfo(KolaParser):
 
     def CmdParser(self, js):
         db = SohuDB()
-        try:
-            data = tornado.escape.json_decode(js['data'])
-            if ('id' not in data) and ('vid' not in data) and ('cid' not in js):
-                return
 
-            cid = js['cid']
-            vid = ''
-            if 'id' in data:
-                vid = autostr(data['id'])
-            elif 'vid' in js:
-                vid = autostr(data['vid'])
+        data = tornado.escape.json_decode(js['data'])
+        if ('id' not in data) and ('vid' not in data) and ('cid' not in js):
+            return
 
-            if vid and cid:
-                video = SohuVideo()
-                video.vid = vid
-                video.cid = cid
-            else:
-                return
+        cid = js['cid']
+        vid = ''
+        if 'id' in data:
+            vid = autostr(data['id'])
+        elif 'vid' in js:
+            vid = autostr(data['vid'])
 
-            if 'highVid' in data:
-                video.highVid    = autostr(data['highVid'])
-                video.SetVideoScript('high', video.highVid)
-            if 'norVid' in data:
-                video.norVid     = autostr(data['norVid'])
-                video.SetVideoScript('normal', video.norVid)
-            if 'oriVid' in data:
-                video.oriVid     = autostr(data['oriVid'])
-                video.SetVideoScript('original', video.oriVid)
-            if 'superVid' in data:
-                video.superVid   = autostr(data['superVid'])
-                video.SetVideoScript('super', video.superVid)
-            if 'relativeId' in data:
-                video.relativeId = autostr(data['relativeId'])
-                video.SetVideoScript('relative', video.relativeId)
+        if vid and cid:
+            video = SohuVideo()
+            video.vid = vid
+            video.cid = cid
+        else:
+            return
 
-            if video.highVid or video.norVid or video.oriVid or video.superVid or video.relativeId:
-                db.SaveVideo(video)
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu._CmdParserAlbumPlayInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+        video.SetVideoScript('default', vid)
+        if 'highVid' in data:
+            video.highVid    = autostr(data['highVid'])
+            video.SetVideoScript('high', video.highVid)
+        if 'norVid' in data:
+            video.norVid     = autostr(data['norVid'])
+            video.SetVideoScript('normal', video.norVid)
+        if 'oriVid' in data:
+            video.oriVid     = autostr(data['oriVid'])
+            video.SetVideoScript('original', video.oriVid)
+        if 'superVid' in data:
+            video.superVid   = autostr(data['superVid'])
+            video.SetVideoScript('super', video.superVid)
+        if 'relativeId' in data:
+            video.relativeId = autostr(data['relativeId'])
+            video.SetVideoScript('relative', video.relativeId)
 
+        if video.highVid or video.norVid or video.oriVid or video.superVid or video.relativeId:
+            db.SaveVideo(video)
 
 class SohuVideoMenu(VideoMenuBase):
     def __init__(self, name):

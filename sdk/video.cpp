@@ -49,12 +49,12 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	largePicUrl    = json_gets(js   , "largePicUrl"    , "");
 	playUrl        = json_gets(js   , "playUrl"        , "");
 	directPlayUrl  = json_gets(js   , "directPlayUrl"  , "");
-	totalDuration  = json_getreal(js, "totalDuration", 0.0);
-	width          = json_geti(js, "width", 0);
-	height         = json_geti(js, "height", 0);
-	totalBlocks    = json_geti(js, "totalBlocks", 0);
-	totalBytes     = json_geti(js, "totalBytes", 0);
-	fps            = json_geti(js, "fps", 0);
+	totalDuration  = json_getreal(js, "totalDuration"  , 0.0);
+	width          = json_geti(js   , "width"          , 0);
+	height         = json_geti(js   , "height"         , 0);
+	totalBlocks    = json_geti(js   , "totalBlocks"    , 0);
+	totalBytes     = json_geti(js   , "totalBytes"     , 0);
+	fps            = json_geti(js   , "fps"            , 0);
 
 	sub = json_geto(js, "script");
 	if (sub) {

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
+
+from kola import KolaCommand, ThreadPool, element, utils
 import kola
-from kola import element, utils
-from kola import KolaCommand
-from kola import ThreadPool
+
 
 POOLSIZE = 10
 

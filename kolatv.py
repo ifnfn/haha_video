@@ -3,8 +3,10 @@
 
 import redis
 import tornado.ioloop
+
 from engineweb import EngineApplication
 from viewweb import ViewApplication
+
 
 def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)

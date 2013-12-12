@@ -1,12 +1,16 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from .fetchTools import fetch_httplib2 as fetch
-import logging, sys
-import traceback
-import json
-import base64, zlib
+import base64
 import hashlib
+import json
+import logging
+import sys
+import traceback
+import zlib
+
+from .fetchTools import fetch_httplib2 as fetch
+
 
 def autostr(i):
     if type(i) == int:

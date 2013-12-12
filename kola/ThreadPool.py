@@ -5,11 +5,12 @@ ThreadPool Implementation
 @license: LGPL v3
 '''
 
+import collections
+import logging
+from queue import Queue, Empty
 from threading import Thread, RLock
 from time import sleep
-from queue import Queue, Empty
-import logging
-import collections
+
 
 class NullHandler(logging.Handler):
     def emit(self, record):

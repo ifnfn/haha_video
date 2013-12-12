@@ -1,12 +1,13 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import traceback
-import sys
-import json
 import configparser
-from kola import DB
-from kola import KolaCommand
+import json
+import sys
+import traceback
+
+from kola import DB, KolaCommand
+
 
 global Debug
 Debug = True

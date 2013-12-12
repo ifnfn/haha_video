@@ -1,11 +1,13 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import tornado.web
-import redis
-import zlib
 import base64
 from urllib.parse import unquote
+import zlib
+
+import redis
+import tornado.web
+
 
 class BaseHandler(tornado.web.RequestHandler):
     def initialize(self):

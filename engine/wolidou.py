@@ -1,15 +1,17 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, traceback
-import re
-import tornado.escape
 import hashlib
+import re
+import sys
+import traceback
 
 from bs4 import BeautifulSoup as bs
+import tornado.escape
+
 from engine import VideoEngine, KolaParser
-from kola import VideoBase, AlbumBase, VideoMenuBase
-from kola import log, autostr
+from kola import VideoBase, AlbumBase, VideoMenuBase, log, autostr
+
 
 #================================= 以下是视频的搜索引擎 =======================================
 global Debug

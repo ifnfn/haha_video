@@ -1,11 +1,12 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from .utils import *
-from .db import VideoBase, AlbumBase, VideoMenuBase, DB
+from .ThreadPool import ThreadPool
 from .basehandle import BaseHandler
 from .commands import KolaCommand
-from .ThreadPool import ThreadPool
+from .db import VideoBase, AlbumBase, VideoMenuBase, DB
 from .singleton import Singleton
+from .utils import *
+
 
 __all__ = ['db', 'element', 'ThreadPool', 'commands', 'basehandle', 'utils', 'fetchTools']

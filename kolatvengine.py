@@ -1,11 +1,14 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import redis
 import logging
+
+import redis
 import tornado.escape
+
 import engine
 from kola import DB, ThreadPool
+
 
 POOLSIZE = 10
 

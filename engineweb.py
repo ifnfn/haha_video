@@ -1,17 +1,19 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import tornado.ioloop
-import tornado.web
-import tornado.options
-import redis
+import hashlib
 import json
 import uuid
-import hashlib
 
 from pymongo import Connection
+import redis
+import tornado.ioloop
+import tornado.options
+import tornado.web
+
 from kola import BaseHandler
 from kolatvengine import KolaEngine
+
 
 tv = KolaEngine()
 

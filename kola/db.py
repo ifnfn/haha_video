@@ -1,10 +1,14 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, traceback
+import sys
+import traceback
+
 import pymongo
 import redis
+
 from .utils import autostr, autoint, log, GetQuickFilter
+
 
 # 每个 Video 表示一个可以播放视频
 class VideoBase:

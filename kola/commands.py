@@ -1,11 +1,14 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import time
-import tornado.escape
-import redis
 import threading
+import time
+
+import redis
+import tornado.escape
+
 from .singleton import Singleton
+
 
 # 命令管理器
 class KolaCommand(Singleton):

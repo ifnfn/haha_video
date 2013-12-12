@@ -1,17 +1,18 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, traceback
 import re
-import tornado.escape
+import sys
+import traceback
 from xml.etree import ElementTree
 
+import tornado.escape
+
 from engine import VideoEngine, KolaParser
+from kola import VideoBase, AlbumBase, DB, json_get, GetNameByUrl, utils
 import kola
 from kola.element import LivetvMenu
-from kola import json_get, GetNameByUrl
-from kola import VideoBase, AlbumBase, DB
-from kola import utils
+
 
 global Debug
 Debug = True

@@ -1,20 +1,21 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, traceback
+import hashlib
+import json
+import sys
+import traceback
+import uuid
+
+from pymongo import Connection
+import redis
+import tornado.escape
 import tornado.ioloop
 import tornado.web
-import redis
-import json
-import uuid
-import hashlib
-import tornado.escape
-from pymongo import Connection
 
-from kola import BaseHandler
-from kola import log
-from kola import utils
+from kola import BaseHandler, log, utils
 from kolaserver import KolatvServer
+
 
 tv = KolatvServer()
 

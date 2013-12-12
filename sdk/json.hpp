@@ -3,6 +3,7 @@
 
 #include "jansson.h"
 
+json_t* json_loadurl(const char *url);
 inline bool json_key_exists(json_t *js, const char *key)
 {
 	return  json_object_get(js, key) != NULL;
@@ -38,14 +39,7 @@ inline void json_setreal(json_t *js, const char *key, double value)
 	json_object_set(js, key, json_real(value));
 }
 
-inline const char *json_gets(json_t *js, const char *key, const char *def)
-{
-	json_t *p = json_object_get(js, key);
-	if (p && json_is_string(p))
-		return json_string_value(p);
-	else
-		return def;
-}
+const char *json_gets(json_t *js, const char *key, const char *def);
 
 inline void json_sets(json_t *js, const char *key, const char *value)
 {

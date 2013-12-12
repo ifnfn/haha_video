@@ -16,7 +16,7 @@
 #include <openssl/md5.h>
 #include <signal.h>
 
-#include "json.h"
+#include "json.hpp"
 #include "base64.hpp"
 #include "kola.hpp"
 #include "pcre.hpp"

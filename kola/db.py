@@ -40,11 +40,11 @@ class VideoBase:
         self.vid = ''
         self.cid = 0
 
-        self.highVid = ''
-        self.norVid = ''
-        self.oriVid = ''
-        self.superVid = ''
-        self.relativeId = ''
+#        self.highVid = ''
+#        self.norVid = ''
+#        self.oriVid = ''
+#        self.superVid = ''
+#        self.relativeId = ''
 
         self.order = -1
         self.playLength = 0.0
@@ -62,23 +62,21 @@ class VideoBase:
         self.playUrl = ''
         self.private = {}
 
+        self.videos = {}
         self.script = {}
 
         if js:
             self.LoadFromJson(js)
 
-    def GetVid(self, definition=0):
-        vid = self.vid
-        maplist = self.vid, self.norVid, self.highVid, self.superVid, self.oriVid, self.relativeId
-        if definition < len(maplist):
-            vid = maplist[definition]
-            if vid == '':
-                vid = self.vid
-
-        return vid
-
-    def GetVideoPlayUrl(self, definition=0):
+    def GetVideoPlayUrl(self):
         pass
+
+    def GetVideoResolution(self):
+        ret = []
+        for _,v in list(self.videos.items()):
+            ret.append(v['name'])
+
+        return ret
 
     def SaveToJson(self):
         ret = {}
@@ -88,11 +86,11 @@ class VideoBase:
         if self.vid             : ret['vid'] = self.vid
         if self.name            : ret['name'] = self.name
 
-        if self.highVid         : ret['highVid'] = self.highVid
-        if self.norVid          : ret['norVid'] = self.norVid
-        if self.oriVid          : ret['oriVid'] = self.oriVid
-        if self.superVid        : ret['superVid'] = self.superVid
-        if self.relativeId      : ret['relativeId'] = self.relativeId
+#        if self.highVid         : ret['highVid'] = self.highVid
+#        if self.norVid          : ret['norVid'] = self.norVid
+#        if self.oriVid          : ret['oriVid'] = self.oriVid
+#        if self.superVid        : ret['superVid'] = self.superVid
+#        if self.relativeId      : ret['relativeId'] = self.relativeId
 
         if self.order != -1     : ret['order'] = self.order
         if self.playLength      : ret['playLength'] = self.playLength
@@ -104,9 +102,15 @@ class VideoBase:
         if self.videoScore      : ret['videoScore'] = self.videoScore
         if self.largePicUrl     : ret['largePicUrl'] = self.largePicUrl
         if self.smallPicUrl     : ret['smallPicUrl'] = self.smallPicUrl
+        if self.videos          : ret['videos'] = self.videos
         if self.script          : ret['script'] = self.script
+
         if self.priority        : ret['priority'] = self.priority
-        if self.private :         ret['private']  = self.private
+        if self.private         : ret['private']  = self.private
+
+        resolution = self.GetVideoResolution()
+        if resolution:
+            ret['resolution'] = resolution
 
         return ret
 
@@ -115,11 +119,11 @@ class VideoBase:
         if 'pid' in json            : self.pid            = autostr(json['pid'])
         if 'vid' in json            : self.vid            = autostr(json['vid'])
 
-        if 'highVid' in json        : self.highVid        = autostr(json['highVid'])
-        if 'norVid' in json         : self.norVid         = autostr(json['norVid'])
-        if 'oriVid' in json         : self.oriVid         = autostr(json['oriVid'])
-        if 'superVid' in json       : self.superVid       = autostr(json['superVid'])
-        if 'relativeId' in json     : self.relativeId     = autostr(json['relativeId'])
+#        if 'highVid' in json        : self.highVid        = autostr(json['highVid'])
+#        if 'norVid' in json         : self.norVid         = autostr(json['norVid'])
+#        if 'oriVid' in json         : self.oriVid         = autostr(json['oriVid'])
+#        if 'superVid' in json       : self.superVid       = autostr(json['superVid'])
+#        if 'relativeId' in json     : self.relativeId     = autostr(json['relativeId'])
 
         if 'order' in json          : self.order          = autoint(json['order'])
         if 'name' in json           : self.name           = json['name']
@@ -133,8 +137,9 @@ class VideoBase:
         if 'videoScore' in json     : self.videoScore     = json['videoScore']
         if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
         if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
+        if 'videos' in json         : self.videos         = json['videos']
         if 'script' in json         :  self.script        = json['script']
-        if 'priority' in json       :  self.priority      = json['priority']
+        if 'priority' in json       : self.priority       = json['priority']
         if 'private' in json        : self.private        = json['private']
 
 class AlbumBase:
@@ -187,10 +192,6 @@ class AlbumBase:
         v.cid = self.cid
 
         return v
-
-    def GetVideos(self):
-        self.videos, _ = self.engine.db.GetVideoListJson(pid=self.vid)
-        return self.videos
 
     def SaveToJson(self):
         ret = {}

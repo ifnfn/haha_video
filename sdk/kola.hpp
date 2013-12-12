@@ -78,7 +78,7 @@ class Task {
 
 class ScriptCommand {
 	public:
-		ScriptCommand();
+		ScriptCommand(json_t *js=NULL);
 		~ScriptCommand();
 		bool LoadFromJson(json_t *js);
 		std::string Run();
@@ -98,7 +98,7 @@ class KolaVideo {
 		bool LoadFromJson(json_t *js);
 
 		void Clear();
-		std::string GetVideoUrl(void);
+		std::string GetVideoUrl(std::string res="");
 		std::string GetSubtitle(const char *lang);
 
 		int    width;

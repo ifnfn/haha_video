@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "kola.hpp"
-#include "json.h"
+#include "json.hpp"
 
 void KolaFilter::KeyAdd(std::string key, std::string value)
 {

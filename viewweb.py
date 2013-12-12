@@ -64,6 +64,21 @@ class AlbumListHandler(BaseHandler):
 
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
+class GetVideoPlayerUrlHandle(BaseHandler):
+    def get(self):
+        ret = []
+        vid = self.get_argument('vid', '')
+        res = self.get_argument('resolution', '')
+        try:
+            video = tv.GetVideoByVid(vid)
+            if video:
+                for _,v in list(video['videos'].items()):
+                    if res == '' or v['name'] in res:
+                        ret.append(v)
+        finally:
+            self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+
+
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=0'
 class GetVideoHandler(BaseHandler):
@@ -76,22 +91,25 @@ class GetVideoHandler(BaseHandler):
         if size:
             args['size'] = size
 
-        return args, self.get_argument('pid', '')
+        return args, self.get_argument('pid', ''), self.get_argument('full', '')
 
     def get(self):
-        args, pid = self.argument()
+        args,pid,full = self.argument()
 
-        self.Finish(args, pid)
+        self.Finish(args, pid, full)
 
-    def Finish(self, args, pid):
+    def Finish(self, args, pid, full):
         videos, count = tv.GetVideoListByPid(pid, args)
+        if full != '1':
+            for v in videos:
+                del v['videos']
 
         args['count'] = count
         args['videos'] = videos
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
-        args, pid = self.argument()
+        args,pid,full = self.argument()
 
         if self.request.body:
             try:
@@ -102,7 +120,7 @@ class GetVideoHandler(BaseHandler):
                 log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
-        self.Finish(args, pid)
+        self.Finish(args, pid, full)
 
 class GetPlayerHandler(BaseHandler):
     def get(self):
@@ -473,6 +491,7 @@ class ViewApplication(tornado.web.Application):
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
             (r'/video/getmenu',    GetMenuHandler),         #
+            (r'/video/geturl',     GetVideoPlayerUrlHandle),
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
             (r'/show',             ShowHandler),

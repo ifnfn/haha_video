@@ -35,6 +35,22 @@ enum PicType {
 	PIC_SMALL_VER,
 };
 
+class StringList: public std::vector<std::string> {
+	public:
+		StringList() {}
+		virtual ~StringList() {}
+		virtual void Add(std::string v);
+		virtual void Remove(std::string v);
+		void operator<< (std::string v);
+		void operator>> (std::string v);
+		bool Find(std::string v);
+		std::string ToString(std::string s = "", std::string e = "", std::string split = ",");
+		std::string ToString(int offset, int count, std::string s = "", std::string e = "", std::string split = ",");
+		void Split(const std::string items, std::string sp=",");
+		bool SaveToFile(std::string fileName);
+		bool LoadFromFile(std::string fileName);
+};
+
 class Task {
 	public:
 		enum {
@@ -76,20 +92,6 @@ class Task {
 		friend class Thread;
 };
 
-class ScriptCommand {
-	public:
-		ScriptCommand(json_t *js=NULL);
-		~ScriptCommand();
-		bool LoadFromJson(json_t *js);
-		std::string Run();
-		bool Exists() {return script_name != ""; }
-	private:
-		std::string script_name;
-		std::string func_name;
-		char **argv;
-		int argc;
-};
-
 class KolaVideo {
 	public:
 		KolaVideo(json_t *js = NULL);
@@ -108,6 +110,9 @@ class KolaVideo {
 		size_t totalBytes;
 		int    totalBlocks;
 
+		int         cid;
+		std::string pid;
+		std::string vid;
 		std::string name;
 		int order;
 		int isHigh;
@@ -120,16 +125,13 @@ class KolaVideo {
 		std::string videoDesc;
 		std::string smallPicUrl;
 		std::string largePicUrl;
+		StringList  resolution;
 	private:
 		std::string localVideoFile;
-		int         cid;
-		std::string pid;
-		std::string vid;
 		std::string playlistid;
 		std::string pageUrl;
 		std::string playUrl;
 		std::string directPlayUrl;
-		ScriptCommand Script;
 };
 
 class Picture: public Task {
@@ -144,22 +146,6 @@ class Picture: public Task {
 		bool inCache;
 		virtual void Run();
 		bool used;
-};
-
-class StringList: public std::vector<std::string> {
-	public:
-		StringList() {}
-		virtual ~StringList() {}
-		virtual void Add(std::string v);
-		virtual void Remove(std::string v);
-		void operator<< (std::string v);
-		void operator>> (std::string v);
-		bool Find(std::string v);
-		std::string ToString(std::string s = "", std::string e = "", std::string split = ",");
-		std::string ToString(int offset, int count, std::string s = "", std::string e = "", std::string split = ",");
-		void Split(const std::string items, std::string sp=",");
-		bool SaveToFile(std::string fileName);
-		bool LoadFromFile(std::string fileName);
 };
 
 class FilterValue: public StringList {

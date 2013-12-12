@@ -161,22 +161,27 @@ ScriptCommand::ScriptCommand(json_t *js)
 
 ScriptCommand::~ScriptCommand()
 {
-	for (int i = 0; i < argc; i++)
-		free(argv[i]);
+	for (int i = 0; i < argc; i++) {
+		if (argv[i])
+			free(argv[i]);
+	}
 
 	free(argv);
 }
 
 bool ScriptCommand::LoadFromJson(json_t *js) {
-	script_name = json_gets(js, "name", "");
+	script_name = json_gets(js, "script", "");
 	func_name = json_gets(js, "function", "kola_main");
 	json_t *params = json_geto(js, "parameters");
+
 	if (params) {
 		argc = json_array_size(params);
-		argv = (char **)malloc(sizeof(void*) * argc);
+		argv = (char **)calloc(sizeof(void*), argc);
 		for (int i = 0; i < argc; i++) {
 			json_t *value = json_array_get(params, i);
-			argv[i] = strdup(json_string_value(value));
+
+			if (json_is_string(value))
+				argv[i] = strdup(json_string_value(value));
 		}
 	}
 

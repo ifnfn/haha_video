@@ -105,6 +105,7 @@ char *http_post(const char *url, const char *body, const char *cookie, const cha
 	curl = curl_easy_init();
 	if ( !curl ) {
 		syslog(LOG_ERR, "wget: cant initialize curl!");
+		curl_global_cleanup();
 		return NULL;
 	}
 	
@@ -124,6 +125,7 @@ char *http_get(const char *url, const char *cookie, const char *referer, struct 
 	curl = curl_easy_init();
 	if ( !curl ) {
 		syslog(LOG_ERR, "wget: cant initialize curl!");
+		curl_global_cleanup();
 		return NULL;
 	}
 

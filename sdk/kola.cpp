@@ -344,7 +344,7 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 	if (times > TRY_TIMES)
 		return false;
 
-	std::string cookie;
+	const char *cookie=NULL;
 	struct curl_buffer *buffer = (struct curl_buffer*)resp;
 	char *new_url;
 
@@ -359,10 +359,11 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 	free(new_url);
 
 	LOCK(lock);
-	cookie = loginKeyCookie;
+	if (strcmp(home_url, baseUrl.c_str()) == 0)
+		cookie = loginKeyCookie.c_str();
 	UNLOCK(lock);
 
-	if (http_get (url.c_str(), cookie.c_str(), referer, buffer) == NULL) {
+	if (http_get (url.c_str(), cookie, referer, buffer) == NULL) {
 		curl_buffer_free(buffer);
 		return UrlGet(resp, url, home_url, referer, times + 1);
 	}
@@ -373,7 +374,7 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 	int rc;
 	http_client_t *http_client;
 	http_resp_t **http_resp = (http_resp_t **)resp;
-	std::string cookie;
+	const char *cookie=NULL;
 
 	if (times > TRY_TIMES)
 		return false;
@@ -388,10 +389,11 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 		return false;
 	}
 	LOCK(lock);
-	cookie = loginKeyCookie;
+	if (strcmp(home_url, baseUrl.c_str()) == 0)
+		cookie = loginKeyCookie.c_str();
 	UNLOCK(lock);
 
-	rc = http_get(http_client, url.c_str(), http_resp, cookie.c_str(), referer);
+	rc = http_get(http_client, url.c_str(), http_resp, cookie, referer);
 	if (rc > 0 && *http_resp && (*http_resp)->body) {
 		if ((*http_resp)->xsrf_cookie)
 			xsrf_cookie = (*http_resp)->xsrf_cookie;
@@ -568,19 +570,22 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	std::string text;
 	Pcre pcre;
 	const char *name = json_gets(cmd, "name", "");
-	const char *source = json_gets(cmd, "source", "");
+	const char *source = json_gets(cmd, "source", NULL);
 
 //	name = "album";
 //	source = "http://tv.sohu.com/s2012/azhx/";
 //	printf("[%s]: %s\n", name, source);
 
+	text = json_gets(cmd, "text", "");
+	if (source) {
 #if TEST
-	if (UrlGetCache("", text, source) == false)
-		return false;
+		if (UrlGetCache("", text, source) == false)
+			return false;
 #else
-	if (UrlGet("", text, source) == false)
-		return false;
+		if (UrlGet("", text, source) == false)
+			return false;
 #endif
+	}
 
 	if (text.size() == 0)
 		return false;
@@ -691,31 +696,23 @@ void KolaClient::ClearMenu()
 
 bool KolaClient::UpdateMenu(void)
 {
-	json_error_t error;
 	json_t *js;
-	std::string text;
 
-	if ( UrlGet("/video/getmenu", text) == false)
-		return false;
-
-	if (text.size() == 0) {
-		return false;
-	}
-
-//	std::cout << text << std::endl;
-	ClearMenu();
-	js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+	js = json_loadurl("/video/getmenu");
 
 	if (js) {
 		json_t *value;
+
+		ClearMenu();
 		json_array_foreach(js, value) {
 			const char *name = json_gets(value, "name", "");
 			menuMap.insert(std::pair<std::string, KolaMenu*>(name, new KolaMenu(value)));
 		}
 		json_decref(js);
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 KolaMenu* KolaClient::operator[] (const char *name)

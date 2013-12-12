@@ -1,5 +1,6 @@
 #include "json.hpp"
 #include "kola.hpp"
+#include "script.hpp"
 
 json_t* json_loadurl(const char *url)
 {
@@ -26,7 +27,7 @@ const char *json_gets(json_t *js, const char *key, const char *def)
 	else if (json_is_object(p)) {
 		json_t *sc = json_object_get(p, "script");
 		if (sc) {
-			return ScriptCommand(sc).Run().c_str();
+			return ScriptCommand(p).Run().c_str();
 		}
 	}
 
@@ -34,3 +35,27 @@ const char *json_gets(json_t *js, const char *key, const char *def)
 }
 
 
+bool json_get_stringlist(json_t *js, const char *key, StringList *list)
+{
+	bool ret = false;
+
+	if (list == NULL)
+		return false;
+
+	json_t *sub = json_geto(js, key);
+	if (sub && json_is_array(sub)) {
+		json_t *v;
+		ret = true;
+		json_array_foreach(sub, v) {
+			if (json_is_string(v)) {
+				const char *s = json_string_value(v);
+				if (s) {
+					list->Add(s);
+					count++;
+				}
+			}
+		}
+	}
+
+	return ret;
+}

@@ -63,3 +63,28 @@ function kola_main(url)
 
 	return ""
 end
+
+
+function get_channel(vid)
+	local url = string.format("%s/0/%d", vid, kola.gettime())
+	print(url)
+
+	local ret = {}
+	text = kola.wget(url)
+	if text ~= nil then
+		local d = os.date("*t", kola.gettime())
+		local prev_d = d
+		local js = cjson.decode(text)
+		for k,v in ipairs(js.result[1]) do
+			ret[k] = {}
+			s = tonumber(v.start_time)
+			ret[k].time_string = os.date("%H:%M", s)
+			ret[k].time = s
+			ret[k].duration = tonumber(v.end_time) - s
+			ret[k].title = v.name
+			--print(k, ret[k].time_string, ret[k].duration, ret[k].title)
+		end
+	end
+
+	return cjson.encode(ret)
+end

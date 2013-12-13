@@ -16,3 +16,7 @@ function kola_main(id)
 
 	return ""
 end
+
+function get_channel(vid)
+	return ""
+end

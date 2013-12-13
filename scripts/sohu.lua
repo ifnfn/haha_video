@@ -1,4 +1,5 @@
-function kola_main(url, cid)
+function kola_main(vid, cid)
+	--local url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=' .. vid
 	local text = kola.wget(url)
 
 	if text == nil then

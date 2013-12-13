@@ -346,17 +346,17 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 
 	const char *cookie=NULL;
 	struct curl_buffer *buffer = (struct curl_buffer*)resp;
-	char *new_url;
+	char *tmp_url;
 
 	if (home_url == NULL)
 		home_url = baseUrl.c_str();
 
-	new_url = uri_join(home_url, url.c_str());
-	if (new_url == NULL)
+	tmp_url = uri_join(home_url, url.c_str());
+	if (tmp_url == NULL)
 		return false;
 
-	url = new_url;
-	free(new_url);
+	url = tmp_url;
+	free(tmp_url);
 
 	LOCK(lock);
 	if (strcmp(home_url, baseUrl.c_str()) == 0)

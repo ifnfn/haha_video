@@ -61,3 +61,25 @@ function kola_main(url)
 
 	return ret_url
 end
+
+function get_channel(vid)
+	local url = string.format("http://api1.hoolo.tv/player/live/program_xml.php?channel_id=%s&time=%d", vid, kola.gettime())
+
+	local ret = {}
+	text = kola.wget(url)
+	x = xml.eval(text)
+	v= find(x, "program", "item")
+	for k, b in pairs(v) do
+		if type(b) == "table" then
+			ret[k] = {}
+			s = tonumber(b['startTime'])
+			ret[k].time_string = os.date("%H:%M", s)
+			ret[k].time = s
+			ret[k].duration = tonumber(b['duration'])
+			ret[k].title = b['name']
+			--print("HZTV:", k, ret[k].time_string, ret[k].duration, ret[k].title)
+		end
+	end
+
+	return cjson.encode(ret)
+end

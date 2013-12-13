@@ -1,6 +1,6 @@
 function kola_main(vid, cid)
 	local url = vid
-	if string.sub(vid, "http://") == nil then
+	if string.find(vid, "http://") == nil then
 		url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=' .. vid
 	end
 

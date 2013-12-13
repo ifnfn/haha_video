@@ -326,13 +326,16 @@ class LoginHandler(BaseHandler):
 
         cmd = self.get_argument('cmd', '1')
         if cmd == '1':
+            count = self.get_argument('count', 1)
             if self.user_id == '000001':
                 timeout = 0
             else:
                 timeout = 0.3
-            count = self.get_argument('count', 1)
 
-            cmd = tv.command.GetCommand(timeout, count)
+            if self.user_id == '000001':
+                cmd = tv.command.GetCommand(timeout, count)
+            else:
+                cmd = None
             if cmd:
                 ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
                 ret['command'] = cmd

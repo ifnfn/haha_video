@@ -29,9 +29,8 @@ class SohuVideo(kola.VideoBase):
 
     def SetVideoScript(self, name, vid, func_name='kola_main'):
         url = {
-            'script'       : 'sohu',
-            #'parameters' : [autostr(vid), autostr(self.cid)]
-            'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid, autostr(self.cid)]
+            'script'     : 'sohu',
+            'parameters' : [autostr(vid), autostr(self.cid)]
         }
         if func_name and func_name != 'kola_main':
                 url['function'] = func_name
@@ -240,7 +239,6 @@ class ParserAlbumFullInfo(KolaParser):
                 v.script = {
                     'script' : 'sohu',
                     'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % v.vid, autostr(album.cid)]
-                    #'parameters' : [v.GetVideoPlayUrl(), autostr(album.cid)]
 				}
 
                 album.videos.append(v)

@@ -8,6 +8,11 @@
 static char *curlGetCurlURL (const char *, struct curl_buffer *, CURL *);
 static char *curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
 
+struct curl_buffer *curl_buffer_new(void)
+{
+	return (struct curl_buffer*)calloc(sizeof(struct curl_buffer), 1);
+}
+
 char *uri_join(const char * base, const char * uri)
 {
 	int location_len;
@@ -71,6 +76,7 @@ void curl_buffer_free(struct curl_buffer *buf)
 {
 	if (buf && buf->size > 0 && buf->mem != NULL) {
 		free(buf->mem);
+		free(buf);
 	}
 }
 

@@ -265,20 +265,20 @@ void Picture::Run()
 	KolaClient *client = &KolaClient::Instance();
 
 #if CURL
-	curl_buffer buffer;
+	struct curl_buffer *buffer = curl_buffer_new();
 
-	if (client->UrlGet((void**)&buffer, "", fileName.c_str())) {
-		size = buffer.size;
+	if (client->UrlGet((void**)buffer, "", fileName.c_str())) {
+		size = buffer->size;
 		if (size > 0) {
 			data = malloc(size);
-			memcpy(data, buffer.mem, size);
+			memcpy(data, buffer->mem, size);
 			inCache = true;
 		}
 		else
 			printf("Picture get timeout error %s\n", fileName.c_str());
 	}
 
-	curl_buffer_free(&buffer);
+	curl_buffer_free(buffer);
 #else
 	http_resp_t *http_resp = NULL;
 
@@ -364,7 +364,6 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 	UNLOCK(lock);
 
 	if (http_get (url.c_str(), cookie, referer, buffer) == NULL) {
-		curl_buffer_free(buffer);
 		return UrlGet(resp, url, home_url, referer, times + 1);
 	}
 
@@ -416,15 +415,15 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url,
 {
 	bool ok = false;
 #if CURL
-	struct curl_buffer buffer;
+	struct curl_buffer *buffer = curl_buffer_new();
 
-	if (UrlGet((void**)&buffer, url, home_url, referer)) {
-		if (buffer.mem)
-			ret = buffer.mem;
+	if (UrlGet((void**)buffer, url, home_url, referer)) {
+		if (buffer->mem)
+			ret.assign(buffer->mem);
 		ok = true;
 	}
 
-	curl_buffer_free(&buffer);
+	curl_buffer_free(buffer);
 #else
 	http_resp_t *http_resp = NULL;
 
@@ -505,7 +504,7 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 		new_body = gzip_base64(body, strlen(body));
 
 #if CURL
-	struct curl_buffer buffer;
+	struct curl_buffer *buffer = curl_buffer_new();
 
 	char *encode_body = URLencode(new_body.c_str());
 	char *new_url = uri_join(home_url, url.c_str());
@@ -515,14 +514,14 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 	url = new_url;
 	free(new_url);
 
-	if (http_post(url.c_str(), encode_body, cookie.c_str(), referer, &buffer) == NULL) {
+	if (http_post(url.c_str(), encode_body, cookie.c_str(), referer, buffer) == NULL) {
 		return UrlPost(url, body, ret, home_url, referer, times + 1);
 	}
 
-	if (buffer.mem)
-		ret = buffer.mem;
+	if (buffer->mem)
+		ret = buffer->mem;
 
-	curl_buffer_free(&buffer);
+	curl_buffer_free(buffer);
 	free(encode_body);
 
 	return true;

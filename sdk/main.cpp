@@ -237,7 +237,7 @@ int main(int argc, char **argv)
 //	return 0;
 //	test_custommenu();
 //	return 0;
-	printf("Test LiveTV\n"); test_livetv();
+//	printf("Test LiveTV\n"); test_livetv();
 
 	printf("Test Video\n"); test_video("电影");
 

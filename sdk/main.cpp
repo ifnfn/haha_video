@@ -88,7 +88,7 @@ void test_livetv()
 		return;
 //	m->Filter.KeyAdd("类型", "CCTV");
 
-	m->SetPageSize(10);
+	m->SetPageSize(100);
 	m->GetPage(page);
 
 	for (size_t i = 0; i < page.Count(); i++) {
@@ -105,13 +105,16 @@ void test_livetv()
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				KolaEpg epg;
 
-				epg.LoadFromText(video->GetInfo());
+				std::string info = video->GetInfo();
+				epg.LoadFromText(info);
 
 				EPG e1, e2;
-				epg.GetCurrent(e1);
-				epg.GetNext(e2);
-
-				printf("\t\tInfo: %s, %s\n\n", e1.title.c_str(), e2.title.c_str());
+				if (epg.GetCurrent(e1)) {
+					printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+					if (epg.GetNext(e2))
+						printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+					printf("\n\n");
+				}
 			}
 		}
 	}
@@ -230,6 +233,15 @@ void test_video(const char *menuName)
 int main(int argc, char **argv)
 {
 	KolaClient &kola = KolaClient::Instance();
+
+#if 0
+	while(1) {
+		printf("%d\n", kola.GetTime());
+
+		sleep(1);
+	}
+#endif
+
 	std::cout << kola.GetArea() << std::endl;
 	std::cout << kola.GetTime() << std::endl;
 
@@ -237,7 +249,7 @@ int main(int argc, char **argv)
 //	return 0;
 //	test_custommenu();
 //	return 0;
-//	printf("Test LiveTV\n"); test_livetv();
+	printf("Test LiveTV\n"); test_livetv();
 
 	printf("Test Video\n"); test_video("电影");
 

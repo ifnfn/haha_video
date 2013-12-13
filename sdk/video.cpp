@@ -31,10 +31,10 @@ bool KolaVideo::LoadFromJson(json_t *js)
 {
 	json_t *sub;
 
-	json_gets(js   , "name"           , name);
-	json_gets(js   , "playlistid"     , playlistid);
-	json_gets(js   , "pid"            , pid);
-	json_gets(js   , "vid"            , vid);
+	json_gets(js   , "name"         , name);
+	json_gets(js   , "playlistid"   , playlistid);
+	json_gets(js   , "pid"          , pid);
+	json_gets(js   , "vid"          , vid);
 	cid            = json_geti(js   , "cid"            , 0);
 	order          = json_geti(js   , "order"          , 0);
 	isHigh         = json_geti(js   , "isHigh"         , 0);
@@ -43,14 +43,14 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	videoScore     = json_getreal(js, "videoScore"     , 0.0);
 	playLength     = json_getreal(js, "playLength"     , 0.0);
 
-	json_gets(js   , "showName"       , showName);
-	json_gets(js   , "publishTime"    , publishTime);
-	json_gets(js   , "videoDesc"      , videoDesc);
+	json_gets(js   , "showName"     , showName);
+	json_gets(js   , "publishTime"  , publishTime);
+	json_gets(js   , "videoDesc"    , videoDesc);
 
-	json_gets(js   , "smallPicUrl"    , smallPicUrl);
-	json_gets(js   , "largePicUrl"    , largePicUrl);
-	json_gets(js   , "playUrl"        , playUrl);
-	json_gets(js   , "directPlayUrl"  , directPlayUrl);
+	json_gets(js   , "smallPicUrl"  , smallPicUrl);
+	json_gets(js   , "largePicUrl"  , largePicUrl);
+	json_gets(js   , "playUrl"      , playUrl);
+	json_gets(js   , "directPlayUrl", directPlayUrl);
 	totalDuration  = json_getreal(js, "totalDuration", 0.0);
 	width          = json_geti(js   , "width", 0);
 	height         = json_geti(js   , "height", 0);
@@ -95,12 +95,9 @@ std::string KolaVideo::GetVideoUrl(std::string res)
 
 std::string KolaVideo::GetInfo()
 {
-	if (info_js) {
+	if (info_js)
 		return info_js->Run();
-	}
 }
-
-
 
 bool KolaEpg::LoadFromText(std::string text)
 {
@@ -113,7 +110,6 @@ bool KolaEpg::LoadFromText(std::string text)
 		ret = LoadFromJson(js);
 
 	json_delete(js);
-
 
 	return ret;
 }
@@ -136,35 +132,38 @@ bool KolaEpg::LoadFromJson(json_t *js)
 
 bool KolaEpg::GetCurrent(EPG &e)
 {
-	time_t t = time(NULL);
-
-	return Get(e, t);
+	return Get(e, KolaClient::Instance().GetTime());
 }
 
 bool KolaEpg::GetNext(EPG &e)
 {
-	bool found = false;
-	time_t t = time(NULL);
+	EPG ok;
+	time_t t = KolaClient::Instance().GetTime();
 
-	for (std::vector<EPG>::iterator it = begin(); it != end(); it++) {
-		if (t >= it->startTime && (it->startTime + it->duration < t)) {
-			found = true;
-			continue;
+	int count = size();
+	for (int i = count - 1; i >= 0; i--) {
+		EPG x = at(i);
+
+		if (t >= x.startTime) {
+			e = ok;
+			return true;
 		}
-		if (found) {
-			e = *it;
-			break;
-		}
+
+		ok = x;
 	}
 
-	return found;
+	return false;
 }
 
 bool KolaEpg::Get(EPG &e, time_t t)
 {
-	for (std::vector<EPG>::iterator it = begin(); it != end(); it++) {
-		if (t >= it->startTime && (it->startTime + it->duration < t)) {
-			e = *it;
+	int count = size();
+
+	for (int i = count - 1; i >= 0; i--) {
+		EPG x = at(i);
+
+		if (t >= x.startTime) {
+			e = x;
 			return true;
 		}
 	}

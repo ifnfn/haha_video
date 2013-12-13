@@ -797,10 +797,24 @@ std::string KolaClient::GetArea()
 
 time_t KolaClient::GetTime()
 {
-	LuaScript &lua = LuaScript::Instance();
-	const char *argv[] = { "" };
+	static time_t init_time = 0;
+	static time_t hw_time = 0;
 
-	std::string ret = lua.RunScript(1, argv, "getip", "gettime");
+	if (init_time == 0) {
+		LuaScript &lua = LuaScript::Instance();
+		const char *argv[] = { "" };
 
-	return atol(ret.c_str());
+		std::string ret = lua.RunScript(1, argv, "getip", "gettime");
+
+		init_time = atol(ret.c_str());
+		hw_time = time(NULL);
+	}
+
+	size_t offset = time(NULL) - hw_time;
+	time_t ret = init_time + offset;
+
+	if (offset > 3600)
+		init_time = 0;
+
+	return ret;
 }

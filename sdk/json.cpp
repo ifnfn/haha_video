@@ -52,7 +52,9 @@ const bool json_gets(json_t *js, const char *key, std::string &ret)
 	else if (json_is_object(p)) {
 		json_t *sc = json_object_get(p, "script");
 		if (sc) {
-			ret = ScriptCommand(p).Run().c_str();
+			ScriptCommand cmd(p);
+			ret = cmd.Run();
+			return true;
 		}
 	}
 
@@ -68,10 +70,8 @@ const char *json_gets(json_t *js, const char *key, const char *def)
 	if (json_is_string(p))
 		return json_string_value(p);
 	else if (json_is_object(p)) {
-		json_t *sc = json_object_get(p, "script");
-		if (sc) {
-			return ScriptCommand(p).Run().c_str();
-		}
+		while(1)
+			printf("dddddddddddddd\n");
 	}
 
 	return def;

@@ -42,6 +42,7 @@ static std::string lua_runscript(lua_State* L, const char *fn, const char *func,
 	// 第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
 	// lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
 	if (lua_pcall(L, argc, 1, 0)) {
+#if 0
 		printf("%s.\n", lua_tostring(L, -1));
 		printf("%s(", func);
 		for (i = 0; i < argc - 1; i++)
@@ -49,6 +50,7 @@ static std::string lua_runscript(lua_State* L, const char *fn, const char *func,
 
 		if (argc > 0)
 			printf("\"%s\")\n", argv[argc - 1]);
+#endif
 
 		return ret;
 	}

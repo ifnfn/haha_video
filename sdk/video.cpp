@@ -82,8 +82,8 @@ std::string KolaVideo::GetVideoUrl(std::string res)
 		json_t *v;
 		json_array_foreach(js, v) {
 			if (res == json_gets(v, "name", "") || res == "") {
-				json_gets(v, "url", ret);
-				break;
+				if (json_gets(v, "url", ret) == true)
+					break;
 			}
 		}
 	}

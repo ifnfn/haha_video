@@ -23,6 +23,7 @@ class KolaVideo;
 class AlbumPage;
 class ThreadPool;
 class Task;
+class ScriptCommand;
 
 extern void split(const std::string &s, std::string delim, std::vector< std::string > *ret);
 
@@ -92,6 +93,28 @@ class Task {
 		friend class Thread;
 };
 
+class EPG {
+	public:
+		EPG() {
+			startTime = 0;
+			duration = 0;
+		}
+		time_t startTime;
+		size_t duration;
+		std::string title;
+		std::string timeString;
+};
+
+class KolaEpg: public std::vector<EPG> {
+	public:
+		KolaEpg() {}
+		bool LoadFromText(std::string text);
+		bool LoadFromJson(json_t *js);
+		bool GetCurrent(EPG &e);
+		bool GetNext(EPG &e);
+		bool Get(EPG &e, time_t time);
+};
+
 class KolaVideo {
 	public:
 		KolaVideo(json_t *js = NULL);
@@ -102,6 +125,7 @@ class KolaVideo {
 		void Clear();
 		std::string GetVideoUrl(std::string res="");
 		std::string GetSubtitle(const char *lang);
+		std::string GetInfo();
 
 		int    width;
 		int    height;
@@ -132,6 +156,7 @@ class KolaVideo {
 		std::string pageUrl;
 		std::string playUrl;
 		std::string directPlayUrl;
+		ScriptCommand *info_js;
 };
 
 class Picture: public Task {

@@ -21,7 +21,7 @@ KolaMenu::KolaMenu(json_t *js)
 	PageSize   = DEFAULT_PAGE_SIZE;
 	PageId     = -1;
 	albumCount = 0;
-	name       = json_gets(js, "name", "");
+	json_gets(js, "name", name);
 	cid        = json_geti(js, "cid" , -1);
 
 	client = &KolaClient::Instance();
@@ -92,7 +92,7 @@ int KolaMenu::ParserJson(AlbumPage &page, std::string &text)
 
 		count = ParserJson(page, results);
 
-		json_decref(js);
+		json_delete(js);
 	}
 
 	return count;

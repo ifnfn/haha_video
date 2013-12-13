@@ -64,7 +64,7 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 		this->videos.push_back(new KolaVideo(v));
 	}
 
-	json_decref(js);
+	json_delete(js);
 
 	return true;
 }
@@ -72,25 +72,26 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 bool KolaAlbum::LoadFromJson(json_t *js)
 {
 	json_t *sub;
-	albumName      = json_gets(js, "albumName"  , "");
-	albumDesc      = json_gets(js, "albumDesc"  , "");
+
+	json_gets(js, "albumName"  , albumName);
+	json_gets(js, "albumDesc"  , albumDesc);
+	json_gets(js, "vid"        , vid);
+	json_gets(js, "pid"        , pid);
+	json_gets(js, "playlistid" , playlistid);
 	cid            = json_geti(js, "cid"        , 0);
-	vid            = json_gets(js, "vid"        , "");
-	pid            = json_gets(js, "pid"        , "");
-	playlistid     = json_gets(js, "playlistid" , "");
 	isHigh         = json_geti(js, "isHigh"     , 0);
 	publishYear    = json_geti(js, "publishYear", 0);
 	totalSet       = json_geti(js, "totalSet"   , 0);
 	updateSet      = json_geti(js, "updateSet"  , totalSet);
-	area           = json_gets(js, "area"       , "");
 
-	videoPlayUrl   = json_gets(js, "videoPlayUrl"  , "");
-	largePicUrl    = json_gets(js, "largePicUrl"   , "");
-	smallPicUrl    = json_gets(js, "smallPicUrl"   , "");
-	largeHorPicUrl = json_gets(js, "largeHorPicUrl", "");
-	smallHorPicUrl = json_gets(js, "smallHorPicUrl", "");
-	largeVerPicUrl = json_gets(js, "largeVerPicUrl", "");
-	smallVerPicUrl = json_gets(js, "smallVerPicUrl", "");
+	json_gets(js, "area"          , area);
+	json_gets(js, "videoPlayUrl"  , videoPlayUrl  );
+	json_gets(js, "largePicUrl"   , largePicUrl   );
+	json_gets(js, "smallPicUrl"   , smallPicUrl   );
+	json_gets(js, "largeHorPicUrl", largeHorPicUrl);
+	json_gets(js, "smallHorPicUrl", smallHorPicUrl);
+	json_gets(js, "largeVerPicUrl", largeVerPicUrl);
+	json_gets(js, "smallVerPicUrl", smallVerPicUrl);
 #if 0
 	std::cout << "largePicUrl: " << largePicUrl << std::endl;
 	std::cout << "smallPicUrl: " << smallPicUrl << std::endl;

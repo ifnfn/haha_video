@@ -2,6 +2,7 @@
 #include <string.h>
 #include <map>
 #include <string>
+#include <iostream>
 
 extern "C" {
 #include "lua.h"
@@ -17,19 +18,25 @@ extern "C" {
 #include "kola.hpp"
 #include "script.hpp"
 
-static char *lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
+static std::string lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
 {
 	int i;
 
+	std::string ret;
+
 	if (luaL_dostring(L, fn)) {
 		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
-		return NULL;
+		return ret;
 	}
 
 	lua_getglobal(L, func);
 
-	for (i=0; i < argc; i++)
-		lua_pushstring(L, argv[i]);
+	for (i=0; i < argc; i++) {
+		if (argv[i] == NULL)
+			printf("argc[%d] error\n", i);
+		else
+			lua_pushstring(L, argv[i]);
+	}
 
 	// 下面的第二个参数表示带调用的lua函数存在两个参数。
 	// 第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
@@ -43,23 +50,25 @@ static char *lua_runscript(lua_State* L, const char *fn, const char *func, int a
 		if (argc > 0)
 			printf("\"%s\")\n", argv[argc - 1]);
 
-		return NULL;
+		return ret;
 	}
 
 	// 此时结果已经被压入栈中。
 	if (!lua_isstring(L, -1)) {
 		printf("[Warning] function '%s' must return a string.\n", func);
 		lua_pop(L, -1);
-		return NULL;
+		return ret;
 	}
 
-	const char *ret = lua_tostring(L, -1);
-	if (ret)
-		ret = strdup(ret);
+
+	const char *r = lua_tostring(L, -1);
+
+	if (r)
+		ret.assign(r);
 
 	lua_pop(L, -1);
 
-	return (char*)ret;
+	return ret;
 }
 
 static const luaL_Reg lualibs[] = {
@@ -110,18 +119,10 @@ LuaScript::~LuaScript()
 
 std::string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname)
 {
-	std::string text, ret("");
+	std::string text, ret;
 
-	if ( GetScript(name, text)) {
-		char *r = lua_runscript(L, text.c_str(), fname, argc, argv);
-		if (r) {
-			ret = r;
-
-			free(r);
-		}
-		else
-			printf("RunScript %s error\n", name);
-	}
+	if ( GetScript(name, text))
+		ret = lua_runscript(L, text.c_str(), fname, argc, argv);
 
 	return ret;
 }
@@ -170,8 +171,8 @@ ScriptCommand::~ScriptCommand()
 }
 
 bool ScriptCommand::LoadFromJson(json_t *js) {
-	script_name = json_gets(js, "script", "");
-	func_name = json_gets(js, "function", "kola_main");
+	json_gets(js, "script", script_name); 
+	json_gets(js, "function", func_name);
 	json_t *params = json_geto(js, "parameters");
 
 	if (params) {
@@ -182,18 +183,32 @@ bool ScriptCommand::LoadFromJson(json_t *js) {
 
 			if (json_is_string(value))
 				argv[i] = strdup(json_string_value(value));
+			else if (json_is_integer(value)) {
+				char buf[128];
+				sprintf(buf, "%d", json_integer_value(value));
+
+				argv[i] = strdup(buf);
+			}
+			else if (json_is_number(value)) {
+				char buf[128];
+				sprintf(buf, "%f", json_integer_value(value));
+
+				argv[i] = strdup(buf);
+			}
 		}
 	}
 
 	return script_name != "";
 }
 
-std::string ScriptCommand::Run() {
+std::string ScriptCommand::Run()
+{
+	std::string ret;
 	if (Exists()) {
 		LuaScript& lua = LuaScript::Instance();
-		return lua.RunScript(argc, (const char **)argv, script_name.c_str(), func_name.c_str());
+		ret = lua.RunScript(argc, (const char **)argv, script_name.c_str(), func_name.c_str());
 	}
 
-	return "";
+	return ret;
 }
 

@@ -88,7 +88,7 @@ void test_livetv()
 		return;
 //	m->Filter.KeyAdd("类型", "CCTV");
 
-	m->SetPageSize(500);
+	m->SetPageSize(10);
 	m->GetPage(page);
 
 	for (size_t i = 0; i < page.Count(); i++) {
@@ -103,6 +103,15 @@ void test_livetv()
 			if (video) {
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				KolaEpg epg;
+
+				epg.LoadFromText(video->GetInfo());
+
+				EPG e1, e2;
+				epg.GetCurrent(e1);
+				epg.GetNext(e2);
+
+				printf("\t\tInfo: %s, %s\n\n", e1.title.c_str(), e2.title.c_str());
 			}
 		}
 	}

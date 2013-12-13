@@ -149,9 +149,7 @@ class ParserLetvLive(LivetvParser):
                 v.info = {
                           'script' : 'letv',
                           'function' : 'get_channel',
-                          'parameters' : [
-                                'http://st.live.letv.com/live/playlist/20131212/%s.json' % vid],
-                          }
+                          'parameters' : [vid]}
 
                 album.videos.append(v)
                 db._save_update_append(ret, album)
@@ -256,8 +254,7 @@ class ParserHangZhouLive(LivetvParser):
             v.info = {
                 'script' : 'hztv',
                 'function' : 'get_channel',
-                'parameters' : [
-                      'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i],
+                'parameters' : [utils.autostr(i)],
             }
 
             album.videos.append(v)
@@ -298,7 +295,7 @@ class ParserWenZhouLive(LivetvParser):
             v.info = {
                 'script'     : 'wztv',
                 'function'   : 'get_channel',
-                'parameters' : [source],
+                'parameters' : [u],
             }
             album.videos.append(v)
             db._save_update_append(ret, album)
@@ -351,7 +348,7 @@ class ParserTVIELive(LivetvParser):
             v.info = {
                 'script' : 'tvie',
                 'function' : 'get_channel',
-                'parameters' : [x['id']],
+                'parameters' : ['http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])]
             }
 
             album.videos.append(v)

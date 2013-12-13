@@ -128,6 +128,7 @@ class KolaClient:
             body = json.dumps(cmd) #, ensure_ascii = False)
             ret = self.PostUrl(dest, body) != None
         except:
+            print(data)
             t, v, tb = sys.exc_info()
             print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
             return self.ProcessCommand(cmd, dest, times + 1)

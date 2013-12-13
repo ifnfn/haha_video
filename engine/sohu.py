@@ -10,21 +10,15 @@ from bs4 import BeautifulSoup as bs
 import tornado.escape
 
 from engine import VideoEngine, KolaParser
-from kola import VideoBase, AlbumBase, VideoMenuBase, DB, autostr, autoint, log, \
-    Singleton, utils
+from kola import DB, autostr, autoint, Singleton, utils
+import kola
 
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
 global Debug
 Debug = True
 
-class SohuVideo(VideoBase):
-    def GetVideoPlayUrl(self, definition=0):
-        if self.vid:
-            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % self.vid
-        else:
-            return ''
-
+class SohuVideo(kola.VideoBase):
     def SaveToJson(self):
         ret = super().SaveToJson()
 
@@ -43,7 +37,7 @@ class SohuVideo(VideoBase):
 
         self.SetVideoUrl(name, url)
 
-class SohuAlbum(AlbumBase):
+class SohuAlbum(kola.AlbumBase):
     def __init__(self):
         super().__init__()
         self.albumPageUrl = ''
@@ -84,13 +78,6 @@ class SohuAlbum(AlbumBase):
     def UpdateAlbumPlayInfoCommand(self):
         if self.sohu['vid'] != '':
             ParserAlbumPlayInfo(self).AddCommand()
-
-    def GetVideoPlayUrl(self):
-        vid = self.sohu['vid']
-        if vid:
-            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
-        else:
-            return ''
 
 class SohuDB(DB, Singleton):
     def __init__(self):
@@ -426,7 +413,7 @@ class ParserAlbumPlayInfo(KolaParser):
         super().__init__()
         if album:
             self.cmd['name']   = 'engine_parser'
-            self.cmd['source'] = album.GetVideoPlayUrl()
+            self.cmd['source'] = self.GetVideoUrl(album)
             self.cmd['cid']    = album.cid
             self.cmd['json'] = [
                     'data.highVid',
@@ -436,6 +423,13 @@ class ParserAlbumPlayInfo(KolaParser):
                     'data.relativeId',
                     'id'
                 ]
+
+    def GetVideoUrl(self, album):
+        vid = album.sohu['vid']
+        if vid:
+            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
+        else:
+            return ''
 
     def CmdParser(self, js):
         db = SohuDB()
@@ -478,7 +472,7 @@ class ParserAlbumPlayInfo(KolaParser):
         if video.highVid or video.norVid or video.oriVid or video.superVid or video.relativeId:
             db.SaveVideo(video)
 
-class SohuVideoMenu(VideoMenuBase):
+class SohuVideoMenu(kola.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
 

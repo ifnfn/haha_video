@@ -30,12 +30,6 @@ class VideoBase:
 
             "largePicUrl": "http://photocdn.sohu.com/20130806/vrsb924544.jpg",
             "smallPicUrl": "http://photocdn.sohu.com/20130806/vrss924544.jpg",
-
-            'highVid' :
-            'norVid' :
-            'oriVid' :
-            'superVid' :
-            'relativeId' :
         }
         '''
 
@@ -83,9 +77,6 @@ class VideoBase:
                 'url'  : url
             }
 
-
-    def GetVideoPlayUrl(self):
-        pass
 
     def GetVideoResolution(self):
         ret = []

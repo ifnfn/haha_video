@@ -26,6 +26,7 @@ ADD_GX_LIBRARY(kolatv
 	script.cpp
 	task.cpp
 	video.cpp
+	json.cpp
 )
 
 ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wno-deprecated-declarations)

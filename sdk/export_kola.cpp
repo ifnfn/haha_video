@@ -165,8 +165,14 @@ static int f_pcre(lua_State *L)
 
 static int f_getserver(lua_State *L)
 {
-	KolaClient &kola = KolaClient::Instance();
-	lua_pushstring(L, kola.GetServer().c_str());
+	lua_pushstring(L, KolaClient::Instance().GetServer().c_str());
+
+	return 1;
+}
+
+static int f_gettime(lua_State *L)
+{
+	lua_pushnumber(L, KolaClient::Instance().GetTime());
 
 	return 1;
 }
@@ -200,6 +206,7 @@ static const struct luaL_reg wget_lib[] = {
 	{"wpost"     , f_wpost}     ,
 	{"pcre"      , f_pcre}      ,
 	{"getserver" , f_getserver} ,
+	{"gettime"   , f_gettime} ,
 	{"urlencode" , f_urlencode} ,
 	{"urldecode" , f_urldecode} ,
 	{NULL        , NULL}        ,

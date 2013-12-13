@@ -1,12 +1,15 @@
 #ifndef __JSON_H__
 #define __JSON_H__
 
+#include <string>
 #include "jansson.h"
 
 class StringList;
+class ScriptCommand;
 
 json_t* json_loadurl(const char *url);
 
+bool json_get_script(json_t *js, const char *key, ScriptCommand *script);
 bool json_get_stringlist(json_t *js, const char *key, StringList *list);
 
 inline bool json_key_exists(json_t *js, const char *key)
@@ -45,6 +48,7 @@ inline void json_setreal(json_t *js, const char *key, double value)
 }
 
 const char *json_gets(json_t *js, const char *key, const char *def);
+const bool json_gets(json_t *js, const char *key, std::string &ret);
 
 inline void json_sets(json_t *js, const char *key, const char *value)
 {

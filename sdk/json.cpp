@@ -16,6 +16,49 @@ json_t* json_loadurl(const char *url)
 	return NULL;
 }
 
+bool json_get_script(json_t *js, const char *key, ScriptCommand *script)
+{
+	json_t *p = json_object_get(js, key);
+
+	if (p == NULL || json_is_string(p))
+		return false;
+
+	if (json_is_object(p)) {
+		json_t *sc = json_object_get(p, "script");
+		if (sc) {
+			script->LoadFromJson(p);
+
+			return false;
+		}
+	}
+
+	return false;
+}
+
+const bool json_gets(json_t *js, const char *key, std::string &ret)
+{
+	json_t *p = json_object_get(js, key);
+	if (p == NULL)
+		return false;
+
+	if (json_is_string(p))
+		ret = json_string_value(p);
+	else if (json_is_integer(p)) {
+		char buf[32];
+		sprintf(buf, "%d", json_integer_value(p));
+
+		ret.assign(buf);
+	}
+	else if (json_is_object(p)) {
+		json_t *sc = json_object_get(p, "script");
+		if (sc) {
+			ret = ScriptCommand(p).Run().c_str();
+		}
+	}
+
+	return false;
+}
+
 const char *json_gets(json_t *js, const char *key, const char *def)
 {
 	json_t *p = json_object_get(js, key);

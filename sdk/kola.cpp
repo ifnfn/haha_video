@@ -31,7 +31,7 @@
 
 #define TEST 1
 #if TEST
-#define SERVER_HOST "192.168.1.23"
+#define SERVER_HOST "192.168.56.1"
 //#define SERVER_HOST "127.0.0.1"
 #define PORT 9991
 #else
@@ -569,12 +569,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 {
 	std::string text;
 	Pcre pcre;
-	const char *name = json_gets(cmd, "name", "");
 	const char *source = json_gets(cmd, "source", NULL);
-
-//	name = "album";
-//	source = "http://tv.sohu.com/s2012/azhx/";
-//	printf("[%s]: %s\n", name, source);
 
 	text = json_gets(cmd, "text", "");
 	if (source) {
@@ -628,8 +623,8 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 				json_seto(newjs, key.c_str(), p_js);
 		}
 		text = json_dumps(newjs, 2);
-		json_decref(newjs);
-		json_decref(js);
+		json_delete(newjs);
+		json_delete(js);
 	}
 
 	json_sets(cmd, "data", text.c_str());
@@ -679,7 +674,7 @@ bool KolaClient::Login(bool quick)
 			havecmd = false;
 
 		nextLoginSec = json_geti(js, "next", nextLoginSec);
-		json_decref(js);
+		json_delete(js);
 	}
 
 	return true;
@@ -708,7 +703,7 @@ bool KolaClient::UpdateMenu(void)
 			const char *name = json_gets(value, "name", "");
 			menuMap.insert(std::pair<std::string, KolaMenu*>(name, new KolaMenu(value)));
 		}
-		json_decref(js);
+		json_delete(js);
 		return true;
 	}
 

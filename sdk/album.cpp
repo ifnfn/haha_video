@@ -48,7 +48,7 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 	char url_buffer[256];
 	json_t *js, *videos, *v;
 
-	sprintf(url_buffer, "/video/getvideo?full=1&pid=%s&page=%ld&size=%ld", vid.c_str(), pageNo, pageSize);
+	sprintf(url_buffer, "/video/getvideo?full=0&pid=%s&page=%ld&size=%ld", vid.c_str(), pageNo, pageSize);
 
 	js = json_loadurl(url_buffer);
 	if (js == NULL)
@@ -166,7 +166,7 @@ std::string &KolaAlbum::GetPictureUrl(enum PicType type)
 
 AlbumPage::AlbumPage()
 {
-
+	pageId = -1;
 }
 
 AlbumPage::~AlbumPage(void)
@@ -236,5 +236,5 @@ void AlbumPage::Clear()
 
 	pictureList.clear();
 	albumList.clear();
-
+	pageId = -1;
 }

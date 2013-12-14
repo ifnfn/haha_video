@@ -88,9 +88,44 @@ void test_livetv()
 		return;
 //	m->Filter.KeyAdd("类型", "CCTV");
 
-	m->SetPageSize(100);
-	m->GetPage(page);
+//	m->SetPageSize(2);
+//	m->GetPage(page);
+	m->Sort.Set("Name", "1");
+	int count = m->GetAlbumCount();
 
+	//int pos = m->SeekByAlbumId("947ca7a4d96b3cc9");
+	int pos = m->SeekByAlbumId("b7e36f65e971f37e");
+	for (int i=pos; i < count; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+
+#if 0
+		for (size_t j = 0; j < video_count; j++) {
+			std::string player_url;
+			KolaVideo *video = album->GetVideo(j);
+			if (video) {
+				player_url = video->GetVideoUrl();
+				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				KolaEpg epg;
+
+				std::string info = video->GetInfo();
+				epg.LoadFromText(info);
+
+				EPG e1, e2;
+				if (epg.GetCurrent(e1)) {
+					printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+					if (epg.GetNext(e2))
+						printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+					printf("\n\n");
+				}
+			}
+		}
+#endif
+	}
+#if 0
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 
@@ -118,6 +153,7 @@ void test_livetv()
 			}
 		}
 	}
+#endif
 
 	printf("%s End!!!\n", __func__);
 }

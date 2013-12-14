@@ -180,7 +180,7 @@ class FilterValue: public StringList {
 		~FilterValue() {}
 		void Set(std::string v) { value = v; }
 		std::string Get(void) { return value; }
-	private:
+	protected:
 		std::string value;
 };
 
@@ -199,11 +199,15 @@ class KolaSort: public FilterValue {
 	public:
 		std::string GetJsonStr(void) {
 			std::string ret = Get();
-			if (ret != "")
-				ret = "\"sort\": \"" + ret + "\"";
+			if (ret != "") {
+				ret = "\"sort\": \"" + ret + "," + sort +"\"";
+			}
 
 			return ret;
 		}
+		void Set(std::string v, std::string s) { value = v, sort = s;}
+	private:
+		std::string sort;
 };
 
 class KolaAlbum {
@@ -275,6 +279,7 @@ class AlbumPage {
 
 		Picture* GetPicture(std::string fileName);
 		void Clear();
+		int pageId;
 	private:
 		std::vector<KolaAlbum*> albumList;
 		std::map<std::string, Picture*> pictureList;
@@ -296,22 +301,27 @@ class KolaMenu {
 		void   SetLanguage(std::string lang);
 		int    GetPage(AlbumPage &page, int pageNo = -1);
 		bool   SetQuickFilter(std:: string);
-		std::string GetQuickFilter() { return quickFilter; }
 		void   SetPageSize(int size) {PageSize = size;}
 		size_t GetPageSize() { return PageSize;}
-		virtual int GetAlbumCount();
-		int    Seek(std::string vid);
+		int    SeekByAlbumId(std::string vid);
+		int    SeekByAlbumName(std::string vid);
 		int    Search(AlbumPage &page, std::string keyword, int pageNo);
+		std::string GetQuickFilter() { return quickFilter; }
+		virtual int GetAlbumCount();
+		KolaAlbum* GetAlbum(int position);
 	protected:
 		KolaClient *client;
 		int PageSize;
 		int PageId;
 		int albumCount;
 		std::string quickFilter;
-		virtual int LowGetPage(AlbumPage &page, int pageId, int pageSize);
-		int ParserJson(AlbumPage &page, json_t *js);
-		int ParserJson(AlbumPage &page, std::string &jsonstr);
+		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
+		virtual int LowGetPage(AlbumPage *page, std::string key, std::string value, int pageSize);
+		int ParserJson(AlbumPage *page, std::string &jsonstr);
 		std::string GetPostData();
+	private:
+		AlbumPage page[3];
+		AlbumPage *prev, *cur, *next;
 };
 
 class CustomMenu: public KolaMenu {
@@ -324,7 +334,7 @@ class CustomMenu: public KolaMenu {
 		bool SaveToFile(std::string otherFile = "");
 		virtual int GetAlbumCount();
 	protected:
-		virtual int LowGetPage(AlbumPage &page, int pageId, int pageSize);
+		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
 	private:
 		StringList albumIdList;
 		std::string fileName;
@@ -341,9 +351,9 @@ class KolaClient {
 
 		KolaMenu* GetMenuByName(const char *name);
 		KolaMenu* GetMenuByCid(int cid);
+		int MenuCount() { return menuMap.size(); };
 		KolaMenu* operator[] (const char *name);
 		KolaMenu* operator[] (int inx);
-		int MenuCount() { return menuMap.size(); };
 		bool haveCommand() { return havecmd; }
 		inline std::string GetFullUrl(std::string url) { return baseUrl + url; }
 		bool UrlGet(void **http_resp, std::string url, const char *home_url, const char *referer = NULL, int times = 0);

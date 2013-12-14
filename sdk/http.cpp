@@ -1,6 +1,4 @@
 #include <string.h>
-#include <curl/curl.h>
-#include <curl/easy.h>
 #include <syslog.h>
 
 #include "http.hpp"
@@ -13,21 +11,21 @@ struct curl_buffer *curl_buffer_new(void)
 	return (struct curl_buffer*)calloc(sizeof(struct curl_buffer), 1);
 }
 
-char *uri_join(const char * base, const char * uri)
+std::string uri_join(const char * base, const char * uri)
 {
 	int location_len;
 	const char *p, *path;
-	char *ret = NULL;
+	char *buffer = NULL;
 
 	if (strstr(uri, "://"))
-		return strdup(uri);
+		return uri;
 
-	p = strstr (base, "://");
+	p = strstr(base, "://");
 	if (!p)
 		return NULL;
 
 	if (strlen(uri) == 0)
-		return strdup(base);
+		return base;
 
 	p += 3;
 	while (*p && *p != '/')
@@ -37,7 +35,7 @@ char *uri_join(const char * base, const char * uri)
 	location_len = path - base;
 
 	if (uri[0] == '/') {
-		asprintf(&ret, "%.*s%s", location_len, base, uri);
+		asprintf(&buffer, "%.*s%s", location_len, base, uri);
 	} else {
 		int path_len;
 
@@ -47,8 +45,11 @@ char *uri_join(const char * base, const char * uri)
 		else
 			path_len = p - path;
 
-		asprintf(&ret, "%.*s/%s", location_len + path_len, base, uri);
+		asprintf(&buffer, "%.*s/%s", location_len + path_len, base, uri);
 	}
+
+	std::string ret = buffer;
+	free(buffer);
 
 	return ret;
 }
@@ -74,8 +75,10 @@ static void curl_head_init(CURL *curl, const char *referer, const char *cookie)
 
 void curl_buffer_free(struct curl_buffer *buf)
 {
-	if (buf && buf->size > 0 && buf->mem != NULL) {
-		free(buf->mem);
+	if (buf) {
+		if( buf->size > 0 && buf->mem != NULL)
+			free(buf->mem);
+
 		free(buf);
 	}
 }
@@ -107,18 +110,15 @@ char *http_post(const char *url, const char *body, const char *cookie, const cha
 {
 	CURL * curl;
 
-	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
 	if ( !curl ) {
 		syslog(LOG_ERR, "wget: cant initialize curl!");
-		curl_global_cleanup();
 		return NULL;
 	}
 	
 	curl_head_init(curl, referer, cookie);
 	char *memptr = curlPostCurlURL(url, curlData, curl, body);
 	curl_easy_cleanup(curl);
-	curl_global_cleanup();
 
 	return memptr;
 }
@@ -127,11 +127,9 @@ char *http_get(const char *url, const char *cookie, const char *referer, struct 
 {
 	CURL * curl;
 
-	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
 	if ( !curl ) {
 		syslog(LOG_ERR, "wget: cant initialize curl!");
-		curl_global_cleanup();
 		return NULL;
 	}
 
@@ -139,7 +137,6 @@ char *http_get(const char *url, const char *cookie, const char *referer, struct 
 
 	char * memptr = curlGetCurlURL(url, curlData, curl);
 	curl_easy_cleanup(curl);
-	curl_global_cleanup();
 
 	return memptr;
 }

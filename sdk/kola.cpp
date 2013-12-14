@@ -23,8 +23,8 @@
 #include "threadpool.hpp"
 #include "script.hpp"
 
-#define CURL 1
-#if CURL
+#define ENABLE_CURL 1
+#if ENABLE_CURL
 #	include "http.hpp"
 #endif
 #include "httplib.h"
@@ -264,7 +264,7 @@ void Picture::Run()
 		return;
 	KolaClient *client = &KolaClient::Instance();
 
-#if CURL
+#if ENABLE_CURL
 	struct curl_buffer *buffer = curl_buffer_new();
 
 	if (client->UrlGet((void**)buffer, "", fileName.c_str())) {
@@ -303,6 +303,11 @@ KolaClient::KolaClient(void)
 {
 	signal(SIGPIPE, SIG_IGN);
 	char buffer[512];
+
+#if ENABLE_CURL
+	curl_global_init(CURL_GLOBAL_ALL);
+#endif
+
 	char *ip = GetIP(SERVER_HOST);
 
 	if (ip) {
@@ -334,29 +339,26 @@ void KolaClient::Quit(void)
 KolaClient::~KolaClient(void)
 {
 	ClearMenu();
-	delete threadPool;
 	Quit();
+	delete threadPool;
+#if ENABLE_CURL
+	curl_global_cleanup();
+#endif
 }
 
 bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, const char *referer, int times)
 {
-#if CURL
+#if ENABLE_CURL
 	if (times > TRY_TIMES)
 		return false;
 
 	const char *cookie=NULL;
 	struct curl_buffer *buffer = (struct curl_buffer*)resp;
-	char *tmp_url;
 
 	if (home_url == NULL)
 		home_url = baseUrl.c_str();
 
-	tmp_url = uri_join(home_url, url.c_str());
-	if (tmp_url == NULL)
-		return false;
-
-	url = tmp_url;
-	free(tmp_url);
+	url = uri_join(home_url, url.c_str());
 
 	LOCK(lock);
 	if (strcmp(home_url, baseUrl.c_str()) == 0)
@@ -414,7 +416,7 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url, const char *referer)
 {
 	bool ok = false;
-#if CURL
+#if ENABLE_CURL
 	struct curl_buffer *buffer = curl_buffer_new();
 
 	if (UrlGet((void**)buffer, url, home_url, referer)) {
@@ -503,18 +505,14 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 	if (body)
 		new_body = gzip_base64(body, strlen(body));
 
-#if CURL
+#if ENABLE_CURL
+	url = uri_join(home_url, url.c_str());
 	struct curl_buffer *buffer = curl_buffer_new();
-
 	char *encode_body = URLencode(new_body.c_str());
-	char *new_url = uri_join(home_url, url.c_str());
-	if (new_url == NULL)
-		return false;
-
-	url = new_url;
-	free(new_url);
 
 	if (http_post(url.c_str(), encode_body, cookie.c_str(), referer, buffer) == NULL) {
+		free(encode_body);
+		curl_buffer_free(buffer);
 		return UrlPost(url, body, ret, home_url, referer, times + 1);
 	}
 

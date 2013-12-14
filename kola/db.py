@@ -7,7 +7,7 @@ import traceback
 import pymongo
 import redis
 
-from .utils import autostr, autoint, log, GetQuickFilter
+from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin
 
 
 # 每个 Video 表示一个可以播放视频
@@ -195,7 +195,10 @@ class AlbumBase:
         if self.cid             : ret['cid']             = self.cid
         if self.engineList      : ret['engineList']      = self.engineList
 
-        if self.albumName       : ret['albumName']       = self.albumName
+        if self.albumName:
+            ret['albumName'] = self.albumName
+            ret['NamePy']    = GetPinYin(self.albumName)
+
         if self.vid             : ret['vid']             = self.vid
         if self.isHigh          : ret['isHigh']          = self.isHigh
 
@@ -375,6 +378,8 @@ class DB:
             '总播放最多' : 'totalPlayNum',
             '最新发布'   : 'publishTime',
             '评分最高'   : 'videoScore',
+            '名称'       : 'NamePy',
+            'Name'       : 'NamePy',
             'vids'      : 'vid'
         }
 
@@ -477,16 +482,32 @@ class DB:
             if 'full' in arg:
                 full = arg['full']
 
+            if set(['key', 'value', 'size']).issubset(arg): # 查找指定名称的节目所在的页
+                key = arg['key']
+                value = arg['value']
+                size = autoint(arg['size'])
+                cursor = self.album_table.find(_filter, fields = fields)
+                if 'sort' in arg:
+                    cursor = cursor.sort(arg['sort'])
+
+                c = 0
+                for x in cursor:
+                    if x[key] == value:
+                        arg['page'] = c // size
+                        break
+                    c += 1
+
+            size = 0
+            if 'page' in arg and 'size' in arg:
+                page = autoint(arg['page'])
+                size = autoint(arg['size'])
+
             cursor = self.album_table.find(_filter, fields = fields)
             count = cursor.count()
 
             if 'sort' in arg:
                 cursor = cursor.sort(arg['sort'])
 
-            size = 0
-            if 'page' in arg and 'size' in arg:
-                page = autoint(arg['page'])
-                size = autoint(arg['size'])
             if size:
                 cursor = cursor.skip(page * size).limit(size)
             if size or disablePage:
@@ -593,11 +614,12 @@ class DB:
         return f
 
     def _ConvertSortJson(self, v):
+        v, style= v.split(',')
         if v in self.fieldMapping:
             newkey = self.fieldMapping[v]
-            return [(newkey, -1)]
+            return [(newkey, int(style))]
         else:
-            return [(v, -1)]
+            return [(v, int(style))]
 
     def _save_update_append(self, sets, album, key={}, upsert=True):
         if album:

@@ -1,10 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import json
 import re
-import sys
-import traceback
 
 from bs4 import BeautifulSoup as bs
 import tornado.escape

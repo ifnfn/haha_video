@@ -22,9 +22,13 @@ tv = KolatvServer()
 class AlbumListHandler(BaseHandler):
     def argument(self):
         args = {}
-        args['page'] = int(self.get_argument('page', 0))
-        args['size'] = int(self.get_argument('size', 20))
-        args['full'] = int(self.get_argument('full', 0))
+        args['page']  = int(self.get_argument('page', 0))
+        args['size']  = int(self.get_argument('size', 20))
+        args['full']  = int(self.get_argument('full', 0))
+        key = self.get_argument('key', '')
+        value = self.get_argument('value', '')
+        if key:   args['key'] = key
+        if value: args['value'] = value
 
         return args, self.get_argument('menu', ''), self.get_argument('cid', ''), self.get_argument('vid', '')
 
@@ -326,11 +330,11 @@ class LoginHandler(BaseHandler):
 
         cmd = self.get_argument('cmd', '1')
         if cmd == '1':
-            count = self.get_argument('count', 1)
             if self.user_id == '000001':
                 timeout = 0
             else:
                 timeout = 0.3
+            count = self.get_argument('count', 1)
 
             if self.user_id == '000001':
                 cmd = tv.command.GetCommand(timeout, count)

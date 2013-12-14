@@ -10,7 +10,7 @@ import traceback
 import zlib
 
 from .fetchTools import fetch_httplib2 as fetch
-
+from .pytable import Pinyin 
 
 def autostr(i):
     if type(i) == int:
@@ -120,6 +120,11 @@ def GetQuickFilter(name, default):
         return json.load(io)
     except:
         return default
+
+py = Pinyin()
+
+def GetPinYin(text):
+    return py.get_initials(text, '')
 
 logging.basicConfig()
 log = logging.getLogger("crawler")

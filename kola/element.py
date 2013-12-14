@@ -5,12 +5,15 @@ from . import db
 
 
 filter_year = [ '2013', '2012', '2011', '2010', '00年代', '90年代', '80年代', '更早' ]
+filter_sort = ['周播放最多', '日播放最多', '总播放最多', '最新发布', '评分最高']
 
 # 直播
 class LivetvMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 200
+        self.sort = ['Name', '日播放最多']
+
         self.filter = {
             '类型': ['卫视台', '地方台', '央视台', '境外台', '本地台' ]
         }
@@ -21,6 +24,7 @@ class MovieMenu(db.VideoMenuBase):
         super().__init__(name)
         self.cid = 1
 
+        self.sort = filter_sort
         self.filter = {
             '年份' :  filter_year,
             '类型' : [
@@ -67,6 +71,7 @@ class TVMenu(db.VideoMenuBase):
         super().__init__(name)
         self.cid = 2
 
+        self.sort = filter_sort
         self.filter = {
             '年份' : filter_year,
             '类型' : [
@@ -110,6 +115,7 @@ class ComicMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 115
+        self.sort = filter_sort
         self.filter = {
             '年份' : self.filter_year,
             '篇幅' : [ '剧场版', 'TV版', '花絮', 'OVA', '其他' ],
@@ -127,6 +133,7 @@ class SohuShow(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 106
+        self.sort = filter_sort
         self.filter = {
             '类型' : ['访谈', '时尚', '游戏竞技', 'KTV', '交友', '选秀', '音乐', '曲艺',
                       '养生', '脱口秀', '歌舞', '娱乐节目', '真人秀', '其他'],
@@ -138,6 +145,7 @@ class SohuDocumentary(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 107
+        self.sort = filter_sort
         self.filter = {
             '类型': ['人物', '历史', '自然', '军事', '社会', '幕后', '财经',
                      '剧情', '旅游', '科技', '文化', '搜狐视频大视野']
@@ -148,6 +156,7 @@ class SohuEdu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 119
+        self.sort = filter_sort
         self.filter = {
             '类型': ['公开课', '考试辅导', '职业培训', '外语学习', '幼儿教育', '乐活', '职场管理', '中小学教育']
         }
@@ -157,6 +166,7 @@ class SohuNew(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 122
+        self.sort = filter_sort
         self.filter = {
             '类型': ['国内', '国际', '军事', '科技', '财经', '社会', '生活'],
             '范围': ['今天', '本周', '本月']
@@ -167,6 +177,7 @@ class SohuYule(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 112
+        self.sort = filter_sort
         self.filter = {
             '类型' : ['明星', '电影', '电视', '音乐', '戏剧', '动漫', '其他'],
             '范围' : ['今天', '本周', '本月']
@@ -177,6 +188,7 @@ class SohuTour(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 131
+        self.sort = filter_sort
         self.filter = {
             '类型': [
                 '自驾游','攻略','交通住宿','旅游资讯','国内游',

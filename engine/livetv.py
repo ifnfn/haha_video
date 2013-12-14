@@ -77,14 +77,15 @@ class LivetvAlbum(AlbumBase):
 class LivetvVideoMenu(LivetvMenu):
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
-        ParserLetvLive().Execute()
-        ParserSohuLive().Execute()
-        ParserTextLive().Execute()
-        ParserZJLive().Execute()
-        ParserNBLive().Execute()
-        ParserHangZhouLive().Execute()
-        ParserUCLive().Execute()
-        ParserWenZhouLive().Execute()
+        ParserLetvLivetv().Execute()
+        ParserSohuLivetv().Execute()
+        ParserTextLivetv().Execute()
+        ParserZJLivetv().Execute()
+        ParserNBLivetv().Execute()
+        ParserHangZhouLivetv().Execute()
+        ParserUCLivetv().Execute()
+        ParserWenZhouLivetv().Execute()
+        #ParserJLntvLivetv().Execute()
 
 class LivetvParser(KolaParser):
     def __init__(self):
@@ -107,13 +108,12 @@ class LivetvParser(KolaParser):
         return name
 
 # 乐视直播电视
-class ParserLetvLive(LivetvParser):
+class ParserLetvLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.cmd['name']    = 'live_engine_parser'
         self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
         self.cmd['regular'] = ["<dt>(<a title=.*</a>)</dt>"]
-
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -156,10 +156,10 @@ class ParserLetvLive(LivetvParser):
         return ret
 
 # 搜狐直播电视
-class ParserSohuLive(LivetvParser):
+class ParserSohuLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        self.cmd['name']    = 'live_engine_parser'
+        self.cmd['name']   = 'live_engine_parser'
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 
     def CmdParser(self, js):
@@ -198,8 +198,54 @@ class ParserSohuLive(LivetvParser):
 
         return ret
 
+# 吉林电视台
+class ParserJLntvLivetv(LivetvParser):
+    def __init__(self):
+        super().__init__()
+        self.cmd['name']    = 'live_engine_parser'
+        self.cmd['source']  = 'http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6'
+        self.cmd['regular'] = ['(<li id="T_Menu_.*</a></li>)']
+
+        self.Alias = {}
+        self.ExcludeName = ('交通918', 'FM1054', 'FM89')
+        self.area = '中国-淅江省-杭州市'
+
+    def CmdParser(self, js):
+        db = LivetvDB()
+        ret = []
+
+        ch_list = re.findall('<li id="T_Menu_(\d*)"><a href="(.*)">(.*)</a></li>', js['data'])
+
+        for i, u, n in ch_list:
+            album  = LivetvAlbum()
+            album.vid        = utils.genAlbumId(n)
+            album.albumName  = n
+            album.categories = self.tvCate.GetCategories(n)
+
+            v = album.NewVideo()
+            playUrl     = 'http://live.jlntv.cn/' + u
+            v.vid         = utils.getVidoId(playUrl)
+#            v.largePicUrl = x[0][2]
+            v.priority    = 1
+            v.name        = "JLNTV"
+            v.script      = {
+                'script' : 'jlntv',
+                'parameters' : [playUrl]
+            }
+            v.SetVideoUrl('default', v.script)
+
+            v.info = {
+                      'script' : 'jlntv',
+                      'function' : 'get_channel',
+                      'parameters' : []}
+
+            album.videos.append(v)
+            db._save_update_append(ret, album)
+
+        return ret
+
 # 杭州电视台
-class ParserHangZhouLive(LivetvParser):
+class ParserHangZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.cmd['name']    = 'live_engine_parser'
@@ -262,7 +308,7 @@ class ParserHangZhouLive(LivetvParser):
         return ret
 
 # 温州电视台
-class ParserWenZhouLive(LivetvParser):
+class ParserWenZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.cmd['name']    = 'live_engine_parser'
@@ -301,7 +347,7 @@ class ParserWenZhouLive(LivetvParser):
             db._save_update_append(ret, album)
 
 #
-class ParserTVIELive(LivetvParser):
+class ParserTVIELivetv(LivetvParser):
     def __init__(self, url):
         super().__init__()
         self.base_url = url
@@ -357,7 +403,7 @@ class ParserTVIELive(LivetvParser):
         return ret
 
 # 浙江电视台
-class ParserZJLive(ParserTVIELive):
+class ParserZJLivetv(ParserTVIELivetv):
     def __init__(self):
         self.tvName = '浙江电视台'
         super().__init__('api.cztv.com')
@@ -378,7 +424,7 @@ class ParserZJLive(ParserTVIELive):
         self.area = '中国-淅江省'
 
 # 宁波电视台
-class ParserNBLive(ParserTVIELive):
+class ParserNBLivetv(ParserTVIELivetv):
     def __init__(self):
         self.tvName = '宁波电视台'
         super().__init__('ming-api.nbtv.cn')
@@ -393,7 +439,7 @@ class ParserNBLive(ParserTVIELive):
         self.area = '中国-淅江省-宁波市'
 
 # 新疆电视台
-class ParserUCLive(ParserTVIELive):
+class ParserUCLivetv(ParserTVIELivetv):
     def __init__(self):
         self.tvName = '新疆电视台'
         super().__init__('epgsrv01.ucatv.com.cn')
@@ -401,7 +447,7 @@ class ParserUCLive(ParserTVIELive):
         self.area = '中国-新疆'
 
 # 文本导入
-class ParserTextLive(LivetvParser):
+class ParserTextLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.cmd['name']    = 'live_engine_parser'
@@ -457,13 +503,14 @@ class LiveEngine(VideoEngine):
         }
 
         self.parserList = {
-            ParserLetvLive(),
-            ParserSohuLive(),
-            ParserTextLive(),
-            ParserZJLive(),
-            ParserNBLive(),
-            ParserHangZhouLive(),
-            ParserUCLive(),
-            ParserWenZhouLive(),
+            ParserLetvLivetv(),
+            ParserSohuLivetv(),
+            ParserTextLivetv(),
+            ParserZJLivetv(),
+            ParserNBLivetv(),
+            ParserHangZhouLivetv(),
+            ParserUCLivetv(),
+            ParserWenZhouLivetv(),
+            #ParserJLntvLivetv(),
         }
 

@@ -65,8 +65,10 @@ static void curl_head_init(CURL *curl, const char *referer, const char *cookie)
 //	curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 //	if (curlinfo->features & CURL_VERSION_LIBZ)
 		curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 5000);
-	curl_easy_setopt(curl, CURLOPT_USERAGENT , "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0");
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3);
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
+	curl_easy_setopt(curl, CURLOPT_USERAGENT , "KolaClient");
 	if (referer)
 		curl_easy_setopt(curl, CURLOPT_REFERER, referer);
 	if (cookie)

@@ -3,6 +3,7 @@
 
 import sys
 import traceback
+import re
 
 import pymongo
 import redis
@@ -606,12 +607,14 @@ class DB:
         return arg
 
     def _ConvertFilterJson(self, f):
+        ret = {}
         for key in f:
-            if key in self.fieldMapping:
+            if key.lower() == 'pinyin':
+                ret['NamePy'] = re.compile(f[key])
+            elif key in self.fieldMapping:
                 newkey = self.fieldMapping[key]
-                f[newkey] = { "$in" : f[key].split(',')}
-                del f[key]
-        return f
+                ret[newkey] = { "$in" : f[key].split(',')}
+        return ret
 
     def _ConvertSortJson(self, v):
         v, style= v.split(',')

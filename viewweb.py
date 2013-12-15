@@ -25,9 +25,11 @@ class AlbumListHandler(BaseHandler):
         args['page']  = int(self.get_argument('page', 0))
         args['size']  = int(self.get_argument('size', 20))
         args['full']  = int(self.get_argument('full', 0))
+
         key = self.get_argument('key', '')
-        value = self.get_argument('value', '')
         if key:   args['key'] = key
+
+        value = self.get_argument('value', '')
         if value: args['value'] = value
 
         return args, self.get_argument('menu', ''), self.get_argument('cid', ''), self.get_argument('vid', '')
@@ -43,6 +45,8 @@ class AlbumListHandler(BaseHandler):
             albumlist, args['total'] = tv.GetMenuAlbumListByVidList(vid, args)
 
         if albumlist: args['result'] = albumlist
+
+        del args['filter']
 
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
@@ -66,6 +70,7 @@ class AlbumListHandler(BaseHandler):
             albumlist, args['total'] = tv.GetMenuAlbumListByVidList(vid, args)
 
         if albumlist: args['result'] = albumlist
+        del args['filter']
 
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 

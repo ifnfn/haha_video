@@ -90,6 +90,7 @@ void test_livetv()
 
 //	m->SetPageSize(2);
 //	m->GetPage(page);
+	m->Filter.KeyAdd("PinYin", "ws");
 	m->Sort.Set("Name", "1");
 	int count = m->GetAlbumCount();
 
@@ -286,6 +287,7 @@ int main(int argc, char **argv)
 //	test_custommenu();
 //	return 0;
 	printf("Test LiveTV\n"); test_livetv();
+	return 0;
 
 	printf("Test Video\n"); test_video("电影");
 

@@ -163,7 +163,7 @@ std::string KolaMenu::GetPostData()
 	}
 
 	body = body + "}";
-	//std::cout << "Filter Body: " << body << std::endl;
+//	std::cout << "Filter Body: " << body << std::endl;
 
 	return body;
 }

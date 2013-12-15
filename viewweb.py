@@ -46,8 +46,6 @@ class AlbumListHandler(BaseHandler):
 
         if albumlist: args['result'] = albumlist
 
-        del args['filter']
-
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
@@ -70,7 +68,6 @@ class AlbumListHandler(BaseHandler):
             albumlist, args['total'] = tv.GetMenuAlbumListByVidList(vid, args)
 
         if albumlist: args['result'] = albumlist
-        del args['filter']
 
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 

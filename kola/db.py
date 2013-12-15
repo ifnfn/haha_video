@@ -519,6 +519,10 @@ class DB:
                             del x['private']
                         if 'engineList' in x:
                             del x['engineList']
+                        if 'NamePy' in x:
+                            del x['NamePy']
+                        if 'albumPageUrl' in x:
+                            del x['albumPageUrl']
 
                     ret.append(x)
         except:
@@ -610,7 +614,8 @@ class DB:
         ret = {}
         for key in f:
             if key.lower() == 'pinyin':
-                ret['NamePy'] = re.compile(f[key])
+                ret['NamePy'] = {{'$regex':f[key]}}
+                #ret['NamePy'] = re.compile(f[key])
             elif key in self.fieldMapping:
                 newkey = self.fieldMapping[key]
                 ret[newkey] = { "$in" : f[key].split(',')}

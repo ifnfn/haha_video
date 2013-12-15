@@ -173,6 +173,7 @@ class ParserSohuLivetv(LivetvParser):
             vid = utils.genAlbumId(name)
             album  = LivetvAlbum()
             album.albumName   = json_get(v, 'name', '')
+            album.categories  = self.tvCate.GetCategories(album.albumName)
             album.vid         = vid
             #album.enAlbumName = json_get(v, 'enName', '')
             album.smallPicUrl = json_get(v, 'ico', '')
@@ -284,9 +285,10 @@ class ParserHangZhouLivetv(LivetvParser):
                 continue
 
             album  = LivetvAlbum()
-            album.albumName = name
-            album.vid       = utils.genAlbumId(name)
-            album.area      = self.area
+            album.albumName  = name
+            album.categories = self.tvCate.GetCategories(album.albumName)
+            album.vid        = utils.genAlbumId(name)
+            album.area       = self.area
 
             v = album.NewVideo()
             v.vid      = utils.getVidoId(url)
@@ -325,9 +327,10 @@ class ParserWenZhouLivetv(LivetvParser):
         for u, source, name in ch_list:
             vid = utils.genAlbumId(name)
             album  = LivetvAlbum()
-            album.albumName = name
-            album.vid       = vid
-            album.area      = self.area
+            album.albumName  = name
+            album.categories = self.tvCate.GetCategories(album.albumName)
+            album.vid        = vid
+            album.area       = self.area
 
             v = album.NewVideo()
             v.vid      = utils.getVidoId(u)
@@ -372,9 +375,10 @@ class ParserTVIELivetv(LivetvParser):
                 continue
 
             album = LivetvAlbum()
-            album.albumName = name
-            album.vid       = utils.genAlbumId(name)
-            album.area      = self.area
+            album.albumName  = name
+            album.categories = self.tvCate.GetCategories(album.albumName)
+            album.vid        = utils.genAlbumId(name)
+            album.area       = self.area
 
             v = album.NewVideo()
             playUrl = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
@@ -485,7 +489,7 @@ class ParserTextLivetv(LivetvParser):
                 album.playlistid  = k
                 album.pid         = k
                 album.albumName   = k
-                album.categories  = self.tvCate.GetCategories(k)
+                album.categories  = self.tvCate.GetCategories(album.albumName)
                 album.sources     = v
                 album.totalSet    = len(v)
                 db._save_update_append(None, album)

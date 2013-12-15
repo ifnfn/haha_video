@@ -34,7 +34,7 @@ def genAlbumId(name):
     if type(name) == str:
         name = name.encode()
 
-    return hashlib.md5(name).hexdigest()[16:]
+    return hashlib.md5(name).hexdigest()[22:]
 
 def getVidoId(name):
     if type(name) == str:

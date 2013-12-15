@@ -622,7 +622,11 @@ class DB:
         return ret
 
     def _ConvertSortJson(self, v):
-        v, style= v.split(',')
+        print(v)
+        if v.find(',') >= 0:
+            v, style = v.split(',')
+        else:
+            style = "-1"
         if v in self.fieldMapping:
             newkey = self.fieldMapping[v]
             return [(newkey, int(style))]

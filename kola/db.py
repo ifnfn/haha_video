@@ -614,15 +614,17 @@ class DB:
         ret = {}
         for key in f:
             if key.lower() == 'pinyin':
-                ret['NamePy'] = {{'$regex':f[key]}}
-                #ret['NamePy'] = re.compile(f[key])
+                ret['NamePy'] = {'$regex':f[key], '$options':'i'}
             elif key in self.fieldMapping:
                 newkey = self.fieldMapping[key]
                 ret[newkey] = { "$in" : f[key].split(',')}
         return ret
 
     def _ConvertSortJson(self, v):
-        v, style= v.split(',')
+        if v.find(',') >= 0:
+            v, style = v.split(',')
+        else:
+            style = "-1"
         if v in self.fieldMapping:
             newkey = self.fieldMapping[v]
             return [(newkey, int(style))]

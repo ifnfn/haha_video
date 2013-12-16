@@ -4,8 +4,8 @@
 #include <string>
 #include "jansson.h"
 
-class StringList;
 class ScriptCommand;
+class StringList;
 
 json_t* json_loadurl(const char *url);
 

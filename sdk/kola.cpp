@@ -29,7 +29,7 @@
 #endif
 #include "httplib.h"
 
-#define TEST 0
+#define TEST 1
 #if TEST
 #define SERVER_HOST "192.168.56.1"
 //#define SERVER_HOST "127.0.0.1"

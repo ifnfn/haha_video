@@ -225,6 +225,7 @@ Picture* AlbumPage::GetPicture(std::string fileName)
 
 void AlbumPage::Clear()
 {
+	pageId = -1;
 	for (std::map<std::string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
 		it->second->Cancel();
 		delete it->second;
@@ -236,5 +237,4 @@ void AlbumPage::Clear()
 
 	pictureList.clear();
 	albumList.clear();
-	pageId = -1;
 }

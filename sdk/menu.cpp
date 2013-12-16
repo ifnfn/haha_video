@@ -43,6 +43,7 @@ KolaMenu::KolaMenu(json_t *js)
 			std::string list;
 			json_array_foreach(values, v)
 				list = list + json_string_value(v) + ",";
+//			printf("%s: %s\n", key, list.c_str());
 			this->Filter.filterKey.insert(std::pair<std::string, FilterValue>(key, FilterValue(list)));
 		}
 	}
@@ -61,8 +62,9 @@ KolaMenu::KolaMenu(json_t *js)
 		json_t *v;
 		json_array_foreach(sub, v) {
 			const char *s = json_string_value(v);
-			if (s)
+			if (s) {
 				quickFilters << s;
+			}
 		}
 	}
 }
@@ -99,7 +101,7 @@ int KolaMenu::SeekByAlbumId(std::string vid)
 	for (int i=0; i<count; i++) {
 		KolaAlbum *album = cur->GetAlbum(i);
 		if (album && album->vid == vid)
-			return i;
+			return PageId * PageSize + i;
 	}
 
 	return -1;
@@ -241,9 +243,9 @@ KolaAlbum* KolaMenu::GetAlbum(int position)
 		}
 		else if (prev->pageId == page) {
 			AlbumPage *tmp = next;
-			prev = next;
+			next = cur;
 			cur = prev;
-			next = tmp;
+			prev = tmp;
 			prev->Clear();
 			LowGetPage(prev, page - 1, PageSize);
 		}

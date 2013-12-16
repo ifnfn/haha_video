@@ -105,15 +105,26 @@ int KolaMenu::SeekByAlbumId(std::string vid)
 	return -1;
 }
 
-int KolaMenu::SeekByAlbumName(std::string vid)
+int KolaMenu::SeekByAlbumName(std::string name)
 {
+	prev->Clear();
+	cur->Clear();
+	next->Clear();
+	int count = LowGetPage(cur, "albumName", name, PageSize);
 
-}
+	PageId = cur->pageId;
 
-int KolaMenu::Search(AlbumPage &page, std::string keyword, int pageNo)
-{
+	if (PageId > 0)
+		LowGetPage(prev, PageId - 1, PageSize);
+	LowGetPage(next, PageId + 1, PageSize);
 
-	return 0;
+	for (int i=0; i<count; i++) {
+		KolaAlbum *album = cur->GetAlbum(i);
+		if (album && album->vid == name)
+			return i;
+	}
+
+	return -1;
 }
 
 int KolaMenu::ParserJson(AlbumPage *page, std::string &text)
@@ -228,7 +239,7 @@ KolaAlbum* KolaMenu::GetAlbum(int position)
 			next->Clear();
 			LowGetPage(next, page + 1, PageSize);
 		}
-		else if (prev->pageId = page) {
+		else if (prev->pageId == page) {
 			AlbumPage *tmp = next;
 			prev = next;
 			cur = prev;

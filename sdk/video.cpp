@@ -97,6 +97,8 @@ std::string KolaVideo::GetInfo()
 {
 	if (info_js)
 		return info_js->Run();
+
+	return "";
 }
 
 bool KolaEpg::LoadFromText(std::string text)

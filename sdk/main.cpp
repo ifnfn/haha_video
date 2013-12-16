@@ -101,7 +101,7 @@ void test_livetv()
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
-		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 
 #if 0
 		for (size_t j = 0; j < video_count; j++) {

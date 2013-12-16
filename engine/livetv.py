@@ -20,7 +20,7 @@ class TVCategory:
         self.Outside = '凤凰|越南|半岛|澳门|东森|澳视|亚洲|良仔|朝鲜| TV|KP|Yes|HQ|NASA|Poker|Docu|Channel|Neotv|fashion|Sport|sport|Power|FIGHT|Pencerahan|UK|GOOD|Kontra|Rouge|Outdoor|Divine|Europe|DaQu|Teleromagna|Alsharqiya|Playy|Boot Movie|Runway|Bid|LifeStyle|CBN|HSN|BNT|NTV|Virgin|Film|Smile|Russia|NRK|VIET|Gulli|Fresh'
         self.filter = {
             '类型' : {
-                'CCTV' : 'cctv|CCTV',
+                '央视台' : 'cctv|CCTV',
                 '卫视台' : '卫视|卡酷少儿|炫动卡通',
                 '体育台' : '体育|足球|网球',
                 '综合台' : '综合|财|都市|经济|旅游',

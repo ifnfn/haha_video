@@ -90,18 +90,57 @@ void test_livetv()
 
 //	m->SetPageSize(2);
 //	m->GetPage(page);
-	m->Filter.KeyAdd("PinYin", "ws");
+//	m->Filter.KeyAdd("PinYin", "ws");
 	m->Sort.Set("Name", "1");
 	int count = m->GetAlbumCount();
 
-	//int pos = m->SeekByAlbumId("947ca7a4d96b3cc9");
-	int pos = m->SeekByAlbumId("b7e36f65e971f37e");
-	for (int i=pos; i < count; i++) {
+	int pos = 0;
+	//pos = m->SeekByAlbumId("156ceef6b9");
+	//pos = m->SeekByAlbumId("fff64edb5a");
+	//pos = m->SeekByAlbumId("9dfbf95f82");
+	//pos = m->SeekByAlbumId("3f200a7529");
+	//pos = m->SeekByAlbumId("4302400107");
+	pos = m->SeekByAlbumId("764c5069aa");
+
+	KolaAlbum *album = m->GetAlbum(99);
+	printf("album->name = %s\n", album->albumName.c_str());
+
+	std::map<int, std::string> vids;
+	for (int i=0; i < count; i++) {
 		KolaAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
 			continue;
+		vids[i] = album->vid;
 		size_t video_count = album->GetVideoCount();
 		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+	}
+
+	while(1) {
+		pos = random() % count;
+		KolaAlbum *album = m->GetAlbum(pos);
+
+		if (album == NULL)
+			printf("pos[%d] == NULL\n", pos);
+		else if (album->vid != vids[pos])
+			printf("[%d] [%s : %s] %s\n", pos, album->vid.c_str(), vids[pos].c_str(), album->albumName.c_str());
+#if 0
+		for (int i=0; i < pos; i++) {
+			KolaAlbum *album = m->GetAlbum(i);
+			if (album == NULL)
+				continue;
+			size_t video_count = album->GetVideoCount();
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		}
+		printf("\n");
+		for (int i=pos; i < count; i++) {
+			KolaAlbum *album = m->GetAlbum(i);
+			if (album == NULL)
+				continue;
+			size_t video_count = album->GetVideoCount();
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		}
+#endif
+	}
 
 #if 0
 		for (size_t j = 0; j < video_count; j++) {
@@ -124,8 +163,8 @@ void test_livetv()
 				}
 			}
 		}
-#endif
 	}
+#endif
 #if 0
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
@@ -178,7 +217,7 @@ void test_video(const char *menuName)
 	}
 	//m->Filter.KeyAdd("类型", "爱情片");
 	//m->Filter.KeyAdd("产地", "香港,台湾");
-	//m->SetQuickFilter("推荐电影");
+	m->SetQuickFilter("推荐电影");
 
 	//m->Sort.Set("周播放最多");
 	//m->Sort.Set("评分最高");
@@ -287,6 +326,8 @@ int main(int argc, char **argv)
 //	test_custommenu();
 //	return 0;
 	printf("Test LiveTV\n"); test_livetv();
+
+	return 0;
 
 	printf("Test Video\n"); test_video("电影");
 

@@ -308,16 +308,17 @@ class VideoMenuBase:
             qf = GetQuickFilter(self.name, self.quickFilter)
 
             name = argument['quickFilter']
-            if name in qf:
-                js = qf[name]
-                if 'filter' in js:
-                    argument['filter'] = js['filter']
-                if 'sort' in js:
-                    argument['sort'] = js['sort']
+            for js in qf:
+                if js['title'] ==  name:
+                    if 'filter' in js:
+                        argument['filter'] = js['filter']
+                    if 'sort' in js:
+                        argument['sort'] = js['sort']
+                    break
             del argument['quickFilter']
 
     def GetQuickFilterJson(self):
-        return [x for x in self.quickFilter]
+        return [x['title'] for x in self.quickFilter]
 
     def GetFilterJson(self):
         ret = {}

@@ -97,15 +97,16 @@ bool StringList::SaveToFile(std::string fileName)
 
 bool StringList::LoadFromFile(std::string fileName)
 {
-	std::ifstream in(fileName.c_str());
-	std::string s;
+	FILE *fp = fopen(fileName.c_str(), "r");
 
-	if (in.is_open()) {
-		while(getline(in, s)) {
-			push_back(s);
+	if (fp) {
+		char buffer[1024];
+		while (!feof(fp)) {
+			char *p = fgets(buffer, 1023, fp);
+			if (p)
+				push_back(p);
 		}
-
-		in.close();
+		fclose(fp);
 
 		return true;
 	}

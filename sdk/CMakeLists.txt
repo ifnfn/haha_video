@@ -35,7 +35,7 @@ ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wno-deprecated-dec
 # 编译可执行程序
 ###############################################################################
 # test
-#SET(CMAKE_EXE_LINKER_FLAGS "--static")
+SET(CMAKE_EXE_LINKER_FLAGS "--static")
 ADD_EXECUTABLE(kola main.cpp)
 TARGET_LINK_LIBRARIES(kola kolatv jansson pcre crypto z ${GXCORE_LIB} dl pthread curl)
 

@@ -305,7 +305,8 @@ int CustomMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 	std::string text;
 	int pos = pageId * pageSize;
 
-	text = albumIdList.ToString(pos, pageSize);
+	//text = albumIdList.ToString(pos, pageSize);
+	text = albumIdList.ToString();
 	if (text.size() > 0) {
 		char buf[128];
 		char *pvid;

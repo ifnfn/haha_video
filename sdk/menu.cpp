@@ -87,9 +87,7 @@ int KolaMenu::GetAlbumCount()
 
 int KolaMenu::SeekByAlbumId(std::string vid)
 {
-	prev->Clear();
-	cur->Clear();
-	next->Clear();
+	CleanPage();
 	int count = LowGetPage(cur, "vid", vid, PageSize);
 
 	PageId = cur->pageId;
@@ -109,9 +107,7 @@ int KolaMenu::SeekByAlbumId(std::string vid)
 
 int KolaMenu::SeekByAlbumName(std::string name)
 {
-	prev->Clear();
-	cur->Clear();
-	next->Clear();
+	CleanPage();
 	int count = LowGetPage(cur, "albumName", name, PageSize);
 
 	PageId = cur->pageId;
@@ -229,6 +225,13 @@ int KolaMenu::GetPage(AlbumPage &page, int pageNo)
 	return LowGetPage(&page, PageId, PageSize);
 }
 
+void KolaMenu::CleanPage()
+{
+	prev->Clear();
+	cur->Clear();
+	next->Clear();
+}
+
 KolaAlbum* KolaMenu::GetAlbum(int position)
 {
 	int page = position / PageSize;
@@ -250,37 +253,43 @@ KolaAlbum* KolaMenu::GetAlbum(int position)
 			LowGetPage(prev, page - 1, PageSize);
 		}
 		else {
-			prev->Clear();
-			cur->Clear();
-			next->Clear();
+			CleanPage();
 			if (page > 0)
 				LowGetPage(prev, page - 1, PageSize);
 			LowGetPage(cur, page, PageSize);
 			LowGetPage(next, page + 1, PageSize);
 		}
 	}
+
 	return cur->GetAlbum(position % PageSize);
 }
 
-CustomMenu::CustomMenu(std::string fileName) {
+CustomMenu::CustomMenu(std::string fileName)
+{
 	this->fileName = fileName;
 	albumIdList.LoadFromFile(fileName);
 	albumCount = albumIdList.size();
 }
 
-void CustomMenu::AlbumAdd(KolaAlbum *album) {
+void CustomMenu::AlbumAdd(KolaAlbum *album)
+{
 	if (album)
 		AlbumAdd(album->vid);
 }
 
-void CustomMenu::AlbumAdd(std::string vid) {
+void CustomMenu::AlbumAdd(std::string vid)
+{
+	CleanPage();
 	albumIdList.Add(vid);
 	albumCount = albumIdList.size();
 }
 
-void CustomMenu::AlbumRemove(KolaAlbum *album) {
-	if (album)
+void CustomMenu::AlbumRemove(KolaAlbum *album)
+{
+	if (album) {
+		CleanPage();
 		AlbumRemove(album->vid);
+	}
 }
 
 void CustomMenu::AlbumRemove(std::string vid) {

@@ -6,15 +6,19 @@
 #include "httplib.h"
 
 #define VIDEO_COUNT 8
-KolaAlbum::KolaAlbum(json_t *js) {
+KolaAlbum::KolaAlbum(json_t *js)
+{
 	directVideos = false;
 	videoPageSize = VIDEO_COUNT;
 	videoPageId = -1;
+	videoListUrl = NULL;
 	LoadFromJson(js);
 }
 
 KolaAlbum::~KolaAlbum() {
 	VideosClear();
+	if (videoListUrl)
+		json_delete(videoListUrl);
 }
 
 void KolaAlbum::VideosClear() {
@@ -25,14 +29,22 @@ void KolaAlbum::VideosClear() {
 }
 
 size_t KolaAlbum::GetTotalSet() {
+	if (totalSet == 0) {
+		int old_size = videoPageSize;
+		LowVideoGetPage(0, 0);
+		videoPageSize = old_size;
+		videoPageId = -1;
+	}
+
 	return totalSet;
 }
 
 size_t KolaAlbum::GetVideoCount()
 {
 	if (directVideos == false || totalSet == 0 || updateSet == 0) {
+		int old_size = videoPageSize;
 		LowVideoGetPage(0, 0);
-		videoPageSize = VIDEO_COUNT;
+		videoPageSize = old_size;
 		videoPageId = -1;
 	}
 
@@ -41,25 +53,43 @@ size_t KolaAlbum::GetVideoCount()
 
 bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 {
+	json_t *js = NULL, *videos, *v;
 	if (pageNo == videoPageId)
 		return true;
 
-	KolaClient *client = &KolaClient::Instance();
-	char url_buffer[256];
-	json_t *js, *videos, *v;
+	if (videoListUrl) {
+		ScriptCommand script;
+		if (json_to_variant(videoListUrl, &script)) {
+			json_error_t error;
+			script.AddParams(pageNo);
+			script.AddParams(pageSize);
+			std::string text = script.Run();
+			if (text != "")
+				js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+		}
+	}
 
-	sprintf(url_buffer, "/video/getvideo?full=0&pid=%s&page=%ld&size=%ld", vid.c_str(), pageNo, pageSize);
+	if (js == NULL) {
+		KolaClient *client = &KolaClient::Instance();
+		char url_buffer[256];
 
-	js = json_loadurl(url_buffer);
+		sprintf(url_buffer, "/video/getvideo?full=0&pid=%s&page=%ld&size=%ld", vid.c_str(), pageNo, pageSize);
+
+		js = json_loadurl(url_buffer);
+	}
 	if (js == NULL)
 		return false;
 
-	videos = json_geto(js, "videos");
 	updateSet = json_geti(js, "count", updateSet);
+	updateSet = json_geti(js, "updateSet", updateSet);
+	totalSet = json_geti(js, "totalSet", totalSet);
 
 	videoPageId = pageNo;
 	videoPageSize = pageSize;
 	VideosClear();
+
+	int x = 0;
+	videos = json_geto(js, "videos");
 	json_array_foreach(videos, v) {
 		this->videos.push_back(new KolaVideo(v));
 	}
@@ -109,6 +139,10 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 
 	json_get_stringlist(js, "mainActors", &mainActors);
 	json_get_stringlist(js, "directors", &directors);
+
+	sub = json_geto(js, "videoListUrl");
+	if (sub)
+		videoListUrl = json_deep_copy(sub);
 
 	//categories = json_gets(js, "categories", "");
 //	std::cout << "KolaAlbum:" << albumName << std::endl;

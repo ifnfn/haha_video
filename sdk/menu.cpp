@@ -8,7 +8,6 @@ KolaMenu::KolaMenu() {
 	cid = -1;
 	PageId = -1;
 	Language = "zh";
-	//quickFilter = "";
 	PageSize = DEFAULT_PAGE_SIZE;
 	albumCount = 0;
 
@@ -30,7 +29,6 @@ KolaMenu::KolaMenu(json_t *js)
 	next = &page[2];
 	cid        = json_geti(js, "cid" , -1);
 	json_gets(js, "name", name);
-
 
 	client = &KolaClient::Instance();
 
@@ -236,6 +234,23 @@ KolaAlbum* KolaMenu::GetAlbum(int position)
 {
 	int page = position / PageSize;
 	if (cur->pageId != page) {
+		if (cur->pageId + 1 == page) {  // 下一页
+			AlbumPage *tmp = prev;
+			prev = cur;
+			cur = next;
+			next = tmp;
+		}
+		else if (cur->pageId - 1 == page) { // 向上一页
+			AlbumPage *tmp = next;
+			next = cur;
+			cur = prev;
+			prev = tmp;
+		}
+		else  // 不在三页中
+			CleanPage();
+		cur->Clear();
+		LowGetPage(cur, page, PageSize);
+#if 0
 		if (next->pageId == page) {
 			AlbumPage *tmp = prev;
 			prev = cur;
@@ -259,6 +274,7 @@ KolaAlbum* KolaMenu::GetAlbum(int position)
 			LowGetPage(cur, page, PageSize);
 			LowGetPage(next, page + 1, PageSize);
 		}
+#endif
 	}
 
 	return cur->GetAlbum(position % PageSize);
@@ -286,15 +302,14 @@ void CustomMenu::AlbumAdd(std::string vid)
 
 void CustomMenu::AlbumRemove(KolaAlbum *album)
 {
-	if (album) {
-		CleanPage();
+	if (album)
 		AlbumRemove(album->vid);
-	}
 }
 
 void CustomMenu::AlbumRemove(std::string vid) {
 	albumIdList.Remove(vid);
 	albumCount = albumIdList.size();
+	CleanPage();
 }
 
 int CustomMenu::GetAlbumCount() {
@@ -302,7 +317,8 @@ int CustomMenu::GetAlbumCount() {
 	return albumCount;
 }
 
-bool CustomMenu::SaveToFile(std::string otherFile) {
+bool CustomMenu::SaveToFile(std::string otherFile)
+{
 	if (otherFile != "")
 		return albumIdList.SaveToFile(otherFile);
 	else

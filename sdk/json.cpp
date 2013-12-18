@@ -1,6 +1,19 @@
 #include "json.hpp"
 #include "kola.hpp"
-#include "script.hpp"
+
+bool json_dump_str(json_t *js, std::string &ret)
+{
+	char *text = json_dumps(js, 2);
+
+	if (text) {
+		ret = text;
+		free(text);
+
+		return true;
+	}
+
+	return false;
+}
 
 json_t* json_loadurl(const char *url)
 {
@@ -16,23 +29,16 @@ json_t* json_loadurl(const char *url)
 	return NULL;
 }
 
-bool json_get_script(json_t *js, const char *key, ScriptCommand *script)
+bool json_to_variant(json_t *js, ScriptCommand *script)
+{
+	return script->LoadFromJson(js);
+}
+
+bool json_get_variant(json_t *js, const char *key, ScriptCommand *script)
 {
 	json_t *p = json_object_get(js, key);
 
-	if (p == NULL || json_is_string(p))
-		return false;
-
-	if (json_is_object(p)) {
-		json_t *sc = json_object_get(p, "script");
-		if (sc) {
-			script->LoadFromJson(p);
-
-			return false;
-		}
-	}
-
-	return false;
+	return json_to_variant(p, script);
 }
 
 const bool json_gets(json_t *js, const char *key, std::string &ret)

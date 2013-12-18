@@ -42,7 +42,7 @@ static std::string lua_runscript(lua_State* L, const char *fn, const char *func,
 	// 第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
 	// lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
 	if (lua_pcall(L, argc, 1, 0)) {
-#if 0
+#if 1
 		printf("%s.\n", lua_tostring(L, -1));
 		printf("%s(", func);
 		for (i = 0; i < argc - 1; i++)
@@ -152,6 +152,14 @@ bool LuaScript::GetScript(const char *name, std::string &text) {
 	return false;
 }
 
+enum {
+	SC_NONE=0,
+	SC_SCRIPT=1,
+	SC_STRING=2,
+	SC_INTEGER=3,
+	SC_DOUBLE=4
+};
+
 ScriptCommand::ScriptCommand(json_t *js)
 {
 	func_name = "kola_main";
@@ -172,30 +180,51 @@ ScriptCommand::~ScriptCommand()
 	free(argv);
 }
 
+void ScriptCommand::AddParams(int arg)
+{
+	char buffer[64];
+
+	sprintf(buffer, "%d", arg);
+
+	AddParams(buffer);
+}
+
+void ScriptCommand::AddParams(const char *arg)
+{
+	argc++;
+	size_t size = sizeof(void*) * argc;
+
+	if (argv)
+		argv = (char**)realloc(argv, size);
+	else
+		argv = (char**)malloc(size);
+
+	argv[argc - 1] = strdup(arg);
+}
+
 bool ScriptCommand::LoadFromJson(json_t *js) {
 	json_gets(js, "script", script_name); 
 	json_gets(js, "function", func_name);
 	json_t *params = json_geto(js, "parameters");
 
 	if (params) {
-		argc = json_array_size(params);
-		argv = (char **)calloc(sizeof(void*), argc);
-		for (int i = 0; i < argc; i++) {
+		int count = json_array_size(params);
+		for (int i = 0; i < count; i++) {
 			json_t *value = json_array_get(params, i);
 
 			if (json_is_string(value))
-				argv[i] = strdup(json_string_value(value));
+				AddParams(json_string_value(value));
 			else if (json_is_integer(value)) {
 				char buf[128];
 				sprintf(buf, "%d", json_integer_value(value));
 
-				argv[i] = strdup(buf);
+				AddParams(buf);
 			}
 			else if (json_is_number(value)) {
 				char buf[128];
-				sprintf(buf, "%f", json_integer_value(value));
+				sprintf(buf, "%f", json_real_value(value));
 
-				argv[i] = strdup(buf);
+				AddParams(buf);
 			}
 		}
 	}
@@ -214,3 +243,128 @@ std::string ScriptCommand::Run()
 	return ret;
 }
 
+bool Variant::LoadFromJson(json_t *js)
+{
+	if (json_is_string(js)) {
+		directValue = SC_STRING;
+		valueStr = json_string_value(js);
+
+		return true;
+	}
+	else if (json_is_integer(js)) {
+		directValue = SC_INTEGER;
+		valueInt = json_integer_value(js);
+
+		return true;
+	}
+	else if (json_is_real(js)) {
+		directValue = SC_DOUBLE;
+		valueDouble = json_real_value(js);
+
+		return true;
+	}
+
+	else if (json_is_object(js)) {
+		if (ScriptCommand::LoadFromJson(js)) {
+			directValue = SC_SCRIPT;
+
+			return true;
+		}
+	}
+
+	directValue = SC_STRING;
+	json_dump_str(js, valueStr);
+
+	return false;
+}
+
+Variant::Variant(json_t *js) : ScriptCommand()
+{
+	directValue = SC_NONE;
+	LoadFromJson(js);
+}
+
+std::string Variant::GetString()
+{
+	if (directValue == SC_DOUBLE) {
+		char buffer[128];
+		sprintf(buffer, "%f", valueDouble);
+
+		return buffer;
+	}
+	else if (directValue == SC_STRING) {
+		return valueStr;
+	}
+	else if (directValue == SC_INTEGER) {
+		char buffer[32];
+		sprintf(buffer, "%d", valueInt);
+
+		return buffer;
+	}
+	else if (directValue == SC_SCRIPT) {
+		return Run();
+	}
+
+	return "";
+}
+
+int Variant::GetInteger()
+{
+	if (directValue == SC_DOUBLE) {
+		return int(valueDouble);
+	}
+	else if (directValue == SC_STRING) {
+	 	try {
+			return atoi(valueStr.c_str());
+		}
+		catch(std::exception &ex) {
+			return 0;
+		}
+	}
+	else if (directValue == SC_INTEGER) {
+		return valueInt;
+	}
+	else if (directValue == SC_SCRIPT) {
+		std::string text = Run();
+	 	try {
+			return atoi(text.c_str());
+		}
+		catch(std::exception &ex) {
+			return 0;
+		}
+
+	}
+
+	return 0;
+}
+
+double Variant::GetDouble()
+{
+	if (directValue == SC_DOUBLE) {
+		return valueDouble;
+	}
+	else if (directValue == SC_INTEGER) {
+		return valueInt;
+	}
+	else if (directValue == SC_STRING) {
+	 	try {
+			return atof(valueStr.c_str());
+		}
+		catch(std::exception &ex) {
+			return 0.0;
+		}
+	}
+	else if (directValue == SC_SCRIPT) {
+		std::string text = Run();
+	 	try {
+			return atof(text.c_str());
+		}
+		catch(std::exception &ex) {
+			return 0.0;
+		}
+
+	}
+
+	return 0.0;
+
+}

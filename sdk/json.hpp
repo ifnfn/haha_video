@@ -9,7 +9,9 @@ class StringList;
 
 json_t* json_loadurl(const char *url);
 
-bool json_get_script(json_t *js, const char *key, ScriptCommand *script);
+bool json_dump_str(json_t *js, std::string &ret);
+bool json_to_variant(json_t *js, ScriptCommand *script);
+bool json_get_variant(json_t *js, const char *key, ScriptCommand *script);
 bool json_get_stringlist(json_t *js, const char *key, StringList *list);
 
 inline bool json_key_exists(json_t *js, const char *key)

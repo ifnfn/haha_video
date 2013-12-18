@@ -29,7 +29,6 @@
 #endif
 #include "httplib.h"
 
-#define TEST 0
 #if TEST
 #define SERVER_HOST "192.168.56.1"
 //#define SERVER_HOST "127.0.0.1"
@@ -623,16 +622,15 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 			if (p_js)
 				json_seto(newjs, key.c_str(), p_js);
 		}
-		text = json_dumps(newjs, 2);
+		json_dump_str(newjs, text);
 		json_delete(newjs);
 		json_delete(js);
 	}
 
 	json_sets(cmd, "data", text.c_str());
+
 	char *body = json_dumps(cmd, 2);
-
 	UrlPost("", body, text, dest);
-
 	free(body);
 
 	return 0;

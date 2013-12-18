@@ -1,9 +1,10 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "script.hpp"
 #include "kola.hpp"
 
+#if TEST
+#include "script.hpp"
 void test_script()
 {
 	LuaScript &lua = LuaScript::Instance();
@@ -26,6 +27,7 @@ void test_task()
 //	tasks.clear();
 	printf("end\n");
 }
+#endif
 
 void test_custommenu()
 {
@@ -147,13 +149,47 @@ void test_livetv()
 		return;
 //	m->Filter.KeyAdd("类型", "CCTV");
 
-//	m->SetPageSize(2);
+//	m->SetPageSize(3);
 //	m->GetPage(page);
-//	m->Filter.KeyAdd("PinYin", "ws");
+//	m->Filter.KeyAdd("PinYin", "zjw");
 	m->Sort.Set("Name", "1");
 	int count = m->GetAlbumCount();
-
 	int pos = 0;
+#if 1
+	for (int i=0; i < count; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		int video_count = album->GetVideoCount();
+		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), 1);
+#if 1
+		for (size_t j = 0; j < video_count; j++) {
+			std::string player_url;
+			KolaVideo *video = album->GetVideo(j);
+			if (video) {
+				player_url = video->GetVideoUrl();
+				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				KolaEpg epg;
+
+				std::string info = video->GetInfo();
+				epg.LoadFromText(info);
+
+				EPG e1, e2;
+				if (epg.GetCurrent(e1)) {
+					printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+					if (epg.GetNext(e2))
+						printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+					printf("\n\n");
+				}
+			}
+		}
+#endif
+	}
+
+	return;
+#endif
+
+#if 0
 	//pos = m->SeekByAlbumId("156ceef6b9");
 	//pos = m->SeekByAlbumId("fff64edb5a");
 	//pos = m->SeekByAlbumId("9dfbf95f82");
@@ -163,8 +199,27 @@ void test_livetv()
 
 	KolaAlbum *album = m->GetAlbum(99);
 	printf("album->name = %s\n", album->albumName.c_str());
+#endif
 
 	std::map<int, std::string> vids;
+	for (int i=0; i < 9; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		vids[i] = album->vid;
+		size_t video_count = 1; //album->GetVideoCount();
+		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+	}
+	for (int i=8; i >= 0; i--) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		vids[i] = album->vid;
+		size_t video_count = 1; //album->GetVideoCount();
+		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+	}
+
+#if 1
 	for (int i=0; i < count; i++) {
 		KolaAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
@@ -173,6 +228,7 @@ void test_livetv()
 		size_t video_count = album->GetVideoCount();
 		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 	}
+#endif
 
 	while(1) {
 		pos = random() % count;
@@ -270,7 +326,6 @@ void test_video(const char *menuName)
 	if (m == NULL)
 		return;
 
-
 	foreach(m->quickFilters, s) {
 		std::cout << *s << std::endl;
 	}
@@ -283,20 +338,6 @@ void test_video(const char *menuName)
 
 	printf("%d album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(4);
-#if 0
-	do {
-		m->GetPage(page);
-
-		for (size_t i = 0; i < page.Count(); i++) {
-			KolaAlbum *album = page.GetAlbum(i);
-
-			printf("[%ld] %s\n", i, album->albumName.c_str());
-		}
-
-		if (page.Count() < m->GetPageSize())
-			break;
-	} while(0);
-#endif
 
 	m->GetPage(page, 0);
 	page.CachePicture(PIC_LARGE);
@@ -309,11 +350,16 @@ void test_video(const char *menuName)
 			std::string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
+				StringList res;
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s %s [%s] -> %s\n",
 						video->pid.c_str(), video->vid.c_str(),
 						video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				video->GetResolution(res);
+				printf("Resolution: %s\n", res.ToString().c_str());
 			}
+			else
+				printf("video ============== NULL\n");
 		}
 	}
 
@@ -382,13 +428,12 @@ int main(int argc, char **argv)
 
 //	test_script();
 //	return 0;
-	test_custommenu();
-	return 0;
+//	test_custommenu();
+//	return 0;
 	printf("Test LiveTV\n"); test_livetv();
-
 	return 0;
 
-	printf("Test Video\n"); test_video("电影");
+//	printf("Test Video\n"); test_video("电影");
 
 	printf("Test TV\n");    test_video("电视剧");
 //

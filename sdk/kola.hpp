@@ -39,6 +39,36 @@ enum PicType {
 	PIC_SMALL_VER,
 };
 
+class ScriptCommand {
+	public:
+		ScriptCommand(json_t *js=NULL);
+		~ScriptCommand();
+		std::string Run();
+		bool Exists() {return script_name != ""; }
+		void AddParams(const char *arg);
+		void AddParams(int arg);
+		virtual bool LoadFromJson(json_t *js);
+	protected:
+		std::string script_name;
+		std::string func_name;
+		char **argv;
+		int argc;
+};
+
+class Variant: public ScriptCommand {
+	public:
+		Variant(json_t *js=NULL);
+		std::string GetString();
+		int GetInteger();
+		double GetDouble();
+		virtual bool LoadFromJson(json_t *js);
+	private:
+		std::string valueStr;
+		int valueInt;
+		double valueDouble;
+		int directValue;
+};
+
 class StringList: public std::vector<std::string> {
 	public:
 		StringList() {}
@@ -118,6 +148,17 @@ class KolaEpg: public std::vector<EPG> {
 		bool Get(EPG &e, time_t time);
 };
 
+class VideoUrls {
+	public:
+		VideoUrls(std::string text);
+		~VideoUrls();
+		void GetResolution(StringList& res);
+		std::string Get(std::string &key);
+	private:
+		std::map<std::string, Variant*> urls;
+		std::string defaultKey;
+};
+
 class KolaVideo {
 	public:
 		KolaVideo(json_t *js = NULL);
@@ -126,6 +167,7 @@ class KolaVideo {
 		bool LoadFromJson(json_t *js);
 
 		void Clear();
+		void GetResolution(StringList& res);
 		std::string GetVideoUrl(std::string res="");
 		std::string GetSubtitle(const char *lang);
 		std::string GetInfo();
@@ -133,9 +175,7 @@ class KolaVideo {
 		int    width;
 		int    height;
 		int    fps;
-		double totalDuration;
 		size_t totalBytes;
-		int    totalBlocks;
 
 		int         cid;
 		std::string pid;
@@ -152,14 +192,15 @@ class KolaVideo {
 		std::string videoDesc;
 		std::string smallPicUrl;
 		std::string largePicUrl;
-		StringList  resolution;
 	private:
 		std::string localVideoFile;
-		std::string playlistid;
 		std::string pageUrl;
 		std::string playUrl;
 		std::string directPlayUrl;
-		ScriptCommand *info_js;
+
+		Variant sc_info;
+		Variant sc_resolution;
+		VideoUrls *urls;
 };
 
 class Picture: public Task {
@@ -263,6 +304,7 @@ class KolaAlbum {
 		bool directVideos;
 		size_t videoPageSize;
 		size_t videoPageId;
+		json_t *videoListUrl;
 
 		friend class CustomMenu;
 };

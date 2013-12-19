@@ -225,7 +225,7 @@ static std::string gzip_base64(const char *data, int ndata)
 	return ret;
 }
 
-DownloadTask::DownloadTask(std::string fileName)
+Picture::Picture(std::string fileName)
 {
 	data           = NULL;
 	size           = 0;
@@ -234,7 +234,7 @@ DownloadTask::DownloadTask(std::string fileName)
 	this->fileName = fileName;
 }
 
-DownloadTask::DownloadTask()
+Picture::Picture()
 {
 	data     = NULL;
 	size     = 0;
@@ -243,7 +243,7 @@ DownloadTask::DownloadTask()
 	used     = false;
 }
 
-DownloadTask::~DownloadTask()
+Picture::~Picture()
 {
 	Wait();
 	if (data) {
@@ -253,20 +253,14 @@ DownloadTask::~DownloadTask()
 	size = 0;
 }
 
-void DownloadTask::Run(std::string fileName)
-{
-	this->fileName = fileName;
-	Run();
-}
-
-void DownloadTask::Run()
+void Picture::Run()
 {
 	if (inCache == true)
 		return;
 
 	Http http;
 
-	if (http.Get(fileName.c_str())) {
+	if (http.Get(fileName.c_str()) != NULL) {
 		size = http.buffer.size;
 		if (size > 0) {
 			data = malloc(size);
@@ -338,7 +332,7 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url,
 	UNLOCK(lock);
 
 	Http http;
-	if (http.Get(url.c_str(), cookie, referer)) {
+	if (http.Get(url.c_str(), cookie, referer) != NULL) {
 		ret.assign(http.Data().mem);
 
 		return true;

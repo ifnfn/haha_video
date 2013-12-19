@@ -23,7 +23,7 @@ class WgetTask: public Task {
 		void Run() {
 			Http http;
 
-			if (http.Get(Url.c_str()))
+			if (http.Get(Url.c_str()) != NULL)
 				text = http.buffer.mem;
 		}
 		std::string text;
@@ -102,7 +102,7 @@ static int f_wget(lua_State *L)
 
 	for (int i = 0; i < urlList.size(); i++) {
 		Http http;
-		if (http.Get(urlList[i].c_str())) {
+		if (http.Get(urlList[i].c_str()) != NULL) {
 			lua_pushstring(L, http.buffer.mem);
 		}
 		else

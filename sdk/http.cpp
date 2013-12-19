@@ -143,8 +143,7 @@ size_t HttpBuffer::write(void *ptr, size_t s, size_t nmemb)
 	return realsize;
 }
 
-void HttpInit()
-{
+void HttpInit() {
 	static int curl_init = 0;
 	if (curl_init == 0) {
 		curl_global_init(CURL_GLOBAL_ALL);
@@ -161,8 +160,8 @@ Http::Http() {
 	if ( curl ) {
 		curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
 		curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
-		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3);
+		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT , "KolaClient");
 	}
 	else
@@ -174,7 +173,7 @@ Http::~Http() {
 		curl_easy_cleanup(curl);
 }
 
-static size_t curlWriteCallback2(void *ptr, size_t size, size_t nmemb, void *data)
+static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	struct Http *http = (Http*)data;
 
@@ -190,37 +189,39 @@ void Http::Set(const char *url, const char *cookie, const char *referer)
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errormsg);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback2);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)this);
 }
 
-char *Http::curlGetCurlURL()
+char *Http::curlGetCurlURL(int times)
 {
 	CURLcode res;
+
+	if (times > 3)
+		return NULL;
 
 	buffer.init();
 
 	res = curl_easy_perform(curl);
 	if ( res ) {
 		printf("curlGetCurlURL: cant perform curl: %s", errormsg);
-		return NULL;
+		return curlGetCurlURL(times + 1);
 	}
-	if ( ! buffer.mem ) {
-		printf("curlGetCurlURL: cant perform curl empty response");
-		return NULL;
-	}
+
+	if (buffer.mem == NULL)
+		return curlGetCurlURL(times + 1);
 
 	return buffer.mem;
 }
 
-bool Http::Get(const char *url, const char *cookie, const char *referer)
+const char *Http::Get(const char *url, const char *cookie, const char *referer)
 {
 	Set(url, cookie, referer);
 
-	char * memptr = curlGetCurlURL();
+	return curlGetCurlURL();
 }
 
-char *Http::Post(const char *url, const char *postdata, const char *cookie, const char *referer)
+const char *Http::Post(const char *url, const char *postdata, const char *cookie, const char *referer)
 {
 	Set(url, cookie, referer);
 	curl_easy_setopt(curl, CURLOPT_POST, 1);

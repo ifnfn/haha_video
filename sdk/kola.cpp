@@ -232,6 +232,7 @@ Picture::Picture(std::string fileName)
 	inCache        = false;
 	used           = false;
 	this->fileName = fileName;
+	http     = NULL;
 }
 
 Picture::Picture()
@@ -241,6 +242,7 @@ Picture::Picture()
 	inCache  = false;
 	fileName = "";
 	used     = false;
+	http     = NULL;
 }
 
 Picture::~Picture()
@@ -251,6 +253,14 @@ Picture::~Picture()
 		data = NULL;
 	}
 	size = 0;
+	if (http)
+		delete http;
+}
+
+void Picture::Cancel()
+{
+	if (http)
+		http->Cancel();
 }
 
 void Picture::Run()
@@ -258,15 +268,12 @@ void Picture::Run()
 	if (inCache == true)
 		return;
 
-	Http http;
-
-	if (http.Get(fileName.c_str()) != NULL) {
-		size = http.buffer.size;
-		if (size > 0) {
-			data = malloc(size);
-			memcpy(data, http.buffer.mem, size);
-			inCache = true;
-		}
+	if (http == NULL)
+		http = new Http();
+	if (http && http->Get(fileName.c_str()) != NULL) {
+		size = http->buffer.size;
+		data = http->buffer.mem;
+		inCache = true;
 	}
 }
 

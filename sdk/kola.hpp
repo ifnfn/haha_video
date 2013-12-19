@@ -26,6 +26,7 @@ class KolaVideo;
 class AlbumPage;
 class ThreadPool;
 class Task;
+class Http;
 class ScriptCommand;
 
 extern void split(const std::string &s, std::string delim, std::vector< std::string > *ret);
@@ -98,11 +99,11 @@ class Task {
 		Task(void);
 		virtual ~Task();
 
-		virtual void Run(void)     {}
-
 		void Start();
 
-		void Cancel();
+		virtual void Cancel();
+		virtual void Run(void)     {}
+
 		void SetStatus(int st) { status = st; }
 		int  GetStatus() {return status; }
 		void Wait(int msec = 0);
@@ -215,7 +216,10 @@ class Picture: public Task {
 		std::string fileName;
 		bool inCache;
 		virtual void Run();
+		virtual void Cancel();
 		bool used;
+	private:
+		Http *http;
 };
 
 class FilterValue: public StringList {

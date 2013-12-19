@@ -67,7 +67,6 @@ end
 
 function get_channel(vid)
 	local url = string.format("%s/0/%d", vid, kola.gettime())
-	print(url)
 
 	local ret = {}
 	text = kola.wget(url)

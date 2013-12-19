@@ -176,7 +176,7 @@ class ParserAlbumFullInfo(KolaParser):
         super().__init__()
         if album:
             self.cmd['name']    = 'engine_parser'
-            self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=%s&vid=%s' % (album.sohu['playlistid'], album.sohu['vid'])
+            self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (album.sohu['playlistid'], album.sohu['vid'])
 
     # 解析节目的完全信息
     # http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241
@@ -215,11 +215,16 @@ class ParserAlbumFullInfo(KolaParser):
         if 'smallPicUrl' in json    : album.smallPicUrl    = json['smallPicUrl']
 
         if 'albumDesc' in json      : album.albumDesc      = json['albumDesc']
-        if 'totalSet' in json       : album.totalSet       = json['totalSet']
-        if 'updateSet' in json      : album.updateSet      = json['updateSet']
+        #if 'totalSet' in json       : album.totalSet       = json['totalSet']
+        #if 'updateSet' in json      : album.updateSet      = json['updateSet']
 
         if 'mainActors' in json     : album.mainActors     = json['mainActors']
         if 'directors' in json      : album.directors      = json['directors']
+
+        album.videoListUrl = {
+            'script': 'sohulist',
+            'parameters' : [album.vid, album.sohu['playlistid'], album.sohu['vid']]
+        }
 
         if 'videos' in json:
             for video in json['videos']:
@@ -227,18 +232,19 @@ class ParserAlbumFullInfo(KolaParser):
                     if autostr(video['vid']) == album.sohu['vid'] and album.sohu['vid']:
                         if 'playLength' in video  : album.playLength =  video['playLength']
                         if 'publishTime' in video : album.publishTime = video['publishTime']
+                        break
 
-                v = album.NewVideo()
-                v.LoadFromJson(video)
-                v.SetVideoScript('default', v.vid)
+                #v = album.NewVideo()
+                #v.LoadFromJson(video)
+                #v.SetVideoScript('default', v.vid)
 
                 # 兼容旧版本
-                v.script = {
-                    'script' : 'sohu',
-                    'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % v.vid, autostr(album.cid)]
-				}
+                #v.script = {
+                #    'script' : 'sohu',
+                #    'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % v.vid, autostr(album.cid)]
+                #}
 
-                album.videos.append(v)
+                #album.videos.append(v)
         if vid:
             db._save_update_append(ret, album, key={'vid' : album.vid}, upsert=False)
 

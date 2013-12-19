@@ -112,9 +112,9 @@ class GetVideoHandler(BaseHandler):
 
     def Finish(self, args, pid, full):
         videos, count = tv.GetVideoListByPid(pid, args)
-        if full != '1':
-            for v in videos:
-                del v['videos']
+        #if full != '1':
+        #    for v in videos:
+        #        del v['videos']
 
         args['count'] = count
         args['videos'] = videos

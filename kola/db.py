@@ -55,8 +55,7 @@ class VideoBase:
         self.playUrl = ''
         self.private = {}
 
-        self.videos = {}
-        self.script = {}
+        self.resolution = {}
         self.info = {}
 
         if js:
@@ -73,18 +72,9 @@ class VideoBase:
         }
 
         if name in nameList:
-            self.videos[name] = {
-                'name' : nameList[name],
-                'url'  : url
-            }
-
-
-    def GetVideoResolution(self):
-        ret = []
-        for _,v in list(self.videos.items()):
-            ret.append(v['name'])
-
-        return ret
+            self.resolution[nameList[name]] = url
+            if name == 'default':
+                self.resolution[nameList[name]]['default'] = 1
 
     def SaveToJson(self):
         ret = {}
@@ -104,16 +94,12 @@ class VideoBase:
         if self.videoScore      : ret['videoScore'] = self.videoScore
         if self.largePicUrl     : ret['largePicUrl'] = self.largePicUrl
         if self.smallPicUrl     : ret['smallPicUrl'] = self.smallPicUrl
-        if self.videos          : ret['videos'] = self.videos
-        if self.script          : ret['script'] = self.script
+
+        if self.resolution      : ret['resolution'] = self.resolution
 
         if self.priority        : ret['priority'] = self.priority
         if self.private         : ret['private']  = self.private
         if self.info            : ret['info']     = self.info
-
-        resolution = self.GetVideoResolution()
-        if resolution:
-            ret['resolution'] = resolution
 
         return ret
 
@@ -135,7 +121,6 @@ class VideoBase:
         if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
         if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
         if 'videos' in json         : self.videos         = json['videos']
-        if 'script' in json         :  self.script        = json['script']
         if 'priority' in json       : self.priority       = json['priority']
         if 'private' in json        : self.private        = json['private']
         if 'info' in json           : self.info           = json['info']
@@ -179,6 +164,8 @@ class AlbumBase:
 
         self.mainActors      = []  # [*]
         self.directors       = []  # [*]
+
+        self.videoListUrl = ''
 
         self.videos          = []
         self.private         = {}
@@ -234,6 +221,8 @@ class AlbumBase:
         if self.totalPlayNum    : ret['totalPlayNum']    = self.totalPlayNum     # 总播放资料
         if self.dailyIndexScore : ret['dailyIndexScore'] = self.dailyIndexScore  # 每日指数
 
+        if self.videoListUrl    : ret['videoListUrl']    = self.videoListUrl  # 每日指数
+
         if self.sources         : ret['sources']         = self.sources
         if self.private         : ret['private']         = self.private
 
@@ -280,6 +269,7 @@ class AlbumBase:
         if 'totalPlayNum' in json   : self.totalPlayNum    = json['totalPlayNum']    # 总播放资料
         if 'dailyIndexScore' in json: self.dailyIndexScore = json['dailyIndexScore'] # 每日指数
 
+        if 'videoListUrl' in json   : self.videoListUrl    = json['videoListUrl']
         if 'sources' in json        : self.sources         = json['sources']
         if 'private' in json        : self.private         = json['private']
 

@@ -1,5 +1,4 @@
 function kola_main(url, cid)
-	print(url)
 	local text = kola.wget(url)
 
 	local ret = {}

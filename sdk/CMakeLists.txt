@@ -14,7 +14,6 @@ ADD_GX_LIBRARY(kolatv
 	${SRCS}
 	album.cpp
 	export_kola.cpp
-	httplib.cpp
 	http.cpp
 	pcre.cpp
 	stringlist.cpp

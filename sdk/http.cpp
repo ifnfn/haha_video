@@ -6,9 +6,76 @@
 static char *curlGetCurlURL (const char *, struct curl_buffer *, CURL *);
 static char *curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
 
-struct curl_buffer *curl_buffer_new(void)
+static char _x2c(char hex_up, char hex_low)
 {
-	return (struct curl_buffer*)calloc(sizeof(struct curl_buffer), 1);
+	char digit;
+	digit = 16 * (hex_up >= 'A' ? ((hex_up & 0xdf) - 'A') + 10 : (hex_up - '0'));
+	digit += (hex_low >= 'A' ? ((hex_low & 0xdf) - 'A') + 10 : (hex_low - '0'));
+
+	return (digit);
+}
+
+
+/**********************************************
+ ** Usage : qURLencode(string to encode);
+ ** Return: Pointer of encoded str which is memory allocated.
+ ** Do    : Encode string.
+ **********************************************/
+std::string URLencode(const char *str)
+{
+	unsigned char c;
+	int i, j;
+	std::string ret;
+
+	if(str == NULL) return NULL;
+
+	for(i = j = 0; str[i]; i++) {
+		c = (unsigned char)str[i];
+		if((c >= '0') && (c <= '9')) ret += c;
+		else if((c >= 'A') && (c <= 'Z')) ret += c;
+		else if((c >= 'a') && (c <= 'z')) ret += c;
+		else if((c == '@') || (c == '.') || (c == '/') || (c == '\\')
+				|| (c == '-') || (c == '_') || (c == ':') ) ret += c;
+		else {
+			char buf[4];
+			sprintf(buf, "%%%02x", c);
+			ret.append(buf);
+		}
+	}
+
+	return ret;
+}
+
+/**********************************************
+ ** Usage : qURLdecode(query pointer);
+ ** Return: Pointer of query string.
+ ** Do    : Decode query string.
+ **********************************************/
+std::string URLdecode(char *str)
+{
+	int i, j;
+
+	if(!str) return NULL;
+	for(i = j = 0; str[j]; i++, j++) {
+		switch(str[j]) {
+			case '+':{
+					 str[i] = ' ';
+					 break;
+				 }
+			case '%':{
+					 str[i] = _x2c(str[j + 1], str[j + 2]);
+					 j += 2;
+					 break;
+				 }
+			default:{
+					str[i] = str[j];
+					break;
+				}
+		}
+	}
+	str[i]='\0';
+
+	return str;
 }
 
 std::string uri_join(const char * base, const char * uri)
@@ -54,36 +121,6 @@ std::string uri_join(const char * base, const char * uri)
 	return ret;
 }
 
-static void curl_head_init(CURL *curl, const char *referer, const char *cookie)
-{
-//	curl_version_info_data *curlinfo = curl_version_info(CURLVERSION_NOW);
-
-//	if (curlinfo == NULL)
-//		return;
-
-//	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-//	curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-//	if (curlinfo->features & CURL_VERSION_LIBZ)
-		curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
-	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
-	curl_easy_setopt(curl, CURLOPT_USERAGENT , "KolaClient");
-	if (referer)
-		curl_easy_setopt(curl, CURLOPT_REFERER, referer);
-	if (cookie)
-		curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
-}
-
-void curl_buffer_free(struct curl_buffer *buf)
-{
-	if (buf) {
-		if( buf->size > 0 && buf->mem != NULL)
-			free(buf->mem);
-
-		free(buf);
-	}
-}
 
 static void * curlRealloc(void *ptr, size_t size)
 {
@@ -93,86 +130,102 @@ static void * curlRealloc(void *ptr, size_t size)
 		return malloc(size);
 }
 
-static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
+size_t HttpBuffer::write(void *ptr, size_t s, size_t nmemb)
 {
-	size_t realsize = size * nmemb;
-	struct curl_buffer *mem = (struct curl_buffer *)data;
-
-	mem->mem = (char*)curlRealloc(mem->mem, mem->size + realsize + 1);
-	if (mem->mem) {
-		memcpy( &(mem->mem[mem->size]), ptr, realsize );
-		mem->size += realsize;
-		mem->mem[mem->size] = 0;
+	size_t realsize = s * nmemb;
+	mem = (char*)curlRealloc(mem, size + realsize + 1);
+	if (mem) {
+		memcpy( &(mem[size]), ptr, realsize );
+		size += realsize;
+		mem[size] = 0;
 	}
 
 	return realsize;
 }
 
-char *http_post(const char *url, const char *body, const char *cookie, const char *referer, struct curl_buffer *curlData)
+void HttpInit()
 {
-	CURL * curl;
-
-	curl = curl_easy_init();
-	if ( !curl ) {
-		syslog(LOG_ERR, "wget: cant initialize curl!");
-		return NULL;
+	static int curl_init = 0;
+	if (curl_init == 0) {
+		curl_global_init(CURL_GLOBAL_ALL);
+		curl_init++;
 	}
-	
-	curl_head_init(curl, referer, cookie);
-	char *memptr = curlPostCurlURL(url, curlData, curl, body);
-	curl_easy_cleanup(curl);
-
-	return memptr;
 }
 
-char *http_get(const char *url, const char *cookie, const char *referer, struct curl_buffer *curlData)
-{
-	CURL * curl;
-
-	curl = curl_easy_init();
-	if ( !curl ) {
-		syslog(LOG_ERR, "wget: cant initialize curl!");
-		return NULL;
-	}
-
-	curl_head_init(curl, referer, cookie);
-
-	char * memptr = curlGetCurlURL(url, curlData, curl);
-	curl_easy_cleanup(curl);
-
-	return memptr;
+void HttpCleanup() {
+	curl_global_cleanup();
 }
 
-static char *curlGetCurlURL(const char *url, struct curl_buffer *curlData, CURL * curl)
-{
-	char     errormsg[CURL_ERROR_SIZE];
-	CURLcode res;
+Http::Http() {
+	curl = curl_easy_init();
+	if ( curl ) {
+		curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
+		curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_easy_setopt(curl, CURLOPT_USERAGENT , "KolaClient");
+	}
+	else
+		syslog(LOG_ERR, "wget: cant initialize curl!");
+}
 
-	curlData->mem  = NULL;
-	curlData->size = 0;
+Http::~Http() {
+	if (curl)
+		curl_easy_cleanup(curl);
+}
+
+static size_t curlWriteCallback2(void *ptr, size_t size, size_t nmemb, void *data)
+{
+	struct Http *http = (Http*)data;
+
+	return http->buffer.write(ptr, size, nmemb);
+}
+
+void Http::Set(const char *url, const char *cookie, const char *referer)
+{
+	if (referer)
+		curl_easy_setopt(curl, CURLOPT_REFERER, referer);
+	if (cookie)
+		curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errormsg);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)curlData);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback2);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)this);
+}
+
+char *Http::curlGetCurlURL()
+{
+	CURLcode res;
+
+	buffer.init();
 
 	res = curl_easy_perform(curl);
 	if ( res ) {
-		syslog(LOG_ERR, "curlGetCurlURL: cant perform curl: %s", errormsg);
+		printf("curlGetCurlURL: cant perform curl: %s", errormsg);
 		return NULL;
 	}
-	if ( ! curlData->mem ) {
-		syslog(LOG_ERR, "curlGetCurlURL: cant perform curl empty response");
+	if ( ! buffer.mem ) {
+		printf("curlGetCurlURL: cant perform curl empty response");
 		return NULL;
 	}
 
-	return curlData->mem;
+	return buffer.mem;
 }
 
-static char *curlPostCurlURL(const char *url, struct curl_buffer *curlData, CURL * curl, const char *postdata)
+bool Http::Get(const char *url, const char *cookie, const char *referer)
 {
+	Set(url, cookie, referer);
+
+	char * memptr = curlGetCurlURL();
+}
+
+char *Http::Post(const char *url, const char *postdata, const char *cookie, const char *referer)
+{
+	Set(url, cookie, referer);
 	curl_easy_setopt(curl, CURLOPT_POST, 1);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
 
-	return curlGetCurlURL(url, curlData, curl);
+	return curlGetCurlURL();
 }
+

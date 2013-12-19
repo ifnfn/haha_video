@@ -3,7 +3,6 @@
 #include "json.hpp"
 #include "kola.hpp"
 #include "base64.hpp"
-#include "httplib.h"
 
 #define VIDEO_COUNT 8
 KolaAlbum::KolaAlbum(json_t *js)

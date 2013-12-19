@@ -11,9 +11,9 @@ LUALIB_API int luaopen_kola(lua_State *L);
 #include <vector>
 #include <math.h>
 
-#include "kola.hpp"
 #include "pcre.hpp"
-#include "httplib.h"
+#include "http.hpp"
+#include "kola.hpp"
 
 class WgetTask: public Task {
 	public:
@@ -21,10 +21,10 @@ class WgetTask: public Task {
 			this->Url = url;
 		}
 		void Run() {
-			KolaClient &kola = KolaClient::Instance();
+			Http http;
 
-			if (kola.UrlGet("", text, Url.c_str()) == false)
-				text = "";
+			if (http.Get(Url.c_str()))
+				text = http.buffer.mem;
 		}
 		std::string text;
 	private:
@@ -70,11 +70,11 @@ static int f_mwget(lua_State *L)
 
 static int f_wget(lua_State *L)
 {
+	int rc;
 	int argc = lua_gettop(L);
 	const char *url;
 	const char *referer = NULL;
 	bool location = true;
-	int rc;
 	std::vector<std::string> urlList;
 
 	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {
@@ -100,11 +100,11 @@ static int f_wget(lua_State *L)
 	if (argc >= 3)
 		location = lua_toboolean(L, 3);
 
-	KolaClient &kola = KolaClient::Instance();
 	for (int i = 0; i < urlList.size(); i++) {
-		std::string text;
-		if (kola.UrlGet("", text, urlList[i].c_str()) == true)
-			lua_pushstring(L, text.c_str());
+		Http http;
+		if (http.Get(urlList[i].c_str())) {
+			lua_pushstring(L, http.buffer.mem);
+		}
 		else
 			lua_pushstring(L, "");
 	}
@@ -180,24 +180,29 @@ static int f_gettime(lua_State *L)
 static int f_urlencode(lua_State *L)
 {
 	const char *txt = lua_tostring(L, 1);
-	txt = URLencode(txt);
+	if (txt) {
+		std::string text = URLencode(txt);
 
-	lua_pushstring(L, txt);
-	free((void*)txt);
+		lua_pushstring(L, text.c_str());
+		return 1;
+	}
 
-	return 1;
+	return 0;
 }
 
 static int f_urldecode(lua_State *L)
 {
 	const char *txt = lua_tostring(L, 1);
-	char *x = strdup(txt);
-	txt = URLdecode(x);
 
-	lua_pushstring(L, x);
-	free(x);
+	if (txt) {
+		char *x = strdup(txt);
+		std::string text = URLdecode(x);
+		lua_pushstring(L, text.c_str());
+		free(x);
+		return 1;
+	}
 
-	return 1;
+	return 0;
 }
 
 static const struct luaL_reg wget_lib[] = {

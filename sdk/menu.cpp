@@ -2,7 +2,7 @@
 
 #include "json.hpp"
 #include "kola.hpp"
-#include "httplib.h"
+#include "http.hpp"
 
 KolaMenu::KolaMenu() {
 	cid = -1;
@@ -334,15 +334,12 @@ int CustomMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 	text = albumIdList.ToString();
 	if (text.size() > 0) {
 		char buf[128];
-		char *pvid;
 		std::string url;
 		std::string body = GetPostData();
 
 		sprintf(buf, "video/list?page=%d&size=%d&vid=", pageId, pageSize);
 
-		pvid = URLencode(text.c_str());
-		text = pvid;
-		free(pvid);
+		text = URLencode(text.c_str());
 		url = buf + text;
 		if (client->UrlPost(url, body.c_str(), text) == true) {
 			page->Clear();

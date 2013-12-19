@@ -23,11 +23,7 @@
 #include "threadpool.hpp"
 #include "script.hpp"
 
-#define ENABLE_CURL 1
-#if ENABLE_CURL
-#	include "http.hpp"
-#endif
-#include "httplib.h"
+#include "http.hpp"
 
 #if TEST
 #define SERVER_HOST "192.168.56.1"
@@ -267,39 +263,17 @@ void DownloadTask::Run()
 {
 	if (inCache == true)
 		return;
-	KolaClient *client = &KolaClient::Instance();
 
-#if ENABLE_CURL
-	struct curl_buffer *buffer = curl_buffer_new();
+	Http http;
 
-	if (client->UrlGet((void**)buffer, "", fileName.c_str())) {
-		size = buffer->size;
+	if (http.Get(fileName.c_str())) {
+		size = http.buffer.size;
 		if (size > 0) {
 			data = malloc(size);
-			memcpy(data, buffer->mem, size);
+			memcpy(data, http.buffer.mem, size);
 			inCache = true;
 		}
-		else
-			printf("DownloadTask get timeout error %s\n", fileName.c_str());
 	}
-
-	curl_buffer_free(buffer);
-#else
-	http_resp_t *http_resp = NULL;
-
-	if (client->UrlGet((void**)&http_resp, "", fileName.c_str())) {
-		size = http_resp->body_len;
-		if (size > 0) {
-			data = malloc(size);
-			memcpy(data, http_resp->body, size);
-			inCache = true;
-		}
-		else
-			printf("DownloadTask get timeout error %s\n", fileName.c_str());
-	}
-
-	http_resp_free(http_resp);
-#endif
 }
 
 void *kola_login_thread(void *arg);
@@ -309,9 +283,7 @@ KolaClient::KolaClient(void)
 	signal(SIGPIPE, SIG_IGN);
 	char buffer[512];
 
-#if ENABLE_CURL
-	curl_global_init(CURL_GLOBAL_ALL);
-#endif
+	HttpInit();
 
 	char *ip = GetIP(SERVER_HOST);
 
@@ -346,20 +318,13 @@ KolaClient::~KolaClient(void)
 	ClearMenu();
 	Quit();
 	delete threadPool;
-#if ENABLE_CURL
-	curl_global_cleanup();
-#endif
+
+	HttpCleanup();
 }
 
-bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, const char *referer, int times)
+bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url, const char *referer)
 {
-#if ENABLE_CURL
-	if (times > TRY_TIMES)
-		return false;
-
-	const char *cookie=NULL;
-	struct curl_buffer *buffer = (struct curl_buffer*)resp;
-
+	const char *cookie;
 	if (home_url == NULL)
 		home_url = baseUrl.c_str();
 
@@ -372,117 +337,14 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 		cookie = loginKeyCookie.c_str();
 	UNLOCK(lock);
 
-	if (http_get (url.c_str(), cookie, referer, buffer) == NULL) {
-		return UrlGet(resp, url, home_url, referer, times + 1);
-	}
+	Http http;
+	if (http.Get(url.c_str(), cookie, referer)) {
+		ret.assign(http.Data().mem);
 
-	return true;
-#else
-	bool ok = false;
-	int rc;
-	http_client_t *http_client;
-	http_resp_t **http_resp = (http_resp_t **)resp;
-	const char *cookie=NULL;
-
-	if (times > TRY_TIMES)
-		return false;
-
-	if (home_url == NULL)
-		home_url = baseUrl.c_str();
-	//printf("wget: %s%s\n", home_url, url.c_str());
-
-	http_client = http_init_connection(home_url);
-	if (http_client == NULL) {
-		printf("%s error: %s %s\n", __func__, home_url, url.c_str());
-		return false;
-	}
-	LOCK(lock);
-	if (strcmp(home_url, baseUrl.c_str()) == 0)
-		cookie = loginKeyCookie.c_str();
-	UNLOCK(lock);
-
-	rc = http_get(http_client, url.c_str(), http_resp, cookie, referer);
-	if (rc > 0 && *http_resp && (*http_resp)->body) {
-		if ((*http_resp)->xsrf_cookie)
-			xsrf_cookie = (*http_resp)->xsrf_cookie;
-		ok = true;
-	}
-
-	http_free_connection(http_client);
-
-	if (ok == false) {
-		http_resp_free(*http_resp);
-		*resp = NULL;
-		return UrlGet(resp, url, home_url, referer, times + 1);
-	}
-	else
-		return ok;
-#endif
-}
-
-bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url, const char *referer)
-{
-	bool ok = false;
-#if ENABLE_CURL
-	struct curl_buffer *buffer = curl_buffer_new();
-
-	if (UrlGet((void**)buffer, url, home_url, referer)) {
-		if (buffer->mem)
-			ret.assign(buffer->mem);
-		ok = true;
-	}
-
-	curl_buffer_free(buffer);
-#else
-	http_resp_t *http_resp = NULL;
-
-	if (UrlGet((void**)&http_resp, url, home_url, referer)) {
-		ret = http_resp->body;
-		ok = true;
-
-	}
-	http_resp_free(http_resp);
-#endif
-
-	if (ok && debug)
-		std::cout << ret << std::endl;
-
-	return ok;
-}
-
-bool KolaClient::UrlGetCache(std::string url, std::string &ret, const char *home_url, const char *referer)
-{
-	bool rc = false;
-	std::string key = MD5STR(home_url);
-	char filename[128];
-	sprintf(filename, "../cache/%s", key.c_str());
-
-	std::ifstream in(filename);
-
-	if (in.is_open()) {
-		printf("Find cache : %s\n", filename);
-		std::istreambuf_iterator<char> beg(in), end;
-		ret = std::string(beg, end);
-
-		in.close();
 		return true;
 	}
-	else {
-		printf("download ... %s", home_url);
-		fflush(stdout);
 
-		rc = UrlGet(url, ret, home_url, referer);
-		if (rc) {
-			printf("OK\n");
-			std::ofstream out(filename);
-			out << ret;
-			out.close();
-		}
-		else
-			printf("fail\n");
-
-		return rc;
-	}
+	return false;
 }
 
 bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, const char *home_url, const char *referer, int times)
@@ -512,53 +374,19 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 	if (body)
 		new_body = gzip_base64(body, strlen(body));
 
-#if ENABLE_CURL
 	url = uri_join(home_url, url.c_str());
 	if (url == "")
 		return false;
-	struct curl_buffer *buffer = curl_buffer_new();
-	char *encode_body = URLencode(new_body.c_str());
 
-	if (http_post(url.c_str(), encode_body, cookie.c_str(), referer, buffer) == NULL) {
-		free(encode_body);
-		curl_buffer_free(buffer);
-		return UrlPost(url, body, ret, home_url, referer, times + 1);
+
+	Http http;
+
+	new_body = URLencode(new_body.c_str());
+	if (http.Post(url.c_str(), new_body.c_str(), cookie.c_str(), referer)) {
+		ret = http.buffer.mem;
 	}
-
-	if (buffer->mem)
-		ret = buffer->mem;
-
-	curl_buffer_free(buffer);
-	free(encode_body);
 
 	return true;
-
-#else
-	http_client_t *http_client;
-	http_resp_t *http_resp = NULL;
-	int rc;
-
-	http_client = http_init_connection(home_url);
-	if (http_client == NULL) {
-		printf("%s error: %s %s\n", __func__, home_url, url.c_str());
-		return false;
-	}
-
-	rc = http_post(http_client, url.c_str(), &http_resp, new_body.c_str(), cookie.c_str(), referer);
-	if (rc) {
-		if (http_resp && http_resp->body)
-			ret = http_resp->body;
-		ok = true;
-	}
-
-	http_resp_free(http_resp);
-	http_free_connection(http_client);
-
-	if (ok == false)
-		return UrlPost(url, body, ret, home_url, referer, times + 1);
-	else
-		return ok;
-#endif
 }
 
 char *KolaClient::Run(const char *cmd)
@@ -579,13 +407,8 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 
 	text = json_gets(cmd, "text", "");
 	if (source) {
-#if TEST
-		if (UrlGetCache("", text, source) == false)
-			return false;
-#else
 		if (UrlGet("", text, source) == false)
 			return false;
-#endif
 	}
 
 	if (text.size() == 0)
@@ -799,7 +622,6 @@ std::string KolaClient::GetArea()
 
 	return lua.RunScript(1, argv, "getip", "getip");
 }
-
 
 time_t KolaClient::GetTime()
 {

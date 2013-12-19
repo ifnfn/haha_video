@@ -169,17 +169,17 @@ void test_livetv()
 		if (album == NULL)
 			continue;
 		int video_count = album->GetVideoCount();
-		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), 1);
+		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 #if 1
 		LiveVideoTask task[20];
 		for (size_t j = 0; j < video_count; j++) {
 			std::string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
-				video->GetVideoUrl(task[j]);
+				//video->GetVideoUrl(task[j]);
 				//player_url = task.Get();
-				//player_url = video->GetVideoUrl();
-				//printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				player_url = video->GetVideoUrl();
+				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 #if 0
 				KolaEpg epg;
 
@@ -196,9 +196,9 @@ void test_livetv()
 #endif
 			}
 		}
-		for (size_t j = 0; j < video_count; j++) {
-			task[j].Wait();
-		}
+//		for (size_t j = 0; j < video_count; j++) {
+//			task[j].Wait();
+//		}
 #endif
 	}
 

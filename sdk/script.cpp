@@ -42,7 +42,7 @@ static std::string lua_runscript(lua_State* L, const char *fn, const char *func,
 	// 第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
 	// lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
 	if (lua_pcall(L, argc, 1, 0)) {
-#if 1
+#if TEST
 		printf("%s.\n", lua_tostring(L, -1));
 		printf("%s(", func);
 		for (i = 0; i < argc - 1; i++)
@@ -129,7 +129,8 @@ std::string LuaScript::RunScript(int argc, const char **argv, const char *name, 
 	return ret;
 }
 
-bool LuaScript::GetScript(const char *name, std::string &text) {
+bool LuaScript::GetScript(const char *name, std::string &text)
+{
 	std::map<std::string ,script>::iterator it = scripts.find(name);
 	if (it != scripts.end()) {
 		time_t now = time(NULL);
@@ -202,8 +203,9 @@ void ScriptCommand::AddParams(const char *arg)
 	argv[argc - 1] = strdup(arg);
 }
 
-bool ScriptCommand::LoadFromJson(json_t *js) {
-	json_gets(js, "script", script_name); 
+bool ScriptCommand::LoadFromJson(json_t *js)
+{
+	json_gets(js, "script", script_name);
 	json_gets(js, "function", func_name);
 	json_t *params = json_geto(js, "parameters");
 
@@ -314,7 +316,7 @@ int Variant::GetInteger()
 		return int(valueDouble);
 	}
 	else if (directValue == SC_STRING) {
-	 	try {
+		try {
 			return atoi(valueStr.c_str());
 		}
 		catch(std::exception &ex) {
@@ -326,7 +328,7 @@ int Variant::GetInteger()
 	}
 	else if (directValue == SC_SCRIPT) {
 		std::string text = Run();
-	 	try {
+		try {
 			return atoi(text.c_str());
 		}
 		catch(std::exception &ex) {
@@ -347,7 +349,7 @@ double Variant::GetDouble()
 		return valueInt;
 	}
 	else if (directValue == SC_STRING) {
-	 	try {
+		try {
 			return atof(valueStr.c_str());
 		}
 		catch(std::exception &ex) {
@@ -356,7 +358,7 @@ double Variant::GetDouble()
 	}
 	else if (directValue == SC_SCRIPT) {
 		std::string text = Run();
-	 	try {
+		try {
 			return atof(text.c_str());
 		}
 		catch(std::exception &ex) {
@@ -366,5 +368,4 @@ double Variant::GetDouble()
 	}
 
 	return 0.0;
-
 }

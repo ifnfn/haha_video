@@ -140,11 +140,11 @@ class ParserLetvLivetv(LivetvParser):
                 v.largePicUrl = x[0][2]
                 v.priority    = 1
                 v.name        = "乐视"
-                v.script      = {
+
+                v.SetVideoUrl('default', {
                     'script' : 'letv',
                     'parameters' : [playUrl]
-                }
-                v.SetVideoUrl('default', v.script)
+                })
 
                 v.info = {
                           'script' : 'letv',
@@ -183,11 +183,12 @@ class ParserSohuLivetv(LivetvParser):
             v.vid      = utils.getVidoId(playUrl)
             v.priority = 2
             v.name     = "搜狐"
-            v.script   = {
+
+            v.SetVideoUrl('default', {
                 'script' : 'sohutv',
                 'parameters' : [playUrl]
-            }
-            v.SetVideoUrl('default', v.script)
+            })
+
             v.info = {
                 'script' : 'sohutv',
                 'function' : 'get_channel',
@@ -229,11 +230,11 @@ class ParserJLntvLivetv(LivetvParser):
 #            v.largePicUrl = x[0][2]
             v.priority    = 1
             v.name        = "JLNTV"
-            v.script      = {
+
+            v.SetVideoUrl('default', {
                 'script' : 'jlntv',
                 'parameters' : [playUrl]
-            }
-            v.SetVideoUrl('default', v.script)
+            })
 
             v.info = {
                       'script' : 'jlntv',
@@ -294,11 +295,12 @@ class ParserHangZhouLivetv(LivetvParser):
             v.vid      = utils.getVidoId(url)
             v.priority = 2
             v.name     = "HZTV"
-            v.script   = {
+
+            v.SetVideoUrl('default', {
                 'script' : 'hztv',
                 'parameters' : [url]
-            }
-            v.SetVideoUrl('default', v.script)
+            })
+
             v.info = {
                 'script' : 'hztv',
                 'function' : 'get_channel',
@@ -336,11 +338,12 @@ class ParserWenZhouLivetv(LivetvParser):
             v.vid      = utils.getVidoId(u)
             v.priority = 2
             v.name     = "WZTV"
-            v.script   = {
+
+            v.SetVideoUrl('default', {
                 'script' : 'wztv',
                 'parameters' : ['http://www.dhtv.cn/static/??js/tv.js?acm', source]
-            }
-            v.SetVideoUrl('default', v.script)
+            })
+
             v.info = {
                 'script'     : 'wztv',
                 'function'   : 'get_channel',
@@ -389,11 +392,11 @@ class ParserTVIELivetv(LivetvParser):
 
             v.priority = 2
             v.name = "TVIE"
-            v.script = {
+
+            v.SetVideoUrl('default', {
                 'script' : 'tvie',
                 'parameters' : [playUrl]
-            }
-            v.SetVideoUrl('default', v.script)
+            })
 
             v.info = {
                 'script' : 'tvie',

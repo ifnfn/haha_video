@@ -43,11 +43,11 @@ function kola_main(vid, cid)
 	ret.fps           = data.fps
 	ret.scap          = data.scap
 
-	ret.highVid       = js.highVid
-	ret.norVid        = js.norVid
-	ret.oriVid        = js.oriVid
-	ret.superVid      = js.superVid
-	ret.relativeId    = js.relativeId
+	ret.highVid       = data.highVid
+	ret.norVid        = data.norVid
+	ret.oriVid        = data.oriVid
+	ret.superVid      = data.superVid
+	ret.relativeId    = data.relativeId
 
 	url = kola.getserver() .. "/video/getplayer?step=3&cid=" .. cid
 

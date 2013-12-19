@@ -229,7 +229,7 @@ static std::string gzip_base64(const char *data, int ndata)
 	return ret;
 }
 
-Picture::Picture(std::string fileName)
+DownloadTask::DownloadTask(std::string fileName)
 {
 	data           = NULL;
 	size           = 0;
@@ -238,7 +238,7 @@ Picture::Picture(std::string fileName)
 	this->fileName = fileName;
 }
 
-Picture::Picture()
+DownloadTask::DownloadTask()
 {
 	data     = NULL;
 	size     = 0;
@@ -247,7 +247,7 @@ Picture::Picture()
 	used     = false;
 }
 
-Picture::~Picture()
+DownloadTask::~DownloadTask()
 {
 	Wait();
 	if (data) {
@@ -257,7 +257,13 @@ Picture::~Picture()
 	size = 0;
 }
 
-void Picture::Run()
+void DownloadTask::Run(std::string fileName)
+{
+	this->fileName = fileName;
+	Run();
+}
+
+void DownloadTask::Run()
 {
 	if (inCache == true)
 		return;
@@ -274,7 +280,7 @@ void Picture::Run()
 			inCache = true;
 		}
 		else
-			printf("Picture get timeout error %s\n", fileName.c_str());
+			printf("DownloadTask get timeout error %s\n", fileName.c_str());
 	}
 
 	curl_buffer_free(buffer);
@@ -289,7 +295,7 @@ void Picture::Run()
 			inCache = true;
 		}
 		else
-			printf("Picture get timeout error %s\n", fileName.c_str());
+			printf("DownloadTask get timeout error %s\n", fileName.c_str());
 	}
 
 	http_resp_free(http_resp);

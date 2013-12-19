@@ -127,6 +127,14 @@ void test_custommenu()
 	printf("%s End!!!\n", __func__);
 }
 
+class LiveVideoTask: public VideoUrlTask {
+	public:
+		virtual void Run() {
+			VideoUrlTask::Run();
+			std::cout << ret << std::endl;
+		}
+};
+
 void test_livetv()
 {
 	AlbumPage page;
@@ -163,12 +171,16 @@ void test_livetv()
 		int video_count = album->GetVideoCount();
 		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), 1);
 #if 1
+		LiveVideoTask task[20];
 		for (size_t j = 0; j < video_count; j++) {
 			std::string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
-				player_url = video->GetVideoUrl();
-				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+				video->GetVideoUrl(task[j]);
+				//player_url = task.Get();
+				//player_url = video->GetVideoUrl();
+				//printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+#if 0
 				KolaEpg epg;
 
 				std::string info = video->GetInfo();
@@ -181,7 +193,11 @@ void test_livetv()
 						printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
 					printf("\n\n");
 				}
+#endif
 			}
+		}
+		for (size_t j = 0; j < video_count; j++) {
+			task[j].Wait();
 		}
 #endif
 	}
@@ -364,12 +380,12 @@ void test_video(const char *menuName)
 	}
 
 	size_t count = page.PictureCount();
-	printf("Picture count %ld\n", count);
+	printf("DownloadTask count %ld\n", count);
 #if 0
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 
-		Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
+		DownloadTask *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
 		if (LargePic) {
 			LargePic->Wait();
 			if (LargePic->GetStatus() == Task::StatusFinish && LargePic->used == false) {
@@ -391,7 +407,7 @@ void test_video(const char *menuName)
 		for (size_t i = 0; i < page.Count(); i++) {
 			KolaAlbum *album = page.GetAlbum(i);
 
-			Picture *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
+			DownloadTask *LargePic = page.GetPicture(album->GetPictureUrl(PIC_LARGE));
 			if (LargePic) {
 				if (LargePic->GetStatus() == Task::StatusFinish && LargePic->used == false) {
 					if (LargePic->inCache) {
@@ -430,7 +446,7 @@ int main(int argc, char **argv)
 //	return 0;
 //	test_custommenu();
 //	return 0;
-//	printf("Test LiveTV\n"); test_livetv();
+	printf("Test LiveTV\n"); test_livetv();
 //	return 0;
 
 	printf("Test Video\n"); test_video("电影");

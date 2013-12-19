@@ -126,6 +126,39 @@ class Task {
 		friend class Thread;
 };
 
+class DownloadTask: public Task {
+	public:
+		DownloadTask(std::string fileName);
+		DownloadTask();
+		virtual ~DownloadTask();
+
+		void *data;
+		size_t size;
+		std::string fileName;
+		bool inCache;
+		virtual void Run();
+		void Run(std::string fileName);
+		bool used;
+};
+
+class VideoUrlTask: public Task {
+	public:
+		VideoUrlTask() :variant(NULL) {}
+		void Set(Variant *var) { variant = var; }
+		virtual void Run() {
+			ret = variant->GetString();
+		}
+
+		std::string Get() {
+			Wait();
+			return ret;
+		}
+	protected:
+		std::string ret;
+	private:
+		Variant *variant;
+};
+
 class EPG {
 	public:
 		EPG() {
@@ -154,6 +187,7 @@ class VideoUrls {
 		~VideoUrls();
 		void GetResolution(StringList& res);
 		std::string Get(std::string &key);
+		Variant *GetVariant(std::string &key);
 	private:
 		std::map<std::string, Variant*> urls;
 		std::string defaultKey;
@@ -169,6 +203,8 @@ class KolaVideo {
 		void Clear();
 		void GetResolution(StringList& res);
 		std::string GetVideoUrl(std::string res="");
+		bool GetVideoUrl(VideoUrlTask& task, std::string res="");
+		bool GetVideoUrl(VideoUrlTask* task, std::string res="");
 		std::string GetSubtitle(const char *lang);
 		std::string GetInfo();
 
@@ -201,20 +237,6 @@ class KolaVideo {
 		Variant sc_info;
 		Variant sc_resolution;
 		VideoUrls *urls;
-};
-
-class Picture: public Task {
-	public:
-		Picture(std::string fileName);
-		Picture();
-		virtual ~Picture();
-
-		void *data;
-		size_t size;
-		std::string fileName;
-		bool inCache;
-		virtual void Run();
-		bool used;
 };
 
 class FilterValue: public StringList {
@@ -322,12 +344,12 @@ class AlbumPage {
 		size_t Count() { return albumList.size();}
 		size_t PictureCount() { return pictureList.size(); }
 
-		Picture* GetPicture(std::string fileName);
+		DownloadTask* GetPicture(std::string fileName);
 		void Clear();
 		int pageId;
 	private:
 		std::vector<KolaAlbum*> albumList;
-		std::map<std::string, Picture*> pictureList;
+		std::map<std::string, DownloadTask*> pictureList;
 };
 
 class KolaMenu {
@@ -430,7 +452,7 @@ class KolaClient {
 		friend class KolaVideo;
 		friend class KolaAlbum;
 		friend class CustomMenu;
-		friend class Picture;
+		friend class DownloadTask;
 		friend class Task;
 };
 

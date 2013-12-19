@@ -29,7 +29,7 @@
 #endif
 #include "httplib.h"
 
-#define TEST 1
+#define TEST 0
 #if TEST
 #define SERVER_HOST "192.168.56.1"
 //#define SERVER_HOST "127.0.0.1"
@@ -359,6 +359,8 @@ bool KolaClient::UrlGet(void **resp, std::string url, const char *home_url, cons
 		home_url = baseUrl.c_str();
 
 	url = uri_join(home_url, url.c_str());
+	if (url == "")
+		return false;
 
 	LOCK(lock);
 	if (strcmp(home_url, baseUrl.c_str()) == 0)
@@ -507,6 +509,8 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 
 #if ENABLE_CURL
 	url = uri_join(home_url, url.c_str());
+	if (url == "")
+		return false;
 	struct curl_buffer *buffer = curl_buffer_new();
 	char *encode_body = URLencode(new_body.c_str());
 

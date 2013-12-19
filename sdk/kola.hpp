@@ -1,3 +1,6 @@
+#ifndef _KOLATV_HPP__
+#define _KOLATV_HPP__
+
 #include <string>
 #include <vector>
 #include <map>
@@ -318,6 +321,7 @@ class KolaMenu {
 		virtual int LowGetPage(AlbumPage *page, std::string key, std::string value, int pageSize);
 		int ParserJson(AlbumPage *page, std::string &jsonstr);
 		std::string GetPostData();
+		void CleanPage();
 	private:
 		AlbumPage page[3];
 		AlbumPage *prev, *cur, *next;
@@ -387,4 +391,6 @@ class KolaClient {
 		friend class Picture;
 		friend class Task;
 };
+
+#endif
 

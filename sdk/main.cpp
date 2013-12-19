@@ -29,38 +29,97 @@ void test_task()
 
 void test_custommenu()
 {
+	int count;
 	CustomMenu *menu = new CustomMenu("abc");
 
-	menu->SetPageSize(4);
-	menu->AlbumAdd("845690");
-	menu->AlbumAdd("582923");
-	menu->AlbumAdd("841316");
-	menu->AlbumAdd("220791");
-	menu->AlbumAdd("221079");
-
-	AlbumPage page;
 	while(1) {
-		menu->GetPage(page);
-		for (size_t i = 0; i < page.Count(); i++) {
-			KolaAlbum *album = page.GetAlbum(i);
+#if 1
+		menu->AlbumAdd("0c7ac1f004");
+		menu->AlbumAdd("11eec465ba");
+		menu->AlbumAdd("04a2547275");
+		menu->AlbumAdd("4e13fc0109");
+		menu->SaveToFile();
+		count = menu->GetAlbumCount();
+		printf("count=%d\n", count);
+
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = menu->GetAlbum(i);
+			if (album == NULL)
+				continue;
 			size_t video_count = album->GetVideoCount();
-			printf("[%ld] %s: Video:Count %ld\n", i, album->albumName.c_str(), video_count);
-
-			for (size_t j = 0; j < video_count; j++) {
-				std::string player_url;
-				KolaVideo *video = album->GetVideo(j);
-				if (video) {
-					player_url = video->GetVideoUrl();
-					printf("\t%s [%s] -> %s\n", video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
-				}
-			}
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 		}
+		menu->AlbumAdd("a132d1189a");
+		menu->AlbumAdd("1687598f46");
+		menu->AlbumAdd("bc4ba8859c");
+		menu->AlbumAdd("7152c6122a");
+		menu->AlbumAdd("c9467b05a9");
+		menu->SaveToFile();
+		count = menu->GetAlbumCount();
+		printf("count=%d\n", count);
 
-		if (page.Count() != menu->GetPageSize())
-			break;
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = menu->GetAlbum(i);
+			if (album == NULL)
+				continue;
+			size_t video_count = album->GetVideoCount();
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		}
+		menu->AlbumAdd("1ff0e4591c");
+		menu->AlbumAdd("9248ce715b");
+		menu->AlbumAdd("ada612c186");
+		menu->SaveToFile();
+		count = menu->GetAlbumCount();
+		printf("count=%d\n", count);
+
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = menu->GetAlbum(i);
+			if (album == NULL)
+				continue;
+			size_t video_count = album->GetVideoCount();
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		}
+		menu->AlbumAdd("a3eec31e8a");
+		menu->AlbumAdd("c85bfd1868");
+		menu->SaveToFile();
+		count = menu->GetAlbumCount();
+		printf("count=%d\n", count);
+
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = menu->GetAlbum(i);
+			if (album == NULL)
+				continue;
+			size_t video_count = album->GetVideoCount();
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		}
+		menu->AlbumAdd("95896fb628");
+		menu->AlbumAdd("c0cb215ceb");
+		menu->AlbumAdd("a7104e13d9");
+
+		menu->SaveToFile();
+		count = menu->GetAlbumCount();
+		printf("count=%d\n", count);
+
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = menu->GetAlbum(i);
+			if (album == NULL)
+				continue;
+			size_t video_count = album->GetVideoCount();
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		}
+#endif
+		count = menu->GetAlbumCount();
+		printf("count=%d\n", count);
+
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = menu->GetAlbum(i);
+			if (album == NULL)
+				continue;
+			size_t video_count = album->GetVideoCount();
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		}
 	}
 
-	menu->SaveToFile();
 	delete menu;
 
 	printf("%s End!!!\n", __func__);
@@ -323,8 +382,8 @@ int main(int argc, char **argv)
 
 //	test_script();
 //	return 0;
-//	test_custommenu();
-//	return 0;
+	test_custommenu();
+	return 0;
 	printf("Test LiveTV\n"); test_livetv();
 
 	return 0;

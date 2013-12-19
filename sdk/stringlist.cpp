@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <string.h>
 
 #include "kola.hpp"
 
@@ -45,6 +46,7 @@ void StringList::operator>> (std::string v)
 bool StringList::Find(std::string v)
 {
 	StringList::iterator iter = find(begin(), end(), v);
+
 	return iter != end();
 }
 
@@ -83,12 +85,14 @@ void StringList::Split(const std::string items, std::string sp)
 
 bool StringList::SaveToFile(std::string fileName)
 {
-	std::ofstream out(fileName.c_str());
-	if (out.is_open()) {
-		for (int i = 0; i < size() ; i++)
-			out << at(i) << std::endl;
+	FILE *fp = fopen(fileName.c_str(), "w");
+	if (fp) {
+		for (int i = 0; i < size(); i++) {
+			const char *p = at(i).c_str();
+			fprintf(fp, "%s\n", p);
+		}
+		fclose(fp);
 
-		out.close();
 		return true;
 	}
 
@@ -97,15 +101,20 @@ bool StringList::SaveToFile(std::string fileName)
 
 bool StringList::LoadFromFile(std::string fileName)
 {
-	std::ifstream in(fileName.c_str());
-	std::string s;
+	FILE *fp = fopen(fileName.c_str(), "r");
 
-	if (in.is_open()) {
-		while(getline(in, s)) {
-			push_back(s);
+	if (fp) {
+		char buffer[1024];
+		while (!feof(fp)) {
+			char *p = fgets(buffer, 1023, fp);
+			if (p) {
+				int len = strlen(p);
+				if (p[len - 1] == '\n')
+					p[len - 1] = 0;
+				push_back(p);
+			}
 		}
-
-		in.close();
+		fclose(fp);
 
 		return true;
 	}

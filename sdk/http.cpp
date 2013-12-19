@@ -22,7 +22,7 @@ std::string uri_join(const char * base, const char * uri)
 
 	p = strstr(base, "://");
 	if (!p)
-		return NULL;
+		return "";
 
 	if (strlen(uri) == 0)
 		return base;

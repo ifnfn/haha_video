@@ -249,7 +249,6 @@ Picture::~Picture()
 {
 	Wait();
 	if (data) {
-		free(data);
 		data = NULL;
 	}
 	size = 0;

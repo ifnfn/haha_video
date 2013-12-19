@@ -242,7 +242,7 @@ class ParserAlbumFullInfo(KolaParser):
                 #v.script = {
                 #    'script' : 'sohu',
                 #    'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % v.vid, autostr(album.cid)]
-                #}
+				#}
 
                 #album.videos.append(v)
         if vid:

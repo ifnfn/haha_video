@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+from urllib.parse import urljoin
 from xml.etree import ElementTree
 
 import tornado.escape
@@ -112,8 +113,10 @@ class ParserLetvLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.cmd['name']    = 'live_engine_parser'
-        self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
-        self.cmd['regular'] = ["<dt>(<a title=.*</a>)</dt>"]
+        #self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
+        self.cmd['source']  = 'http://www.leshizhibo.com/'
+        self.cmd['regular'] = ['<p class="channelimg">(.*)</p>']
+
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -123,16 +126,23 @@ class ParserLetvLivetv(LivetvParser):
 
         for t in playlist:
             #print(t)
-            x = re.findall('<a title="(.*)" href=".*/channel/(.*)" target="_blank"><img alt=.* src="(.*)"><span class', t)
+            x = re.findall('<a href=".*/channel/(.*)" target="_blank"><img src="(.*)" alt="(.*)" width', t)
             if x:
-                name = x[0][0]
-                vid = x[0][1]
-                print(name, x[0][1], x[0][2])
+                vid = x[0][0]
+                name = x[0][2]
+                image = urljoin(js['source'], x[0][1])
+                print(name, vid, image)
 
+                if name in ['中国教育一台', '中国教育三台', '中国教育二台', '游戏风云一套', '优漫卡通', '延边卫视', '星空卫视',
+                            '五星体育', 'TVB翡翠台', '三沙卫视', '厦门卫视', 'NEOTV综合频道', '嘉佳卡通', '华娱卫视',
+                            '湖北体育', '广东体育', 'CCTV女性时尚', 'CCTV电视指南', 'CCTV-5体育频道', '兵团卫视', '澳亚卫视',
+                            ]:
+                    continue
                 album  = LivetvAlbum()
-                album.vid        = utils.genAlbumId(name)
-                album.albumName  = name
-                album.categories = self.tvCate.GetCategories(name)
+                album.vid         = utils.genAlbumId(name)
+                album.albumName   = name
+                album.largePicUrl = image
+                album.categories  = self.tvCate.GetCategories(name)
 
                 v = album.NewVideo()
                 playUrl     = 'http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1' % vid
@@ -218,7 +228,7 @@ class ParserJLntvLivetv(LivetvParser):
 
         ch_list = re.findall('<li id="T_Menu_(\d*)"><a href="(.*)">(.*)</a></li>', js['data'])
 
-        for i, u, n in ch_list:
+        for _, u, n in ch_list:
             album  = LivetvAlbum()
             album.vid        = utils.genAlbumId(n)
             album.albumName  = n

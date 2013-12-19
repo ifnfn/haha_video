@@ -15,28 +15,13 @@ LUALIB_API int luaopen_kola(lua_State *L);
 #include "http.hpp"
 #include "kola.hpp"
 
-class WgetTask: public Task {
-	public:
-		WgetTask(std::string url) {
-			this->Url = url;
-		}
-		void Run() {
-			Http http;
-
-			if (http.Get(Url.c_str()) != NULL)
-				text = http.buffer.mem;
-		}
-		std::string text;
-	private:
-		std::string Url;
-};
-
 static int f_mwget(lua_State *L)
 {
 	int argc = lua_gettop(L);
 	double k;
 	const char *v = NULL;
-	std::vector<WgetTask> taskList;
+	std::vector<Http*> taskList;
+	MultiHttp multi;
 
 	lua_pushnil(L);
 	/* table, startkey */
@@ -44,25 +29,30 @@ static int f_mwget(lua_State *L)
 		/* table, key, value */
 		if (lua_type(L, -2) == LUA_TNUMBER && (k = lua_tonumber(L, -2))) {
 			if (lua_type(L, -1) == LUA_TSTRING && (v = lua_tostring(L, -1))) {
-				taskList.push_back(WgetTask(v));
+				Http *http = new Http(v);
+				taskList.push_back(http);
+				multi.Add(http);
 			}
 		}
 		lua_pop(L, 1);
 	}
-
-	for (size_t i = 0; i < taskList.size(); i++) {
-		WgetTask *t = &taskList[i];
-		t->Start();
-	}
+	multi.Run();
 
 	lua_newtable(L);
 
 	for (size_t i = 0; i < taskList.size(); i++) {
-		WgetTask *t = &taskList[i];
-		t->Wait();
 		lua_pushinteger(L, i + 1);
-		lua_pushstring(L, t->text.c_str());
+
+		Http *t = taskList[i];
+		if (t->msg == CURLMSG_DONE) {
+			lua_pushstring(L, t->buffer.mem);
+		}
+		else
+			lua_pushstring(L, "");
+
 		lua_settable(L, -3);
+
+		delete t;
 	}
 
 	return 1;

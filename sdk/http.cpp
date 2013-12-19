@@ -155,7 +155,7 @@ void HttpCleanup() {
 	curl_global_cleanup();
 }
 
-Http::Http() {
+Http::Http(const char *url) {
 	download_cancel = 0;
 	curl = curl_easy_init();
 	if ( curl ) {
@@ -164,6 +164,9 @@ Http::Http() {
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
 		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT , "KolaClient");
+
+		if (url)
+			Set(url);
 	}
 	else
 		syslog(LOG_ERR, "wget: cant initialize curl!");
@@ -234,6 +237,114 @@ const char *Http::Post(const char *url, const char *postdata, const char *cookie
 	return curlGetCurlURL();
 }
 
-void Http::Cancel() {
+void Http::Cancel()
+{
 	download_cancel = 1;
-};
+}
+
+MultiHttp::MultiHttp()
+{
+	multi_handle = curl_multi_init();
+}
+
+MultiHttp::~MultiHttp()
+{
+	curl_multi_cleanup(multi_handle);
+}
+
+void MultiHttp::Add(Http *http)
+{
+	curl_multi_add_handle(multi_handle, http->curl);
+	httpList.push_back(http);
+}
+
+void MultiHttp::Remove(Http *http)
+{
+	curl_multi_remove_handle(multi_handle, http->curl);
+	for (std::deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
+		if (*it == http) {
+			httpList.erase(it);
+			break;
+		}
+	}
+}
+
+void MultiHttp::Run()
+{
+	CURLMsg *msg; /*  for picking up messages with the transfer status */
+	int msgs_left; /*  how many messages are left */
+
+	/*  we start some action by calling perform right away */
+	curl_multi_perform(multi_handle, &still_running);
+
+	do {
+		struct timeval timeout;
+		int rc; /*  select() return code */
+
+		fd_set fdread;
+		fd_set fdwrite;
+		fd_set fdexcep;
+		int maxfd = -1;
+
+		long curl_timeo = -1;
+
+		FD_ZERO(&fdread);
+		FD_ZERO(&fdwrite);
+		FD_ZERO(&fdexcep);
+
+		/*  set a suitable timeout to play around with */
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+
+		curl_multi_timeout(multi_handle, &curl_timeo);
+		if(curl_timeo >= 0) {
+			timeout.tv_sec = curl_timeo / 1000;
+			if(timeout.tv_sec > 1)
+				timeout.tv_sec = 1;
+			else
+				timeout.tv_usec = (curl_timeo % 1000) * 1000;
+		}
+
+		/*  get file descriptors from the transfers */
+		curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+
+		/*  In a real-world program you OF COURSE check the return code of the
+		 *  function calls.  On success, the value of maxfd is guaranteed to be
+		 *  greater or equal than -1.  We call select(maxfd + 1, ...), specially in
+		 *  case of (maxfd == -1), we call select(0, ...), which is basically equal
+		 *  to sleep. */
+
+		rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
+
+		switch(rc) {
+			case -1:
+				/*  select error */
+				break;
+			case 0: /*  timeout */
+			default: /*  action */
+				curl_multi_perform(multi_handle, &still_running);
+				break;
+		}
+	} while(still_running);
+
+	/*  See how the transfers went */
+	while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
+		if (msg->msg == CURLMSG_DONE) {
+			int idx, found = 0;
+
+			/*  Find out which handle this message is about */
+			for (std::deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
+				Http *http = *it;
+
+				found = msg->easy_handle == http->curl;
+
+				if(found) {
+					http->msg = msg->msg;
+					break;
+				}
+			}
+
+			curl_multi_remove_handle( multi_handle, msg->easy_handle);
+		}
+	}
+}

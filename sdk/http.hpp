@@ -8,7 +8,7 @@
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <string>
-#include <vector>
+#include <deque>
 
 std::string URLencode(const char *str);
 std::string URLdecode(char *str);
@@ -48,7 +48,7 @@ void HttpCleanup();
 
 class Http {
 	public:
-		Http();
+		Http(const char *url=NULL);
 		~Http();
 
 		void Set(const char *url, const char *cookie=NULL, const char *referer=NULL);
@@ -62,16 +62,26 @@ class Http {
 		HttpBuffer buffer;
 		void Cancel();
 		int download_cancel;
+		CURLMSG msg;
 	private:
 		CURL *curl;
 		char *curlGetCurlURL(int times=0);
 		char errormsg[CURL_ERROR_SIZE];
+		friend class MultiHttp;
 };
 
-class MultiHttp: public std::vector <Http*> {
+class MultiHttp {
 	public:
+		MultiHttp();
+		~MultiHttp();
+		void Add(Http *http);
+		void Remove(Http *http);
+		void Run();
 
-
+	private:
+		CURLM *multi_handle;
+		int still_running;
+		std::deque<Http*> httpList;
 };
 
 #endif

@@ -218,12 +218,12 @@ void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列�
 void AlbumPage::PutPicture(std::string fileName)
 {
 	if (fileName != "") {
-		std::map<std::string, DownloadTask*>::iterator it;
+		std::map<std::string, Picture*>::iterator it;
 
 		it = pictureList.find(fileName);
 		if (it == pictureList.end()) {
-			DownloadTask *pic = new DownloadTask(fileName);
-			pictureList.insert(std::pair<std::string, DownloadTask*>(fileName, pic));
+			Picture *pic = new Picture(fileName);
+			pictureList.insert(std::pair<std::string, Picture*>(fileName, pic));
 			pic->Start();
 		}
 	}
@@ -244,9 +244,9 @@ KolaAlbum* AlbumPage::GetAlbum(int index)
 	return NULL;
 }
 
-DownloadTask* AlbumPage::GetPicture(std::string fileName)
+Picture* AlbumPage::GetPicture(std::string fileName)
 {
-	std::map<std::string, DownloadTask*>::iterator it;
+	std::map<std::string, Picture*>::iterator it;
 
 	it = pictureList.find(fileName);
 
@@ -259,7 +259,7 @@ DownloadTask* AlbumPage::GetPicture(std::string fileName)
 void AlbumPage::Clear()
 {
 	pageId = -1;
-	for (std::map<std::string, DownloadTask*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
+	for (std::map<std::string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
 		it->second->Cancel();
 		delete it->second;
 	}

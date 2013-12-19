@@ -55,14 +55,16 @@ class Http {
 		void SetOpt(CURLoption option, const char *value) { curl_easy_setopt(curl, option, value); }
 		void SetOpt(CURLoption option, int value)         { curl_easy_setopt(curl, option, value); }
 
-		bool Get(const char *url, const char *cookie=NULL, const char *referer=NULL);
-		char *Post(const char *url, const char *postdata, const char *cookie=NULL, const char *referer=NULL);
+		const char *Get(const char *url, const char *cookie=NULL, const char *referer=NULL);
+		const char *Post(const char *url, const char *postdata, const char *cookie=NULL, const char *referer=NULL);
 
 		HttpBuffer& Data() { return buffer; }
 		HttpBuffer buffer;
+		void Cancel();
+		int download_cancel;
 	private:
 		CURL *curl;
-		char *curlGetCurlURL();
+		char *curlGetCurlURL(int times=0);
 		char errormsg[CURL_ERROR_SIZE];
 };
 

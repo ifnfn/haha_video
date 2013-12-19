@@ -63,8 +63,8 @@ class SohuAlbum(kola.AlbumBase):
     def UpdateFullInfoCommand(self):
         if self.sohu['playlistid']:
             ParserAlbumFullInfo(self).AddCommand()
-        if self.sohu['vid']:
-            ParserAlbumMvInfo(self, self.albumName).AddCommand()
+        #if self.sohu['vid']:
+        #    ParserAlbumMvInfo(self, self.albumName).AddCommand()
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):

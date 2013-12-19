@@ -10,7 +10,7 @@ import traceback
 import zlib
 
 from .fetchTools import fetch_httplib2 as fetch
-from .pytable import Pinyin 
+from .pytable import Pinyin
 
 def autostr(i):
     if type(i) == int:

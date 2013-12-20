@@ -121,13 +121,23 @@ std::string uri_join(const char * base, const char * uri)
 	return ret;
 }
 
-
 static void * curlRealloc(void *ptr, size_t size)
 {
 	if (ptr)
 		return realloc(ptr, size);
 	else
 		return malloc(size);
+}
+
+HttpBuffer::HttpBuffer(HttpBuffer &buf)
+{
+	mem = NULL;
+	size  = 0;
+	if (buf.size && buf.mem) {
+		size = buf.size;
+		mem = (char*)malloc(size);
+		memcpy(mem, buf.mem, size);
+	}
 }
 
 size_t HttpBuffer::write(void *ptr, size_t s, size_t nmemb)
@@ -143,10 +153,13 @@ size_t HttpBuffer::write(void *ptr, size_t s, size_t nmemb)
 	return realsize;
 }
 
-void HttpInit() {
+static curl_version_info_data *curlinfo = NULL;
+void HttpInit()
+{
 	static int curl_init = 0;
 	if (curl_init == 0) {
 		curl_global_init(CURL_GLOBAL_ALL);
+		curlinfo = curl_version_info(CURLVERSION_NOW);
 		curl_init++;
 	}
 }
@@ -155,29 +168,61 @@ void HttpCleanup() {
 	curl_global_cleanup();
 }
 
-Http::Http(const char *url) {
+Http::Http(const char *url)
+{
 	download_cancel = 0;
-	curl = curl_easy_init();
-	if ( curl ) {
-		curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
-		curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
-		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
-		curl_easy_setopt(curl, CURLOPT_USERAGENT , "KolaClient");
+	msg = CURLMSG_NONE;
 
-		if (url)
-			Set(url);
+	HttpInit();
+	curl = curl_easy_init();
+
+	if ( curl ) {
+		SetOpt(CURLOPT_NOSIGNAL        , 1L);
+		SetOpt(CURLOPT_TIMEOUT         , 5);
+		SetOpt(CURLOPT_CONNECTTIMEOUT  , 5);
+		SetOpt(CURLOPT_USERAGENT       , "KolaClient");
+		SetOpt(CURLOPT_ERRORBUFFER     , errormsg);
+
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA    , (void*)this);
+		if (curlinfo->features & CURL_VERSION_LIBZ)
+			SetOpt(CURLOPT_ACCEPT_ENCODING , "gzip,deflate");
+
+		if (url && strlen(url) > 0)
+			SetOpt(CURLOPT_URL, url);
 	}
 	else
 		syslog(LOG_ERR, "wget: cant initialize curl!");
 }
 
-Http::~Http() {
+Http::~Http()
+{
 	if (curl)
 		curl_easy_cleanup(curl);
 }
 
-static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
+void Http::SetCookie(const char *cookie)
+{
+	if (cookie && strlen(cookie) > 0)
+		SetOpt(CURLOPT_COOKIE, cookie);
+}
+
+void Http::SetReferer(const char *referer)
+{
+	if (referer && strlen(referer) > 0)
+		SetOpt(CURLOPT_REFERER, referer);
+}
+
+void Http::Set(const char *url, const char *cookie, const char *referer)
+{
+	if (url && strlen(url) > 0)
+		SetOpt(CURLOPT_URL, url);
+
+	SetCookie(cookie);
+	SetReferer(referer);
+}
+
+size_t Http::curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	struct Http *http = (Http*)data;
 
@@ -185,19 +230,6 @@ static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data
 		return 0;
 
 	return http->buffer.write(ptr, size, nmemb);
-}
-
-void Http::Set(const char *url, const char *cookie, const char *referer)
-{
-	if (referer)
-		curl_easy_setopt(curl, CURLOPT_REFERER, referer);
-	if (cookie)
-		curl_easy_setopt(curl, CURLOPT_COOKIE, cookie);
-
-	curl_easy_setopt(curl, CURLOPT_URL, url);
-	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errormsg);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)this);
 }
 
 char *Http::curlGetCurlURL(int times)
@@ -221,18 +253,18 @@ char *Http::curlGetCurlURL(int times)
 	return buffer.mem;
 }
 
-const char *Http::Get(const char *url, const char *cookie, const char *referer)
+const char *Http::Get(const char *url)
 {
-	Set(url, cookie, referer);
+	Set(url);
 
 	return curlGetCurlURL();
 }
 
-const char *Http::Post(const char *url, const char *postdata, const char *cookie, const char *referer)
+const char *Http::Post(const char *url, const char *postdata)
 {
-	Set(url, cookie, referer);
-	curl_easy_setopt(curl, CURLOPT_POST, 1);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
+	Set(url);
+	SetOpt(CURLOPT_POST, 1);
+	SetOpt(CURLOPT_POSTFIELDS, postdata);
 
 	return curlGetCurlURL();
 }
@@ -271,7 +303,7 @@ void MultiHttp::Remove(Http *http)
 
 void MultiHttp::Run()
 {
-	CURLMsg *msg; /*  for picking up messages with the transfer status */
+	CURLMsg *msg;  /*  for picking up messages with the transfer status */
 	int msgs_left; /*  how many messages are left */
 
 	/*  we start some action by calling perform right away */

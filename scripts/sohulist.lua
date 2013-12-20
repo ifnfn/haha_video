@@ -39,7 +39,7 @@ function kola_main(vid, playlistid, sohu_vid, pageNo, pageSize)
 
 	ret.full       = 0
 	ret.playlistid = js.playlistid
-	ret.total      = js.totalSet
+	ret.totalSet   = js.totalSet
 	ret.updateSet  = js.updateSet
 	ret.page       = js.currentPage
 	ret.size       = 0

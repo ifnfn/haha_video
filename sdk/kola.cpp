@@ -338,7 +338,8 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url,
 	UNLOCK(lock);
 
 	Http http;
-	if (http.Get(url.c_str(), cookie, referer) != NULL) {
+	http.Set(url.c_str(), cookie, referer);
+	if (http.Get() != NULL) {
 		ret.assign(http.Data().mem);
 
 		return true;
@@ -379,10 +380,11 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 		return false;
 
 
-	Http http;
-
 	new_body = URLencode(new_body.c_str());
-	if (http.Post(url.c_str(), new_body.c_str(), cookie.c_str(), referer)) {
+	Http http;
+	http.Set(NULL, cookie.c_str(), referer);
+
+	if (http.Post(url.c_str(), new_body.c_str()) != NULL) {
 		ret = http.buffer.mem;
 	}
 

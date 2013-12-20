@@ -18,15 +18,7 @@ std::string uri_join(const char * base, const char * uri);
 class HttpBuffer {
 	public:
 		HttpBuffer():mem(NULL), size(0) {}
-		HttpBuffer(HttpBuffer &buf) {
-			mem = NULL;
-			size  = 0;
-			if (buf.size && buf.mem) {
-				size = buf.size;
-				mem = (char*)malloc(size);
-				memcpy(mem, buf.mem, size);
-			}
-		}
+		HttpBuffer(HttpBuffer &buf);
 
 		~HttpBuffer() {
 			if (mem) free(mem);
@@ -52,11 +44,14 @@ class Http {
 		~Http();
 
 		void Set(const char *url, const char *cookie=NULL, const char *referer=NULL);
+		void SetCookie(const char *cookie);
+		void SetReferer(const char *referer);
+
+		const char *Get(const char *url=NULL);
+		const char *Post(const char *url, const char *postdata);
+
 		void SetOpt(CURLoption option, const char *value) { curl_easy_setopt(curl, option, value); }
 		void SetOpt(CURLoption option, int value)         { curl_easy_setopt(curl, option, value); }
-
-		const char *Get(const char *url, const char *cookie=NULL, const char *referer=NULL);
-		const char *Post(const char *url, const char *postdata, const char *cookie=NULL, const char *referer=NULL);
 
 		HttpBuffer& Data() { return buffer; }
 		HttpBuffer buffer;
@@ -67,6 +62,7 @@ class Http {
 		CURL *curl;
 		char *curlGetCurlURL(int times=0);
 		char errormsg[CURL_ERROR_SIZE];
+		static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data);
 		friend class MultiHttp;
 };
 
@@ -77,7 +73,6 @@ class MultiHttp {
 		void Add(Http *http);
 		void Remove(Http *http);
 		void Run();
-
 	private:
 		CURLM *multi_handle;
 		int still_running;

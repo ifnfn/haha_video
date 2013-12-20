@@ -322,23 +322,19 @@ KolaClient::~KolaClient(void)
 	HttpCleanup();
 }
 
-bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url, const char *referer)
+bool KolaClient::UrlGet(std::string url, std::string &ret)
 {
-	const char *cookie;
-	if (home_url == NULL)
-		home_url = baseUrl.c_str();
+	const char *cookie = NULL;
 
-	url = uri_join(home_url, url.c_str());
-	if (url == "")
-		return false;
-
-	LOCK(lock);
-	if (strcmp(home_url, baseUrl.c_str()) == 0)
+	if (url.compare(0, strlen("http://"), "http://") != 0) {
+		LOCK(lock);
 		cookie = loginKeyCookie.c_str();
-	UNLOCK(lock);
+		url = GetFullUrl(url);
+		UNLOCK(lock);
+	}
 
 	Http http;
-	http.Set(url.c_str(), cookie, referer);
+	http.Set(url.c_str(), cookie);
 	if (http.Get() != NULL) {
 		ret.assign(http.Data().mem);
 
@@ -348,49 +344,33 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url,
 	return false;
 }
 
-bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, const char *home_url, const char *referer, int times)
+bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret)
 {
 	if (body == NULL)
 		return false;
 
-	bool ok = false;
-	std::string cookie, new_body;
+	const char *cookie = NULL;
 
-	if (times > TRY_TIMES)
-		return false;
-
-	if (home_url == NULL)
-		home_url = baseUrl.c_str();
-
-	LOCK(lock);
-	cookie = loginKeyCookie;
-#if 0
-	if (xsrf_cookie.size() > 0 && times == 0) {
-		if (url.find("?") != std::string::npos)
-			url = url + "&" + xsrf_cookie;
-		else
-			url = url + "?" + xsrf_cookie;
+	if (url.compare(0, strlen("http://"), "http://") != 0) {
+		LOCK(lock);
+		cookie = loginKeyCookie.c_str();
+		url = GetFullUrl(url);
+		UNLOCK(lock);
 	}
-#endif
 
-	UNLOCK(lock);
-
-	new_body = gzip_base64(body, strlen(body));
+	std::string new_body = gzip_base64(body, strlen(body));
 	new_body = UrlEncode(new_body);
 
-	url = uri_join(home_url, url.c_str());
-	if (url == "")
-		return false;
-
-
 	Http http;
-	http.Set(NULL, cookie.c_str(), referer);
+	http.Set(NULL, cookie);
 
 	if (http.Post(url.c_str(), new_body.c_str()) != NULL) {
 		ret = http.buffer.mem;
+
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 char *KolaClient::Run(const char *cmd)
@@ -411,7 +391,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 
 	text = json_gets(cmd, "text", "");
 	if (source) {
-		if (UrlGet("", text, source) == false)
+		if (UrlGet(source, text) == false)
 			return false;
 	}
 
@@ -463,7 +443,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	json_sets(cmd, "data", text.c_str());
 
 	char *body = json_dumps(cmd, 2);
-	UrlPost("", body, text, dest);
+	UrlPost(dest, body, text);
 	free(body);
 
 	return 0;

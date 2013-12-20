@@ -20,8 +20,9 @@ std::string KolaFilter::GetJsonStr(void)
 	std::string filter;
 
 	foreach(filterKey, i) {
-		if (i->second.Get() != "") {
-			filter += "\"" + i->first + "\" : \"" + i->second.Get() + "\", ";
+		std::string key = i->second.Get();
+		if (not key.empty()) {
+			filter += "\"" + i->first + "\" : \"" + key + "\", ";
 			count++;
 		}
 	}

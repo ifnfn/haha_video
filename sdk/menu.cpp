@@ -69,7 +69,7 @@ KolaMenu::KolaMenu(json_t *js)
 
 bool KolaMenu::SetQuickFilter(std:: string name)
 {
-	bool ret = quickFilters.Find(name) || name == "";
+	bool ret = quickFilters.Find(name) || name.empty();
 	if (ret)
 		quickFilter = name;
 
@@ -182,7 +182,7 @@ int KolaMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 
 	std::string body = GetPostData();
 
-	if (name == "" or cid == -1)
+	if (name.empty() or cid == -1)
 		return 0;
 
 	sprintf(url, "/video/list?page=%d&size=%d&cid=%d", pageId, pageSize, cid);
@@ -201,7 +201,7 @@ int KolaMenu::LowGetPage(AlbumPage *page, std::string key, std::string value, in
 
 	std::string body = GetPostData();
 
-	if (name == "" or cid == -1)
+	if (name.empty() or cid == -1)
 		return 0;
 
 	sprintf(url, "/video/list?&size=%d&cid=%d&key=%s&value=%s", pageSize, cid, key.c_str(), value.c_str());
@@ -319,7 +319,7 @@ int CustomMenu::GetAlbumCount() {
 
 bool CustomMenu::SaveToFile(std::string otherFile)
 {
-	if (otherFile != "")
+	if (not otherFile.empty())
 		return albumIdList.SaveToFile(otherFile);
 	else
 		return albumIdList.SaveToFile(fileName);

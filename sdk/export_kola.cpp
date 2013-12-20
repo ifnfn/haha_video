@@ -92,6 +92,8 @@ static int f_wget(lua_State *L)
 
 	for (int i = 0; i < urlList.size(); i++) {
 		Http http;
+		http.SetReferer(referer);
+
 		if (http.Get(urlList[i].c_str()) != NULL) {
 			lua_pushstring(L, http.buffer.mem);
 		}
@@ -101,10 +103,6 @@ static int f_wget(lua_State *L)
 
 	return 1;
 }
-
-/**
- * wpost(url, data, referer)
- */
 
 static int f_wpost(lua_State *L)
 {
@@ -123,7 +121,7 @@ static int f_wpost(lua_State *L)
 
 	KolaClient &kola = KolaClient::Instance();
 
-	if (kola.UrlPost("", data, ret, url, referer) == true) {
+	if (kola.UrlPost(url, data, ret) == true) {
 		lua_pushstring(L, ret.c_str());
 
 		return 1;
@@ -170,7 +168,8 @@ static int f_gettime(lua_State *L)
 static int f_urlencode(lua_State *L)
 {
 	std::string txt = lua_tostring(L, 1);
-	if (!txt.empty()) {
+
+	if (not txt.empty()) {
 		lua_pushstring(L, UrlEncode(txt).c_str());
 		return 1;
 	}

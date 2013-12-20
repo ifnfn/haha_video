@@ -231,7 +231,7 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 		}
 	}
 
-	return script_name != "";
+	return not script_name.empty();
 }
 
 std::string ScriptCommand::Run()

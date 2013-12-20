@@ -78,7 +78,7 @@ std::string KolaVideo::GetVideoUrl(std::string res)
 	if (urls == NULL) {
 		std::string text = sc_resolution.GetString();
 
-		if (text != "")
+		if (not text.empty())
 			urls = new VideoUrls(text);
 	}
 	if (urls)
@@ -90,7 +90,7 @@ std::string KolaVideo::GetVideoUrl(std::string res)
 	std::string ret;
 	std::string url = "/video/geturl?vid=" + vid;
 
-	if (res != "")
+	if (not res.empty())
 		url = url + "&resolution=" + res;
 
 	json_t *js = json_loadurl(url.c_str());
@@ -101,7 +101,7 @@ std::string KolaVideo::GetVideoUrl(std::string res)
 	if (json_is_array(js)) {
 		json_t *v;
 		json_array_foreach(js, v) {
-			if (res == json_gets(v, "name", "") || res == "") {
+			if (res == json_gets(v, "name", "") || res.empty()) {
 				if (json_gets(v, "url", ret) == true)
 					break;
 			}
@@ -226,7 +226,7 @@ void VideoUrls::GetResolution(StringList& res)
 Variant *VideoUrls::GetVariant(std::string &key)
 {
 	Variant *ret = NULL;
-	if (key == "")
+	if (key.empty())
 		key = defaultKey;
 	std::map<std::string ,Variant*>::iterator it = urls.find(key);
 	if (it != urls.end())

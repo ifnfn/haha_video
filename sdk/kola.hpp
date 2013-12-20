@@ -45,7 +45,7 @@ class ScriptCommand {
 		ScriptCommand(json_t *js=NULL);
 		~ScriptCommand();
 		std::string Run();
-		bool Exists() {return script_name != ""; }
+		bool Exists() {return not script_name.empty(); }
 		void AddParams(const char *arg);
 		void AddParams(int arg);
 		virtual bool LoadFromJson(json_t *js);
@@ -248,7 +248,7 @@ class KolaSort: public FilterValue {
 	public:
 		std::string GetJsonStr(void) {
 			std::string ret = Get();
-			if (ret != "") {
+			if (not ret.empty()) {
 				ret = "\"sort\": \"" + ret + "," + sort +"\"";
 			}
 
@@ -401,13 +401,13 @@ class KolaClient {
 
 		KolaMenu* GetMenuByName(const char *name);
 		KolaMenu* GetMenuByCid(int cid);
-		int MenuCount() { return menuMap.size(); };
+		inline int MenuCount() { return menuMap.size(); };
 		KolaMenu* operator[] (const char *name);
 		KolaMenu* operator[] (int inx);
 		bool haveCommand() { return havecmd; }
 		inline std::string GetFullUrl(std::string url);
-		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL, const char *referer = NULL);
-		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, const char *referer = NULL, int times = 0);
+		bool UrlGet(std::string url, std::string &ret);
+		bool UrlPost(std::string url, const char *body, std::string &ret);
 		std::string& GetServer() { return baseUrl; }
 		std::string GetArea();
 		time_t GetTime();

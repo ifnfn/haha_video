@@ -405,7 +405,7 @@ class KolaClient {
 		KolaMenu* operator[] (const char *name);
 		KolaMenu* operator[] (int inx);
 		bool haveCommand() { return havecmd; }
-		inline std::string GetFullUrl(std::string url) { return baseUrl + url; }
+		inline std::string GetFullUrl(std::string url);
 		bool UrlGet(std::string url, std::string &ret, const char *home_url = NULL, const char *referer = NULL);
 		bool UrlPost(std::string url, const char *body, std::string &ret, const char *home_url = NULL, const char *referer = NULL, int times = 0);
 		std::string& GetServer() { return baseUrl; }

@@ -650,3 +650,10 @@ time_t KolaClient::GetTime()
 
 	return ret;
 }
+
+std::string KolaClient::GetFullUrl(std::string url)
+{
+	return baseUrl + url;
+	//url = uri_join(home_url, url.c_str());
+	//url = uriJoin(home_url, url);
+}

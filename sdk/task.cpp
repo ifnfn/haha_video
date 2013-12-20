@@ -26,9 +26,9 @@ Task::~Task()
 {
 	if (status != Task::StatusInit) {
 		Wait();
-		pthread_mutex_destroy(&mutex);
-		pthread_cond_destroy(&ready);
 	}
+	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&ready);
 }
 
 void Task::Start() {
@@ -65,5 +65,6 @@ void Task::Wait(int msec)
 		if (ret == ETIMEDOUT)
 			break;
 	}
+
 	unlock();
 }

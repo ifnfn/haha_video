@@ -13,12 +13,17 @@ from .fetchTools import fetch_httplib2 as fetch
 from .pytable import Pinyin
 
 def autostr(i):
+    if i == None:
+        return ''
     if type(i) == int:
         return str(i)
     else:
         return i
 
 def autoint(i):
+    if i == None:
+        return 0
+
     if type(i) == str:
         return i and int(i) or 0
     else:

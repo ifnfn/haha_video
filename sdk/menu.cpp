@@ -38,18 +38,18 @@ KolaMenu::KolaMenu(json_t *js)
 		json_t *values;
 		json_object_foreach(sub, key, values) {
 			json_t *v;
-			std::string list;
+			string list;
 			json_array_foreach(values, v)
 				list = list + json_string_value(v) + ",";
 //			printf("%s: %s\n", key, list.c_str());
-			this->Filter.filterKey.insert(std::pair<std::string, FilterValue>(key, FilterValue(list)));
+			this->Filter.filterKey.insert(pair<string, FilterValue>(key, FilterValue(list)));
 		}
 	}
 
 	sub = json_geto(js, "sort");
 	if (sub) {
 		json_t *v;
-		std::string list;
+		string list;
 		json_array_foreach(sub, v)
 			list = list + json_string_value(v) + ",";
 		this->Sort.Split(list);
@@ -67,7 +67,7 @@ KolaMenu::KolaMenu(json_t *js)
 	}
 }
 
-bool KolaMenu::SetQuickFilter(std:: string name)
+bool KolaMenu::SetQuickFilter(string name)
 {
 	bool ret = quickFilters.Find(name) || name.empty();
 	if (ret)
@@ -83,7 +83,7 @@ int KolaMenu::GetAlbumCount()
 	return albumCount;
 }
 
-int KolaMenu::SeekByAlbumId(std::string vid)
+int KolaMenu::SeekByAlbumId(string vid)
 {
 	CleanPage();
 	int count = LowGetPage(cur, "vid", vid, PageSize);
@@ -103,7 +103,7 @@ int KolaMenu::SeekByAlbumId(std::string vid)
 	return -1;
 }
 
-int KolaMenu::SeekByAlbumName(std::string name)
+int KolaMenu::SeekByAlbumName(string name)
 {
 	CleanPage();
 	int count = LowGetPage(cur, "albumName", name, PageSize);
@@ -123,7 +123,7 @@ int KolaMenu::SeekByAlbumName(std::string name)
 	return -1;
 }
 
-int KolaMenu::ParserJson(AlbumPage *page, std::string &text)
+int KolaMenu::ParserJson(AlbumPage *page, string &text)
 {
 	int cnt = 0;
 	json_error_t error;
@@ -147,12 +147,12 @@ int KolaMenu::ParserJson(AlbumPage *page, std::string &text)
 	return cnt;
 }
 
-std::string KolaMenu::GetPostData()
+string KolaMenu::GetPostData()
 {
 	int count = 0;
-	std::string body("{");
-	std::string filter = Filter.GetJsonStr();
-	std::string sort = Sort.GetJsonStr();
+	string body("{");
+	string filter = Filter.GetJsonStr();
+	string sort = Sort.GetJsonStr();
 
 	if (quickFilter.size() > 0) {
 		body = body + "\"quickFilter\": \"" + quickFilter + "\"";
@@ -170,7 +170,7 @@ std::string KolaMenu::GetPostData()
 	}
 
 	body = body + "}";
-//	std::cout << "Filter Body: " << body << std::endl;
+//	cout << "Filter Body: " << body << endl;
 
 	return body;
 }
@@ -178,9 +178,9 @@ std::string KolaMenu::GetPostData()
 int KolaMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 {
 	char url[256];
-	std::string text;
+	string text;
 
-	std::string body = GetPostData();
+	string body = GetPostData();
 
 	if (name.empty() or cid == -1)
 		return 0;
@@ -194,12 +194,12 @@ int KolaMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 	return 0;
 }
 
-int KolaMenu::LowGetPage(AlbumPage *page, std::string key, std::string value, int pageSize)
+int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, int pageSize)
 {
 	char url[256];
-	std::string text;
+	string text;
 
-	std::string body = GetPostData();
+	string body = GetPostData();
 
 	if (name.empty() or cid == -1)
 		return 0;
@@ -280,7 +280,7 @@ KolaAlbum* KolaMenu::GetAlbum(int position)
 	return cur->GetAlbum(position % PageSize);
 }
 
-CustomMenu::CustomMenu(std::string fileName)
+CustomMenu::CustomMenu(string fileName)
 {
 	this->fileName = fileName;
 	albumIdList.LoadFromFile(fileName);
@@ -293,7 +293,7 @@ void CustomMenu::AlbumAdd(KolaAlbum *album)
 		AlbumAdd(album->vid);
 }
 
-void CustomMenu::AlbumAdd(std::string vid)
+void CustomMenu::AlbumAdd(string vid)
 {
 	CleanPage();
 	albumIdList.Add(vid);
@@ -306,7 +306,7 @@ void CustomMenu::AlbumRemove(KolaAlbum *album)
 		AlbumRemove(album->vid);
 }
 
-void CustomMenu::AlbumRemove(std::string vid) {
+void CustomMenu::AlbumRemove(string vid) {
 	albumIdList.Remove(vid);
 	albumCount = albumIdList.size();
 	CleanPage();
@@ -317,7 +317,7 @@ int CustomMenu::GetAlbumCount() {
 	return albumCount;
 }
 
-bool CustomMenu::SaveToFile(std::string otherFile)
+bool CustomMenu::SaveToFile(string otherFile)
 {
 	if (not otherFile.empty())
 		return albumIdList.SaveToFile(otherFile);
@@ -327,15 +327,15 @@ bool CustomMenu::SaveToFile(std::string otherFile)
 
 int CustomMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 {
-	std::string text;
+	string text;
 	int pos = pageId * pageSize;
 
 	//text = albumIdList.ToString(pos, pageSize);
 	text = albumIdList.ToString();
 	if (text.size() > 0) {
 		char buf[128];
-		std::string url;
-		std::string body = GetPostData();
+		string url;
+		string body = GetPostData();
 
 		sprintf(buf, "video/list?page=%d&size=%d&vid=", pageId, pageSize);
 

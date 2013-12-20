@@ -9,16 +9,18 @@ extern "C" {
 	#include "lua.h"
 }
 
+using namespace std;
+
 class script {
 	public:
 		script() {
 			time(&dtime);
 		}
-		script(std::string t) {
+		script(string t) {
 			text = t;
 			time(&dtime);
 		}
-		std::string text;
+		string text;
 		time_t dtime;
 };
 
@@ -27,10 +29,10 @@ class LuaScript {
 		LuaScript();
 		static LuaScript& Instance();
 		~LuaScript();
-		std::string RunScript(int argc, const char **argv, const char *name, const char *fname="kola_main");
+		string RunScript(int argc, const char **argv, const char *name, const char *fname="kola_main");
 	private:
 		lua_State *L;
-		std::map<std::string, script> scripts;
-		bool GetScript(const char *name, std::string &text);
+		std::map<string, script> scripts;
+		bool GetScript(const char *name, string &text);
 };
 

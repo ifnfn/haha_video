@@ -4,12 +4,12 @@
 
 #include "kola.hpp"
 
-void split(const std::string &s, std::string delim, std::vector< std::string > *ret)
+void split(const string &s, string delim, vector< string > *ret)
 {
 	size_t last = 0;
 	size_t index=s.find_first_of(delim, last);
 
-	while (index!=std::string::npos) {
+	while (index!=string::npos) {
 		ret->push_back(s.substr(last,index-last));
 		last = index + 1;
 		index=s.find_first_of(delim, last);
@@ -19,40 +19,40 @@ void split(const std::string &s, std::string delim, std::vector< std::string > *
 }
 
 
-void StringList::Add(std::string v)
+void StringList::Add(string v)
 {
 	StringList::iterator iter = find(begin(), end(), v);
 	if (iter == end())
 		push_back(v);
 }
 
-void StringList::Remove(std::string v)
+void StringList::Remove(string v)
 {
 	StringList::iterator iter = find(begin(), end(), v);
 	if (iter != end())
 		erase(iter);
 }
 
-void StringList::operator<< (std::string v)
+void StringList::operator<< (string v)
 {
 	Add(v);
 }
 
-void StringList::operator>> (std::string v)
+void StringList::operator>> (string v)
 {
 	Remove(v);
 }
 
-bool StringList::Find(std::string v)
+bool StringList::Find(string v)
 {
 	StringList::iterator iter = find(begin(), end(), v);
 
 	return iter != end();
 }
 
-std::string StringList::ToString(int offset, int len, std::string s, std::string e, std::string split)
+string StringList::ToString(int offset, int len, string s, string e, string split)
 {
-	std::string ret;
+	string ret;
 	int count = size();
 
 	if (offset + len > count)
@@ -72,18 +72,18 @@ std::string StringList::ToString(int offset, int len, std::string s, std::string
 	return ret;
 }
 
-std::string StringList::ToString(std::string s, std::string e, std::string split)
+string StringList::ToString(string s, string e, string split)
 {
 	return ToString(0, size(), s, e, split);
 }
 
-void StringList::Split(const std::string items, std::string sp)
+void StringList::Split(const string items, string sp)
 {
 	clear();
 	split(items, sp, this);
 }
 
-bool StringList::SaveToFile(std::string fileName)
+bool StringList::SaveToFile(string fileName)
 {
 	FILE *fp = fopen(fileName.c_str(), "w");
 	if (fp) {
@@ -99,7 +99,7 @@ bool StringList::SaveToFile(std::string fileName)
 	return false;
 }
 
-bool StringList::LoadFromFile(std::string fileName)
+bool StringList::LoadFromFile(string fileName)
 {
 	FILE *fp = fopen(fileName.c_str(), "r");
 

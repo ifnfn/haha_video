@@ -70,7 +70,7 @@ string Pcre::MatchAll(const char *content)
 			//flags |= PCRE_NOTBOL;
 		}
 	}
-	//std::cout << result << std::endl;
+	//cout << result << endl;
 	return result;
 }
 

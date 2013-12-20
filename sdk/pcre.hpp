@@ -6,20 +6,22 @@
 #include <vector>
 #include <string.h>
 
+using namespace std;
+
 class Pcre {
 	public:
 		Pcre();
 		~Pcre();
 
 		//Add a regrex, pass in name and regrex
-		int AddRule(const std::string &patten);
+		int AddRule(const string &patten);
 
 		//clear all the regrex
 		void ClearRules();
 
 		//match all the regrex, also return all the string match to every regrex
-		std::string MatchAll(const char *content);
+		string MatchAll(const char *content);
 	private:
-		std::vector<pcre*> re_arr;
+		vector<pcre*> re_arr;
 };
 #endif

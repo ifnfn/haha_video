@@ -4,12 +4,14 @@
 #include <string>
 #include "jansson.h"
 
+using namespace std;
+
 class ScriptCommand;
 class StringList;
 
 json_t* json_loadurl(const char *url);
 
-bool json_dump_str(json_t *js, std::string &ret);
+bool json_dump_str(json_t *js, string &ret);
 bool json_to_variant(json_t *js, ScriptCommand *script);
 bool json_get_variant(json_t *js, const char *key, ScriptCommand *script);
 bool json_get_stringlist(json_t *js, const char *key, StringList *list);
@@ -50,7 +52,7 @@ inline void json_setreal(json_t *js, const char *key, double value)
 }
 
 const char *json_gets(json_t *js, const char *key, const char *def);
-const bool json_gets(json_t *js, const char *key, std::string &ret);
+const bool json_gets(json_t *js, const char *key, string &ret);
 
 inline void json_sets(json_t *js, const char *key, const char *value)
 {

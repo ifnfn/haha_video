@@ -10,13 +10,13 @@ void test_script()
 	LuaScript &lua = LuaScript::Instance();
 	const char *argv[] = { "http://live.letv.com/lunbo" };
 
-	std::string ret = lua.RunScript(1, argv, "letv");
+	string ret = lua.RunScript(1, argv, "letv");
 }
 
 void test_task()
 {
 	int c = 100;
-	std::vector<Task*> tasks;
+	vector<Task*> tasks;
 	for (int i=0; i < c; i ++)
 		tasks.push_back(new Task());
 	for (int i=0; i < c; i ++)
@@ -138,7 +138,7 @@ void test_livetv()
 #if 1
 	for(int i=0, count=kola.MenuCount(); i < count; i++) {
 		m = kola[i];
-		std::cout << "Menu: " << m->name << std::endl;
+		cout << "Menu: " << m->name << endl;
 	}
 #endif
 
@@ -164,7 +164,7 @@ void test_livetv()
 		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 #if 1
 		for (size_t j = 0; j < video_count; j++) {
-			std::string player_url;
+			string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
 				player_url = video->GetVideoUrl();
@@ -172,7 +172,7 @@ void test_livetv()
 #if 0
 				KolaEpg epg;
 
-				std::string info = video->GetInfo();
+				string info = video->GetInfo();
 				epg.LoadFromText(info);
 
 				EPG e1, e2;
@@ -203,7 +203,7 @@ void test_livetv()
 	printf("album->name = %s\n", album->albumName.c_str());
 #endif
 
-	std::map<int, std::string> vids;
+	map<int, string> vids;
 	for (int i=0; i < 9; i++) {
 		KolaAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
@@ -261,14 +261,14 @@ void test_livetv()
 
 #if 0
 		for (size_t j = 0; j < video_count; j++) {
-			std::string player_url;
+			string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				KolaEpg epg;
 
-				std::string info = video->GetInfo();
+				string info = video->GetInfo();
 				epg.LoadFromText(info);
 
 				EPG e1, e2;
@@ -290,14 +290,14 @@ void test_livetv()
 		printf("[%ldd] %s: Video:Count %ld\n", i, album->albumName.c_str(), video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
-			std::string player_url;
+			string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				KolaEpg epg;
 
-				std::string info = video->GetInfo();
+				string info = video->GetInfo();
 				epg.LoadFromText(info);
 
 				EPG e1, e2;
@@ -329,7 +329,7 @@ void test_video(const char *menuName)
 		return;
 
 	foreach(m->quickFilters, s) {
-		std::cout << *s << std::endl;
+		cout << *s << endl;
 	}
 	//m->Filter.KeyAdd("类型", "爱情片");
 	//m->Filter.KeyAdd("产地", "香港,台湾");
@@ -349,7 +349,7 @@ void test_video(const char *menuName)
 		printf("[%ld]: Video:Count %ld\n", i, video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
-			std::string player_url;
+			string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
 				StringList res;
@@ -425,8 +425,8 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	std::cout << kola.GetArea() << std::endl;
-	std::cout << kola.GetTime() << std::endl;
+	cout << kola.GetArea() << endl;
+	cout << kola.GetTime() << endl;
 
 //	test_script();
 //	return 0;

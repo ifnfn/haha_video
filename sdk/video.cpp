@@ -57,7 +57,7 @@ bool KolaVideo::LoadFromJson(json_t *js)
 //	json_get_stringlist(js, "resolution", &resolution);
 	json_get_variant(js, "info", &sc_info);
 	json_get_variant(js, "resolution", &sc_resolution);
-	//std::cout << resolution.ToString() << std::endl;
+	//cout << resolution.ToString() << endl;
 
 	return true;
 }
@@ -65,7 +65,7 @@ bool KolaVideo::LoadFromJson(json_t *js)
 void KolaVideo::GetResolution(StringList& res)
 {
 	if (urls == NULL) {
-		std::string text = sc_resolution.GetString();
+		string text = sc_resolution.GetString();
 		urls = new VideoUrls(text);
 	}
 
@@ -73,10 +73,10 @@ void KolaVideo::GetResolution(StringList& res)
 		urls->GetResolution(res);
 }
 
-std::string KolaVideo::GetVideoUrl(std::string res)
+string KolaVideo::GetVideoUrl(string res)
 {
 	if (urls == NULL) {
-		std::string text = sc_resolution.GetString();
+		string text = sc_resolution.GetString();
 
 		if (not text.empty())
 			urls = new VideoUrls(text);
@@ -87,8 +87,8 @@ std::string KolaVideo::GetVideoUrl(std::string res)
 	return "";
 
 #if 0
-	std::string ret;
-	std::string url = "/video/geturl?vid=" + vid;
+	string ret;
+	string url = "/video/geturl?vid=" + vid;
 
 	if (not res.empty())
 		url = url + "&resolution=" + res;
@@ -114,12 +114,12 @@ std::string KolaVideo::GetVideoUrl(std::string res)
 #endif
 }
 
-std::string KolaVideo::GetInfo()
+string KolaVideo::GetInfo()
 {
 	return sc_info.GetString();
 }
 
-bool KolaEpg::LoadFromText(std::string text)
+bool KolaEpg::LoadFromText(string text)
 {
 	bool ret = false;
 
@@ -191,7 +191,7 @@ bool KolaEpg::Get(EPG &e, time_t t)
 	return false;
 }
 
-VideoUrls::VideoUrls(std::string text)
+VideoUrls::VideoUrls(string text)
 {
 	json_error_t error;
 	const char *key;
@@ -203,7 +203,7 @@ VideoUrls::VideoUrls(std::string text)
 		if (json_geti(value, "default", 0) == 1) {
 			defaultKey = key;
 		}
-		urls.insert(std::pair<std::string, Variant*>(key, var));
+		urls.insert(pair<string, Variant*>(key, var));
 	}
 
 	json_delete(js);
@@ -211,31 +211,31 @@ VideoUrls::VideoUrls(std::string text)
 
 VideoUrls::~VideoUrls()
 {
-	for (std::map<std::string, Variant*>::iterator it = urls.begin(); it != urls.end(); it++) {
+	for (map<string, Variant*>::iterator it = urls.begin(); it != urls.end(); it++) {
 		delete it->second;
 	}
 }
 
 void VideoUrls::GetResolution(StringList& res)
 {
-	for (std::map<std::string, Variant*>::iterator it = urls.begin(); it != urls.end(); it++) {
+	for (map<string, Variant*>::iterator it = urls.begin(); it != urls.end(); it++) {
 		res.Add(it->first);
 	}
 }
 
-Variant *VideoUrls::GetVariant(std::string &key)
+Variant *VideoUrls::GetVariant(string &key)
 {
 	Variant *ret = NULL;
 	if (key.empty())
 		key = defaultKey;
-	std::map<std::string ,Variant*>::iterator it = urls.find(key);
+	map<string ,Variant*>::iterator it = urls.find(key);
 	if (it != urls.end())
 		ret = it->second;
 
 	return ret;
 }
 
-std::string VideoUrls::Get(std::string &key)
+string VideoUrls::Get(string &key)
 {
 	Variant *var = GetVariant(key);
 

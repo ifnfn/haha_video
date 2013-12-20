@@ -131,7 +131,7 @@ bool ThreadPool::RemoveTask(Task *task)
 {
 	pthread_mutex_lock(&queue_lock);
 	task->SetStatus(Task::StatusFree);
-	for (std::deque<Task*>::iterator it = taskList.begin(); it != taskList.end(); it++) {
+	for (deque<Task*>::iterator it = taskList.begin(); it != taskList.end(); it++) {
 		if (*it == task) {
 			taskList.erase(it);
 			pr_debug("cur_queue_size = %d\n", taskList.size());

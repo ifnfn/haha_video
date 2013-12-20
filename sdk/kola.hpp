@@ -11,6 +11,8 @@
 #include <jansson.h>
 #include <semaphore.h>
 
+using namespace std;
+
 #define foreach(container,i) \
 	for(bool __foreach_ctrl__=true;__foreach_ctrl__;)\
 	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
@@ -29,7 +31,7 @@ class Task;
 class Http;
 class ScriptCommand;
 
-extern void split(const std::string &s, std::string delim, std::vector< std::string > *ret);
+extern void split(const string &s, string delim, vector< string > *ret);
 
 enum PicType {
 	PIC_LARGE,      // 大图片网址
@@ -44,14 +46,14 @@ class ScriptCommand {
 	public:
 		ScriptCommand(json_t *js=NULL);
 		~ScriptCommand();
-		std::string Run();
+		string Run();
 		bool Exists() {return not script_name.empty(); }
 		void AddParams(const char *arg);
 		void AddParams(int arg);
 		virtual bool LoadFromJson(json_t *js);
 	protected:
-		std::string script_name;
-		std::string func_name;
+		string script_name;
+		string func_name;
 		char **argv;
 		int argc;
 };
@@ -59,31 +61,31 @@ class ScriptCommand {
 class Variant: public ScriptCommand {
 	public:
 		Variant(json_t *js=NULL);
-		std::string GetString();
+		string GetString();
 		int GetInteger();
 		double GetDouble();
 		virtual bool LoadFromJson(json_t *js);
 	private:
-		std::string valueStr;
+		string valueStr;
 		int valueInt;
 		double valueDouble;
 		int directValue;
 };
 
-class StringList: public std::vector<std::string> {
+class StringList: public vector<string> {
 	public:
 		StringList() {}
 		virtual ~StringList() {}
-		virtual void Add(std::string v);
-		virtual void Remove(std::string v);
-		void operator<< (std::string v);
-		void operator>> (std::string v);
-		bool Find(std::string v);
-		std::string ToString(std::string s = "", std::string e = "", std::string split = ",");
-		std::string ToString(int offset, int count, std::string s = "", std::string e = "", std::string split = ",");
-		void Split(const std::string items, std::string sp=",");
-		bool SaveToFile(std::string fileName);
-		bool LoadFromFile(std::string fileName);
+		virtual void Add(string v);
+		virtual void Remove(string v);
+		void operator<< (string v);
+		void operator>> (string v);
+		bool Find(string v);
+		string ToString(string s = "", string e = "", string split = ",");
+		string ToString(int offset, int count, string s = "", string e = "", string split = ",");
+		void Split(const string items, string sp=",");
+		bool SaveToFile(string fileName);
+		bool LoadFromFile(string fileName);
 };
 
 class Task {
@@ -135,14 +137,14 @@ class EPG {
 		}
 		time_t startTime;
 		size_t duration;
-		std::string title;
-		std::string timeString;
+		string title;
+		string timeString;
 };
 
-class KolaEpg: public std::vector<EPG> {
+class KolaEpg: public vector<EPG> {
 	public:
 		KolaEpg() {}
-		bool LoadFromText(std::string text);
+		bool LoadFromText(string text);
 		bool LoadFromJson(json_t *js);
 		bool GetCurrent(EPG &e);
 		bool GetNext(EPG &e);
@@ -151,14 +153,14 @@ class KolaEpg: public std::vector<EPG> {
 
 class VideoUrls {
 	public:
-		VideoUrls(std::string text);
+		VideoUrls(string text);
 		~VideoUrls();
 		void GetResolution(StringList& res);
-		std::string Get(std::string &key);
-		Variant *GetVariant(std::string &key);
+		string Get(string &key);
+		Variant *GetVariant(string &key);
 	private:
-		std::map<std::string, Variant*> urls;
-		std::string defaultKey;
+		map<string, Variant*> urls;
+		string defaultKey;
 };
 
 class KolaVideo {
@@ -170,9 +172,9 @@ class KolaVideo {
 
 		void Clear();
 		void GetResolution(StringList& res);
-		std::string GetVideoUrl(std::string res="");
-		std::string GetSubtitle(const char *lang);
-		std::string GetInfo();
+		string GetVideoUrl(string res="");
+		string GetSubtitle(const char *lang);
+		string GetInfo();
 
 		int    width;
 		int    height;
@@ -180,25 +182,25 @@ class KolaVideo {
 		size_t totalBytes;
 
 		int         cid;
-		std::string pid;
-		std::string vid;
-		std::string name;
+		string pid;
+		string vid;
+		string name;
 		int order;
 		int isHigh;
 		int videoPlayCount;
 		double videoScore;
 		double playLength;
 
-		std::string showName;
-		std::string publishTime;
-		std::string videoDesc;
-		std::string smallPicUrl;
-		std::string largePicUrl;
+		string showName;
+		string publishTime;
+		string videoDesc;
+		string smallPicUrl;
+		string largePicUrl;
 	private:
-		std::string localVideoFile;
-		std::string pageUrl;
-		std::string playUrl;
-		std::string directPlayUrl;
+		string localVideoFile;
+		string pageUrl;
+		string playUrl;
+		string directPlayUrl;
 
 		Variant sc_info;
 		Variant sc_resolution;
@@ -207,13 +209,13 @@ class KolaVideo {
 
 class Picture: public Task {
 	public:
-		Picture(std::string fileName);
+		Picture(string fileName);
 		Picture();
 		virtual ~Picture();
 
 		void *data;
 		size_t size;
-		std::string fileName;
+		string fileName;
 		bool inCache;
 		virtual void Run();
 		virtual void Cancel();
@@ -224,39 +226,39 @@ class Picture: public Task {
 
 class FilterValue: public StringList {
 	public:
-		FilterValue(const std::string items);
+		FilterValue(const string items);
 		FilterValue() {}
 		~FilterValue() {}
-		void Set(std::string v) { value = v; }
-		std::string Get(void) { return value; }
+		void Set(string v) { value = v; }
+		string Get(void) { return value; }
 	protected:
-		std::string value;
+		string value;
 };
 
 class KolaFilter {
 	public:
 		KolaFilter() {}
 		~KolaFilter() {}
-		void KeyAdd(std::string key, std::string value);
-		void KeyRemove(std::string key);
-		std::string GetJsonStr(void);
-		FilterValue& operator[] (std::string key);
-		std::map<std::string, FilterValue> filterKey;
+		void KeyAdd(string key, string value);
+		void KeyRemove(string key);
+		string GetJsonStr(void);
+		FilterValue& operator[] (string key);
+		map<string, FilterValue> filterKey;
 };
 
 class KolaSort: public FilterValue {
 	public:
-		std::string GetJsonStr(void) {
-			std::string ret = Get();
+		string GetJsonStr(void) {
+			string ret = Get();
 			if (not ret.empty()) {
 				ret = "\"sort\": \"" + ret + "," + sort +"\"";
 			}
 
 			return ret;
 		}
-		void Set(std::string v, std::string s) { value = v, sort = s;}
+		void Set(string v, string s) { value = v, sort = s;}
 	private:
-		std::string sort;
+		string sort;
 };
 
 class KolaAlbum {
@@ -264,12 +266,12 @@ class KolaAlbum {
 		KolaAlbum(json_t *js);
 		~KolaAlbum();
 
-		std::string vid;
-		std::string albumName;
-		std::string albumDesc;
-		std::string area;            // 地区
-		std::string categories;      // 类型
-		std::string isHigh;          // 是否是高清
+		string vid;
+		string albumName;
+		string albumDesc;
+		string area;            // 地区
+		string categories;      // 类型
+		string isHigh;          // 是否是高清
 		int publishYear;             // 发布年份
 		int dailyPlayNum;            // 每日播放次数
 		int weeklyPlayNum;           // 每周播放次数
@@ -281,7 +283,7 @@ class KolaAlbum {
 
 		size_t GetTotalSet();
 		size_t GetVideoCount();
-		std::string &GetPictureUrl(enum PicType type);
+		string &GetPictureUrl(enum PicType type);
 		KolaVideo *GetVideo(int id);
 	private:
 		void VideosClear();
@@ -289,23 +291,23 @@ class KolaAlbum {
 		bool LowVideoGetPage(size_t pageNo, size_t pageSize);
 
 		int cid;
-		std::string pid;
-		std::string playlistid;
-		std::vector<KolaVideo*> videos;
+		string pid;
+		string playlistid;
+		vector<KolaVideo*> videos;
 
 		int totalSet;                // 总集数
 		int updateSet;               // 当前更新集
-		std::string videoPlayUrl;
-		std::string largePicUrl;      // 大图片网址
-		std::string smallPicUrl;      // 小图片网址
-		std::string largeHorPicUrl;
-		std::string smallHorPicUrl;
-		std::string largeVerPicUrl;
-		std::string smallVerPicUrl;
+		string videoPlayUrl;
+		string largePicUrl;      // 大图片网址
+		string smallPicUrl;      // 小图片网址
+		string largeHorPicUrl;
+		string smallHorPicUrl;
+		string largeVerPicUrl;
+		string smallVerPicUrl;
 
-		std::string videoScore;
+		string videoScore;
 
-		std::string defaultPageUrl;  // 当前播放集
+		string defaultPageUrl;  // 当前播放集
 		bool directVideos;
 		size_t videoPageSize;
 		size_t videoPageId;
@@ -322,17 +324,17 @@ class AlbumPage {
 		KolaAlbum* GetAlbum(int index);
 
 		void PutAlbum(KolaAlbum *album);
-		void PutPicture(std::string picFileName);
+		void PutPicture(string picFileName);
 
 		size_t Count() { return albumList.size();}
 		size_t PictureCount() { return pictureList.size(); }
 
-		Picture* GetPicture(std::string fileName);
+		Picture* GetPicture(string fileName);
 		void Clear();
 		int pageId;
 	private:
-		std::vector<KolaAlbum*> albumList;
-		std::map<std::string, Picture*> pictureList;
+		vector<KolaAlbum*> albumList;
+		map<string, Picture*> pictureList;
 };
 
 class KolaMenu {
@@ -342,20 +344,20 @@ class KolaMenu {
 		virtual ~KolaMenu(void) {}
 
 		int         cid;
-		std::string name;
+		string name;
 		StringList  quickFilters;
 		KolaFilter  Filter;
 		KolaSort    Sort;
-		std::string Language;
+		string Language;
 
-		void   SetLanguage(std::string lang);
+		void   SetLanguage(string lang);
 		int    GetPage(AlbumPage &page, int pageNo = -1);
-		bool   SetQuickFilter(std:: string);
+		bool   SetQuickFilter(string);
 		void   SetPageSize(int size) {PageSize = size;}
 		size_t GetPageSize() { return PageSize;}
-		int    SeekByAlbumId(std::string vid);
-		int    SeekByAlbumName(std::string name);
-		std::string GetQuickFilter() { return quickFilter; }
+		int    SeekByAlbumId(string vid);
+		int    SeekByAlbumName(string name);
+		string GetQuickFilter() { return quickFilter; }
 		virtual int GetAlbumCount();
 		KolaAlbum* GetAlbum(int position);
 	protected:
@@ -363,11 +365,11 @@ class KolaMenu {
 		int PageSize;
 		int PageId;
 		int albumCount;
-		std::string quickFilter;
+		string quickFilter;
 		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
-		virtual int LowGetPage(AlbumPage *page, std::string key, std::string value, int pageSize);
-		int ParserJson(AlbumPage *page, std::string &jsonstr);
-		std::string GetPostData();
+		virtual int LowGetPage(AlbumPage *page, string key, string value, int pageSize);
+		int ParserJson(AlbumPage *page, string &jsonstr);
+		string GetPostData();
 		void CleanPage();
 	private:
 		AlbumPage page[3];
@@ -376,18 +378,18 @@ class KolaMenu {
 
 class CustomMenu: public KolaMenu {
 	public:
-		CustomMenu(std::string fileName);
+		CustomMenu(string fileName);
 		void AlbumAdd(KolaAlbum *album);
-		void AlbumAdd(std::string vid);
+		void AlbumAdd(string vid);
 		void AlbumRemove(KolaAlbum *album);
-		void AlbumRemove(std::string vid);
-		bool SaveToFile(std::string otherFile = "");
+		void AlbumRemove(string vid);
+		bool SaveToFile(string otherFile = "");
 		virtual int GetAlbumCount();
 	protected:
 		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
 	private:
 		StringList albumIdList;
-		std::string fileName;
+		string fileName;
 };
 
 class KolaClient {
@@ -405,17 +407,17 @@ class KolaClient {
 		KolaMenu* operator[] (const char *name);
 		KolaMenu* operator[] (int inx);
 		bool haveCommand() { return havecmd; }
-		inline std::string GetFullUrl(std::string url);
-		bool UrlGet(std::string url, std::string &ret);
-		bool UrlPost(std::string url, const char *body, std::string &ret);
-		std::string& GetServer() { return baseUrl; }
-		std::string GetArea();
+		inline string GetFullUrl(string url);
+		bool UrlGet(string url, string &ret);
+		bool UrlPost(string url, const char *body, string &ret);
+		string& GetServer() { return baseUrl; }
+		string GetArea();
 		time_t GetTime();
 		int debug;
 	private:
 		KolaClient(void);
-		std::string baseUrl;
-		std::map<std::string, KolaMenu*> menuMap;
+		string baseUrl;
+		map<string, KolaMenu*> menuMap;
 
 		int nextLoginSec;
 		ThreadPool *threadPool;

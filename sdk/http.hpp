@@ -12,10 +12,10 @@
 
 using namespace std;
 
-std::string UrlEncode(const std::string& url);
-std::string UrlDecode(const std::string & sIn);
-
-std::string uri_join(const char * base, const char * uri);
+string UrlEncode(const string& url);
+string UrlDecode(const string& sIn);
+void HttpInit();
+void HttpCleanup();
 
 class HttpBuffer {
 	public:
@@ -36,9 +36,6 @@ class HttpBuffer {
 		char *mem;
 		size_t size;
 };
-
-void HttpInit();
-void HttpCleanup();
 
 class Http {
 	public:
@@ -78,7 +75,7 @@ class MultiHttp {
 	private:
 		CURLM *multi_handle;
 		int still_running;
-		std::deque<Http*> httpList;
+		deque<Http*> httpList;
 };
 
 #endif

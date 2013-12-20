@@ -1,7 +1,7 @@
 #include "json.hpp"
 #include "kola.hpp"
 
-bool json_dump_str(json_t *js, std::string &ret)
+bool json_dump_str(json_t *js, string &ret)
 {
 	char *text = json_dumps(js, 2);
 
@@ -18,7 +18,7 @@ bool json_dump_str(json_t *js, std::string &ret)
 json_t* json_loadurl(const char *url)
 {
 	json_error_t error;
-	std::string text;
+	string text;
 	KolaClient& kola = KolaClient::Instance();
 	if (kola.UrlGet(url, text) == true) {
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
@@ -41,7 +41,7 @@ bool json_get_variant(json_t *js, const char *key, ScriptCommand *script)
 	return json_to_variant(p, script);
 }
 
-const bool json_gets(json_t *js, const char *key, std::string &ret)
+const bool json_gets(json_t *js, const char *key, string &ret)
 {
 	json_t *p = json_object_get(js, key);
 	if (p == NULL)

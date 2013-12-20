@@ -40,9 +40,9 @@
 #define MAX_THREAD_POOL_SIZE 16
 #define TRY_TIMES 3
 
-static std::string loginKey;
-static std::string loginKeyCookie;
-static std::string xsrf_cookie;
+static string loginKey;
+static string loginKeyCookie;
+static string xsrf_cookie;
 
 #if 1
 #define LOCK(lock)   pthread_mutex_lock(&lock)
@@ -52,12 +52,12 @@ static std::string xsrf_cookie;
 #define UNLOCK(lock) do {} while(0)
 #endif
 
-static std::string chipKey(void)
+static string chipKey(void)
 {
 	return "000001";
 }
 
-static std::string MD5STR(const char *data)
+static string MD5STR(const char *data)
 {
 	MD5_CTX ctx;
 	unsigned char md[16];
@@ -71,7 +71,7 @@ static std::string MD5STR(const char *data)
 		sprintf(buf+ i * 2,"%02X", md[i]);
 	}
 
-	return std::string(buf);
+	return string(buf);
 }
 
 #if 1
@@ -200,9 +200,9 @@ out:
 	return ret;
 }
 
-static std::string gzip_base64(const char *data, int ndata)
+static string gzip_base64(const char *data, int ndata)
 {
-	std::string ret;
+	string ret;
 	Byte *zdata = (Byte*)malloc(ndata * 2 + 4);
 	uLong nzdata = ndata * 2;
 
@@ -225,7 +225,7 @@ static std::string gzip_base64(const char *data, int ndata)
 	return ret;
 }
 
-Picture::Picture(std::string fileName)
+Picture::Picture(string fileName)
 {
 	data           = NULL;
 	size           = 0;
@@ -322,7 +322,7 @@ KolaClient::~KolaClient(void)
 	HttpCleanup();
 }
 
-bool KolaClient::UrlGet(std::string url, std::string &ret)
+bool KolaClient::UrlGet(string url, string &ret)
 {
 	const char *cookie = NULL;
 
@@ -344,7 +344,7 @@ bool KolaClient::UrlGet(std::string url, std::string &ret)
 	return false;
 }
 
-bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret)
+bool KolaClient::UrlPost(string url, const char *body, string &ret)
 {
 	if (body == NULL)
 		return false;
@@ -358,7 +358,7 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret)
 		UNLOCK(lock);
 	}
 
-	std::string new_body = gzip_base64(body, strlen(body));
+	string new_body = gzip_base64(body, strlen(body));
 	new_body = UrlEncode(new_body);
 
 	Http http;
@@ -385,7 +385,7 @@ char *KolaClient::Run(const char *cmd)
 
 bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 {
-	std::string text;
+	string text;
 	Pcre pcre;
 	const char *source = json_gets(cmd, "source", NULL);
 
@@ -421,9 +421,9 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 
 		json_array_foreach(json_filter, value) {
 			json_t *p_js = js;
-			std::string key;
-			std::vector<std::string> vlist;
-			std::string v = json_string_value(value);
+			string key;
+			vector<string> vlist;
+			string v = json_string_value(value);
 
 			split(v, ".", &vlist);
 			foreach(vlist, i) {
@@ -452,8 +452,8 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 bool KolaClient::Login(bool quick)
 {
 	json_error_t error;
-	std::string text;
-	std::string url("/login?user_id=");
+	string text;
+	string url("/login?user_id=");
 
 	url = url + chipKey();
 	if (quick == true)
@@ -494,7 +494,7 @@ bool KolaClient::Login(bool quick)
 
 void KolaClient::ClearMenu()
 {
-	std::map<std::string, KolaMenu*>::iterator it;
+	map<string, KolaMenu*>::iterator it;
 	for (it = menuMap.begin(); it != menuMap.end(); it++)
 		delete it->second;
 
@@ -513,7 +513,7 @@ bool KolaClient::UpdateMenu(void)
 		ClearMenu();
 		json_array_foreach(js, value) {
 			const char *name = json_gets(value, "name", "");
-			menuMap.insert(std::pair<std::string, KolaMenu*>(name, new KolaMenu(value)));
+			menuMap.insert(pair<string, KolaMenu*>(name, new KolaMenu(value)));
 		}
 		json_delete(js);
 		return true;
@@ -529,7 +529,7 @@ KolaMenu* KolaClient::operator[] (const char *name)
 
 KolaMenu* KolaClient::operator[] (int index)
 {
-	std::map<std::string, KolaMenu*>::iterator it = menuMap.begin();
+	map<string, KolaMenu*>::iterator it = menuMap.begin();
 	for(; it != menuMap.end() && index; it++, index--);
 
 	if (index == 0 && it != menuMap.end())
@@ -550,7 +550,7 @@ KolaMenu* KolaClient::GetMenuByCid(int cid)
 
 KolaMenu* KolaClient::GetMenuByName(const char *menuName)
 {
-	std::map<std::string, KolaMenu*>::iterator it;
+	map<string, KolaMenu*>::iterator it;
 
 	if (menuName == NULL)
 		return NULL;
@@ -599,7 +599,7 @@ KolaClient& KolaClient::Instance(const char *user_id)
 	return m_kola;
 }
 
-std::string KolaClient::GetArea()
+string KolaClient::GetArea()
 {
 	LuaScript &lua = LuaScript::Instance();
 	const char *argv[] = { "" };
@@ -616,7 +616,7 @@ time_t KolaClient::GetTime()
 		LuaScript &lua = LuaScript::Instance();
 		const char *argv[] = { "" };
 
-		std::string ret = lua.RunScript(1, argv, "getip", "gettime");
+		string ret = lua.RunScript(1, argv, "getip", "gettime");
 
 		init_time = atol(ret.c_str());
 		hw_time = time(NULL);
@@ -631,7 +631,7 @@ time_t KolaClient::GetTime()
 	return ret;
 }
 
-std::string KolaClient::GetFullUrl(std::string url)
+string KolaClient::GetFullUrl(string url)
 {
 	return baseUrl + url;
 	//url = uri_join(home_url, url.c_str());

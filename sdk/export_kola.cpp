@@ -20,7 +20,7 @@ static int f_mwget(lua_State *L)
 	int argc = lua_gettop(L);
 	double k;
 	const char *v = NULL;
-	std::vector<Http*> taskList;
+	vector<Http*> taskList;
 	MultiHttp multi;
 
 	lua_pushnil(L);
@@ -65,7 +65,7 @@ static int f_wget(lua_State *L)
 	const char *url;
 	const char *referer = NULL;
 	bool location = true;
-	std::vector<std::string> urlList;
+	vector<string> urlList;
 
 	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {
 		urlList.push_back(url);
@@ -106,7 +106,7 @@ static int f_wget(lua_State *L)
 
 static int f_wpost(lua_State *L)
 {
-	std::string ret;
+	string ret;
 	int argc = lua_gettop(L);
 
 	if (argc < 2)
@@ -144,7 +144,7 @@ static int f_pcre(lua_State *L)
 	}
 
 	pcre.AddRule(regular);
-	std::string ret = pcre.MatchAll(text);
+	string ret = pcre.MatchAll(text);
 
 	lua_pushstring(L, ret.c_str());
 
@@ -167,7 +167,7 @@ static int f_gettime(lua_State *L)
 
 static int f_urlencode(lua_State *L)
 {
-	std::string txt = lua_tostring(L, 1);
+	string txt = lua_tostring(L, 1);
 
 	if (not txt.empty()) {
 		lua_pushstring(L, UrlEncode(txt).c_str());
@@ -182,7 +182,7 @@ static int f_urldecode(lua_State *L)
 	const char *txt = lua_tostring(L, 1);
 
 	if (txt) {
-		std::string text = UrlDecode(txt);
+		string text = UrlDecode(txt);
 		lua_pushstring(L, text.c_str());
 		return 1;
 	}

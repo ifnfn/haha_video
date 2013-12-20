@@ -8,10 +8,10 @@
 #define ASSERT(expr)	assert(expr)
 static unsigned char basis_64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-std::string base64encode(const std::string input)
+string base64encode(const string input)
 {
 	int out_size = BASE64_SIZE(input.size()) + 1;
-	std::string ret;
+	string ret;
 
 	char *out_buffer = (char *)calloc(1, out_size);
 	base64encode((unsigned char *)input.c_str(), input.size(), (unsigned char*)out_buffer, out_size);

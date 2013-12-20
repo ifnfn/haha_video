@@ -6,28 +6,23 @@
 static char *curlGetCurlURL (const char *, struct curl_buffer *, CURL *);
 static char *curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
 
-static unsigned char toHex(unsigned char x)
+inline static unsigned char toHex(unsigned char x)
 {
 	return x > 9 ? x + 55 : x + 48;
 }
 
-std::string UrlEncode(const std::string & sIn)
+string UrlEncode(const string & sIn)
 {
-	std::string sOut;
-	for(size_t i=0; i < sIn.size(); ++i)
-	{
+	string sOut;
+
+	for(size_t i=0; i < sIn.size(); ++i) {
 		unsigned char buf[4];
 		memset(buf, 0, 4);
 		if(isalnum((unsigned char)sIn[i]))
-		{
 			buf[0] = sIn[i];
-		}
 		else if(isspace((unsigned char)sIn[i]))
-		{
 			buf[0] = '+';
-		}
-		else
-		{
+		else {
 			buf[0] = '%';
 			buf[1] = toHex((unsigned char)sIn[i] >> 4);
 			buf[2] = toHex((unsigned char)sIn[i] % 16);
@@ -37,75 +32,28 @@ std::string UrlEncode(const std::string & sIn)
 	return sOut;
 }
 
-std::string UrlDecode(const std::string & sIn)
+string UrlDecode(const string & sIn)
 {
-	std::string sOut;
-	for(size_t i = 0; i < sIn.size(); i++)
-	{
+	string sOut;
+
+	for(size_t i = 0; i < sIn.size(); i++) {
 		unsigned char buf[4];
 		memset(buf, 0, 4);
 		if( isalnum( sIn[i] ) )
-		{
 			buf[0] = sIn[i];
-		}
 		else if ( '+'==( sIn[i] ) )
-		{
 			buf[0] = ' ';
-		}
-		else
-		{
+		else {
 			buf[0] = toHex( sIn[i + 1] << 4 );
 			buf[1] = toHex( sIn[i]);
 		}
 		sOut += (char *)buf;
 	}
+
 	return sOut;
 }
 
-std::string uri_join(const char * base, const char * uri)
-{
-	int location_len;
-	const char *p, *path;
-	char *buffer = NULL;
-
-	if (strstr(uri, "://"))
-		return uri;
-
-	p = strstr(base, "://");
-	if (!p)
-		return "";
-
-	if (strlen(uri) == 0)
-		return base;
-
-	p += 3;
-	while (*p && *p != '/')
-		p++;
-
-	path = p;
-	location_len = path - base;
-
-	if (uri[0] == '/') {
-		asprintf(&buffer, "%.*s%s", location_len, base, uri);
-	} else {
-		int path_len;
-
-		p = strrchr (path, '/');
-		if (!p)
-			path_len = 0;
-		else
-			path_len = p - path;
-
-		asprintf(&buffer, "%.*s/%s", location_len + path_len, base, uri);
-	}
-
-	std::string ret = buffer;
-	free(buffer);
-
-	return ret;
-}
-
-static void * curlRealloc(void *ptr, size_t size)
+static void *curlRealloc(void *ptr, size_t size)
 {
 	if (ptr)
 		return realloc(ptr, size);
@@ -148,7 +96,8 @@ void HttpInit()
 	}
 }
 
-void HttpCleanup() {
+void HttpCleanup()
+{
 	curl_global_cleanup();
 }
 
@@ -277,7 +226,7 @@ void MultiHttp::Add(Http *http)
 void MultiHttp::Remove(Http *http)
 {
 	curl_multi_remove_handle(multi_handle, http->curl);
-	for (std::deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
+	for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
 		if (*it == http) {
 			httpList.erase(it);
 			break;
@@ -349,7 +298,7 @@ void MultiHttp::Run()
 			int idx, found = 0;
 
 			/*  Find out which handle this message is about */
-			for (std::deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
+			for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
 				Http *http = *it;
 
 				found = msg->easy_handle == http->curl;

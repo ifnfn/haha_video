@@ -18,11 +18,11 @@ extern "C" {
 #include "kola.hpp"
 #include "script.hpp"
 
-static std::string lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
+static string lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
 {
 	int i;
 
-	std::string ret;
+	string ret;
 
 	if (luaL_dostring(L, fn)) {
 		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
@@ -119,9 +119,9 @@ LuaScript::~LuaScript()
 	lua_close(L);
 }
 
-std::string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname)
+string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname)
 {
-	std::string text, ret;
+	string text, ret;
 
 	if ( GetScript(name, text))
 		ret = lua_runscript(L, text.c_str(), fname, argc, argv);
@@ -129,9 +129,9 @@ std::string LuaScript::RunScript(int argc, const char **argv, const char *name, 
 	return ret;
 }
 
-bool LuaScript::GetScript(const char *name, std::string &text)
+bool LuaScript::GetScript(const char *name, string &text)
 {
-	std::map<std::string ,script>::iterator it = scripts.find(name);
+	map<string ,script>::iterator it = scripts.find(name);
 	if (it != scripts.end()) {
 		time_t now = time(NULL);
 		if (now - it->second.dtime > 60)
@@ -143,10 +143,10 @@ bool LuaScript::GetScript(const char *name, std::string &text)
 	}
 	KolaClient &kola = KolaClient::Instance();
 
-	std::string url("/scripts/");
+	string url("/scripts/");
 
 	if (kola.UrlGet(url + name + ".lua", text) == true) {
-		scripts.insert(std::pair<std::string, script>(name, script(text)));
+		scripts.insert(pair<string, script>(name, script(text)));
 		return true;
 	}
 
@@ -234,9 +234,9 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 	return not script_name.empty();
 }
 
-std::string ScriptCommand::Run()
+string ScriptCommand::Run()
 {
-	std::string ret;
+	string ret;
 	if (Exists()) {
 		LuaScript& lua = LuaScript::Instance();
 		ret = lua.RunScript(argc, (const char **)argv, script_name.c_str(), func_name.c_str());
@@ -286,7 +286,7 @@ Variant::Variant(json_t *js) : ScriptCommand()
 	LoadFromJson(js);
 }
 
-std::string Variant::GetString()
+string Variant::GetString()
 {
 	if (directValue == SC_DOUBLE) {
 		char buffer[128];
@@ -319,7 +319,7 @@ int Variant::GetInteger()
 		try {
 			return atoi(valueStr.c_str());
 		}
-		catch(std::exception &ex) {
+		catch(exception &ex) {
 			return 0;
 		}
 	}
@@ -327,11 +327,11 @@ int Variant::GetInteger()
 		return valueInt;
 	}
 	else if (directValue == SC_SCRIPT) {
-		std::string text = Run();
+		string text = Run();
 		try {
 			return atoi(text.c_str());
 		}
-		catch(std::exception &ex) {
+		catch(exception &ex) {
 			return 0;
 		}
 
@@ -352,16 +352,16 @@ double Variant::GetDouble()
 		try {
 			return atof(valueStr.c_str());
 		}
-		catch(std::exception &ex) {
+		catch(exception &ex) {
 			return 0.0;
 		}
 	}
 	else if (directValue == SC_SCRIPT) {
-		std::string text = Run();
+		string text = Run();
 		try {
 			return atof(text.c_str());
 		}
-		catch(std::exception &ex) {
+		catch(exception &ex) {
 			return 0.0;
 		}
 

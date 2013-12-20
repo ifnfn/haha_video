@@ -3,24 +3,24 @@
 #include "kola.hpp"
 #include "json.hpp"
 
-void KolaFilter::KeyAdd(std::string key, std::string value)
+void KolaFilter::KeyAdd(string key, string value)
 {
 	FilterValue &v = (*this)[key];
 	v.Set(value);
 }
 
-void KolaFilter::KeyRemove(std::string key)
+void KolaFilter::KeyRemove(string key)
 {
 	filterKey.erase(key);
 }
 
-std::string KolaFilter::GetJsonStr(void)
+string KolaFilter::GetJsonStr(void)
 {
 	int count = 0;
-	std::string filter;
+	string filter;
 
 	foreach(filterKey, i) {
-		std::string key = i->second.Get();
+		string key = i->second.Get();
 		if (not key.empty()) {
 			filter += "\"" + i->first + "\" : \"" + key + "\", ";
 			count++;
@@ -36,12 +36,12 @@ std::string KolaFilter::GetJsonStr(void)
 	return filter;
 }
 
-FilterValue& KolaFilter::operator[] (std::string key)
+FilterValue& KolaFilter::operator[] (string key)
 {
-	std::map<std::string, FilterValue>::iterator it = filterKey.find(key);
+	map<string, FilterValue>::iterator it = filterKey.find(key);
 
 	if (it == filterKey.end()) {
-		filterKey.insert(std::pair<std::string, FilterValue>(key, FilterValue()));
+		filterKey.insert(pair<string, FilterValue>(key, FilterValue()));
 		it = filterKey.end();
 		it--;
 	}
@@ -49,7 +49,7 @@ FilterValue& KolaFilter::operator[] (std::string key)
 	return it->second;
 }
 
-FilterValue::FilterValue(const std::string items)
+FilterValue::FilterValue(const string items)
 {
 	Split(items);
 }

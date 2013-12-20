@@ -62,7 +62,7 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 			json_error_t error;
 			script.AddParams(pageNo);
 			script.AddParams(pageSize);
-			std::string text = script.Run();
+			string text = script.Run();
 			if (text != "")
 				js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 		}
@@ -122,12 +122,12 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	json_gets(js, "largeVerPicUrl", largeVerPicUrl);
 	json_gets(js, "smallVerPicUrl", smallVerPicUrl);
 #if 0
-	std::cout << "largePicUrl: " << largePicUrl << std::endl;
-	std::cout << "smallPicUrl: " << smallPicUrl << std::endl;
-	std::cout << "largeHorPicUrl: " << largeHorPicUrl << std::endl;
-	std::cout << "smallHorPicUrl : " << smallHorPicUrl << std::endl;
-	std::cout << "largeVerPicUrl: " << largeVerPicUrl << std::endl;
-	std::cout << "smallVerPicUrl: " << smallVerPicUrl << std::endl;
+	cout << "largePicUrl: " << largePicUrl << endl;
+	cout << "smallPicUrl: " << smallPicUrl << endl;
+	cout << "largeHorPicUrl: " << largeHorPicUrl << endl;
+	cout << "smallHorPicUrl : " << smallHorPicUrl << endl;
+	cout << "largeVerPicUrl: " << largeVerPicUrl << endl;
+	cout << "smallVerPicUrl: " << smallVerPicUrl << endl;
 #endif
 
 	dailyPlayNum    =json_geti   (js , "dailyPlayNum"    , 0);   // 每日播放次数
@@ -144,7 +144,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 		videoListUrl = json_deep_copy(sub);
 
 	//categories = json_gets(js, "categories", "");
-//	std::cout << "KolaAlbum:" << albumName << std::endl;
+//	cout << "KolaAlbum:" << albumName << endl;
 
 	sub = json_geto(js, "sources");
 	if (sub) {
@@ -173,9 +173,9 @@ KolaVideo *KolaAlbum::GetVideo(int id)
 	return NULL;
 }
 
-std::string &KolaAlbum::GetPictureUrl(enum PicType type)
+string &KolaAlbum::GetPictureUrl(enum PicType type)
 {
-	std::string &fileName = this->smallPicUrl;
+	string &fileName = this->smallPicUrl;
 
 	switch (type){
 		case PIC_LARGE:
@@ -209,21 +209,21 @@ AlbumPage::~AlbumPage(void)
 
 void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
-	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		std::string &fileName = (*it)->GetPictureUrl(type);
+	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		string &fileName = (*it)->GetPictureUrl(type);
 		PutPicture(fileName);
 	}
 }
 
-void AlbumPage::PutPicture(std::string fileName)
+void AlbumPage::PutPicture(string fileName)
 {
 	if (fileName != "") {
-		std::map<std::string, Picture*>::iterator it;
+		map<string, Picture*>::iterator it;
 
 		it = pictureList.find(fileName);
 		if (it == pictureList.end()) {
 			Picture *pic = new Picture(fileName);
-			pictureList.insert(std::pair<std::string, Picture*>(fileName, pic));
+			pictureList.insert(pair<string, Picture*>(fileName, pic));
 			pic->Start();
 		}
 	}
@@ -244,9 +244,9 @@ KolaAlbum* AlbumPage::GetAlbum(int index)
 	return NULL;
 }
 
-Picture* AlbumPage::GetPicture(std::string fileName)
+Picture* AlbumPage::GetPicture(string fileName)
 {
-	std::map<std::string, Picture*>::iterator it;
+	map<string, Picture*>::iterator it;
 
 	it = pictureList.find(fileName);
 
@@ -259,12 +259,12 @@ Picture* AlbumPage::GetPicture(std::string fileName)
 void AlbumPage::Clear()
 {
 	pageId = -1;
-	for (std::map<std::string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
+	for (map<string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
 		it->second->Cancel();
 		delete it->second;
 	}
 
-	for (std::vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		delete (*it);
 	}
 

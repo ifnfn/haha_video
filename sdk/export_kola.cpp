@@ -169,11 +169,9 @@ static int f_gettime(lua_State *L)
 
 static int f_urlencode(lua_State *L)
 {
-	const char *txt = lua_tostring(L, 1);
-	if (txt) {
-		std::string text = URLencode(txt);
-
-		lua_pushstring(L, text.c_str());
+	std::string txt = lua_tostring(L, 1);
+	if (!txt.empty()) {
+		lua_pushstring(L, UrlEncode(txt).c_str());
 		return 1;
 	}
 
@@ -185,10 +183,8 @@ static int f_urldecode(lua_State *L)
 	const char *txt = lua_tostring(L, 1);
 
 	if (txt) {
-		char *x = strdup(txt);
-		std::string text = URLdecode(x);
+		std::string text = UrlDecode(txt);
 		lua_pushstring(L, text.c_str());
-		free(x);
 		return 1;
 	}
 

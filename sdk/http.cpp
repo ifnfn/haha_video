@@ -6,76 +6,60 @@
 static char *curlGetCurlURL (const char *, struct curl_buffer *, CURL *);
 static char *curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
 
-static char _x2c(char hex_up, char hex_low)
+static unsigned char toHex(unsigned char x)
 {
-	char digit;
-	digit = 16 * (hex_up >= 'A' ? ((hex_up & 0xdf) - 'A') + 10 : (hex_up - '0'));
-	digit += (hex_low >= 'A' ? ((hex_low & 0xdf) - 'A') + 10 : (hex_low - '0'));
-
-	return (digit);
+	return x > 9 ? x + 55 : x + 48;
 }
 
-
-/**********************************************
- ** Usage : qURLencode(string to encode);
- ** Return: Pointer of encoded str which is memory allocated.
- ** Do    : Encode string.
- **********************************************/
-std::string URLencode(const char *str)
+std::string UrlEncode(const std::string & sIn)
 {
-	unsigned char c;
-	int i, j;
-	std::string ret;
-
-	if(str == NULL) return NULL;
-
-	for(i = j = 0; str[i]; i++) {
-		c = (unsigned char)str[i];
-		if((c >= '0') && (c <= '9')) ret += c;
-		else if((c >= 'A') && (c <= 'Z')) ret += c;
-		else if((c >= 'a') && (c <= 'z')) ret += c;
-		else if((c == '@') || (c == '.') || (c == '/') || (c == '\\')
-				|| (c == '-') || (c == '_') || (c == ':') ) ret += c;
-		else {
-			char buf[4];
-			sprintf(buf, "%%%02x", c);
-			ret.append(buf);
+	std::string sOut;
+	for(size_t i=0; i < sIn.size(); ++i)
+	{
+		unsigned char buf[4];
+		memset(buf, 0, 4);
+		if(isalnum((unsigned char)sIn[i]))
+		{
+			buf[0] = sIn[i];
 		}
+		else if(isspace((unsigned char)sIn[i]))
+		{
+			buf[0] = '+';
+		}
+		else
+		{
+			buf[0] = '%';
+			buf[1] = toHex((unsigned char)sIn[i] >> 4);
+			buf[2] = toHex((unsigned char)sIn[i] % 16);
+		}
+		sOut += (char *)buf;
 	}
-
-	return ret;
+	return sOut;
 }
 
-/**********************************************
- ** Usage : qURLdecode(query pointer);
- ** Return: Pointer of query string.
- ** Do    : Decode query string.
- **********************************************/
-std::string URLdecode(char *str)
+std::string UrlDecode(const std::string & sIn)
 {
-	int i, j;
-
-	if(!str) return NULL;
-	for(i = j = 0; str[j]; i++, j++) {
-		switch(str[j]) {
-			case '+':{
-					 str[i] = ' ';
-					 break;
-				 }
-			case '%':{
-					 str[i] = _x2c(str[j + 1], str[j + 2]);
-					 j += 2;
-					 break;
-				 }
-			default:{
-					str[i] = str[j];
-					break;
-				}
+	std::string sOut;
+	for(size_t i = 0; i < sIn.size(); i++)
+	{
+		unsigned char buf[4];
+		memset(buf, 0, 4);
+		if( isalnum( sIn[i] ) )
+		{
+			buf[0] = sIn[i];
 		}
+		else if ( '+'==( sIn[i] ) )
+		{
+			buf[0] = ' ';
+		}
+		else
+		{
+			buf[0] = toHex( sIn[i + 1] << 4 );
+			buf[1] = toHex( sIn[i]);
+		}
+		sOut += (char *)buf;
 	}
-	str[i]='\0';
-
-	return str;
+	return sOut;
 }
 
 std::string uri_join(const char * base, const char * uri)

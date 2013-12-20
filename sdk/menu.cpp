@@ -339,7 +339,7 @@ int CustomMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 
 		sprintf(buf, "video/list?page=%d&size=%d&vid=", pageId, pageSize);
 
-		text = URLencode(text.c_str());
+		text = UrlEncode(text);
 		url = buf + text;
 		if (client->UrlPost(url, body.c_str(), text) == true) {
 			page->Clear();

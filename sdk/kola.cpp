@@ -350,6 +350,9 @@ bool KolaClient::UrlGet(std::string url, std::string &ret, const char *home_url,
 
 bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, const char *home_url, const char *referer, int times)
 {
+	if (body == NULL)
+		return false;
+
 	bool ok = false;
 	std::string cookie, new_body;
 
@@ -372,15 +375,14 @@ bool KolaClient::UrlPost(std::string url, const char *body, std::string &ret, co
 
 	UNLOCK(lock);
 
-	if (body)
-		new_body = gzip_base64(body, strlen(body));
+	new_body = gzip_base64(body, strlen(body));
+	new_body = UrlEncode(new_body);
 
 	url = uri_join(home_url, url.c_str());
 	if (url == "")
 		return false;
 
 
-	new_body = URLencode(new_body.c_str());
 	Http http;
 	http.Set(NULL, cookie.c_str(), referer);
 

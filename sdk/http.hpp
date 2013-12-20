@@ -10,8 +10,10 @@
 #include <string>
 #include <deque>
 
-std::string URLencode(const char *str);
-std::string URLdecode(char *str);
+using namespace std;
+
+std::string UrlEncode(const std::string& url);
+std::string UrlDecode(const std::string & sIn);
 
 std::string uri_join(const char * base, const char * uri);
 

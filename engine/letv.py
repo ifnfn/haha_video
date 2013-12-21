@@ -25,7 +25,7 @@ class LetvVideo(kola.VideoBase):
 
     def SetVideoScript(self, name, vid, func_name='kola_main'):
         url = {
-            'script'     : 'sohu',
+            'script'     : 'letv',
             'parameters' : [autostr(vid), autostr(self.cid)]
         }
         if func_name and func_name != 'kola_main':
@@ -39,7 +39,7 @@ class LetvAlbum(kola.AlbumBase):
         self.albumPageUrl = ''
         self.engineList = []
         self.engineList.append('LetvEngine')
-        self.sohu = {
+        self.letv = {
             'vid' : '',
             'playlistid' : ''
         }
@@ -47,16 +47,16 @@ class LetvAlbum(kola.AlbumBase):
         self.videoClass = LetvVideo
 
     def SaveToJson(self):
-        if self.sohu:
-            self.private['sohu'] = self.sohu
+        if self.letv:
+            self.private['letv'] = self.letv
         ret = super().SaveToJson()
 
         return ret
 
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
-        if 'sohu' in self.private:
-            self.sohu = self.private['sohu']
+        if 'letv' in self.private:
+            self.letv = self.private['letv']
 
     def UpdateFullInfoCommand(self):
         pass
@@ -74,8 +74,8 @@ class LetvDB(DB, Singleton):
 
         f = []
         if albumName :    f.append({'albumName'               : albumName})
-        if playlistid :   f.append({'private.sohu.playlistid' : playlistid})
-        if vid :          f.append({'private.sohu.vid'        : vid})
+        if playlistid :   f.append({'private.letv.playlistid' : playlistid})
+        if vid :          f.append({'private.letv.vid'        : vid})
 
         return self.album_table.find_one({"$or" : f})
 
@@ -88,8 +88,8 @@ class LetvDB(DB, Singleton):
             album.LoadFromJson(json)
         elif auto:
             album = LetvAlbum()
-            if playlistid   : album.sohu['playlistid'] = playlistid
-            if vid          : album.sohu['vid']        = vid
+            if playlistid   : album.letv['playlistid'] = playlistid
+            if vid          : album.letv['vid']        = vid
             if albumName    : album.mName = albumName
 
         return album
@@ -124,40 +124,51 @@ class ParserAlbumList(KolaParser):
                 album.cid = js['cid']
 
                 album.subName          = a['subname']
-                album.enAlbumName      = ''                                                  # 英文名称    [*]
-                album.vid              = autostr(a['vids'])
-                album.area             = a['areaName']                                       # 地区        [*]
-                album.categories       = a['subCategoryName'].split(',')                     # 类型        [*]
-                album.publishYear      = TimeStr(a['ctime'])                                 #
-                album.isHigh           = 0                                                   # 是否是高清  [*]
-                album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % album.vid # 节目主页
+                album.enAlbumName      = ''                                          # 英文名称
+                album.area             = a['areaName']                               # 地区
+                album.categories       = a['subCategoryName'].split(',')             # 类型
+                album.publishYear      = TimeStr(a['ctime'])                         #
+                album.isHigh           = 0                                           # 是否是高清
+                album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % \
+                autostr(a['vids'])                                                   # 节目主页
 
-                album.largePicUrl      = a['poster20']                                       # 大图 post20 最大的
-                album.smallPicUrl      = a['postS3']                                         # 小图 // postS1 小中大的，postS3 小中最小的
-                album.largeHorPicUrl   = a['poster12']                                       # 横大图
-                album.smallHorPicUrl   = a['poster11']                                       # 横小图
-                album.largeVerPicUrl   = a['postS1']                                         # 竖大图
-                album.smallVerPicUrl   = a['postS3']                                         # 竖小图
+                album.largePicUrl      = a['poster20']                               # 大图 post20 最大的
+                album.smallPicUrl      = a['postS3']                                 # 小图 // postS1 小中大的，postS3 小中最小的
+                album.largeHorPicUrl   = a['poster12']                               # 横大图
+                album.smallHorPicUrl   = a['poster11']                               # 横小图
+                album.largeVerPicUrl   = a['postS1']                                 # 竖大图
+                album.smallVerPicUrl   = a['postS3']                                 # 竖小图
 
-                album.playLength       = autoint(a['duration']) * 60                         # 时长
-                #album.publishTime     = TimeStr(a['ctime'])                                 #
-                album.publishTime      = TimeStr(a['releaseDate'])                           #
-                album.updateTime       = TimeStr(a['mtime'])                                 # 更新时间
-                album.albumDesc        = a['description']                                    # 简介
-                album.videoScore       = a['rating']                                         # [*]
+                album.playLength       = autoint(a['duration']) * 60                 # 时长
+                                                                                     # album.publishTime     = TimeStr(a['ctime']) # 
+                album.publishTime      = TimeStr(a['releaseDate'])                   #
+                album.updateTime       = TimeStr(a['mtime'])                         # 更新时间
+                album.albumDesc        = a['description']                            # 简介
+                album.videoScore       = a['rating']                                 #
 
                 if 'episodes' in a:
-                album.totalSet         = autoint(a['episodes'])                              # 总集数       [*]
+                    album.totalSet = autoint(a['episodes'])                          # 总集数
                 if 'nowEpisodes' in a:
-                album.updateSet        = autoint(a['nowEpisodes'])                           # 当前更新集   [*]
-                album.dailyPlayNum     = a['dayCount']                                       # 每日播放次数 [*]
-                album.weeklyPlayNum    = a['weekCount']                                      # 每周播放次数 [*]
-                album.monthlyPlayNum   = a['monthCount']                                     # 每月播放次数 [*]
-                album.totalPlayNum     = a['playCount']                                      # 总播放次数   [*]
-                album.dailyIndexScore  = a['rating']                                         # 每日指数     [*]
+                    album.updateSet = autoint(a['nowEpisodes'])                      # 当前更新集
+                album.dailyPlayNum     = a['dayCount']                               # 每日播放次数
+                album.weeklyPlayNum    = a['weekCount']                              # 每周播放次数
+                album.monthlyPlayNum   = a['monthCount']                             # 每月播放次数
+                album.totalPlayNum     = a['playCount']                              # 总播放次数
+                album.dailyIndexScore  = a['rating']                                 # 每日指数
 
-                album.mainActors       = a['starring'].split(',')                            # 主演
-                album.directors        = a['directory'].split(',')                           # 导演
+                album.mainActors       = a['starring'].split(',')                    # 主演
+                album.directors        = a['directory'].split(',')                   # 导演
+
+                album.videoListUrl = {
+                    'script': 'letvlist',
+                    'parameters' : [a['aid']]
+                }
+                if 'aid' in json:
+                    album.letv['playlistid'] = a['aid']
+                    album.letv['pid']        = a['aid']
+                if 'vid' in json:
+                    album.letv['vid']        = a['vids']
+
                 db._save_update_append(ret, album, key={'vid' : album.vid})
             except:
                 t, v, tb = sys.exc_info()
@@ -210,7 +221,7 @@ class LetvTV(LetvVideoMenu):
         pass
 
 
-# Sohu 搜索引擎
+# Letv 搜索引擎
 class LetvEngine(VideoEngine):
     def __init__(self):
         super().__init__()

@@ -27,6 +27,7 @@ class SohuVideo(kola.VideoBase):
     def SetVideoScript(self, name, vid, func_name='kola_main'):
         url = {
             'script'     : 'sohu',
+            'function'   : 'get_video_url',
             'parameters' : [autostr(vid), autostr(self.cid)]
         }
         if func_name and func_name != 'kola_main':
@@ -222,7 +223,8 @@ class ParserAlbumFullInfo(KolaParser):
         if 'directors' in json      : album.directors      = json['directors']
 
         album.videoListUrl = {
-            'script': 'sohulist',
+            'script': 'sohu',
+            'function' : 'get_videolist',
             'parameters' : [album.vid, album.sohu['playlistid'], album.sohu['vid']]
         }
 

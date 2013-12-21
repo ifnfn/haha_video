@@ -60,7 +60,8 @@ function kola_main(vid, playlistid, sohu_vid, pageNo, pageSize)
 		video.smallPicUrl = v.smallPicUrl
 		video.largePicUrl = v.largePicUrl
 		video.resolution = {}
-		video.resolution.script = 'sohu_resolution'
+		video.resolution.script = 'sohu'
+		video.resolution['function'] = 'get_resolution'
 		video.resolution.parameters = {}
 		video.resolution.parameters[1] = video.vid
 		video.resolution.parameters[2] = tostring(video.cid)

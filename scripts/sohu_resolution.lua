@@ -14,16 +14,10 @@ function kola_main(vid, cid)
 		url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=' .. vid
 	end
 
-
 	local text = kola.wget(url)
-
-	if text == nil then
-		return ""
-	end
-
-	local ret = {}
 	local js = cjson.decode(text).data
 
+	local ret = {}
 	ret['默认'] = get(vid, cid)
 	ret['默认'].default = 1
 

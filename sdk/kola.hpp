@@ -52,6 +52,8 @@ class ScriptCommand {
 		void AddParams(int arg);
 		virtual bool LoadFromJson(json_t *js);
 	protected:
+		bool directText;
+		string text;
 		string script_name;
 		string func_name;
 		char **argv;

@@ -14,6 +14,7 @@ LUALIB_API int luaopen_kola(lua_State *L);
 #include "pcre.hpp"
 #include "http.hpp"
 #include "kola.hpp"
+#include "base64.hpp"
 
 static int f_mwget(lua_State *L)
 {
@@ -190,16 +191,48 @@ static int f_urldecode(lua_State *L)
 	return 0;
 }
 
+static int f_base64_encode(lua_State *L)
+{
+	const char *txt = lua_tostring(L, 1);
+	if (txt) {
+		string ret = base64encode(txt);
+		lua_pushstring(L, ret.c_str());
+
+		return 1;
+	}
+
+	return 0;
+}
+
+//size_t base64decode(const unsigned char *input, size_t input_length, unsigned char *output, size_t output_length);
+static int f_base64_decode(lua_State *L)
+{
+	const char *txt = lua_tostring(L, 1);
+	if (txt) {
+		size_t in_size = strlen(txt);
+		size_t out_size = in_size * 3 / 4 + 1;
+		unsigned char *out = (unsigned char*)calloc(1, out_size);
+		base64decode((const unsigned char*)txt, in_size, out, out_size);
+		lua_pushstring(L, (char*)out);
+		free(out);
+		return 1;
+	}
+
+	return 0;
+}
+
 static const struct luaL_reg wget_lib[] = {
-	{"wget"      , f_wget}      ,
-	{"mwget"     , f_mwget}     ,
-	{"wpost"     , f_wpost}     ,
-	{"pcre"      , f_pcre}      ,
-	{"getserver" , f_getserver} ,
-	{"gettime"   , f_gettime} ,
-	{"urlencode" , f_urlencode} ,
-	{"urldecode" , f_urldecode} ,
-	{NULL        , NULL}        ,
+	{"base64_encode" , f_base64_encode},
+	{"base64_decode" , f_base64_decode},
+	{"wget"          , f_wget},
+	{"mwget"         , f_mwget},
+	{"wpost"         , f_wpost},
+	{"pcre"          , f_pcre},
+	{"getserver"     , f_getserver},
+	{"gettime"       , f_gettime},
+	{"urlencode"     , f_urlencode},
+	{"urldecode"     , f_urldecode},
+	{NULL            , NULL},
 };
 
 LUALIB_API int luaopen_kola(lua_State *L) {

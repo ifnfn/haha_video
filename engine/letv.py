@@ -160,7 +160,8 @@ class ParserAlbumList(KolaParser):
                 album.directors        = a['directory'].split(',')                   # 导演
 
                 album.videoListUrl = {
-                    'script': 'letvlist',
+                    'script': 'letv',
+                    'function' : 'get_videolist',
                     'parameters' : [a['aid']]
                 }
                 if 'aid' in json:

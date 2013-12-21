@@ -121,10 +121,10 @@ LuaScript::~LuaScript()
 
 string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname)
 {
-	string text, ret;
+	string code, ret;
 
-	if ( GetScript(name, text))
-		ret = lua_runscript(L, text.c_str(), fname, argc, argv);
+	if ( GetScript(name, code))
+		ret = lua_runscript(L, code.c_str(), fname, argc, argv);
 
 	return ret;
 }
@@ -166,6 +166,7 @@ ScriptCommand::ScriptCommand(json_t *js)
 	func_name = "kola_main";
 	argv = NULL;
 	argc = 0;
+	directText = false;
 
 	if (js)
 		LoadFromJson(js);
@@ -205,7 +206,22 @@ void ScriptCommand::AddParams(const char *arg)
 
 bool ScriptCommand::LoadFromJson(json_t *js)
 {
+	bool ret;
+
+	// 直接值
+	json_t *tx = json_geto(js ,"text");
+	if (tx != NULL) {
+		text = json_string_value(tx);
+
+		directText = true;
+		return true;
+	}
+
 	json_gets(js, "script", script_name);
+	ret = script_name.empty();
+
+	if (ret)
+		return false;
 	json_gets(js, "function", func_name);
 	json_t *params = json_geto(js, "parameters");
 
@@ -231,11 +247,14 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 		}
 	}
 
-	return not script_name.empty();
+	return true;
 }
 
 string ScriptCommand::Run()
 {
+	if (directText)
+		return text;
+
 	string ret;
 	if (Exists()) {
 		LuaScript& lua = LuaScript::Instance();

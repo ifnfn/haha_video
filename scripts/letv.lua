@@ -1,39 +1,130 @@
-function kola_main(url)
+ --  获取节目集列表
+function get_videolist(pid, pageNo, pageSize)
+	local ret = {}
 	--local url = string.format("http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1", url)
 	--print(url)
-	text = kola.wget(url)
-	if text ~= nil then
-		local js = cjson.decode(text)
-		if js ~= nil then
-			return js.location
+
+	local url = string.format('http://app.letv.com/ajax/getFocusVideo.php?p=1&top=%d&max=%s&pid=%s',
+			tonumber(pageNo) * tonumber(pageSize), pageSize, pid)
+
+	local url = string.format('http://app.letv.com/ajax/getFocusVideo.php?p=1&top=0&max=1000&pid=%s', pid)
+	local text = kola.wget(url)
+
+	text = string.sub(text, 2, -2)
+
+	ret.size = 0
+	local videos = {}
+	local js = cjson.decode(text)
+	for k,v in ipairs(js) do
+--		print(v.vid, v.title)
+		local video = {}
+
+		video.cid         = js.cid
+		video.pid         = pid
+		video.vid         = tostring(v.vid)
+		video.playlistid  = pid
+		video.name        = v.title
+		video.showName    = v.title
+		if v.duration ~= nil then
+			--video.playLength  = tonumber(v.duration) * 60
 		end
+		video.order       = v.key
+		video.smallPicUrl = v.pic
+		video.largePicUrl = v.pic
+		video.resolution = {}
+		video.resolution.script = 'letv'
+		video.resolution['function'] = 'get_resolution'
+		video.resolution.parameters = {}
+		video.resolution.parameters[1] = video.vid
+		video.resolution.parameters[2] = tostring(video.cid)
+
+		video.info = {}
+		videos[k] = video
+		ret.size = ret.size + 1
 	end
 
-	return ""
+	if #videos > 0 then
+		ret.videos = videos
+	end
+
+	--print(cjson.encode(ret))
+	return cjson.encode(ret)
 end
 
-function get_channel(vid)
-	local time = kola.gettime()
-	local d = os.date("%Y%m%d", time)
-	local url = string.format("http://st.live.letv.com/live/playlist/%s/%s.json?_=%d", d, vid, time)
-	d = os.date("*t", time)
+-- 攻取节目视频清晰度
+function get_resolution(vid)
+	local function base64_to_url(text)
+		local o = 0
+		local i = 0
+		while true do
+			i = string.find(text, '/' , i + 1)
+			if i == nil then
+				break
+			end
+			o=i
+		end
+		i = string.find(text, '?', o)
+		local x = string.sub(text, o + 1, i - 1)
+
+		local a1 = string.sub(text, 1, string.find(text, '/', 8))
+		local a2 = kola.base64_decode(x)
+
+		return a1 .. a2
+	end
+
+	local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
+	local text = kola.wget(url)
+
+	text = kola.pcre("<playurl><!\\[CDATA(.*)\\]></playurl>", text)
+	local js = cjson.decode(text)
 
 	local ret = {}
-	text = kola.wget(url)
-	if text ~= nil then
-		local js = cjson.decode(text)
-		for k,v in ipairs(js.content) do
-			--print(k,v.playtime, v.duration, v.title)
-			ret[k] = {}
-			t = v.playtime
-			d.hour=tonumber(string.sub(t, 1, string.find(t, ":") - 1))
-			d.min=tonumber(string.sub(t, string.find(t, ":") + 1))
-			ret[k].time_string = v.playtime
-			ret[k].time = os.time(d)
-			ret[k].duration = v.duration
-			ret[k].title = v.title
+	for k,v in ipairs(js) do
+		for a,b in pairs(v.dispatch) do
+			ret[a] = base64_to_url(b[1])
+		end
+		for a,b in pairs(v.dispatchbak) do
+			if ret[a] == nil then
+				ret[a] = base64_to_url(b[1])
+			end
+		end
+
+		for a,b in pairs(v.dispatchbak1) do
+			if ret[a] == nil then
+				ret[a] = base64_to_url(b[1])
+			end
+		end
+		for a,b in pairs(v.dispatchbak2) do
+			if ret[a] == nil then
+				ret[a] = base64_to_url(b[1])
+			end
+		end
+		for a,b in pairs(v.dispatchspath) do
+			if ret[a] == nil then
+				ret[a] = base64_to_url(b[1])
+			end
 		end
 	end
 
-	return cjson.encode(ret)
+	local rx = {}
+	for k,v in pairs(ret) do
+		if k == '350' then
+			rx['标清'] = {}
+			rx['标清'].text = v
+		elseif k == '1000' then
+			rx['高清'] = {}
+			rx['高清'].text = v
+			rx['高清'].default = 1
+		elseif k == '1300' or k == '720p' then
+			rx['超清'] = {}
+			rx['超清'].text = v
+		elseif k == '1080p' then
+			rx['原画质'] = {}
+			rx['原画质'].text = v
+		else
+			print(k,v)
+		end
+	end
+
+	return cjson.encode(rx)
 end

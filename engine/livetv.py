@@ -152,7 +152,7 @@ class ParserLetvLivetv(LivetvParser):
                 v.name        = "乐视"
 
                 v.SetVideoUrl('default', {
-                    'script' : 'letv',
+                    'script' : 'letvlive',
                     'parameters' : [playUrl]
                 })
 
@@ -195,7 +195,7 @@ class ParserSohuLivetv(LivetvParser):
             v.name     = "搜狐"
 
             v.SetVideoUrl('default', {
-                'script' : 'sohutv',
+                'script' : 'sohulive',
                 'parameters' : [playUrl]
             })
 

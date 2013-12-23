@@ -40,7 +40,8 @@ class TVCategory:
         return ret
 
 class LivetvDB(DB):
-    pass
+    def SaveAlbum(self, album, upsert=True):
+        self._save_update_append(None, album)
 
 class LivetvVideo(VideoBase):
     def __init__(self, js = None):
@@ -120,7 +121,6 @@ class ParserLetvLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        ret = []
 
         playlist = js['data'].split("</a>")
 
@@ -162,8 +162,7 @@ class ParserLetvLivetv(LivetvParser):
                           'parameters' : [vid]}
 
                 album.videos.append(v)
-                db._save_update_append(ret, album)
-        return ret
+                db.SaveAlbum(album)
 
 # 搜狐直播电视
 class ParserSohuLivetv(LivetvParser):
@@ -174,7 +173,6 @@ class ParserSohuLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        ret = []
 
         tvlist = tornado.escape.json_decode(js['data'])
         for v in tvlist['attachment']:
@@ -206,9 +204,7 @@ class ParserSohuLivetv(LivetvParser):
             }
 
             album.videos.append(v)
-            db._save_update_append(ret, album)
-
-        return ret
+            db.SaveAlbum(album)
 
 # 吉林电视台
 class ParserJLntvLivetv(LivetvParser):
@@ -224,7 +220,6 @@ class ParserJLntvLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        ret = []
 
         ch_list = re.findall('<li id="T_Menu_(\d*)"><a href="(.*)">(.*)</a></li>', js['data'])
 
@@ -252,9 +247,7 @@ class ParserJLntvLivetv(LivetvParser):
                       'parameters' : []}
 
             album.videos.append(v)
-            db._save_update_append(ret, album)
-
-        return ret
+            db.SaveAlbum(album)
 
 # 杭州电视台
 class ParserHangZhouLivetv(LivetvParser):
@@ -273,7 +266,7 @@ class ParserHangZhouLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        ret = []
+
         #for i in range(1, 60):
         for i in (1, 2, 3, 5, 13, 14, 15):
             url = 'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i
@@ -318,8 +311,7 @@ class ParserHangZhouLivetv(LivetvParser):
             }
 
             album.videos.append(v)
-            db._save_update_append(ret, album)
-        return ret
+            db.SaveAlbum(album)
 
 # 温州电视台
 class ParserWenZhouLivetv(LivetvParser):
@@ -334,7 +326,7 @@ class ParserWenZhouLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        ret = []
+
         ch_list = re.findall('(http://v.dhtv.cn/tv/\?channal=(.+))\">(.*)</a></li>', js['data'])
         for u, source, name in ch_list:
             vid = utils.genAlbumId(name)
@@ -360,7 +352,7 @@ class ParserWenZhouLivetv(LivetvParser):
                 'parameters' : [u],
             }
             album.videos.append(v)
-            db._save_update_append(ret, album)
+            db.SaveAlbum(album)
 
 #
 class ParserTVIELivetv(LivetvParser):
@@ -373,7 +365,7 @@ class ParserTVIELivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        ret = []
+
         jdata = tornado.escape.json_decode(js['data'])
 
         for x in jdata['result']:
@@ -415,9 +407,7 @@ class ParserTVIELivetv(LivetvParser):
             }
 
             album.videos.append(v)
-            db._save_update_append(ret, album)
-
-        return ret
+            db.SaveAlbum(album)
 
 # 浙江电视台
 class ParserZJLivetv(ParserTVIELivetv):
@@ -505,7 +495,7 @@ class ParserTextLivetv(LivetvParser):
                 album.categories  = self.tvCate.GetCategories(album.albumName)
                 album.sources     = v
                 album.totalSet    = len(v)
-                db._save_update_append(None, album)
+                db.SaveAlbum(album)
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):

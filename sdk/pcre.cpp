@@ -52,7 +52,7 @@ void Pcre::ClearRules()
 //match all regrex, if any match, return the matched patten name and it's values
 string Pcre::MatchAll(const char *content)
 {
-	int length = strlen(content);
+	int length = (int)strlen(content);
 	string result("");
 	int ovector[VECSIZE] ={'\0'};
 

@@ -20,11 +20,12 @@ class KolaEngine:
         self.db = DB()
         self.command = engine.EngineCommands()
         self.engines = {}
-        self.MenuList = {}
+        self.MenuList = []
         self.UpdateAlbumFlag = False
 
+        self.AddEngine(engine.LetvEngine)
         self.AddEngine(engine.SohuEngine)
-        self.AddEngine(engine.LiveEngine)
+        #self.AddEngine(engine.LiveEngine)
         #self.AddEngine(engine.WolidouEngine)
 
     def AddEngine(self, egClass):
@@ -116,13 +117,13 @@ class KolaEngine:
         self.command.Execute()
 
     def UpdateAllHotList(self):
-        for (_, menu) in list(self.MenuList.items()):
+        for menu in self.MenuList:
             menu.UpdateHotList()
 
     # 更新所有节目（增加新的节目）
     def UpdateAllAlbumList(self):
         self.UpdateAlbumFlag = True
-        for (_, menu) in list(self.MenuList.items()):
+        for menu in self.MenuList:
             menu.UpdateAlbumList()
 
     def CommandEmptyMessage(self):

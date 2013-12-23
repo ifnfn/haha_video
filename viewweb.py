@@ -204,6 +204,12 @@ class GetMenuHandler(BaseHandler):
 
         self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
+class GetKolaInfoHandler(BaseHandler):
+    def get(self):
+        ret =  tv.GetVideoSource()
+
+        self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+
 class UploadHandler(BaseHandler):
     def get(self):
         print('Upload get')
@@ -506,6 +512,8 @@ class ViewApplication(tornado.web.Application):
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
             (r'/video/getmenu',    GetMenuHandler),         #
+            (r'/video/getinfo',    GetKolaInfoHandler),     #
+
             (r'/video/geturl',     GetVideoPlayerUrlHandle),
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证

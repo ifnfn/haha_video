@@ -10,7 +10,7 @@ static unsigned char basis_64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrs
 
 string base64encode(const string input)
 {
-	int out_size = BASE64_SIZE(input.size()) + 1;
+	size_t out_size = BASE64_SIZE(input.size()) + 1;
 	string ret;
 
 	char *out_buffer = (char *)calloc(1, out_size);

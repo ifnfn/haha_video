@@ -21,7 +21,7 @@ KolaAlbum::~KolaAlbum() {
 }
 
 void KolaAlbum::VideosClear() {
-	for (int i=videos.size() - 1; i >= 0;i--)
+	for (int i=(int)videos.size() - 1; i >= 0;i--)
 		delete videos[i];
 
 	videos.clear();
@@ -29,7 +29,7 @@ void KolaAlbum::VideosClear() {
 
 size_t KolaAlbum::GetTotalSet() {
 	if (totalSet == 0) {
-		int old_size = videoPageSize;
+		size_t old_size = videoPageSize;
 		LowVideoGetPage(0, 0);
 		videoPageSize = old_size;
 		videoPageId = -1;
@@ -41,7 +41,7 @@ size_t KolaAlbum::GetTotalSet() {
 size_t KolaAlbum::GetVideoCount()
 {
 	if (directVideos == false || totalSet == 0 || updateSet == 0) {
-		int old_size = videoPageSize;
+		size_t old_size = videoPageSize;
 		LowVideoGetPage(0, 0);
 		videoPageSize = old_size;
 		videoPageId = -1;
@@ -60,8 +60,8 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 		ScriptCommand script;
 		if (json_to_variant(videoListUrl, &script)) {
 			json_error_t error;
-			script.AddParams(pageNo);
-			script.AddParams(pageSize);
+			script.AddParams((int)pageNo);
+			script.AddParams((int)pageSize);
 			string text = script.Run();
 			if (text != "")
 				js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
@@ -69,7 +69,6 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 	}
 
 	if (js == NULL) {
-		KolaClient *client = &KolaClient::Instance();
 		char url_buffer[256];
 
 		sprintf(url_buffer, "/video/getvideo?full=0&pid=%s&page=%ld&size=%ld", vid.c_str(), pageNo, pageSize);
@@ -87,7 +86,6 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 	videoPageSize = pageSize;
 	VideosClear();
 
-	int x = 0;
 	videos = json_geto(js, "videos");
 	json_array_foreach(videos, v) {
 		this->videos.push_back(new KolaVideo(v));
@@ -107,9 +105,9 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	json_gets(js, "vid"        , vid);
 	json_gets(js, "pid"        , pid);
 	json_gets(js, "playlistid" , playlistid);
-	cid            = json_geti(js, "cid"        , 0);
-	isHigh         = json_geti(js, "isHigh"     , 0);
-	publishYear    = json_geti(js, "publishYear", 0);
+	cid            =  (int)json_geti(js, "cid"        , 0);
+	isHigh         =  (int)json_geti(js, "isHigh"     , 0);
+	publishYear    =  (int)json_geti(js, "publishYear", 0);
 	totalSet       = json_geti(js, "totalSet"   , 0);
 	updateSet      = json_geti(js, "updateSet"  , totalSet);
 
@@ -130,11 +128,11 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	cout << "smallVerPicUrl: " << smallVerPicUrl << endl;
 #endif
 
-	dailyPlayNum    =json_geti   (js , "dailyPlayNum"    , 0);   // 每日播放次数
-	weeklyPlayNum   =json_geti   (js , "weeklyPlayNum"   , 0);   // 每周播放次数
-	monthlyPlayNum  =json_geti   (js , "monthlyPlayNum"  , 0);   // 每月播放次数
-	totalPlayNum    =json_geti   (js , "totalPlayNum"    , 0);   // 总播放资料
-	dailyIndexScore =json_getreal(js , "dailyIndexScore" , 0.0); // 每日指数
+	dailyPlayNum    = (int)json_geti   (js , "dailyPlayNum"    , 0);   // 每日播放次数
+	weeklyPlayNum   = (int)json_geti   (js , "weeklyPlayNum"   , 0);   // 每周播放次数
+	monthlyPlayNum  = (int)json_geti   (js , "monthlyPlayNum"  , 0);   // 每月播放次数
+	totalPlayNum    = (int)json_geti   (js , "totalPlayNum"    , 0);   // 总播放资料
+	dailyIndexScore = (int)json_getreal(js , "dailyIndexScore" , 0.0); // 每日指数
 
 	json_get_stringlist(js, "mainActors", &mainActors);
 	json_get_stringlist(js, "directors", &directors);
@@ -159,7 +157,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	return true;
 }
 
-KolaVideo *KolaAlbum::GetVideo(int id)
+KolaVideo *KolaAlbum::GetVideo(size_t id)
 {
 	size_t pageNo = id / videoPageSize;
 	size_t pos = id % videoPageSize;

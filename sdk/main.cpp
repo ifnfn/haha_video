@@ -31,7 +31,7 @@ void test_task()
 
 void test_custommenu()
 {
-	int count;
+	size_t count;
 	CustomMenu *menu = new CustomMenu("abc");
 
 	while(1) {
@@ -42,7 +42,7 @@ void test_custommenu()
 		menu->AlbumAdd("4e13fc0109");
 		menu->SaveToFile();
 		count = menu->GetAlbumCount();
-		printf("count=%d\n", count);
+		printf("count=%ld\n", count);
 
 		for (int i=0; i < count; i++) {
 			KolaAlbum *album = menu->GetAlbum(i);
@@ -58,7 +58,7 @@ void test_custommenu()
 		menu->AlbumAdd("c9467b05a9");
 		menu->SaveToFile();
 		count = menu->GetAlbumCount();
-		printf("count=%d\n", count);
+		printf("count=%ld\n", count);
 
 		for (int i=0; i < count; i++) {
 			KolaAlbum *album = menu->GetAlbum(i);
@@ -72,7 +72,7 @@ void test_custommenu()
 		menu->AlbumAdd("ada612c186");
 		menu->SaveToFile();
 		count = menu->GetAlbumCount();
-		printf("count=%d\n", count);
+		printf("count=%ld\n", count);
 
 		for (int i=0; i < count; i++) {
 			KolaAlbum *album = menu->GetAlbum(i);
@@ -85,7 +85,7 @@ void test_custommenu()
 		menu->AlbumAdd("c85bfd1868");
 		menu->SaveToFile();
 		count = menu->GetAlbumCount();
-		printf("count=%d\n", count);
+		printf("count=%ld\n", count);
 
 		for (int i=0; i < count; i++) {
 			KolaAlbum *album = menu->GetAlbum(i);
@@ -100,7 +100,7 @@ void test_custommenu()
 
 		menu->SaveToFile();
 		count = menu->GetAlbumCount();
-		printf("count=%d\n", count);
+		printf("count=%ld\n", count);
 
 		for (int i=0; i < count; i++) {
 			KolaAlbum *album = menu->GetAlbum(i);
@@ -111,7 +111,7 @@ void test_custommenu()
 		}
 #endif
 		count = menu->GetAlbumCount();
-		printf("count=%d\n", count);
+		printf("count=%ld\n", count);
 
 		for (int i=0; i < count; i++) {
 			KolaAlbum *album = menu->GetAlbum(i);
@@ -136,7 +136,7 @@ void test_livetv()
 
 	kola.UpdateMenu();
 #if 1
-	for(int i=0, count=kola.MenuCount(); i < count; i++) {
+	for(int i=0, count=(int)kola.MenuCount(); i < count; i++) {
 		m = kola[i];
 		cout << "Menu: " << m->name << endl;
 	}
@@ -153,15 +153,15 @@ void test_livetv()
 //	m->GetPage(page);
 //	m->Filter.KeyAdd("PinYin", "zjw");
 	m->Sort.Set("Name", "1");
-	int count = m->GetAlbumCount();
+	size_t count = m->GetAlbumCount();
 	int pos = 0;
 #if 1
-	for (int i=0; i < count; i++) {
+	for (size_t i=0; i < count; i++) {
 		KolaAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
 			continue;
-		int video_count = album->GetVideoCount();
-		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 #if 1
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
@@ -338,15 +338,15 @@ void test_video(const char *menuName)
 	//m->Sort.Set("周播放最多");
 	//m->Sort.Set("评分最高");
 
-	printf("%d album in menu!\n", m->GetAlbumCount());
+	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(4);
 
 	m->GetPage(page, 0);
 	page.CachePicture(PIC_LARGE);
-	for (size_t i = 0; i < page.Count(); i++) {
+	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
-		printf("[%ld]: Video:Count %ld\n", i, video_count);
+		printf("[%d]: Video:Count %ld\n", i, video_count);
 
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
@@ -416,6 +416,10 @@ void test_video(const char *menuName)
 int main(int argc, char **argv)
 {
 	KolaClient &kola = KolaClient::Instance();
+
+	KolaInfo& info = kola.GetInfo();
+	cout << info.Resolution.ToString() << endl;
+	cout << info.VideoSource.ToString() << endl;
 
 #if 0
 	while(1) {

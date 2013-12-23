@@ -1,8 +1,26 @@
- --  获取节目集列表
+--  获取节目集列表
 function get_videolist(pid, pageNo, pageSize)
+	local function get_album_set(vid)
+		local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
+		local text = kola.wget(url)
+		--print(url)
+
+		text = kola.pcre("<playurl><!\\[CDATA(.*)\\]></playurl>", text)
+		local js = cjson.decode(text)
+		--print(text)
+
+		local ret = {}
+		--ret.totalSet   = js.totalSets
+		ret.updateSet  = js.total
+		return cjson.encode(rx)
+	end
+
 	local ret = {}
-	--local url = string.format("http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1", url)
-	--print(url)
+
+	if tonumber(pageNo) == 0 and tonumber(pageSize) == 0 then
+		ret = get_album_set(pid)
+		return cjson.encode(ret)
+	end
 
 	local url = string.format('http://app.letv.com/ajax/getFocusVideo.php?p=1&top=%d&max=%s&pid=%s',
 			tonumber(pageNo) * tonumber(pageSize), pageSize, pid)
@@ -75,7 +93,9 @@ function get_resolution(vid)
 	local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
 	local text = kola.wget(url)
 
-	text = kola.pcre("<playurl><!\\[CDATA(.*)\\]></playurl>", text)
+	text = kola.pcre("<playurl>(.*)</playurl>", text)
+	text = kola.pcre("<!\\[CDATA(.*)\\]>", text)
+	--print(text)
 	local js = cjson.decode(text)
 
 	local ret = {}

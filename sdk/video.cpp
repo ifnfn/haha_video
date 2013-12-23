@@ -28,14 +28,12 @@ KolaVideo::~KolaVideo()
 
 bool KolaVideo::LoadFromJson(json_t *js)
 {
-	json_t *sub;
-
 	json_gets(js   , "name"         , name);
 	json_gets(js   , "pid"          , pid);
 	json_gets(js   , "vid"          , vid);
-	cid            = json_geti(js   , "cid"            , 0);
-	order          = json_geti(js   , "order"          , 0);
-	isHigh         = json_geti(js   , "isHigh"         , 0);
+	cid            = (int)json_geti(js   , "cid"            , 0);
+	order          = (int)json_geti(js   , "order"          , 0);
+	isHigh         = (int)json_geti(js   , "isHigh"         , 0);
 
 	videoPlayCount = json_geti(js   , "videoPlayCount" , 0);
 	videoScore     = json_getreal(js, "videoScore"     , 0.0);
@@ -49,10 +47,10 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	json_gets(js   , "largePicUrl"  , largePicUrl);
 	json_gets(js   , "playUrl"      , playUrl);
 	json_gets(js   , "directPlayUrl", directPlayUrl);
-	width          = json_geti(js   , "width", 0);
-	height         = json_geti(js   , "height", 0);
-	totalBytes     = json_geti(js   , "totalBytes", 0);
-	fps            = json_geti(js   , "fps", 0);
+	width          = (int)json_geti(js, "width", 0);
+	height         = (int)json_geti(js, "height", 0);
+	totalBytes     = (int)json_geti(js, "totalBytes", 0);
+	fps            = (int)json_geti(js, "fps", 0);
 
 //	json_get_stringlist(js, "resolution", &resolution);
 	json_get_variant(js, "info", &sc_info);
@@ -160,7 +158,7 @@ bool KolaEpg::GetNext(EPG &e)
 	EPG ok;
 	time_t t = KolaClient::Instance().GetTime();
 
-	int count = size();
+	int count = (int)size();
 	for (int i = count - 1; i >= 0; i--) {
 		EPG x = at(i);
 
@@ -177,7 +175,7 @@ bool KolaEpg::GetNext(EPG &e)
 
 bool KolaEpg::Get(EPG &e, time_t t)
 {
-	int count = size();
+	int count = (int)size();
 
 	for (int i = count - 1; i >= 0; i--) {
 		EPG x = at(i);

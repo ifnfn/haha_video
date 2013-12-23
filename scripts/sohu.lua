@@ -60,6 +60,7 @@ function get_resolution(vid, cid)
 	local function get(vid, cid)
 		res = {}
 		res.script = 'sohu'
+		res['function'] = 'get_video_url'
 		res.parameters = {}
 		res.parameters[1] = vid
 		res.parameters[2] = tostring(cid)

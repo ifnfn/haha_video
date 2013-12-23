@@ -35,12 +35,12 @@ class LetvVideo(kola.VideoBase):
 
 class LetvAlbum(kola.AlbumBase):
     def __init__(self):
+        self.engineName = 'LetvEngine'
         super().__init__()
         self.albumPageUrl = ''
-        self.engineList = []
-        self.engineList.append('LetvEngine')
+
         self.letv = {
-            'vid' : '',
+            'name' : '乐视',
             'playlistid' : ''
         }
 
@@ -48,15 +48,15 @@ class LetvAlbum(kola.AlbumBase):
 
     def SaveToJson(self):
         if self.letv:
-            self.private['letv'] = self.letv
+            self.private[self.engineName] = self.letv
         ret = super().SaveToJson()
 
         return ret
 
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
-        if 'letv' in self.private:
-            self.letv = self.private['letv']
+        if self.engineName in self.private:
+            self.letv = self.private[self.engineName]
 
     def UpdateFullInfoCommand(self):
         pass
@@ -64,37 +64,48 @@ class LetvAlbum(kola.AlbumBase):
 class LetvDB(DB, Singleton):
     def __init__(self):
         super().__init__()
+        self.albumNameAlias = {}   # 别名
+        self.blackAlbumName = {}   # 黑名单
+
 
     # 从数据库中找到 album
-    def FindAlbumJson(self, playlistid='', albumName='', vid=''):
+    def FindAlbumJson(self, playlistid='', albumName=''):
         playlistid = autostr(playlistid)
-        vid = autostr(vid)
-        if playlistid == '' and albumName == '' and vid == '':
+        if playlistid == '' and albumName == '':
             return None
 
         f = []
-        if albumName :    f.append({'albumName'               : albumName})
-        if playlistid :   f.append({'private.letv.playlistid' : playlistid})
-        if vid :          f.append({'private.letv.vid'        : vid})
+        if albumName :    f.append({'albumName'                     : albumName})
+        if playlistid :   f.append({'private.LetvEngine.playlistid' : playlistid})
 
-        return self.album_table.find_one({"$or" : f})
+        #return self.album_table.find_one({'$or' : f})
+        return self.album_table.find_one({'engineList' : {'$in' : ['LetvEngine']}, '$or' : f})
 
     # 从数据库中找到album
-    def GetAlbumFormDB(self, playlistid='', albumName='', vid='', auto=False):
+    def GetAlbumFormDB(self, playlistid='', albumName='', auto=False):
         album = None
-        json = self.FindAlbumJson(playlistid, albumName, vid)
+        json = self.FindAlbumJson(playlistid, albumName)
         if json:
             album = LetvAlbum()
             album.LoadFromJson(json)
         elif auto:
             album = LetvAlbum()
             if playlistid   : album.letv['playlistid'] = playlistid
-            if vid          : album.letv['vid']        = vid
             if albumName    : album.mName = albumName
 
         return album
 
-# 搜狐节目列表
+    def SaveAlbum(self, album, upsert=True):
+        if album.albumName and album.letv['playlistid']:
+            self._save_update_append(None, album, key={'private.LetvEngine.playlistid' : album.letv['playlistid']}, upsert=upsert)
+
+class ParserPlayCount(KolaParser):
+    def __init__(self):
+        super().__init__()
+        self.cmd['name'] = 'engine_parser'
+        self.cmd['source'] = 'http://stat.letv.com/vplay/queryMmsTotalPCount?mid=3574083&pid=92280&platform=101&cid=2&vid=2209753'
+
+# 节目列表
 class ParserAlbumList(KolaParser):
     def __init__(self, url=None, cid=0):
         super().__init__()
@@ -107,14 +118,21 @@ class ParserAlbumList(KolaParser):
         def TimeStr(t):
             return time.strftime('%Y-%m-%d', time.gmtime(autoint(t) / 1000))
 
-        db = LetvDB()
-        ret = []
+        if not js['data']: return
 
-        if not js['data']: return ret
+        db = LetvDB()
 
         json = tornado.escape.json_decode(js['data'])
         for a in json['data_list']:
             album = LetvAlbum()
+            album_js = DB().FindAlbumJson(albumName=a['name'])
+            if album_js:
+                    album.LoadFromJson(album_js)
+
+            if a['aid'] == '20510':
+                pass
+            #album = db.GetAlbumFormDB(playlistid=a['aid'], auto=True)
+#            album = LetvAlbum()
 
             album.albumName       = a['name']
             if not album.albumName:
@@ -129,8 +147,7 @@ class ParserAlbumList(KolaParser):
                 album.categories       = a['subCategoryName'].split(',')             # 类型
                 album.publishYear      = TimeStr(a['ctime'])                         #
                 album.isHigh           = 0                                           # 是否是高清
-                album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % \
-                autostr(a['vids'])                                                   # 节目主页
+                album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vids'])
 
                 album.largePicUrl      = a['poster20']                               # 大图 post20 最大的
                 album.smallPicUrl      = a['postS3']                                 # 小图 // postS1 小中大的，postS3 小中最小的
@@ -140,8 +157,8 @@ class ParserAlbumList(KolaParser):
                 album.smallVerPicUrl   = a['postS3']                                 # 竖小图
 
                 album.playLength       = autoint(a['duration']) * 60                 # 时长
-                                                                                     # album.publishTime     = TimeStr(a['ctime']) # 
-                album.publishTime      = TimeStr(a['releaseDate'])                   #
+                album.publishTime     = TimeStr(a['ctime']) #
+                #album.publishTime      = TimeStr(a['releaseDate'])                   #
                 album.updateTime       = TimeStr(a['mtime'])                         # 更新时间
                 album.albumDesc        = a['description']                            # 简介
                 album.videoScore       = a['rating']                                 #
@@ -160,17 +177,17 @@ class ParserAlbumList(KolaParser):
                 album.directors        = a['directory'].split(',')                   # 导演
 
                 album.videoListUrl = {
-                    'script': 'letv',
-                    'function' : 'get_videolist',
+                    'script'     : 'letv',
+                    'function'   : 'get_videolist',
                     'parameters' : [a['aid']]
                 }
-                if 'aid' in json:
+                if 'aid' in a:
                     album.letv['playlistid'] = a['aid']
-                    album.letv['pid']        = a['aid']
-                if 'vid' in json:
-                    album.letv['vid']        = a['vids']
+                #if 'vid' in s:
+                #    album.letv['vid']        = a['vids']
 
-                db._save_update_append(ret, album, key={'vid' : album.vid})
+                db.SaveAlbum(album)
+                #db._save_update_append(ret, album, key={'vid' : album.vid})
             except:
                 t, v, tb = sys.exc_info()
                 print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
@@ -182,8 +199,6 @@ class ParserAlbumList(KolaParser):
                 link = re.compile('p=\d+')
                 newurl = re.sub(link, 'p=%d' % (current_page + 1), js['source'])
                 ParserAlbumList(newurl, js['cid']).Execute()
-
-        return ret
 
 class LetvVideoMenu(kola.VideoMenuBase):
     def __init__(self, name):

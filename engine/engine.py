@@ -56,10 +56,10 @@ class EngineCommands(KolaCommand):
 class KolaParser:
     def __init__(self):
         self.command = EngineCommands()
-        self.name = self.__class__.__name__
+        self.name = self.__class__.__module__ + '.' + self.__class__.__name__
 
         self.cmd = {}
-        self.cmd['engine'] = self.__class__.__name__
+        self.cmd['engine'] = self.name
         self.cmd['cache']  = False or Debug
 
     def AddCommand(self):
@@ -91,8 +91,7 @@ class VideoEngine:
         for m, menu in list(self.menu.items()):
             if type(menu) == type:
                 menu = menu(m)
-            if m not in MenuList:
-                MenuList[m] = menu
+                MenuList.append(menu)
 
     # 解析菜单网页解析
     def ParserHtml(self, js):

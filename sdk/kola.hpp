@@ -64,12 +64,12 @@ class Variant: public ScriptCommand {
 	public:
 		Variant(json_t *js=NULL);
 		string GetString();
-		int GetInteger();
+		long GetInteger();
 		double GetDouble();
 		virtual bool LoadFromJson(json_t *js);
 	private:
 		string valueStr;
-		int valueInt;
+		long valueInt;
 		double valueDouble;
 		int directValue;
 };
@@ -189,7 +189,7 @@ class KolaVideo {
 		string name;
 		int order;
 		int isHigh;
-		int videoPlayCount;
+		size_t videoPlayCount;
 		double videoScore;
 		double playLength;
 
@@ -286,7 +286,7 @@ class KolaAlbum {
 		size_t GetTotalSet();
 		size_t GetVideoCount();
 		string &GetPictureUrl(enum PicType type);
-		KolaVideo *GetVideo(int id);
+		KolaVideo *GetVideo(size_t id);
 	private:
 		void VideosClear();
 		bool LoadFromJson(json_t *js);
@@ -297,8 +297,8 @@ class KolaAlbum {
 		string playlistid;
 		vector<KolaVideo*> videos;
 
-		int totalSet;                // 总集数
-		int updateSet;               // 当前更新集
+		size_t totalSet;                // 总集数
+		size_t updateSet;               // 当前更新集
 		string videoPlayUrl;
 		string largePicUrl;      // 大图片网址
 		string smallPicUrl;      // 小图片网址
@@ -345,7 +345,7 @@ class KolaMenu {
 		KolaMenu(json_t *js);
 		virtual ~KolaMenu(void) {}
 
-		int         cid;
+		size_t cid;
 		string name;
 		StringList  quickFilters;
 		KolaFilter  Filter;
@@ -360,13 +360,13 @@ class KolaMenu {
 		int    SeekByAlbumId(string vid);
 		int    SeekByAlbumName(string name);
 		string GetQuickFilter() { return quickFilter; }
-		virtual int GetAlbumCount();
-		KolaAlbum* GetAlbum(int position);
+		virtual size_t GetAlbumCount();
+		KolaAlbum* GetAlbum(size_t position);
 	protected:
 		KolaClient *client;
 		int PageSize;
-		int PageId;
-		int albumCount;
+        int PageId;
+        size_t albumCount;
 		string quickFilter;
 		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
 		virtual int LowGetPage(AlbumPage *page, string key, string value, int pageSize);
@@ -386,12 +386,22 @@ class CustomMenu: public KolaMenu {
 		void AlbumRemove(KolaAlbum *album);
 		void AlbumRemove(string vid);
 		bool SaveToFile(string otherFile = "");
-		virtual int GetAlbumCount();
+		virtual size_t GetAlbumCount();
 	protected:
 		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
 	private:
 		StringList albumIdList;
 		string fileName;
+};
+
+class KolaInfo {
+	public:
+		KolaInfo() : update(false) {}
+		StringList VideoSource;
+		StringList Resolution;
+	private:
+		bool update;
+		friend class KolaClient;
 };
 
 class KolaClient {
@@ -405,7 +415,7 @@ class KolaClient {
 
 		KolaMenu* GetMenuByName(const char *name);
 		KolaMenu* GetMenuByCid(int cid);
-		inline int MenuCount() { return menuMap.size(); };
+		inline size_t MenuCount() { return menuMap.size(); };
 		KolaMenu* operator[] (const char *name);
 		KolaMenu* operator[] (int inx);
 		bool haveCommand() { return havecmd; }
@@ -415,6 +425,7 @@ class KolaClient {
 		string& GetServer() { return baseUrl; }
 		string GetArea();
 		time_t GetTime();
+		KolaInfo& GetInfo();
 		int debug;
 	private:
 		KolaClient(void);
@@ -431,6 +442,7 @@ class KolaClient {
 		pthread_t thread;
 		pthread_mutex_t lock;
 		bool havecmd;
+		KolaInfo info;
 
 		friend void *kola_login_thread(void *arg);
 		friend class KolaMenu;

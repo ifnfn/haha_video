@@ -318,7 +318,7 @@ string Variant::GetString()
 	}
 	else if (directValue == SC_INTEGER) {
 		char buffer[32];
-		sprintf(buffer, "%d", valueInt);
+		sprintf(buffer, "%ld", valueInt);
 
 		return buffer;
 	}
@@ -329,7 +329,7 @@ string Variant::GetString()
 	return "";
 }
 
-int Variant::GetInteger()
+long Variant::GetInteger()
 {
 	if (directValue == SC_DOUBLE) {
 		return int(valueDouble);

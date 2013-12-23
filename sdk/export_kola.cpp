@@ -18,7 +18,7 @@ LUALIB_API int luaopen_kola(lua_State *L);
 
 static int f_mwget(lua_State *L)
 {
-	int argc = lua_gettop(L);
+//	int argc = lua_gettop(L);
 	double k;
 	const char *v = NULL;
 	vector<Http*> taskList;
@@ -61,7 +61,6 @@ static int f_mwget(lua_State *L)
 
 static int f_wget(lua_State *L)
 {
-	int rc;
 	int argc = lua_gettop(L);
 	const char *url;
 	const char *referer = NULL;
@@ -88,9 +87,6 @@ static int f_wget(lua_State *L)
 	if (argc >= 2)
 		referer = lua_tostring(L, 2);
 
-	if (argc >= 3)
-		location = lua_toboolean(L, 3);
-
 	for (int i = 0; i < urlList.size(); i++) {
 		Http http;
 		http.SetReferer(referer);
@@ -115,10 +111,6 @@ static int f_wpost(lua_State *L)
 
 	const char *url = lua_tostring(L, 1);
 	const char *data = lua_tostring(L, 2);
-	const char *referer = NULL;
-
-	if (argc >= 3)
-		referer = lua_tostring(L, 3);
 
 	KolaClient &kola = KolaClient::Instance();
 

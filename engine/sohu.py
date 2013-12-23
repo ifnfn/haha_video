@@ -37,11 +37,12 @@ class SohuVideo(kola.VideoBase):
 
 class SohuAlbum(kola.AlbumBase):
     def __init__(self):
+        self.engineName = 'SohuEngine'
         super().__init__()
         self.albumPageUrl = ''
-        self.engineList = []
-        self.engineList.append('SohuEngine')
+
         self.sohu = {
+            'name' : '搜狐',
             'vid' : '',
             'playlistid' : ''
         }
@@ -50,15 +51,15 @@ class SohuAlbum(kola.AlbumBase):
 
     def SaveToJson(self):
         if self.sohu:
-            self.private['sohu'] = self.sohu
+            self.private[self.engineName] = self.sohu
         ret = super().SaveToJson()
 
         return ret
 
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
-        if 'sohu' in self.private:
-            self.sohu = self.private['sohu']
+        if self.engineName in self.private:
+            self.sohu = self.private[self.engineName]
 
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
@@ -72,11 +73,6 @@ class SohuAlbum(kola.AlbumBase):
         if self.sohu['playlistid']:
             ParserAlbumScore(self).Execute()
 
-    # 更新节目播放信息
-    def UpdateAlbumPlayInfoCommand(self):
-        if self.sohu['vid'] != '':
-            ParserAlbumPlayInfo(self).AddCommand()
-
 class SohuDB(DB, Singleton):
     def __init__(self):
         super().__init__()
@@ -89,11 +85,12 @@ class SohuDB(DB, Singleton):
             return None
 
         f = []
-        if albumName :    f.append({'albumName'               : albumName})
-        if playlistid :   f.append({'private.sohu.playlistid' : playlistid})
-        if vid :          f.append({'private.sohu.vid'        : vid})
+        if albumName :    f.append({'albumName'                     : albumName})
+        if playlistid :   f.append({'private.SohuEngine.playlistid' : playlistid})
+        if vid :          f.append({'private.SohuEngine.vid'        : vid})
 
-        return self.album_table.find_one({"$or" : f})
+        #return self.album_table.find_one({'$or' : f})
+        return self.album_table.find_one({'engineList' : {'$in' : ['SohuEngine']}, '$or' : f})
 
     # 从数据库中找到album
     def GetAlbumFormDB(self, playlistid='', albumName='', vid='', auto=False):
@@ -110,6 +107,10 @@ class SohuDB(DB, Singleton):
 
         return album
 
+    def SaveAlbum(self, album, upsert=True):
+        if album.sohu['vid'] and album.albumName and album.sohu['playlistid']:
+            self._save_update_append(None, album, key={'private.SohuEngine.vid' : album.sohu['vid']}, upsert=upsert)
+
 # 搜狐节目列表
 class ParserAlbumList(KolaParser):
     def __init__(self, url=None, cid=0):
@@ -121,11 +122,9 @@ class ParserAlbumList(KolaParser):
             self.cmd['cid']     = cid
 
     def CmdParser(self, js):
+        if not js['data']: return
+
         db = SohuDB()
-        ret = []
-
-        if not js['data']: return ret
-
         needNextPage = False
         soup = bs(js['data'])#, from_encoding = 'GBK')
         playlist = soup.findAll('li')
@@ -135,30 +134,42 @@ class ParserAlbumList(KolaParser):
             if x:
                 continue
 
-            album = SohuAlbum()
+            name = ''
+            vid = ''
+            playlistid = ''
+            albumUrl = ''
 
             urls = re.findall('(href|title|_s_v|_s_a)="([\s\S]*?)"', text)
             for u in urls:
                 if u[0] == 'href':
-                    album.albumPageUrl = self.command.GetUrl(u[1])
+                    albumUrl = self.command.GetUrl(u[1])
                 elif u[0] == 'title':
-                    album.albumName = u[1]
+                    name = db.GetAlbumName(u[1])
                 elif u[0] == '_s_v':
-                    album.sohu['vid'] = autostr(u[1])
+                    vid = autostr(u[1])
                 elif u[0] == '_s_a':
-                    album.sohu['playlistid'] = autostr(u[1])
+                    playlistid = autostr(u[1])
 
-            if album.albumName:
-                album.vid = utils.genAlbumId(album.albumName)
+            if name:
+                album = SohuAlbum()
+                album_js = DB().FindAlbumJson(albumName=name)
+                if album_js:
+                    album.LoadFromJson(album_js)
+                #album = db.GetAlbumFormDB(playlistid=playlistid, albumName=name, vid=vid, auto=True)
+
+                album.albumName     = name
+                album.albumPageUrl  = albumUrl
+                album.cid           = js['cid']
+                album.vid           = utils.genAlbumId(album.albumName)
+                album.sohu['vid']        = vid
+                album.sohu['playlistid'] = playlistid
             else:
                 continue
 
-            album.cid = js['cid']
             #if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu['vid'])):
             #    needNextPage = True
 
-            if album.sohu['vid'] and album.albumName and album.sohu['playlistid']:
-                db._save_update_append(ret, album, key={'vid' : album.vid})
+            db.SaveAlbum(album)
 
         needNextPage = True
         if needNextPage:
@@ -168,8 +179,6 @@ class ParserAlbumList(KolaParser):
                 link = re.compile('p10\d+')
                 newurl = re.sub(link, 'p10%d' % (current_page + 1), js['source'])
                 ParserAlbumList(newurl, js['cid']).Execute()
-
-        return ret
 
 # 更新节目的完整信息
 class ParserAlbumFullInfo(KolaParser):
@@ -185,8 +194,6 @@ class ParserAlbumFullInfo(KolaParser):
     def CmdParser(self, js):
         db = SohuDB()
 
-        ret = []
-
         json = tornado.escape.json_decode(js['data'])
         playlistid = autostr(json['playlistid'])
         vid = autostr(json['vid'])
@@ -194,8 +201,9 @@ class ParserAlbumFullInfo(KolaParser):
 
         album = db.GetAlbumFormDB(playlistid=playlistid, vid=vid)
         if album == None:
-            return ret
+            return
 
+        #if 'albumName' in json      : album.albumName            = autoint(json['albumName'])
         if 'cid' in json            : album.cid            = autoint(json['cid'])
         if 'playlistid' in json     : album.sohu['playlistid'] = playlistid
         if 'pid' in json            : album.sohu['pid']        = pid
@@ -228,58 +236,7 @@ class ParserAlbumFullInfo(KolaParser):
             'parameters' : [album.vid, album.sohu['playlistid'], album.sohu['vid']]
         }
 
-        if 'videos' in json:
-            for video in json['videos']:
-                if 'vid' in video and 'vid' in album.sohu:
-                    if autostr(video['vid']) == album.sohu['vid'] and album.sohu['vid']:
-                        if 'playLength' in video  : album.playLength =  video['playLength']
-                        if 'publishTime' in video : album.publishTime = video['publishTime']
-                        break
-
-                #v = album.NewVideo()
-                #v.LoadFromJson(video)
-                #v.SetVideoScript('default', v.vid)
-
-                # 兼容旧版本
-                #v.script = {
-                #    'script' : 'sohu',
-                #    'parameters' : ['http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % v.vid, autostr(album.cid)]
-				#}
-
-                #album.videos.append(v)
-        if vid:
-            db._save_update_append(ret, album, key={'vid' : album.vid}, upsert=False)
-
-        return ret
-
-# 总播放次数，(如果没有指数的话）
-class ParserAlbumTotalPlayNum(KolaParser):
-    def __init__(self, album=None):
-        super().__init__()
-
-        if album:
-            self.cmd['name']   = 'engine_parser'
-            self.cmd['source'] = 'http://count.vrs.sohu.com/count/query.action?videoId=%s,' % album.sohu['vid']
-
-    # album_total_playnum
-    def CmdParser(self, js):
-        db = SohuDB()
-        ret = []
-
-        data = tornado.escape.to_basestring(js['data'])
-        text = re.findall('var count=(\S+?);', data)
-        if text:
-            data = tornado.escape.json_decode(text[0])
-            for v in data['videos']:
-                vid = autostr(v['videoid'])
-                album = db.GetAlbumFormDB(vid=vid, auto=False)
-                if album == None:
-                    return []
-
-                album.totalPlayNum = v['count']
-                db._save_update_append(ret, album)
-
-        return ret
+        db.SaveAlbum(album, False)
 
 # 更新节目的完整信息
 class ParserAlbumMvInfo(KolaParser):
@@ -298,11 +255,8 @@ class ParserAlbumMvInfo(KolaParser):
     # sohu_sohu_album_mvinfo_mini
     def CmdParser(self, js):
         db = SohuDB()
-        ret = []
 
         text = tornado.escape.to_basestring(js['data'])
-        if self.name == 'ParserAlbumMvInfoMini':
-            text = '{' + text + '}'
         json = tornado.escape.json_decode(text)
 
         albumName = ''
@@ -315,7 +269,7 @@ class ParserAlbumMvInfo(KolaParser):
 
         album = db.GetAlbumFormDB(playlistid=playlistid, albumName=albumName) #, vid=vid)
         if album == None:
-            return ret
+            return
 
         if 'videos' in json and json['videos']:
             video = json['videos'][0]
@@ -323,21 +277,7 @@ class ParserAlbumMvInfo(KolaParser):
             if 'isHigh' in video          : album.isHigh = str(video['isHigh'])
             if 'videoScore' in video      : album.videoScore = str(video['videoScore'])
 
-#                 for video in json['videos']:
-#                     v = album.newVideo()
-#                     v.LoadFromJson(video)
-#
-#                     tv.videos.append(v)
-        if album.sohu['playlistid']:
-            db._save_update_append(ret, album, upsert=False)
-
-        return ret
-
-# 更新节目的完整信息, 只是通过vid 拿到 playlistid
-class ParserAlbumMvInfoMini(ParserAlbumMvInfo):
-    def __init__(self, album=None, alubmName=None):
-        super().__init__(album, alubmName)
-        self.cmd['regular'] =  ['("playlistId":\w+)'],
+            db.SaveAlbum(album, upsert=False)
 
 # 搜狐节目指数
 class ParserAlbumScore(KolaParser):
@@ -352,8 +292,6 @@ class ParserAlbumScore(KolaParser):
                 ]
 
     def CmdParser(self, js):
-        ret = []
-
         data = tornado.escape.json_decode(js['data'])
         if 'album' in data and 'index' in data:
             js = data['album']
@@ -381,9 +319,7 @@ class ParserAlbumScore(KolaParser):
                 if 'dailyIndexScore' in index:
                     album.dailyIndexScore = index['dailyIndexScore'] # 每日指数
 
-                db._save_update_append(ret, album, upsert=False)
-
-        return ret
+                db.SaveAlbum(album, upsert=False)
 
 # http://count.vrs.sohu.com/count/query.action?videoId=1268037
 # 更新热门节目信息
@@ -396,7 +332,6 @@ class ParserAlbumHotList(KolaParser):
 
     def CmdParser(self, js):
         db = SohuDB()
-        ret = []
 
         js = tornado.escape.json_decode(js['data'])
 
@@ -408,74 +343,6 @@ class ParserAlbumHotList(KolaParser):
                     if album:
                         album.UpdateFullInfoCommand()
                         album.UpdateScoreCommand()
-                        ret.append(album)
-
-        return ret
-
-# 更新节目的播放信息
-class ParserAlbumPlayInfo(KolaParser):
-    def __init__(self, album=None):
-        super().__init__()
-        if album:
-            self.cmd['name']   = 'engine_parser'
-            self.cmd['source'] = self.GetVideoUrl(album)
-            self.cmd['cid']    = album.cid
-            self.cmd['json'] = [
-                    'data.highVid',
-                    'data.norVid',
-                    'data.oriVid',
-                    'data.superVid',
-                    'data.relativeId',
-                    'id'
-                ]
-
-    def GetVideoUrl(self, album):
-        vid = album.sohu['vid']
-        if vid:
-            return 'http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % vid
-        else:
-            return ''
-
-    def CmdParser(self, js):
-        db = SohuDB()
-
-        data = tornado.escape.json_decode(js['data'])
-        if ('id' not in data) and ('vid' not in data) and ('cid' not in js):
-            return
-
-        cid = js['cid']
-        vid = ''
-        if 'id' in data:
-            vid = autostr(data['id'])
-        elif 'vid' in js:
-            vid = autostr(data['vid'])
-
-        if vid and cid:
-            video = SohuVideo()
-            video.vid = vid
-            video.cid = cid
-        else:
-            return
-
-        video.SetVideoScript('default', vid)
-        if 'highVid' in data:
-            video.highVid    = autostr(data['highVid'])
-            video.SetVideoScript('high', video.highVid)
-        if 'norVid' in data:
-            video.norVid     = autostr(data['norVid'])
-            video.SetVideoScript('normal', video.norVid)
-        if 'oriVid' in data:
-            video.oriVid     = autostr(data['oriVid'])
-            video.SetVideoScript('original', video.oriVid)
-        if 'superVid' in data:
-            video.superVid   = autostr(data['superVid'])
-            video.SetVideoScript('super', video.superVid)
-        if 'relativeId' in data:
-            video.relativeId = autostr(data['relativeId'])
-            video.SetVideoScript('relative', video.relativeId)
-
-        if video.highVid or video.norVid or video.oriVid or video.superVid or video.relativeId:
-            db.SaveVideo(video)
 
 class SohuVideoMenu(kola.VideoMenuBase):
     def __init__(self, name):
@@ -634,10 +501,7 @@ class SohuEngine(VideoEngine):
         self.parserList = {
             ParserAlbumList(),
             ParserAlbumFullInfo(),
-            ParserAlbumTotalPlayNum(),
             ParserAlbumMvInfo(),
-            ParserAlbumMvInfoMini(),
             ParserAlbumScore(),
             ParserAlbumHotList(),
-            ParserAlbumPlayInfo(),
         }

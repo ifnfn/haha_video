@@ -53,7 +53,7 @@ bool StringList::Find(string v)
 string StringList::ToString(int offset, int len, string s, string e, string split)
 {
 	string ret;
-	int count = size();
+	size_t count = size();
 
 	if (offset + len > count)
 		count = count - offset;
@@ -74,7 +74,7 @@ string StringList::ToString(int offset, int len, string s, string e, string spli
 
 string StringList::ToString(string s, string e, string split)
 {
-	return ToString(0, size(), s, e, split);
+	return ToString(0, (int)size(), s, e, split);
 }
 
 void StringList::Split(const string items, string sp)
@@ -108,7 +108,7 @@ bool StringList::LoadFromFile(string fileName)
 		while (!feof(fp)) {
 			char *p = fgets(buffer, 1023, fp);
 			if (p) {
-				int len = strlen(p);
+				size_t len = strlen(p);
 				if (p[len - 1] == '\n')
 					p[len - 1] = 0;
 				push_back(p);

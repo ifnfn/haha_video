@@ -3,9 +3,6 @@
 
 #include "http.hpp"
 
-static char *curlGetCurlURL (const char *, struct curl_buffer *, CURL *);
-static char *curlPostCurlURL(const char *, struct curl_buffer *, CURL *, const char *);
-
 inline static unsigned char toHex(unsigned char x)
 {
 	return x > 9 ? x + 55 : x + 48;
@@ -295,7 +292,7 @@ void MultiHttp::Run()
 	/*  See how the transfers went */
 	while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
 		if (msg->msg == CURLMSG_DONE) {
-			int idx, found = 0;
+            int found = 0;
 
 			/*  Find out which handle this message is about */
 			for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {

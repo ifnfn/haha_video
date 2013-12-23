@@ -22,6 +22,12 @@ class KolatvServer:
         self.MenuList['电影']   = element.MovieMenu('电影')
         self.MenuList['电视剧'] = element.TVMenu('电视剧')
 
+    def GetVideoSource(self):
+        return {
+            'source' : ['乐视', '搜狐'],
+            'resolution' : ['原画质', '超清', '高清', '标清', '默认']
+        }
+
     def GetMenuJsonInfoById(self, cid_list):
         ret = []
         count = len(cid_list)

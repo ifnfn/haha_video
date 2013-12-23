@@ -3,7 +3,6 @@
 
 import sys
 import traceback
-import re
 
 import pymongo
 import redis
@@ -84,22 +83,21 @@ class VideoBase:
         if self.vid             : ret['vid'] = self.vid
         if self.name            : ret['name'] = self.name
 
-        if self.order != -1     : ret['order'] = self.order
-        if self.playLength      : ret['playLength'] = self.playLength
-        if self.showName        : ret['showName'] = self.showName
-        if self.publishTime     : ret['publishTime'] = self.publishTime
-        if self.videoDesc       : ret['videoDesc'] = self.videoDesc
-        if self.isHigh != -1    : ret['isHigh'] = self.isHigh
+        if self.order != -1     : ret['order']          = self.order
+        if self.playLength      : ret['playLength']     = self.playLength
+        if self.showName        : ret['showName']       = self.showName
+        if self.publishTime     : ret['publishTime']    = self.publishTime
+        if self.videoDesc       : ret['videoDesc']      = self.videoDesc
+        if self.isHigh != -1    : ret['isHigh']         = self.isHigh
         if self.videoPlayCount  : ret['videoPlayCount'] = self.videoPlayCount
-        if self.videoScore      : ret['videoScore'] = self.videoScore
-        if self.largePicUrl     : ret['largePicUrl'] = self.largePicUrl
-        if self.smallPicUrl     : ret['smallPicUrl'] = self.smallPicUrl
+        if self.videoScore      : ret['videoScore']     = self.videoScore
+        if self.largePicUrl     : ret['largePicUrl']    = self.largePicUrl
+        if self.smallPicUrl     : ret['smallPicUrl']    = self.smallPicUrl
 
-        if self.resolution      : ret['resolution'] = self.resolution
-
-        if self.priority        : ret['priority'] = self.priority
-        if self.private         : ret['private']  = self.private
-        if self.info            : ret['info']     = self.info
+        if self.resolution      : ret['resolution']     = self.resolution
+        if self.priority        : ret['priority']       = self.priority
+        if self.private         : ret['private']        = self.private
+        if self.info            : ret['info']           = self.info
 
         return ret
 
@@ -169,7 +167,10 @@ class AlbumBase:
 
         self.videos          = []
         self.private         = {}
-        self.engineList      = {}
+        self.engineList = []
+
+        if self.engineName:
+            self.engineList.append(self.engineName)
 
     def NewVideo(self, js=None):
         v = self.videoClass(js)
@@ -180,8 +181,11 @@ class AlbumBase:
 
     def SaveToJson(self):
         ret = {}
-        if self.cid             : ret['cid']             = self.cid
+        if self.engineName and self.engineName not in self.engineList:
+            self.engineList.append(self.engineName)
         if self.engineList      : ret['engineList']      = self.engineList
+
+        if self.cid             : ret['cid']             = self.cid
 
         if self.albumName:
             ret['albumName'] = self.albumName
@@ -233,6 +237,8 @@ class AlbumBase:
         if 'cid' in json            : self.cid             = json['cid']
         if 'albumName' in json      : self.albumName       = json['albumName']
         if 'engineList' in json     : self.engineList      = json['engineList']
+        if self.engineName and self.engineName not in self.engineList:
+            self.engineList.append(self.engineName)
 
         if 'vid' in json            : self.vid             = autostr(json['vid'])
 
@@ -350,10 +356,12 @@ class DB:
     videos_table.create_index([('pid', pymongo.ASCENDING), ('vid', pymongo.ASCENDING)])
 
     album_table.drop_indexes()
-    album_table.create_index([('albumName', pymongo.ASCENDING)])
+    album_table.create_index([('engineList'  , pymongo.ASCENDING)])
+    album_table.create_index([('albumName'   , pymongo.ASCENDING)])
     album_table.create_index([('albumPageUrl', pymongo.ASCENDING)])
-    album_table.create_index([('vid', pymongo.ASCENDING)])
-    album_table.create_index([('cid', pymongo.ASCENDING)])
+    album_table.create_index([('vid'         , pymongo.ASCENDING)])
+    album_table.create_index([('cid'         , pymongo.ASCENDING)])
+
 
     def __init__(self):
         self.fieldMapping = {
@@ -374,6 +382,16 @@ class DB:
             'Name'       : 'NamePy',
             'vids'      : 'vid'
         }
+        self.albumNameAlias = {}   # 别名
+        self.blackAlbumName = []   # 黑名单
+
+    def GetAlbumName(self, name):
+        if name in self.albumNameAlias:
+            name = self.albumNameAlias[name]
+
+        if name in self.blackAlbumName:
+            return ''
+        return name
 
     def SetVideoCache(self, key, value):
         self.video_cachedb.set(key, value)
@@ -418,7 +436,7 @@ class DB:
         if key:
             self.album_table.remove(key)
 
-    def SaveAlbum(self, album, key={}, upsert=True):
+    def _SaveAlbum(self, album, key={}, upsert=True):
         key, js = self._GetKeyAndJson(album, key)
 
         if key:
@@ -624,6 +642,7 @@ class DB:
 
     def _save_update_append(self, sets, album, key={}, upsert=True):
         if album:
-            self.SaveAlbum(album, key, upsert)
-            sets.append(album)
+            self._SaveAlbum(album, key, upsert)
+            if sets:
+                sets.append(album)
 

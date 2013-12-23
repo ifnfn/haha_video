@@ -33,5 +33,5 @@ function gettime()
 end
 
 function kola_main(url)
-	return get_ip()
+	return getip()
 end

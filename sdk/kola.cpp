@@ -57,7 +57,8 @@ static string chipKey(void)
 	return "000001";
 }
 
-static string MD5STR(const char *data)
+#if 0
+string MD5STR(const char *data)
 {
 	MD5_CTX ctx;
 	unsigned char md[16];
@@ -73,6 +74,7 @@ static string MD5STR(const char *data)
 
 	return string(buf);
 }
+#endif
 
 #if 1
 static char *GetIP(const char *hostp)
@@ -142,7 +144,7 @@ static char *ReadStringFile(FILE *fp)
 
 	if (fp) {
 		long size = 0;
-		int len;
+		size_t len;
 		while (1) {
 			s = (char *)realloc(s, size + LEN);
 			len = fread(s + size, 1, LEN, fp);
@@ -171,9 +173,9 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 		if(deflateInit2(&c_stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
 					-MAX_WBITS, 8, Z_DEFAULT_STRATEGY) != Z_OK) return -1;
 		c_stream.next_in  = data;
-		c_stream.avail_in  = ndata;
+		c_stream.avail_in  = (uInt)ndata;
 		c_stream.next_out = zdata;
-		c_stream.avail_out  = *nzdata;
+		c_stream.avail_out  = (uInt)*nzdata;
 
 		while (c_stream.avail_in != 0 && c_stream.total_out < *nzdata) {
 			if (deflate(&c_stream, Z_NO_FLUSH) != Z_OK)
@@ -200,7 +202,7 @@ out:
 	return ret;
 }
 
-static string gzip_base64(const char *data, int ndata)
+static string gzip_base64(const char *data, size_t ndata)
 {
 	string ret;
 	Byte *zdata = (Byte*)malloc(ndata * 2 + 4);
@@ -212,7 +214,7 @@ static string gzip_base64(const char *data, int ndata)
 		data = (const char*)zdata;
 		ndata = nzdata + 2;
 	}
-	int out_size = BASE64_SIZE(ndata) + 1;
+	size_t out_size = BASE64_SIZE(ndata) + 1;
 
 	char *out_buffer = (char *)calloc(1, out_size);
 	base64encode((unsigned char *)data, ndata, (unsigned char*)out_buffer, out_size);
@@ -485,7 +487,7 @@ bool KolaClient::Login(bool quick)
 		else
 			havecmd = false;
 
-		nextLoginSec = json_geti(js, "next", nextLoginSec);
+		nextLoginSec = (int)json_geti(js, "next", nextLoginSec);
 		json_delete(js);
 	}
 
@@ -546,6 +548,22 @@ KolaMenu* KolaClient::GetMenuByCid(int cid)
 	}
 
 	return NULL;
+}
+
+KolaInfo& KolaClient::GetInfo() {
+	if (info.update == false) {
+		json_t *js = json_loadurl("/video/getinfo");
+
+		if (js) {
+			json_get_stringlist(js, "source", &info.VideoSource);
+			json_get_stringlist(js, "resolution", &info.Resolution);
+
+			info.update = true;
+			json_delete(js);
+		}
+	}
+
+	return info;
 }
 
 KolaMenu* KolaClient::GetMenuByName(const char *menuName)

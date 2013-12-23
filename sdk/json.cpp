@@ -51,7 +51,7 @@ const bool json_gets(json_t *js, const char *key, string &ret)
 		ret = json_string_value(p);
 	else if (json_is_integer(p)) {
 		char buf[32];
-		sprintf(buf, "%d", json_integer_value(p));
+		sprintf(buf, "%lld", json_integer_value(p));
 
 		ret.assign(buf);
 	}

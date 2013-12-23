@@ -76,7 +76,7 @@ bool KolaMenu::SetQuickFilter(string name)
 	return ret;
 }
 
-int KolaMenu::GetAlbumCount()
+size_t KolaMenu::GetAlbumCount()
 {
 	AlbumPage page;
 	LowGetPage(&page, 0, 0);
@@ -130,7 +130,7 @@ int KolaMenu::ParserJson(AlbumPage *page, string &text)
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 	if (js) {
 		albumCount = json_geti(js, "total", 0);
-		page->pageId = json_geti(js, "page", page->pageId);
+		page->pageId = (int)json_geti(js, "page", page->pageId);
 		json_t *results = json_geto(js, "result");
 
 		if (json_is_array(results)) {
@@ -230,9 +230,9 @@ void KolaMenu::CleanPage()
 	next->Clear();
 }
 
-KolaAlbum* KolaMenu::GetAlbum(int position)
+KolaAlbum* KolaMenu::GetAlbum(size_t position)
 {
-	int page = position / PageSize;
+	int page = (int)(position / PageSize);
 	if (cur->pageId != page) {
 		if (cur->pageId + 1 == page) {  // 下一页
 			AlbumPage *tmp = prev;
@@ -312,7 +312,7 @@ void CustomMenu::AlbumRemove(string vid) {
 	CleanPage();
 }
 
-int CustomMenu::GetAlbumCount() {
+size_t CustomMenu::GetAlbumCount() {
 	albumCount = albumIdList.size();
 	return albumCount;
 }
@@ -328,7 +328,7 @@ bool CustomMenu::SaveToFile(string otherFile)
 int CustomMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 {
 	string text;
-	int pos = pageId * pageSize;
+	//int pos = pageId * pageSize;
 
 	//text = albumIdList.ToString(pos, pageSize);
 	text = albumIdList.ToString();

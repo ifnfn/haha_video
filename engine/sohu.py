@@ -24,16 +24,29 @@ class SohuVideo(kola.VideoBase):
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
 
-    def SetVideoScript(self, name, vid, func_name='kola_main'):
-        url = {
-            'script'     : 'sohu',
-            'function'   : 'get_video_url',
-            'parameters' : [autostr(vid), autostr(self.cid)]
-        }
-        if func_name and func_name != 'kola_main':
-                url['function'] = func_name
+class SohuPrivate:
+    def __init__(self):
+        self.name =  '搜狐'
+        self.playlistid = ''
+        self.vid = ''
+        self.pid = ''
+        self.videoListUrl = {}
 
-        self.SetVideoUrl(name, url)
+    def Json(self):
+        json = {'name' : self.name}
+        if self.playlistid   : json['playlistid'] = self.playlistid
+        if self.vid          : json['vid'] = self.vid
+        if self.pid          : json['vid'] = self.pid
+        if self.videoListUrl : json['videoListUrl'] = self.videoListUrl
+
+        return json
+
+    def Load(self, js):
+        if 'name' in js         : self.name         = js['name']
+        if 'playlistid' in js   : self.playlistid   = js['playlistid']
+        if 'pid' in js          : self.pid          = js['pid']
+        if 'vid' in js          : self.vid          = js['vid']
+        if 'videoListUrl' in js : self.videoListUrl = js['videoListUrl']
 
 class SohuAlbum(kola.AlbumBase):
     def __init__(self):
@@ -41,17 +54,13 @@ class SohuAlbum(kola.AlbumBase):
         super().__init__()
         self.albumPageUrl = ''
 
-        self.sohu = {
-            'name' : '搜狐',
-            'vid' : '',
-            'playlistid' : ''
-        }
+        self.sohu = SohuPrivate()
 
         self.videoClass = SohuVideo
 
     def SaveToJson(self):
         if self.sohu:
-            self.private[self.engineName] = self.sohu
+            self.private[self.engineName] = self.sohu.Json()
         ret = super().SaveToJson()
 
         return ret
@@ -59,18 +68,18 @@ class SohuAlbum(kola.AlbumBase):
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
         if self.engineName in self.private:
-            self.sohu = self.private[self.engineName]
+            self.sohu.Load(self.private[self.engineName])
 
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
-        if self.sohu['playlistid']:
+        if self.sohu.playlistid:
             ParserAlbumFullInfo(self).AddCommand()
-        #if self.sohu['vid']:
+        #if self.sohu.vid:
         #    ParserAlbumMvInfo(self, self.albumName).AddCommand()
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):
-        if self.sohu['playlistid']:
+        if self.sohu.playlistid:
             ParserAlbumScore(self).Execute()
 
 class SohuDB(DB, Singleton):
@@ -101,15 +110,15 @@ class SohuDB(DB, Singleton):
             album.LoadFromJson(json)
         elif auto:
             album = SohuAlbum()
-            if playlistid   : album.sohu['playlistid'] = playlistid
-            if vid          : album.sohu['vid']        = vid
+            if playlistid   : album.sohu.playlistid = playlistid
+            if vid          : album.sohu.vid        = vid
             if albumName    : album.mName = albumName
 
         return album
 
     def SaveAlbum(self, album, upsert=True):
-        if album.sohu['vid'] and album.albumName and album.sohu['playlistid']:
-            self._save_update_append(None, album, key={'private.SohuEngine.vid' : album.sohu['vid']}, upsert=upsert)
+        if album.sohu.vid and album.albumName and album.sohu.playlistid:
+            self._save_update_append(None, album, key={'private.SohuEngine.vid' : album.sohu.vid}, upsert=upsert)
 
 # 搜狐节目列表
 class ParserAlbumList(KolaParser):
@@ -157,16 +166,16 @@ class ParserAlbumList(KolaParser):
                     album.LoadFromJson(album_js)
                 #album = db.GetAlbumFormDB(playlistid=playlistid, albumName=name, vid=vid, auto=True)
 
-                album.albumName     = name
-                album.albumPageUrl  = albumUrl
-                album.cid           = js['cid']
-                album.vid           = utils.genAlbumId(album.albumName)
-                album.sohu['vid']        = vid
-                album.sohu['playlistid'] = playlistid
+                album.albumName       = name
+                album.albumPageUrl    = albumUrl
+                album.cid             = js['cid']
+                album.vid             = utils.genAlbumId(album.albumName)
+                album.sohu.vid        = vid
+                album.sohu.playlistid = playlistid
             else:
                 continue
 
-            #if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu['vid'])):
+            #if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu.vid)):
             #    needNextPage = True
 
             db.SaveAlbum(album)
@@ -186,7 +195,7 @@ class ParserAlbumFullInfo(KolaParser):
         super().__init__()
         if album:
             self.cmd['name']    = 'engine_parser'
-            self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (album.sohu['playlistid'], album.sohu['vid'])
+            self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (album.sohu.playlistid, album.sohu.vid)
 
     # 解析节目的完全信息
     # http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241
@@ -204,10 +213,10 @@ class ParserAlbumFullInfo(KolaParser):
             return
 
         #if 'albumName' in json      : album.albumName            = autoint(json['albumName'])
-        if 'cid' in json            : album.cid            = autoint(json['cid'])
-        if 'playlistid' in json     : album.sohu['playlistid'] = playlistid
-        if 'pid' in json            : album.sohu['pid']        = pid
-        if 'vid' in json            : album.sohu['vid']        = vid
+        if 'cid' in json            : album.cid             = autoint(json['cid'])
+        if 'playlistid' in json     : album.sohu.playlistid = playlistid
+        if 'pid' in json            : album.sohu.pid        = pid
+        if 'vid' in json            : album.sohu.vid        = vid
 
         if 'isHigh' in json         : album.isHigh         = json['isHigh']
         if 'area' in json           : album.area           = json['area']
@@ -230,10 +239,10 @@ class ParserAlbumFullInfo(KolaParser):
         if 'mainActors' in json     : album.mainActors     = json['mainActors']
         if 'directors' in json      : album.directors      = json['directors']
 
-        album.videoListUrl = {
+        album.sohu.videoListUrl = {
             'script': 'sohu',
             'function' : 'get_videolist',
-            'parameters' : [album.vid, album.sohu['playlistid'], album.sohu['vid']]
+            'parameters' : [album.vid, album.sohu.playlistid, album.sohu.vid]
         }
 
         db.SaveAlbum(album, False)
@@ -246,7 +255,7 @@ class ParserAlbumMvInfo(KolaParser):
         if album and albumName:
             self.cmd['name']      = 'engine_parser'
             self.cmd['regular']   = ['var video_album_videos_result=(\{.*.\})']
-            self.cmd['source']    = 'http://search.vrs.sohu.com/mv_i%s.json' % album.sohu['vid']
+            self.cmd['source']    = 'http://search.vrs.sohu.com/mv_i%s.json' % album.sohu.vid
             self.cmd['albumName'] = albumName
 
     # 通过 vid 获得节目更多的信息
@@ -285,7 +294,7 @@ class ParserAlbumScore(KolaParser):
         super().__init__()
         if album:
             self.cmd['name']   = 'engine_parser'
-            self.cmd['source'] = 'http://index.tv.sohu.com/index/switch-aid/%s' % album.sohu['playlistid']
+            self.cmd['source'] = 'http://index.tv.sohu.com/index/switch-aid/%s' % album.sohu.playlistid
             self.cmd['json']   =  [
                     'attachment.album',
                     'attachment.index'

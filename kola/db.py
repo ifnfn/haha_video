@@ -224,11 +224,12 @@ class AlbumBase:
         if self.monthlyPlayNum  : ret['monthlyPlayNum']  = self.monthlyPlayNum   # 每月播放次数
         if self.totalPlayNum    : ret['totalPlayNum']    = self.totalPlayNum     # 总播放资料
         if self.dailyIndexScore : ret['dailyIndexScore'] = self.dailyIndexScore  # 每日指数
-
-        if self.videoListUrl    : ret['videoListUrl']    = self.videoListUrl  # 每日指数
-
         if self.sources         : ret['sources']         = self.sources
-        if self.private         : ret['private']         = self.private
+
+
+        #if self.videoListUrl: ret['videoListUrl']    = self.videoListUrl  # 每日指数
+
+        ret['private'] = self.private
 
         return ret
 
@@ -275,7 +276,7 @@ class AlbumBase:
         if 'totalPlayNum' in json   : self.totalPlayNum    = json['totalPlayNum']    # 总播放资料
         if 'dailyIndexScore' in json: self.dailyIndexScore = json['dailyIndexScore'] # 每日指数
 
-        if 'videoListUrl' in json   : self.videoListUrl    = json['videoListUrl']
+        #if 'videoListUrl' in json   : self.videoListUrl    = json['videoListUrl']
         if 'sources' in json        : self.sources         = json['sources']
         if 'private' in json        : self.private         = json['private']
 
@@ -520,9 +521,21 @@ class DB:
 
             if size:
                 cursor = cursor.skip(page * size).limit(size)
+
             if size or disablePage:
+                if 'engine' in arg:
+                    engine_name = arg['engine']
+                else:
+                    engine_name = ''
                 for x in cursor:
                     del x['_id']
+                    if engine_name in x['private']:
+                        x['videoListUrl'] = x['private'][engine_name]['videoListUrl']
+                    else:
+                        for _,v in list(x['private'].items()):
+                            if 'videoListUrl' in v:
+                                x['videoListUrl'] = v['videoListUrl']
+                                break
                     if not full:
                         if 'private' in x:
                             del x['private']

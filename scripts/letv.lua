@@ -1,5 +1,5 @@
 --  获取节目集列表
-function get_videolist(pid, pageNo, pageSize)
+function get_videolist(pid, vid, pageNo, pageSize)
 	local function get_album_set(vid)
 		local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
 		local text = kola.wget(url)
@@ -18,7 +18,7 @@ function get_videolist(pid, pageNo, pageSize)
 	local ret = {}
 
 	if tonumber(pageNo) == 0 and tonumber(pageSize) == 0 then
-		ret = get_album_set(pid)
+		ret = get_album_set(vid)
 		return cjson.encode(ret)
 	end
 

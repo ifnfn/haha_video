@@ -28,6 +28,9 @@ ADD_GX_LIBRARY(kolatv
 	json.cpp
 )
 
+SET(CMAKE_BUILD_TYPE "Debug")
+# SET(CMAKE_BUILD_TYPE "Release")
+
 ADD_DEFINITIONS(-DTEST=0 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wno-deprecated-declarations)
 
 ###############################################################################

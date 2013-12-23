@@ -80,19 +80,19 @@ function get_resolution(vid, cid)
 	ret['默认'] = get(vid, cid)
 	ret['默认'].default = 1
 
-	if js.highVid ~= nil then
+	if js.highVid ~= nil and js.highVid > 0 then
 		ret['高清'] = get(js.highVid, cid)
 	end
 
-	if js.norVid ~= nil then
+	if js.norVid ~= nil and js.norVid > 0 then
 		ret['标清'] = get(js.norVid, cid)
 	end
 
-	if js.oriVid ~= nil then
+	if js.oriVid ~= nil and js.oriVid > 0 then
 		ret['原画质'] = get(js.oriVid, cid)
 	end
 
-	if js.superVid ~= nil then
+	if js.superVid ~= nil and js.superVid > 0 then
 		ret['超清'] = get(js.superVid, cid)
 	end
 

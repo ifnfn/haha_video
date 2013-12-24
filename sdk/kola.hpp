@@ -241,11 +241,13 @@ class KolaFilter {
 	public:
 		KolaFilter() {}
 		~KolaFilter() {}
-		void KeyAdd(string key, string value);
-		void KeyRemove(string key);
 		string GetJsonStr(void);
 		FilterValue& operator[] (string key);
 		map<string, FilterValue> filterKey;
+	protected:
+		void KeyAdd(string key, string value);
+		void KeyRemove(string key);
+		friend class KolaMenu;
 };
 
 class KolaSort: public FilterValue {
@@ -258,9 +260,11 @@ class KolaSort: public FilterValue {
 
 			return ret;
 		}
+	protected:
 		void Set(string v, string s) { value = v, sort = s;}
 	private:
 		string sort;
+		friend class KolaMenu;
 };
 
 class KolaAlbum {
@@ -349,6 +353,8 @@ class KolaMenu {
 		string     name;
 		string     Language;
 		StringList quickFilters;
+		KolaFilter Filter;
+		KolaSort   Sort;
 
 		void   FilterAdd(string key, string value);
 		void   FilterRemove(string key);
@@ -357,7 +363,7 @@ class KolaMenu {
 		void   SetLanguage(string lang);
 		int    GetPage(AlbumPage &page, int pageNo = -1);
 		bool   SetQuickFilter(string);
-		void   SetPageSize(int size) {PageSize = size;}
+		void   SetPageSize(int size);
 		size_t GetPageSize() { return PageSize;}
 		int    SeekByAlbumId(string vid);
 		int    SeekByAlbumName(string name);
@@ -367,8 +373,6 @@ class KolaMenu {
 		virtual size_t GetAlbumCount();
 	protected:
 		KolaClient *client;
-		KolaFilter  Filter;
-		KolaSort    Sort;
 		int         PageSize;
 		int         PageId;
 		size_t      albumCount;

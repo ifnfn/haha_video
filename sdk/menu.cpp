@@ -169,6 +169,12 @@ void KolaMenu::SetSort(string v, string s)
 	CleanPage();
 }
 
+void KolaMenu::SetPageSize(int size)
+{
+	PageSize = size;
+	CleanPage();
+}
+
 string KolaMenu::GetPostData()
 {
 	int count = 0;

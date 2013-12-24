@@ -49,12 +49,11 @@ class LivetvVideo(VideoBase):
 
 class LivetvAlbum(AlbumBase):
     def __init__(self):
+        self.engineName = 'LivetvEngine'
         super().__init__()
         self.cid =  200
         self.albumPageUrl = ''
         self.videoClass = LivetvVideo
-        self.engineList = []
-        self.engineList.append('LivetvEngine')
 
     def SaveToJson(self):
         ret = super().SaveToJson()
@@ -81,13 +80,13 @@ class LivetvVideoMenu(LivetvMenu):
     def UpdateAlbumList(self):
         ParserLetvLivetv().Execute()
         ParserSohuLivetv().Execute()
-        ParserTextLivetv().Execute()
         ParserZJLivetv().Execute()
         ParserNBLivetv().Execute()
         ParserHangZhouLivetv().Execute()
         ParserUCLivetv().Execute()
         ParserWenZhouLivetv().Execute()
         #ParserJLntvLivetv().Execute()
+        #ParserTextLivetv().Execute()
 
 class LivetvParser(KolaParser):
     def __init__(self):

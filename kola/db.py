@@ -529,13 +529,15 @@ class DB:
                     engine_name = ''
                 for x in cursor:
                     del x['_id']
-                    if engine_name in x['private']:
-                        x['videoListUrl'] = x['private'][engine_name]['videoListUrl']
-                    else:
-                        for _,v in list(x['private'].items()):
-                            if 'videoListUrl' in v:
-                                x['videoListUrl'] = v['videoListUrl']
-                                break
+                    if 'private'in x:
+                        private = x['private']
+                        if engine_name in private and 'videoListUrl' in private[engine_name]:
+                            x['videoListUrl'] = private[engine_name]['videoListUrl']
+                        else:
+                            for _,v in list(private.items()):
+                                if 'videoListUrl' in v:
+                                    x['videoListUrl'] = v['videoListUrl']
+                                    break
                     if not full:
                         if 'private' in x:
                             del x['private']

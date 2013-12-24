@@ -35,7 +35,25 @@ void test_custommenu()
 	CustomMenu *menu = new CustomMenu("abc");
 
 	while(1) {
-#if 1
+		count = menu->GetAlbumCount();
+		printf("count=%ld\n", count);
+
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = menu->GetAlbum(i);
+			if (album == NULL)
+				continue;
+			size_t video_count = album->GetVideoCount();
+			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+			string player_url;
+            for (int j = 0; j < video_count; j++) {
+                KolaVideo *video = album->GetVideo(j);
+                if (video) {
+                    player_url = video->GetVideoUrl();
+                    printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+                }
+            }
+		}
+#if 0
 		menu->AlbumAdd("0c7ac1f004");
 		menu->AlbumAdd("11eec465ba");
 		menu->AlbumAdd("04a2547275");
@@ -110,18 +128,7 @@ void test_custommenu()
 			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 		}
 #endif
-		count = menu->GetAlbumCount();
-		printf("count=%ld\n", count);
-
-		for (int i=0; i < count; i++) {
-			KolaAlbum *album = menu->GetAlbum(i);
-			if (album == NULL)
-				continue;
-			size_t video_count = album->GetVideoCount();
-			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
-		}
-	}
-
+    }
 	delete menu;
 
 	printf("%s End!!!\n", __func__);
@@ -434,8 +441,8 @@ int main(int argc, char **argv)
 
 //	test_script();
 //	return 0;
-//	test_custommenu();
-//	return 0;
+	test_custommenu();
+	return 0;
 //	printf("Test LiveTV\n"); test_livetv();
 //	return 0;
 

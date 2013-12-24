@@ -651,7 +651,10 @@ time_t KolaClient::GetTime()
 
 string KolaClient::GetFullUrl(string url)
 {
-	return baseUrl + url;
+    if (!url.empty() && url.at(0) != '/')
+        return baseUrl + '/' + url;
+    else
+        return baseUrl + url;
 	//url = uri_join(home_url, url.c_str());
 	//url = uriJoin(home_url, url);
 }

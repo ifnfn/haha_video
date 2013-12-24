@@ -154,12 +154,12 @@ void test_livetv()
 //	m = kola[200];
 	if (m == NULL)
 		return;
-//	m->Filter.KeyAdd("类型", "CCTV");
+//	m->FilterAdd("类型", "CCTV");
 
 //	m->SetPageSize(3);
 //	m->GetPage(page);
-//	m->Filter.KeyAdd("PinYin", "zjw");
-	m->Sort.Set("Name", "1");
+//	m->FilterAdd("PinYin", "zjw");
+	m->SetSort("Name", "1");
 	size_t count = m->GetAlbumCount();
 	int pos = 0;
 #if 1
@@ -338,12 +338,12 @@ void test_video(const char *menuName)
 	foreach(m->quickFilters, s) {
 		cout << *s << endl;
 	}
-	//m->Filter.KeyAdd("类型", "爱情片");
-	//m->Filter.KeyAdd("产地", "香港,台湾");
+	//m->FilterAdd("类型", "爱情片");
+	//m->FilterAdd("产地", "香港,台湾");
 	m->SetQuickFilter("推荐电影");
 
-	//m->Sort.Set("周播放最多");
-	//m->Sort.Set("评分最高");
+	//m->SetSort("周播放最多");
+	//m->SetSort("评分最高");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(4);

@@ -271,9 +271,9 @@ class KolaAlbum {
 		string vid;
 		string albumName;
 		string albumDesc;
-		string area;            // 地区
-		string categories;      // 类型
-		string isHigh;          // 是否是高清
+		string area;                 // 地区
+		string categories;           // 类型
+		string isHigh;               // 是否是高清
 		int publishYear;             // 发布年份
 		int dailyPlayNum;            // 每日播放次数
 		int weeklyPlayNum;           // 每周播放次数
@@ -297,8 +297,8 @@ class KolaAlbum {
 		string playlistid;
 		vector<KolaVideo*> videos;
 
-		size_t totalSet;                // 总集数
-		size_t updateSet;               // 当前更新集
+		size_t totalSet;         // 总集数
+		size_t updateSet;        // 当前更新集
 		string videoPlayUrl;
 		string largePicUrl;      // 大图片网址
 		string smallPicUrl;      // 小图片网址
@@ -345,12 +345,14 @@ class KolaMenu {
 		KolaMenu(json_t *js);
 		virtual ~KolaMenu(void) {}
 
-		size_t cid;
-		string name;
-		StringList  quickFilters;
-		KolaFilter  Filter;
-		KolaSort    Sort;
-		string Language;
+		size_t     cid;
+		string     name;
+		string     Language;
+		StringList quickFilters;
+
+		void   FilterAdd(string key, string value);
+		void   FilterRemove(string key);
+		void   SetSort(string v, string s);
 
 		void   SetLanguage(string lang);
 		int    GetPage(AlbumPage &page, int pageNo = -1);
@@ -360,19 +362,24 @@ class KolaMenu {
 		int    SeekByAlbumId(string vid);
 		int    SeekByAlbumName(string name);
 		string GetQuickFilter() { return quickFilter; }
-		virtual size_t GetAlbumCount();
 		KolaAlbum* GetAlbum(size_t position);
+
+		virtual size_t GetAlbumCount();
 	protected:
 		KolaClient *client;
-		int PageSize;
-        int PageId;
-        size_t albumCount;
-		string quickFilter;
-		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
-		virtual int LowGetPage(AlbumPage *page, string key, string value, int pageSize);
+		KolaFilter  Filter;
+		KolaSort    Sort;
+		int         PageSize;
+		int         PageId;
+		size_t      albumCount;
+		string      quickFilter;
+
 		int ParserJson(AlbumPage *page, string &jsonstr);
 		string GetPostData();
 		void CleanPage();
+
+		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
+		virtual int LowGetPage(AlbumPage *page, string key, string value, int pageSize);
 	private:
 		AlbumPage page[3];
 		AlbumPage *prev, *cur, *next;

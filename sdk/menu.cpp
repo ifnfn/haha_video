@@ -70,8 +70,10 @@ KolaMenu::KolaMenu(json_t *js)
 bool KolaMenu::SetQuickFilter(string name)
 {
 	bool ret = quickFilters.Find(name) || name.empty();
-	if (ret)
+	if (ret) {
 		quickFilter = name;
+		CleanPage();
+	}
 
 	return ret;
 }
@@ -145,6 +147,26 @@ int KolaMenu::ParserJson(AlbumPage *page, string &text)
 	}
 
 	return cnt;
+}
+
+void KolaMenu::FilterAdd(string key, string value)
+{
+	Filter.KeyAdd(key, value);
+
+	CleanPage();
+}
+
+void KolaMenu::FilterRemove(string key)
+{
+	Filter.KeyRemove(key);
+
+	CleanPage();
+}
+
+void KolaMenu::SetSort(string v, string s)
+{
+	Sort.Set(v, s);
+	CleanPage();
 }
 
 string KolaMenu::GetPostData()

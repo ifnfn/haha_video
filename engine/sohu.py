@@ -164,7 +164,6 @@ class ParserAlbumList(KolaParser):
                 album_js = DB().FindAlbumJson(albumName=name)
                 if album_js:
                     album.LoadFromJson(album_js)
-                #album = db.GetAlbumFormDB(playlistid=playlistid, albumName=name, vid=vid, auto=True)
 
                 album.albumName       = name
                 album.albumPageUrl    = albumUrl

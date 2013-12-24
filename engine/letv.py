@@ -171,30 +171,30 @@ class ParserAlbumList(KolaParser):
                     album.letv.vid = vids[0]
                     album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(vids[0])
 
-                album.largePicUrl      = a['poster20']                               # 大图 post20 最大的
-                album.smallPicUrl      = a['postS3']                                 # 小图 // postS1 小中大的，postS3 小中最小的
-                album.largeHorPicUrl   = a['poster12']                               # 横大图
-                album.smallHorPicUrl   = a['poster11']                               # 横小图
-                album.largeVerPicUrl   = a['postS1']                                 # 竖大图
-                album.smallVerPicUrl   = a['postS3']                                 # 竖小图
+                album.largePicUrl      = a['poster20']                # 大图 post20 最大的
+                album.smallPicUrl      = a['postS3']                  # 小图 // postS1 小中大的，postS3 小中最小的
+                album.largeHorPicUrl   = a['poster12']                # 横大图
+                album.smallHorPicUrl   = a['poster11']                # 横小图
+                album.largeVerPicUrl   = a['poster20']                # 竖大图
+                album.smallVerPicUrl   = a['postS1']                  # 竖小图
 
-                album.playLength       = autoint(a['duration']) * 60                 # 时长
-                album.updateTime       = TimeStr(a['mtime'])                         # 更新时间
-                album.albumDesc        = a['description']                            # 简介
-                album.videoScore       = a['rating']                                 #
+                album.playLength       = autoint(a['duration']) * 60  # 时长
+                album.updateTime       = TimeStr(a['mtime'])          # 更新时间
+                album.albumDesc        = a['description']             # 简介
+                album.videoScore       = a['rating']                  # 推荐指数
 
                 if 'episodes' in a:
-                    album.totalSet = autoint(a['episodes'])                          # 总集数
+                    album.totalSet = autoint(a['episodes'])           # 总集数
                 if 'nowEpisodes' in a:
-                    album.updateSet = autoint(a['nowEpisodes'])                      # 当前更新集
-                album.dailyPlayNum     = a['dayCount']                               # 每日播放次数
-                album.weeklyPlayNum    = a['weekCount']                              # 每周播放次数
-                album.monthlyPlayNum   = a['monthCount']                             # 每月播放次数
-                album.totalPlayNum     = a['playCount']                              # 总播放次数
-                album.dailyIndexScore  = a['rating']                                 # 每日指数
+                    album.updateSet = autoint(a['nowEpisodes'])       # 当前更新集
+                album.dailyPlayNum     = a['dayCount']                # 每日播放次数
+                album.weeklyPlayNum    = a['weekCount']               # 每周播放次数
+                album.monthlyPlayNum   = a['monthCount']              # 每月播放次数
+                album.totalPlayNum     = a['playCount']               # 总播放次数
+                album.dailyIndexScore  = a['rating']                  # 每日指数
 
-                album.mainActors       = a['starring'].split(',')                    # 主演
-                album.directors        = a['directory'].split(',')                   # 导演
+                album.mainActors       = a['starring'].split(',')     # 主演
+                album.directors        = a['directory'].split(',')    # 导演
 
                 if 'aid' in a:
                     album.letv.playlistid = a['aid']

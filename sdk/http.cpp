@@ -1,5 +1,6 @@
 #include <string.h>
 #include <syslog.h>
+#include <ctype.h>
 
 #include "http.hpp"
 

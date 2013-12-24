@@ -161,8 +161,7 @@ class ParserAlbumList(KolaParser):
                 album.enAlbumName      = ''                                          # 英文名称
                 album.area             = a['areaName']                               # 地区
                 album.categories       = a['subCategoryName'].split(',')             # 类型
-                album.publishYear      = TimeStr(a['ctime'])                         #
-                album.isHigh           = 0                                           # 是否是高清
+                album.publishYear      = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
 
                 vids = a['vids']
                 if vids:
@@ -180,8 +179,6 @@ class ParserAlbumList(KolaParser):
                 album.smallVerPicUrl   = a['postS3']                                 # 竖小图
 
                 album.playLength       = autoint(a['duration']) * 60                 # 时长
-                album.publishTime     = TimeStr(a['ctime']) #
-                #album.publishTime      = TimeStr(a['releaseDate'])                   #
                 album.updateTime       = TimeStr(a['mtime'])                         # 更新时间
                 album.albumDesc        = a['description']                            # 简介
                 album.videoScore       = a['rating']                                 #

@@ -57,10 +57,18 @@ if __name__ == "__main__":
     #print(len(js['result']))
 
 
-    # regular = [ '(<div id="pplist">[\s\S]*.?)<div class="ddes">' ]
-    # url = 'http://www.wolidou.com/tvc/weishi/204.html'
+    # haha = KolaClient()
+    # regular = ['(data-player-videoid.*|data-player-tvid.*)']
+    # url = 'http://www.iqiyi.com/dianying/20120815/16cf2101802c2a81.html'
     # text = haha.GetCacheUrl(url)
-    # text = text.decode("GBK")
+    # text = text.decode()
+    # x = haha.RegularMatch(regular, text)
+    # print(x)
+    # haha = KolaClient()
+    # regular = [ 'class="imgBg1 pic_list" (href=".*")' ]
+    # url = 'http://list.iqiyi.com/www/1/-6---------0--2-2-1-1---.html'
+    # text = haha.GetCacheUrl(url)
+    # text = text.decode()
     # x = haha.RegularMatch(regular, text)
     # print(x)
 

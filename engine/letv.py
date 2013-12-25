@@ -120,7 +120,6 @@ class LetvDB(DB, Singleton):
 class ParserPlayCount(KolaParser):
     def __init__(self):
         super().__init__()
-        self.cmd['name'] = 'engine_parser'
         self.cmd['source'] = 'http://stat.letv.com/vplay/queryMmsTotalPCount?mid=3574083&pid=92280&platform=101&cid=2&vid=2209753'
 
 # 节目列表
@@ -128,7 +127,6 @@ class ParserAlbumList(KolaParser):
     def __init__(self, url=None, cid=0):
         super().__init__()
         if url and cid:
-            self.cmd['name']    = 'engine_parser'
             self.cmd['source']  = url
             self.cmd['cid']     = cid
 
@@ -150,10 +148,10 @@ class ParserAlbumList(KolaParser):
             if a['aid'] == '86913':
                 pass
 
-            album.albumName       = db.GetAlbumName(a['name'])
-            if not album.albumName:
-                continue
             try:
+                album.albumName       = db.GetAlbumName(a['name'])
+                if not album.albumName:
+                    continue
                 album.vid = utils.genAlbumId(album.albumName)
                 album.cid = js['cid']
 
@@ -176,7 +174,7 @@ class ParserAlbumList(KolaParser):
                 album.largeHorPicUrl   = a['poster12']                # 横大图
                 album.smallHorPicUrl   = a['poster11']                # 横小图
                 album.largeVerPicUrl   = a['poster20']                # 竖大图
-                album.smallVerPicUrl   = a['postS1']                  # 竖小图
+                album.smallVerPicUrl   = a['postS2']                  # 竖小图
 
                 album.playLength       = autoint(a['duration']) * 60  # 时长
                 album.updateTime       = TimeStr(a['mtime'])          # 更新时间

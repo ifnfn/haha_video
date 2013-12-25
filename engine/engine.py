@@ -40,7 +40,7 @@ class EngineCommands(KolaCommand):
             return url
 
     def AddCommand(self, cmd):
-        if ('source' in cmd or 'text' in cmd) and 'name' in cmd:
+        if 'source' in cmd or 'text' in cmd:
             if 'source' in cmd:
                 cmd['source'] = self.GetUrl(cmd['source'])
             if self.pipe == None:

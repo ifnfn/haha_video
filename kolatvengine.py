@@ -23,9 +23,10 @@ class KolaEngine:
         self.MenuList = []
         self.UpdateAlbumFlag = False
 
-        self.AddEngine(engine.LetvEngine)
-        self.AddEngine(engine.SohuEngine)
-        self.AddEngine(engine.LiveEngine)
+        #self.AddEngine(engine.LetvEngine)
+        #self.AddEngine(engine.SohuEngine)
+        self.AddEngine(engine.QiyiEngine)
+        #self.AddEngine(engine.LiveEngine)
         #self.AddEngine(engine.WolidouEngine)
 
     def AddEngine(self, egClass):

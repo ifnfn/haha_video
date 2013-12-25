@@ -183,7 +183,7 @@ class KolaVideo {
 		int    fps;
 		size_t totalBytes;
 
-		int         cid;
+		int    cid;
 		string pid;
 		string vid;
 		string name;

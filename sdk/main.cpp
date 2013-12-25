@@ -441,8 +441,8 @@ int main(int argc, char **argv)
 
 //	test_script();
 //	return 0;
-	test_custommenu();
-	return 0;
+//	test_custommenu();
+//	return 0;
 //	printf("Test LiveTV\n"); test_livetv();
 //	return 0;
 

@@ -125,7 +125,6 @@ class ParserAlbumList(KolaParser):
     def __init__(self, url=None, cid=0):
         super().__init__()
         if url:
-            self.cmd['name']    = 'engine_parser'
             self.cmd['regular'] = ['(<li class="clear">|<p class="tit tit-p.*|<em class="pay"></em>|\t</li>)']
             self.cmd['source']  = url
             self.cmd['cid']     = cid
@@ -166,9 +165,9 @@ class ParserAlbumList(KolaParser):
                     album.LoadFromJson(album_js)
 
                 album.albumName       = name
+                album.vid             = utils.genAlbumId(album.albumName)
                 album.albumPageUrl    = albumUrl
                 album.cid             = js['cid']
-                album.vid             = utils.genAlbumId(album.albumName)
                 album.sohu.vid        = vid
                 album.sohu.playlistid = playlistid
             else:
@@ -193,7 +192,6 @@ class ParserAlbumFullInfo(KolaParser):
     def __init__(self, album=None):
         super().__init__()
         if album:
-            self.cmd['name']    = 'engine_parser'
             self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (album.sohu.playlistid, album.sohu.vid)
 
     # 解析节目的完全信息
@@ -252,7 +250,6 @@ class ParserAlbumMvInfo(KolaParser):
         super().__init__()
 
         if album and albumName:
-            self.cmd['name']      = 'engine_parser'
             self.cmd['regular']   = ['var video_album_videos_result=(\{.*.\})']
             self.cmd['source']    = 'http://search.vrs.sohu.com/mv_i%s.json' % album.sohu.vid
             self.cmd['albumName'] = albumName
@@ -292,7 +289,6 @@ class ParserAlbumScore(KolaParser):
     def __init__(self, album=None):
         super().__init__()
         if album:
-            self.cmd['name']   = 'engine_parser'
             self.cmd['source'] = 'http://index.tv.sohu.com/index/switch-aid/%s' % album.sohu.playlistid
             self.cmd['json']   =  [
                     'attachment.album',
@@ -335,7 +331,6 @@ class ParserAlbumHotList(KolaParser):
     def __init__(self, url=None):
         super().__init__()
         if url:
-            self.cmd['name']   = 'engine_parser'
             self.cmd['source'] = url
 
     def CmdParser(self, js):

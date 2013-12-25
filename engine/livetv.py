@@ -112,7 +112,6 @@ class LivetvParser(KolaParser):
 class ParserLetvLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        self.cmd['name']    = 'live_engine_parser'
         #self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
         self.cmd['source']  = 'http://www.leshizhibo.com/'
         self.cmd['regular'] = ['<p class="channelimg">(.*)</p>']
@@ -167,7 +166,6 @@ class ParserLetvLivetv(LivetvParser):
 class ParserSohuLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        self.cmd['name']   = 'live_engine_parser'
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 
     def CmdParser(self, js):
@@ -209,7 +207,6 @@ class ParserSohuLivetv(LivetvParser):
 class ParserJLntvLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        self.cmd['name']    = 'live_engine_parser'
         self.cmd['source']  = 'http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6'
         self.cmd['regular'] = ['(<li id="T_Menu_.*</a></li>)']
 
@@ -252,7 +249,6 @@ class ParserJLntvLivetv(LivetvParser):
 class ParserHangZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        self.cmd['name']    = 'live_engine_parser'
         #self.cmd['source'] = 'http://www.hoolo.tv/'
         #self.cmd['text'] = {
         #        'script' : 'hztvchannels',
@@ -316,7 +312,6 @@ class ParserHangZhouLivetv(LivetvParser):
 class ParserWenZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        self.cmd['name']    = 'live_engine_parser'
         self.cmd['source'] = 'http://v.dhtv.cn/tv/'
         self.cmd['regular'] = ['(http://v.dhtv.cn/tv/\?channal=.*</a></li>)']
         self.Alias = {}
@@ -358,7 +353,6 @@ class ParserTVIELivetv(LivetvParser):
     def __init__(self, url):
         super().__init__()
         self.base_url = url
-        self.cmd['name']    = 'live_engine_parser'
         self.cmd['source'] = 'http://' + self.base_url + '/api/getChannels'
         self.area = ''
 
@@ -456,7 +450,6 @@ class ParserUCLivetv(ParserTVIELivetv):
 class ParserTextLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        self.cmd['name']    = 'live_engine_parser'
         self.cmd['source'] = 'http://files.cloudtv.bz/media/20130927.txt'
 
     def CmdParser(self, js):

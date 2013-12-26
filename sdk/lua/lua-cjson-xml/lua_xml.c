@@ -33,6 +33,7 @@ THE SOFTWARE.
 # define _EXPORT
 #endif
 
+#include <luaconf.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
@@ -281,7 +282,7 @@ int Xml_eval(lua_State *L) {
 	int firstStatement = 1;
 	while((token=Tokenizer_next(tok))!=0) if(token[0]==OPN) { // new tag found
 		if(lua_gettop(L)) {
-			int newIndex=lua_objlen(L,-1)+1;
+			int newIndex=lua_rawlen(L,-1)+1;
 			lua_pushnumber(L,newIndex);
 			lua_newtable(L);
 			lua_settable(L, -3);
@@ -335,7 +336,7 @@ int Xml_eval(lua_State *L) {
 		else break;
 	}
 	else { // read elements
-		lua_pushnumber(L,lua_objlen(L,-1)+1);
+		lua_pushnumber(L,lua_rawlen(L,-1)+1);
 		Xml_pushDecode(L, token, 0);
 		lua_settable(L, -3);
 	}
@@ -412,7 +413,7 @@ int _EXPORT luaopen_LuaXML_lib (lua_State* L) {
 		{"registerCode", Xml_registerCode},
 		{NULL, NULL}
 	};
-	luaL_register(L, "xml", funcs);
+	luaL_newlib(L, funcs);
 	// register default codes:
 	if(!sv_code) {
 		sv_code=(char**)malloc(sv_code_capacity*sizeof(char*));

@@ -213,7 +213,7 @@ static int f_base64_decode(lua_State *L)
 	return 0;
 }
 
-static const struct luaL_reg wget_lib[] = {
+static const struct luaL_Reg kola_lib[] = {
 	{"base64_encode" , f_base64_encode},
 	{"base64_decode" , f_base64_decode},
 	{"wget"          , f_wget},
@@ -228,6 +228,7 @@ static const struct luaL_reg wget_lib[] = {
 };
 
 LUALIB_API int luaopen_kola(lua_State *L) {
-	luaL_register(L, "kola", wget_lib);
+	luaL_newlib(L, kola_lib);
 	return 1;
 }
+

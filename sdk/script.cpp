@@ -3,11 +3,9 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <lua.hpp>
 
 extern "C" {
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
 	int luaopen_kola(lua_State *L);
 	int luaopen_cjson(lua_State *L);
 	int luaopen_LuaXML_lib(lua_State *L);
@@ -38,10 +36,10 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, int 
 			lua_pushstring(L, argv[i]);
 	}
 
-	// 下面的第二个参数表示带调用的lua函数存在两个参数。
+	// 下面的第二个参数表示带调用的lua函数存在argc个参数。
 	// 第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
 	// lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
-	if (lua_pcall(L, argc, 1, 0)) {
+	if (lua_pcall(L, argc, 1, 1)) {
 #if TEST
 		printf("%s.\n", lua_tostring(L, -1));
 		printf("%s(", func);
@@ -74,7 +72,7 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, int 
 }
 
 static const luaL_Reg lualibs[] = {
-	{""             , luaopen_base      },
+	{"_G"           , luaopen_base},
 	{LUA_TABLIBNAME , luaopen_table     },
 	{LUA_IOLIBNAME  , luaopen_io        },
 	{LUA_OSLIBNAME  , luaopen_os        },
@@ -85,19 +83,19 @@ static const luaL_Reg lualibs[] = {
 	{"cjson"        , luaopen_cjson     },
 	{"xml"          , luaopen_LuaXML_lib},
 	//{"cURL"         , luaopen_cURL      },
+	//{LUA_LOADLIBNAME, luaopen_package},
+	//{LUA_COLIBNAME, luaopen_coroutine},
+	//{LUA_BITLIBNAME, luaopen_bit32},
 
 	{NULL, NULL}
 };
 
-
 static void luaL_openmini(lua_State *L)
 {
-	const luaL_Reg *lib = lualibs;
-
-	for (; lib->func; lib++) {
-		lua_pushcfunction(L, lib->func);
-		lua_pushstring(L, lib->name);
-		lua_call(L, 1, 0);
+	const luaL_Reg *lib;
+	for (lib = lualibs; lib->func; lib++) {
+		luaL_requiref(L, lib->name, lib->func, 1);
+		lua_pop(L, 1);  /* remove lib */
 	}
 }
 
@@ -123,8 +121,11 @@ string LuaScript::RunScript(int argc, const char **argv, const char *name, const
 {
 	string code, ret;
 
-	if ( GetScript(name, code))
+	if ( GetScript(name, code)) {
+		int top = lua_gettop(L);
 		ret = lua_runscript(L, code.c_str(), fname, argc, argv);
+		lua_settop(L, top);
+	}
 
 	return ret;
 }

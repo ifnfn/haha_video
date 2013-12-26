@@ -1,5 +1,5 @@
-export ARCH=arm
-export OS=linux
+#export ARCH=arm
+#export OS=linux
 
 
 CROSS_PATH=$ARCH-$OS

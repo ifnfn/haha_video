@@ -1,5 +1,23 @@
 --  获取节目集列表
 function get_videolist(pid, vid, pageNo, pageSize)
+	local function str_to_min(s)
+		local list = {}
+		local id = 0
+		for i in string.gmatch(s, "%w+") do
+			id = id + 1
+			list[id] = i
+		end
+
+		if id == 3 then
+			return tonumber(list[1]) * 3600 + tonumber(list[2]) * 60 + tonumber(list[3])
+		elseif id == 2 then
+			return tonumber(list[1]) * 60 + tonumber(list[2])
+		elseif id == 1 then
+			return tonumber(list[1])
+		else
+			return 0
+		end
+	end
 	local function get_album_set(vid)
 		local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
 		local text = kola.wget(url)
@@ -31,8 +49,7 @@ function get_videolist(pid, vid, pageNo, pageSize)
 	local videos = {}
 	local js = cjson.decode(text)
 	for k,v in ipairs(js) do
---		print(v.vid, v.title)
-		local video = {}
+		video = {}
 
 		video.cid         = js.cid
 		video.pid         = pid
@@ -41,7 +58,7 @@ function get_videolist(pid, vid, pageNo, pageSize)
 		video.name        = v.title
 		video.showName    = v.title
 		if v.duration ~= nil then
-			video.playLength  = tonumber(v.duration) * 60
+			video.playLength = str_to_min(v.duration)
 		end
 		video.order       = v.key
 		video.smallPicUrl = v.pic

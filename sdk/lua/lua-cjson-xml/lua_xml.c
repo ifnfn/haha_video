@@ -33,7 +33,6 @@ THE SOFTWARE.
 # define _EXPORT
 #endif
 
-#include <luaconf.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>

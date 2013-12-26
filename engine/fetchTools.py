@@ -9,6 +9,7 @@ import traceback
 
 global headers
 
+MAX_TRY = 3
 socket_timeout = 20
 
 headers = {
@@ -34,7 +35,7 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
 
     if method == 'POST':
         header['Content-Type'] = 'application/x-www-form-urlencoded'
-    conn = httplib2.Http('.cache') #, timeout=socket_timeout)
+    conn = httplib2.Http('.cache', timeout=socket_timeout)
     conn.follow_redirects = True
     response, responses = conn.request(uri=url, method=str(method).upper(), body=data,  headers=header)
     try:
@@ -53,15 +54,14 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
 
     return response['status'], content_type, location, responses
 
-MAX_TRY = 3
 def GetUrl(url, times = 0):
     if times > MAX_TRY:
         return ''
     try:
         status, _, _, response = fetch_httplib2(url)
         if status != '200':
-            print(response)
-            return ''
+            print('status %s, try %d ...' % (status, times + 1))
+            return GetUrl(url, times + 1)
         return response
     except:
         t, v, tb = sys.exc_info()
@@ -88,7 +88,6 @@ def PostUrl(url, body, key=""):
         t, v, tb = sys.exc_info()
         print("PostUrl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
         return None
-
 
 if __name__ == '__main__':
     url = 'http://store.tv.sohu.com/view_content/movie/5008825_704321.html'

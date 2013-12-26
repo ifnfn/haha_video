@@ -64,7 +64,6 @@ static int f_wget(lua_State *L)
 	int argc = lua_gettop(L);
 	const char *url;
 	const char *referer = NULL;
-	bool location = true;
 	vector<string> urlList;
 
 	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {

@@ -271,7 +271,7 @@ void test_video(const char *menuName)
 	//m->SetSort("评分最高");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
-	m->SetPageSize(4);
+	m->SetPageSize(10);
 
 	m->GetPage(page, 0);
 	page.CachePicture(PIC_LARGE);

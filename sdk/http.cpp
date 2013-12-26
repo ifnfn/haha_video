@@ -213,6 +213,7 @@ MultiHttp::MultiHttp()
 MultiHttp::~MultiHttp()
 {
 	curl_multi_cleanup(multi_handle);
+    httpList.clear();
 }
 
 void MultiHttp::Add(Http *http)

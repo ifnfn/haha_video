@@ -28,35 +28,33 @@ class KolaClient:
         print("Download: ", url)
         return engine.GetUrl(url)
 
-#===============================================================================
-#     def GetCacheUrl(self, url):
-#         response = ''
-#
-#         key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
-#
-#         filename = './cache/' + key
-#         if os.path.exists(filename):
-#             f = open(filename, 'rb')
-#             response = f.read()
-#             f.close()
-#         else:
-#             response = self.GetUrl(url)
-#             if response:
-#                 try:
-#                     f = open(filename, 'wb')
-#                     f.write(response)
-#                     f.close()
-#                 except:
-#                     pass
-#
-#         return response
-#===============================================================================
+    def GetCacheUrl(self, url):
+        response = ''
+
+        key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
+
+        filename = './cache/' + key
+        if os.path.exists(filename):
+            f = open(filename, 'rb')
+            response = f.read()
+            f.close()
+        else:
+            response = self.GetUrl(url)
+            if response:
+                try:
+                    f = open(filename, 'wb')
+                    f.write(response)
+                    f.close()
+                except:
+                    pass
+
+        return response
 
     def PostUrl(self, url, body):
         return engine.PostUrl(url, body, self.key)
 
     def RegularMatchUrl(self, url, regular):
-        response = self.GetUrl(url)
+        response = self.GetCacheUrl(url)
         return self.RegularMatch([regular], response)
 
     def RegularMatch(self, regular, text):
@@ -83,7 +81,7 @@ class KolaClient:
                 response = cmd['text']
             else:
                 if 'source' in cmd:
-                    response = self.GetUrl(cmd['source'])
+                    response = self.GetCacheUrl(cmd['source'])
 
             coding = 'utf8'
             try:

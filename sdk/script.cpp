@@ -157,8 +157,10 @@ static void luaL_openmini(lua_State *L)
 
 LuaScript::LuaScript()
 {
-	L = luaL_newstate();
-	luaL_openmini(L);
+}
+
+LuaScript::~LuaScript()
+{
 }
 
 LuaScript& LuaScript::Instance()
@@ -168,17 +170,17 @@ LuaScript& LuaScript::Instance()
 	return _lua;
 }
 
-LuaScript::~LuaScript()
-{
-	lua_close(L);
-}
-
 string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname)
 {
 	string code, ret;
 
 	if ( GetScript(name, code)) {
-		ret = lua_runscript(L, code.c_str(), fname, argc, argv);
+		lua_State *L = luaL_newstate();
+        if (L) {
+            luaL_openmini(L);
+            ret = lua_runscript(L, code.c_str(), fname, argc, argv);
+            lua_close(L);
+        }
 	}
 
 	return ret;

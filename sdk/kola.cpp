@@ -87,6 +87,7 @@ static char *GetIP(const char *hostp)
 
 	inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
 
+	freehostent(host);
 	return strdup(str);
 }
 

@@ -1,3 +1,6 @@
+#ifndef SCRIPT_HPP
+#define SCRIPT_HPP
+
 #include <stdio.h>
 #include <string.h>
 #include <map>
@@ -31,8 +34,8 @@ class LuaScript {
 		~LuaScript();
 		string RunScript(int argc, const char **argv, const char *name, const char *fname="kola_main");
 	private:
-		lua_State *L;
 		std::map<string, script> scripts;
 		bool GetScript(const char *name, string &text);
 };
 
+#endif

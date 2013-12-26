@@ -31,7 +31,7 @@ ADD_GX_LIBRARY(kolatv
 SET(CMAKE_BUILD_TYPE "Debug")
 # SET(CMAKE_BUILD_TYPE "Release")
 
-ADD_DEFINITIONS(-DTEST=0 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wno-deprecated-declarations)
+ADD_DEFINITIONS(-DTEST=0 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wno-deprecated-declarations -DLUA_USE_LINUX)
 
 ###############################################################################
 # 编译可执行程序

@@ -39,7 +39,7 @@ SRC += lua-curl/src/Lua-cURL-callback.c  lua-curl/src/Lua-cURL-multi.c  lua-curl
 LIB=liblua.a
 
 
-CFLAGS +=-Isrc
+CFLAGS +=-Isrc -DLUA_USE_LINUX
 
 default: all
 

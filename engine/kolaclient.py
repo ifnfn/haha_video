@@ -151,6 +151,8 @@ class KolaClient:
                     for cmd in data['command']:
                         self.ProcessCommand(cmd, dest)
                     ret = True
+            else:
+                ret = True
         except:
             t, v, tb = sys.exc_info()
             print("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))

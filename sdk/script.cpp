@@ -16,13 +16,69 @@ extern "C" {
 #include "kola.hpp"
 #include "script.hpp"
 
+
+static lua_State *globalL = NULL;
+
+static void lstop (lua_State *L, lua_Debug *ar)
+{
+	(void)ar;  /* unused arg. */
+	lua_sethook(L, NULL, 0, 0);
+	luaL_error(L, "interrupted!");
+}
+
+static void laction (int i)
+{
+	signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
+			       terminate process (default action) */
+	lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+}
+
+static int traceback (lua_State *L)
+{
+	const char *msg = lua_tostring(L, 1);
+	if (msg)
+		luaL_traceback(L, L, msg, 1);
+	else if (!lua_isnoneornil(L, 1)) {  /* is there an error object? */
+		if (!luaL_callmeta(L, 1, "__tostring"))  /* try its 'tostring' metamethod */
+			lua_pushliteral(L, "(no error message)");
+	}
+	return 1;
+}
+
+static int docall (lua_State *L, int narg, int nres)
+{
+	int status;
+	int base = lua_gettop(L) - narg;  /* function index */
+	lua_pushcfunction(L, traceback);  /* push traceback function */
+	lua_insert(L, base);  /* put it under chunk and args */
+	globalL = L;  /* to be available to 'laction' */
+	signal(SIGINT, laction);
+	status = lua_pcall(L, narg, nres, base);
+	signal(SIGINT, SIG_DFL);
+	lua_remove(L, base);  /* remove traceback function */
+	return status;
+}
+
+static int report (lua_State *L, int status)
+{
+	if (status != LUA_OK && !lua_isnil(L, -1)) {
+		const char *msg = lua_tostring(L, -1);
+		if (msg == NULL) msg = "(error object is not a string)";
+		luai_writestringerror("%s\n", msg);
+		lua_pop(L, 1);
+		/* force a complete garbage collection in case of errors */
+		lua_gc(L, LUA_GCCOLLECT, 0);
+	}
+	return status;
+}
+
 static string lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
 {
-	int i;
+	int i, status;
 
 	string ret;
 
-	if (luaL_dostring(L, fn)) {
+	if (luaL_dostring(L, fn) != LUA_OK) {
 		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
 		return ret;
 	}
@@ -39,9 +95,11 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, int 
 	// 下面的第二个参数表示带调用的lua函数存在argc个参数。
 	// 第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
 	// lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
-	if (lua_pcall(L, argc, 1, 1)) {
+	status = docall(L, argc, 1);
+	//status = lua_pcall(L, argc, 1, 0);
+	report(L, status);
+	if (status != LUA_OK) {
 #if TEST
-		printf("%s.\n", lua_tostring(L, -1));
 		printf("%s(", func);
 		for (i = 0; i < argc - 1; i++)
 			printf("\"%s\", ", argv[i]);
@@ -49,7 +107,6 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, int 
 		if (argc > 0)
 			printf("\"%s\")\n", argv[argc - 1]);
 #endif
-
 		return ret;
 	}
 
@@ -59,7 +116,6 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, int 
 		lua_pop(L, -1);
 		return ret;
 	}
-
 
 	const char *r = lua_tostring(L, -1);
 
@@ -122,9 +178,7 @@ string LuaScript::RunScript(int argc, const char **argv, const char *name, const
 	string code, ret;
 
 	if ( GetScript(name, code)) {
-		int top = lua_gettop(L);
 		ret = lua_runscript(L, code.c_str(), fname, argc, argv);
-		lua_settop(L, top);
 	}
 
 	return ret;

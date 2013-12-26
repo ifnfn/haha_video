@@ -22,11 +22,10 @@ class KolaEngine:
         self.engines = []
         self.UpdateAlbumFlag = False
 
-        #self.AddEngine(engine.LetvEngine)
+        self.AddEngine(engine.LetvEngine)
         self.AddEngine(engine.SohuEngine)
-        #self.AddEngine(engine.QiyiEngine)
-        #self.AddEngine(engine.LiveEngine)
-        #self.AddEngine(engine.WolidouEngine)
+        self.AddEngine(engine.QiyiEngine)
+        self.AddEngine(engine.LiveEngine)
 
     def AddEngine(self, egClass):
         self.engines.append(egClass())

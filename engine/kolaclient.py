@@ -1,17 +1,16 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import os
 import hashlib
 import json
-import os
 import re
 import sys
 import traceback
 
 import tornado.escape
 
-import kola
-
+import engine
 
 HOST = 'http://127.0.0.1:9992'
 #HOST = 'http://192.168.188.135:9991'
@@ -27,35 +26,37 @@ class KolaClient:
 
     def GetUrl(self, url):
         print("Download: ", url)
-        return kola.utils.GetUrl(url)
+        return engine.GetUrl(url)
 
-    def GetCacheUrl(self, url):
-        response = ''
-
-        key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
-
-        filename = './cache/' + key
-        if os.path.exists(filename):
-            f = open(filename, 'rb')
-            response = f.read()
-            f.close()
-        else:
-            response = self.GetUrl(url)
-            if response:
-                try:
-                    f = open(filename, 'wb')
-                    f.write(response)
-                    f.close()
-                except:
-                    pass
-
-        return response
+#===============================================================================
+#     def GetCacheUrl(self, url):
+#         response = ''
+#
+#         key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
+#
+#         filename = './cache/' + key
+#         if os.path.exists(filename):
+#             f = open(filename, 'rb')
+#             response = f.read()
+#             f.close()
+#         else:
+#             response = self.GetUrl(url)
+#             if response:
+#                 try:
+#                     f = open(filename, 'wb')
+#                     f.write(response)
+#                     f.close()
+#                 except:
+#                     pass
+#
+#         return response
+#===============================================================================
 
     def PostUrl(self, url, body):
-        return kola.utils.PostUrl(url, body, self.key)
+        return engine.PostUrl(url, body, self.key)
 
     def RegularMatchUrl(self, url, regular):
-        response = self.GetCacheUrl(url)
+        response = self.GetUrl(url)
         return self.RegularMatch([regular], response)
 
     def RegularMatch(self, regular, text):
@@ -81,13 +82,8 @@ class KolaClient:
             if 'text' in cmd:
                 response = cmd['text']
             else:
-                cached = False
-                if 'cache' in cmd and 'source' in cmd:
-                    cached = cmd['cache']
-                    if cached:
-                        response = self.GetCacheUrl(cmd['source'])
-                    else:
-                        response = self.GetUrl(cmd['source'])
+                if 'source' in cmd:
+                    response = self.GetUrl(cmd['source'])
 
             coding = 'utf8'
             try:

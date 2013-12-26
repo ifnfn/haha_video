@@ -53,10 +53,7 @@ class UpdateCommandHandle(BaseHandler):
     def get(self):
         cmdlist = {}
         cmdlist['list']      = tv.UpdateAllAlbumList
-        cmdlist['home']      = tv.UpdateAllAlbumPage
-        cmdlist['fullinfo']  = tv.UpdateAllFullInfo
         cmdlist['score']     = tv.UpdateAllScore
-        cmdlist['playinfo']  = tv.UpdateAllPlayInfo
 
         command = self.get_argument('cmd', '')
         for cmd in command.split(','):

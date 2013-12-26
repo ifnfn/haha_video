@@ -6,6 +6,7 @@ import re
 from bs4 import BeautifulSoup as bs
 import tornado.escape
 
+import engine
 from engine import VideoEngine, KolaParser
 from kola import DB, autostr, autoint, Singleton, utils
 import kola
@@ -73,7 +74,7 @@ class SohuAlbum(kola.AlbumBase):
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
         if self.sohu.playlistid:
-            ParserAlbumFullInfo(self).AddCommand()
+            ParserAlbumFullInfo(self.sohu.playlistid, self.sohu.vid).AddCommand()
         #if self.sohu.vid:
         #    ParserAlbumMvInfo(self, self.albumName).AddCommand()
 
@@ -85,6 +86,23 @@ class SohuAlbum(kola.AlbumBase):
 class SohuDB(DB, Singleton):
     def __init__(self):
         super().__init__()
+
+    def GetMenuAlbumList(self, cid,All=False):
+        fields = {'engineList' : True,
+                              'albumName': True,
+                              'private': True,
+                              'cid': True,
+                              'vid': True}
+
+        data = self.album_table.find({'engineList' : {'$in' : ['SohuEngine']}, 'cid' : cid}, fields)
+
+        albumList = []
+        for p in data:
+            album = SohuAlbum()
+            album.LoadFromJson(p)
+            albumList.append(album)
+
+        return albumList
 
     # 从数据库中找到 album
     def FindAlbumJson(self, playlistid='', albumName='', vid=''):
@@ -142,41 +160,20 @@ class ParserAlbumList(KolaParser):
             if x:
                 continue
 
-            name = ''
             vid = ''
             playlistid = ''
-            albumUrl = ''
 
-            urls = re.findall('(href|title|_s_v|_s_a)="([\s\S]*?)"', text)
+            urls = re.findall('(_s_v|_s_a)="([\s\S]*?)"', text)
             for u in urls:
-                if u[0] == 'href':
-                    albumUrl = self.command.GetUrl(u[1])
-                elif u[0] == 'title':
-                    name = db.GetAlbumName(u[1])
-                elif u[0] == '_s_v':
+                if u[0] == '_s_v':
                     vid = autostr(u[1])
                 elif u[0] == '_s_a':
                     playlistid = autostr(u[1])
 
-            if name:
-                album = SohuAlbum()
-                album_js = DB().FindAlbumJson(albumName=name)
-                if album_js:
-                    album.LoadFromJson(album_js)
-
-                album.albumName       = name
-                album.vid             = utils.genAlbumId(album.albumName)
-                album.albumPageUrl    = albumUrl
-                album.cid             = js['cid']
-                album.sohu.vid        = vid
-                album.sohu.playlistid = playlistid
-            else:
-                continue
-
-            #if (not needNextPage) and (not db.FindAlbumJson(vid=album.sohu.vid)):
-            #    needNextPage = True
-
-            db.SaveAlbum(album)
+            if (not needNextPage) and (not db.FindAlbumJson(playlistid=playlistid, vid=vid)):
+                needNextPage = True
+            if playlistid and vid:
+                ParserAlbumFullInfo(playlistid, vid).AddCommand()
 
         needNextPage = True
         if needNextPage:
@@ -185,14 +182,16 @@ class ParserAlbumList(KolaParser):
                 current_page = int(g.group(1))
                 link = re.compile('p10\d+')
                 newurl = re.sub(link, 'p10%d' % (current_page + 1), js['source'])
-                ParserAlbumList(newurl, js['cid']).Execute()
+                ParserAlbumList(newurl, js['cid']).AddCommand()
+
+        self.command.Execute()
 
 # 更新节目的完整信息
 class ParserAlbumFullInfo(KolaParser):
-    def __init__(self, album=None):
+    def __init__(self, playlistid=None, vid=None):
         super().__init__()
-        if album:
-            self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (album.sohu.playlistid, album.sohu.vid)
+        if playlistid and vid:
+            self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (playlistid, vid)
 
     # 解析节目的完全信息
     # http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241
@@ -204,12 +203,21 @@ class ParserAlbumFullInfo(KolaParser):
         playlistid = autostr(json['playlistid'])
         vid = autostr(json['vid'])
         pid = autostr(json['pid'])
+        albumName = db.GetAlbumName(json['albumName'])
+        if not albumName:
+            return
 
         album = db.GetAlbumFormDB(playlistid=playlistid, vid=vid)
         if album == None:
-            return
+            album = SohuAlbum()
+            album_js = DB().FindAlbumJson(albumName=albumName)
+            if album_js:
+                    album.LoadFromJson(album_js)
 
-        #if 'albumName' in json      : album.albumName            = autoint(json['albumName'])
+        album.albumName       = albumName
+        album.vid             = utils.genAlbumId(album.albumName)
+
+        if 'albumPageUrl' in json   : album.albumPageUrl    = json['albumPageUrl']
         if 'cid' in json            : album.cid             = autoint(json['cid'])
         if 'playlistid' in json     : album.sohu.playlistid = playlistid
         if 'pid' in json            : album.sohu.pid        = pid
@@ -242,7 +250,7 @@ class ParserAlbumFullInfo(KolaParser):
             'parameters' : [album.vid, album.sohu.playlistid, album.sohu.vid]
         }
 
-        db.SaveAlbum(album, False)
+        db.SaveAlbum(album)
 
 # 更新节目的完整信息
 class ParserAlbumMvInfo(KolaParser):
@@ -362,6 +370,12 @@ class SohuVideoMenu(kola.VideoMenuBase):
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:
             ParserAlbumList(url, self.cid).Execute()
+
+    def UpdateAllScore(self):
+        for album in SohuDB().GetMenuAlbumList(self.cid):
+            album.UpdateScoreCommand()
+
+        engine.EngineCommands().Execute()
 
     def UpdateHotList(self):
         # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3&encode=GBK
@@ -489,22 +503,22 @@ class SohuEngine(VideoEngine):
         self.albumClass = SohuAlbum
 
         # 引擎主菜单
-        self.menu = {
-            '电影'   : SohuMovie,
-            '电视剧' : SohuTV,
-           # '综艺'   : SohuShow,
-           # '娱乐'   : SohuYule,
-           # '动漫'   : SohuComic,
-           # '纪录片' : SohuDocumentary,
-           # '教育'   : SohuEdu,
-           # '旅游'   : SohuTour,
-           # '新闻'   : SohuNew
-        }
+        self.menu = [
+            SohuMovie('电影'), # 电影
+            SohuTV('电视剧'), # 电视剧
+           #SohuShow('综艺'), # 综艺
+           #SohuYule('娱乐'), # 娱乐
+           #SohuComic('动漫'), # 动漫
+           #SohuDocumentary('纪录片'), # 纪录片
+           #SohuEdu('教育'), # 教育
+           #SohuTour('旅游'), # 旅游
+           #SohuNew('新闻') # 新闻
+        ]
 
-        self.parserList = {
+        self.parserList = [
             ParserAlbumList(),
             ParserAlbumFullInfo(),
             ParserAlbumMvInfo(),
             ParserAlbumScore(),
             ParserAlbumHotList(),
-        }
+        ]

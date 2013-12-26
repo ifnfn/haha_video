@@ -4,7 +4,7 @@
 import re
 import time, sys, traceback
 import tornado.escape
-from bs4 import BeautifulSoup as bs
+#from bs4 import BeautifulSoup as bs
 from xml.etree import ElementTree
 
 from engine import VideoEngine, KolaParser
@@ -318,6 +318,9 @@ class QiyiVideoMenu(kola.VideoMenuBase):
     def UpdateHotList(self):
         pass
 
+    def UpdateAllScore(self):
+        pass
+
 # 电影
 class QiyiMovie(QiyiVideoMenu):
     def __init__(self, name):
@@ -351,15 +354,16 @@ class QiyiEngine(VideoEngine):
         self.albumClass = QiyiAlbum
 
         # 引擎主菜单
-        self.menu = {
-            '电影'   : QiyiMovie,
-            '电视剧' : QiyiTV,
-        }
+        self.menu = [
+            QiyiMovie('电影'),
+            QiyiTV('电视剧'),
+        ]
 
-        self.parserList = {
+        self.parserList = [
             ParserAlbumList(),
             ParserAlbumPage(),
             ParserAlbumJson(),
             ParserAlbumJsonA(),
             ParserAlbumXml(),
-        }
+        ]
+

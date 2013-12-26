@@ -77,7 +77,8 @@ class VideoEngine:
         self.config = configparser.ConfigParser()
 
         self.albumClass = None
-        self.parserList = {}
+        self.parserList = []
+        self.menu = []
 
     def NewAlbum(self, js=None):
         album = self.albumClass()
@@ -86,29 +87,31 @@ class VideoEngine:
 
         return album
 
-    # 获取节目一级菜单, 返回分类列表
-    def GetMenu(self, MenuList):
-        for m, menu in list(self.menu.items()):
-            if type(menu) == type:
-                menu = menu(m)
-                MenuList.append(menu)
-
     # 解析菜单网页解析
     def ParserHtml(self, js):
         try:
             for engine in self.parserList:
                 if engine.name == js['engine']:
-                    return engine.CmdParser(js)
+                    engine.CmdParser(js)
+                    return True
 
         except:
             t, v, tb = sys.exc_info()
             print("SohuVideoMenu._CmdParserAlbumPlayInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
-        return None
+        return False
+
+    # 更新所有节目（增加新的节目）
+    def UpdateAllAlbumList(self):
+        self.UpdateAlbumFlag = True
+        for m in self.menu:
+            m.UpdateAlbumList()
 
     # 更新所有节目的排名数据
     def UpdateAllScore(self):
         print("UpdateAllScore")
+        for m in self.menu:
+            m.UpdateAllScore()
 
     # 更新所有节目的完全信息
     def UpdateAllFullInfo(self):
@@ -125,8 +128,4 @@ class VideoEngine:
     # 更新热门节目信息
     def UpdateAllHotList(self):
         print("UpdateAllHotList")
-
-    # 更新所有节目（增加新的节目）
-    def UpdateAllAlbumList(self):
-        print("UpdateAllAlbumList")
 

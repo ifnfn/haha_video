@@ -71,10 +71,6 @@ class LivetvAlbum(AlbumBase):
     def UpdateScoreCommand(self):
         pass
 
-    # 更新节目播放信息
-    def UpdateAlbumPlayInfoCommand(self):
-        pass
-
 class LivetvVideoMenu(LivetvMenu):
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
@@ -497,11 +493,11 @@ class LiveEngine(VideoEngine):
         self.albumClass = LivetvAlbum
 
         # 引擎菜单
-        self.menu = {
-            '直播' : LivetvVideoMenu
-        }
+        self.menu = [
+            LivetvVideoMenu('直播')
+        ]
 
-        self.parserList = {
+        self.parserList = [
             ParserLetvLivetv(),
             ParserSohuLivetv(),
             ParserTextLivetv(),
@@ -511,5 +507,5 @@ class LiveEngine(VideoEngine):
             ParserUCLivetv(),
             ParserWenZhouLivetv(),
             #ParserJLntvLivetv(),
-        }
+        ]
 

@@ -229,6 +229,9 @@ class LetvVideoMenu(kola.VideoMenuBase):
     def UpdateHotList(self):
         pass
 
+    def UpdateAllScore(self):
+        pass
+
 # 电影
 class LetvMovie(LetvVideoMenu):
     def __init__(self, name):
@@ -262,11 +265,11 @@ class LetvEngine(VideoEngine):
         self.albumClass = LetvAlbum
 
         # 引擎主菜单
-        self.menu = {
-            '电影'   : LetvMovie,
-            '电视剧' : LetvTV,
-        }
+        self.menu = [
+            LetvMovie('电影'),
+            LetvTV('电视剧'),
+        ]
 
-        self.parserList = {
+        self.parserList = [
             ParserAlbumList(),
-        }
+        ]

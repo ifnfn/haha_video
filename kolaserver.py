@@ -76,14 +76,6 @@ class KolatvServer:
     def GetVideoListByPid(self, pid, argument):
         return self.db.GetVideoListJson(pid=pid, arg=argument)
 
-    # 得到真实播放地址
-    def GetRealPlayer(self, text, cid, definition, step, url=''):
-        menu = self.FindMenuById(utils.autoint(cid))
-        if menu == None:
-            return {}
-
-        return menu.GetRealPlayer(text, definition, step, url)
-
     def FindMenuById(self, cid):
         for _, menu in list(self.MenuList.items()):
             if menu.cid == cid:
@@ -96,24 +88,6 @@ class KolatvServer:
             return self.MenuList[name]
         else:
             return None
-
-    def _get_album(self, All=False):
-        argument = {}
-        argument['fields'] = {'engineList' : True,
-                              'albumName': True,
-                              'private': True,
-                              'vid': True,
-                              'playlistid': True}
-
-        albumList = []
-        data, _ = self.db.GetAlbumListJson(argument, disablePage=True, full=True)
-        for p in data:
-            for (name, engine) in list(self.engines.items()):
-                if 'engineList' in p and name in p['engineList']:
-                    albumList.append(engine.NewAlbum(p))
-                    break
-
-        return albumList
 
     def CommandEmptyMessage(self):
         if self.UpdateAlbumFlag == True:

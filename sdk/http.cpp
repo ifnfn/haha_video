@@ -213,7 +213,7 @@ MultiHttp::MultiHttp()
 MultiHttp::~MultiHttp()
 {
 	curl_multi_cleanup(multi_handle);
-    httpList.clear();
+	httpList.clear();
 }
 
 void MultiHttp::Add(Http *http)
@@ -294,7 +294,7 @@ void MultiHttp::Run()
 	/*  See how the transfers went */
 	while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
 		if (msg->msg == CURLMSG_DONE) {
-            int found = 0;
+			int found = 0;
 
 			/*  Find out which handle this message is about */
 			for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {

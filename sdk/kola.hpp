@@ -15,8 +15,8 @@ using namespace std;
 
 #define foreach(container,i) \
 	for(bool __foreach_ctrl__=true;__foreach_ctrl__;)\
-	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
-	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
+for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
+for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 #define DEFAULT_PAGE_SIZE 20
 
@@ -30,6 +30,8 @@ class ThreadPool;
 class Task;
 class Http;
 class ScriptCommand;
+class CResource;
+class CResourceManager;
 
 extern void split(const string &s, string delim, vector< string > *ret);
 
@@ -131,6 +133,22 @@ class Task {
 		friend class Thread;
 };
 
+class CFileResource {
+	public:
+		CFileResource() : res(NULL), used(false) {}
+		~CFileResource();
+
+		CResource *GetResource(CResourceManager *manage, const string &url);
+		std::string& GetFileName();
+		size_t GetSize();
+		void Clear();
+		bool used;
+	private:
+		CResource *res;
+		std::string FileName;
+};
+
+
 class EPG {
 	public:
 		EPG() {
@@ -207,23 +225,6 @@ class KolaVideo {
 		Variant sc_info;
 		Variant sc_resolution;
 		VideoUrls *urls;
-};
-
-class Picture: public Task {
-	public:
-		Picture(string fileName);
-		Picture();
-		virtual ~Picture();
-
-		void *data;
-		size_t size;
-		string fileName;
-		bool inCache;
-		virtual void Run();
-		virtual void Cancel();
-		bool used;
-	private:
-		Http *http;
 };
 
 class FilterValue: public StringList {
@@ -326,21 +327,19 @@ class AlbumPage {
 	public:
 		AlbumPage();
 		~AlbumPage(void);
-		void CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
-		KolaAlbum* GetAlbum(int index);
+		size_t CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
+		KolaAlbum* GetAlbum(size_t index);
 
 		void PutAlbum(KolaAlbum *album);
-		void PutPicture(string picFileName);
 
 		size_t Count() { return albumList.size();}
-		size_t PictureCount() { return pictureList.size(); }
+		size_t PictureCount() { return pictureCount; }
 
-		Picture* GetPicture(string fileName);
 		void Clear();
 		int pageId;
 	private:
 		vector<KolaAlbum*> albumList;
-		map<string, Picture*> pictureList;
+		size_t pictureCount;
 };
 
 class KolaMenu {
@@ -438,6 +437,7 @@ class KolaClient {
 		time_t GetTime();
 		KolaInfo& GetInfo();
 		int debug;
+		CResourceManager *resManager;
 	private:
 		KolaClient(void);
 		string baseUrl;

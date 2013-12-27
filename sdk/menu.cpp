@@ -41,7 +41,7 @@ KolaMenu::KolaMenu(json_t *js)
 			string list;
 			json_array_foreach(values, v)
 				list = list + json_string_value(v) + ",";
-//			printf("%s: %s\n", key, list.c_str());
+			//			printf("%s: %s\n", key, list.c_str());
 			this->Filter.filterKey.insert(pair<string, FilterValue>(key, FilterValue(list)));
 		}
 	}
@@ -198,7 +198,7 @@ string KolaMenu::GetPostData()
 	}
 
 	body = body + "}";
-//	cout << "Filter Body: " << body << endl;
+	//	cout << "Filter Body: " << body << endl;
 
 	return body;
 }
@@ -213,7 +213,7 @@ int KolaMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(url, "/video/list?page=%d&size=%d&cid=%d", pageId, pageSize, cid);
+	sprintf(url, "/video/list?page=%d&size=%d&cid=%ld", pageId, pageSize, cid);
 	if (client->UrlPost(url, body.c_str(), text) == true) {
 		page->Clear();
 		return ParserJson(page, text);
@@ -232,7 +232,7 @@ int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, int pageSize
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(url, "/video/list?&size=%d&cid=%d&key=%s&value=%s", pageSize, cid, key.c_str(), value.c_str());
+	sprintf(url, "/video/list?&size=%d&cid=%ld&key=%s&value=%s", pageSize, cid, key.c_str(), value.c_str());
 	if (client->UrlPost(url, body.c_str(), text) == true) {
 		page->Clear();
 		return ParserJson(page, text);

@@ -3,6 +3,7 @@
 #include "json.hpp"
 #include "kola.hpp"
 #include "base64.hpp"
+#include "resource.hpp"
 
 #define VIDEO_COUNT 8
 KolaAlbum::KolaAlbum(json_t *js)
@@ -47,7 +48,7 @@ size_t KolaAlbum::GetVideoCount()
 		videoPageId = -1;
 	}
 
-       return updateSet;
+	return updateSet;
 }
 
 bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
@@ -142,7 +143,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 		videoListUrl = json_deep_copy(sub);
 
 	//categories = json_gets(js, "categories", "");
-//	cout << "KolaAlbum:" << albumName << endl;
+	//	cout << "KolaAlbum:" << albumName << endl;
 
 	sub = json_geto(js, "sources");
 	if (sub) {
@@ -198,6 +199,7 @@ string &KolaAlbum::GetPictureUrl(enum PicType type)
 AlbumPage::AlbumPage()
 {
 	pageId = -1;
+	pictureCount = 0;
 }
 
 AlbumPage::~AlbumPage(void)
@@ -205,26 +207,19 @@ AlbumPage::~AlbumPage(void)
 	Clear();
 }
 
-void AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
+size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
+	pictureCount = 0;
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &fileName = (*it)->GetPictureUrl(type);
-		PutPicture(fileName);
-	}
-}
-
-void AlbumPage::PutPicture(string fileName)
-{
-	if (fileName != "") {
-		map<string, Picture*>::iterator it;
-
-		it = pictureList.find(fileName);
-		if (it == pictureList.end()) {
-			Picture *pic = new Picture(fileName);
-			pictureList.insert(pair<string, Picture*>(fileName, pic));
-			pic->Start();
+		if (not fileName.empty()) {
+			KolaClient &kola = KolaClient::Instance();
+			kola.resManager->AddResource(fileName.c_str());
+			pictureCount++;
 		}
 	}
+
+	return pictureCount;
 }
 
 void AlbumPage::PutAlbum(KolaAlbum *album)
@@ -234,7 +229,7 @@ void AlbumPage::PutAlbum(KolaAlbum *album)
 	}
 }
 
-KolaAlbum* AlbumPage::GetAlbum(int index)
+KolaAlbum* AlbumPage::GetAlbum(size_t index)
 {
 	if (index < albumList.size() )
 		return albumList.at(index);
@@ -242,30 +237,13 @@ KolaAlbum* AlbumPage::GetAlbum(int index)
 	return NULL;
 }
 
-Picture* AlbumPage::GetPicture(string fileName)
-{
-	map<string, Picture*>::iterator it;
-
-	it = pictureList.find(fileName);
-
-	if (it != pictureList.end())
-		return it->second;
-
-	return NULL;
-}
-
 void AlbumPage::Clear()
 {
 	pageId = -1;
-	for (map<string, Picture*>::iterator it = pictureList.begin(); it != pictureList.end(); it++) {
-		it->second->Cancel();
-		delete it->second;
-	}
 
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		delete (*it);
 	}
 
-	pictureList.clear();
 	albumList.clear();
 }

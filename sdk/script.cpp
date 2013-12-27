@@ -176,11 +176,11 @@ string LuaScript::RunScript(int argc, const char **argv, const char *name, const
 
 	if ( GetScript(name, code)) {
 		lua_State *L = luaL_newstate();
-        if (L) {
-            luaL_openmini(L);
-            ret = lua_runscript(L, code.c_str(), fname, argc, argv);
-            lua_close(L);
-        }
+		if (L) {
+			luaL_openmini(L);
+			ret = lua_runscript(L, code.c_str(), fname, argc, argv);
+			lua_close(L);
+		}
 	}
 
 	return ret;
@@ -283,7 +283,7 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 	json_t *params = json_geto(js, "parameters");
 
 	if (params) {
-		int count = json_array_size(params);
+		size_t count = json_array_size(params);
 		for (int i = 0; i < count; i++) {
 			json_t *value = json_array_get(params, i);
 
@@ -291,7 +291,7 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 				AddParams(json_string_value(value));
 			else if (json_is_integer(value)) {
 				char buf[128];
-				sprintf(buf, "%d", json_integer_value(value));
+				sprintf(buf, "%lld", json_integer_value(value));
 
 				AddParams(buf);
 			}

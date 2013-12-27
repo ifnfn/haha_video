@@ -24,6 +24,7 @@
 #include "script.hpp"
 
 #include "http.hpp"
+#include "Resource.hpp"
 
 #if TEST
 #define SERVER_HOST "192.168.56.1"
@@ -57,7 +58,7 @@ static string chipKey(void)
 	return "000001";
 }
 
-#if 0
+#if 1
 string MD5STR(const char *data)
 {
 	MD5_CTX ctx;
@@ -103,7 +104,7 @@ static char *GetIP(const char *host)
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_CANONNAME | AI_NUMERICHOST;
-//	hints.ai_protocol = IPPROTO_TCP;
+	//	hints.ai_protocol = IPPROTO_TCP;
 
 	sprintf(serv, "%d", PORT);
 	if( (n = getaddrinfo(host, "80", NULL, &res)) != 0)
@@ -123,7 +124,7 @@ static char *GetIP(const char *host)
 					(char *) &((struct sockaddr_in *) res->ai_addr)->sin_addr :
 					(char *) &((struct sockaddr_in6 *) res->ai_addr)->sin6_addr);
 			inet_ntop(res->ai_family, res->ai_addr, str, sizeof(str));
-//			break;
+			//			break;
 		}
 
 		close(sockfd);
@@ -228,57 +229,6 @@ static string gzip_base64(const char *data, size_t ndata)
 	return ret;
 }
 
-Picture::Picture(string fileName)
-{
-	data           = NULL;
-	size           = 0;
-	inCache        = false;
-	used           = false;
-	this->fileName = fileName;
-	http     = NULL;
-}
-
-Picture::Picture()
-{
-	data     = NULL;
-	size     = 0;
-	inCache  = false;
-	fileName = "";
-	used     = false;
-	http     = NULL;
-}
-
-Picture::~Picture()
-{
-	Wait();
-	if (data) {
-		data = NULL;
-	}
-	size = 0;
-	if (http)
-		delete http;
-}
-
-void Picture::Cancel()
-{
-	if (http)
-		http->Cancel();
-}
-
-void Picture::Run()
-{
-	if (inCache == true)
-		return;
-
-	if (http == NULL)
-		http = new Http();
-	if (http && http->Get(fileName.c_str()) != NULL) {
-		size = http->buffer.size;
-		data = http->buffer.mem;
-		inCache = true;
-	}
-}
-
 void *kola_login_thread(void *arg);
 
 KolaClient::KolaClient(void)
@@ -302,6 +252,7 @@ KolaClient::KolaClient(void)
 	debug = 0;
 
 	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
+	resManager = new CResourceManager(1024 * 10240);
 
 	pthread_mutex_init(&lock, NULL);
 	Login(true);
@@ -321,6 +272,7 @@ KolaClient::~KolaClient(void)
 	ClearMenu();
 	Quit();
 	delete threadPool;
+	delete resManager;
 
 	HttpCleanup();
 }
@@ -412,7 +364,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 			pcre.ClearRules();
 		}
 
-//		text = pcre.MatchAll(text.c_str());
+		//		text = pcre.MatchAll(text.c_str());
 	}
 
 	json_t *json_filter = json_geto(cmd, "json");
@@ -652,10 +604,10 @@ time_t KolaClient::GetTime()
 
 string KolaClient::GetFullUrl(string url)
 {
-    if (!url.empty() && url.at(0) != '/')
-        return baseUrl + '/' + url;
-    else
-        return baseUrl + url;
+	if (!url.empty() && url.at(0) != '/')
+		return baseUrl + '/' + url;
+	else
+		return baseUrl + url;
 	//url = uri_join(home_url, url.c_str());
 	//url = uriJoin(home_url, url);
 }

@@ -176,11 +176,11 @@ string LuaScript::RunScript(int argc, const char **argv, const char *name, const
 
 	if ( GetScript(name, code)) {
 		lua_State *L = luaL_newstate();
-        if (L) {
-            luaL_openmini(L);
-            ret = lua_runscript(L, code.c_str(), fname, argc, argv);
-            lua_close(L);
-        }
+		if (L) {
+			luaL_openmini(L);
+			ret = lua_runscript(L, code.c_str(), fname, argc, argv);
+			lua_close(L);
+		}
 	}
 
 	return ret;

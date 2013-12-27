@@ -14,8 +14,6 @@ using namespace std;
 
 string UrlEncode(const string& url);
 string UrlDecode(const string& sIn);
-void HttpInit();
-void HttpCleanup();
 
 class HttpBuffer {
 	public:

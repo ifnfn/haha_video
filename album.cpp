@@ -6,6 +6,7 @@
 #include "resource.hpp"
 
 #define VIDEO_COUNT 8
+
 KolaAlbum::KolaAlbum(json_t *js)
 {
 	directVideos = false;
@@ -48,7 +49,7 @@ size_t KolaAlbum::GetVideoCount()
 		videoPageId = -1;
 	}
 
-       return updateSet;
+	return updateSet;
 }
 
 bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
@@ -143,7 +144,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 		videoListUrl = json_deep_copy(sub);
 
 	//categories = json_gets(js, "categories", "");
-//	cout << "KolaAlbum:" << albumName << endl;
+	//	cout << "KolaAlbum:" << albumName << endl;
 
 	sub = json_geto(js, "sources");
 	if (sub) {
@@ -172,10 +173,10 @@ KolaVideo *KolaAlbum::GetVideo(size_t id)
 	return NULL;
 }
 
-string& KolaAlbum::GetPictureUrl(enum PicType type)
+string &KolaAlbum::GetPictureUrl(enum PicType type)
 {
 	string &fileName = this->smallPicUrl;
-    
+
 	switch (type){
 		case PIC_LARGE:
 			fileName = this->largePicUrl; break;
@@ -192,17 +193,17 @@ string& KolaAlbum::GetPictureUrl(enum PicType type)
 		default:
 			break;
 	}
-    
+
     return fileName;
 }
 
 bool KolaAlbum::GetPictureFile(CFileResource& picture, enum PicType type)
 {
 	string &fileName = GetPictureUrl(type);
-    
+
     if (not fileName.empty()) {
         KolaClient &kola = KolaClient::Instance();
-        return kola.resManager->GetFile(picture, fileName);         
+        return kola.resManager->GetFile(picture, fileName);
     }
 
 	return false;
@@ -211,7 +212,7 @@ bool KolaAlbum::GetPictureFile(CFileResource& picture, enum PicType type)
 AlbumPage::AlbumPage()
 {
 	pageId = -1;
-    pictureCount = 0;
+	pictureCount = 0;
 }
 
 AlbumPage::~AlbumPage(void)
@@ -221,17 +222,17 @@ AlbumPage::~AlbumPage(void)
 
 size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
-    pictureCount = 0;
+	pictureCount = 0;
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &fileName = (*it)->GetPictureUrl(type);
-        if (not fileName.empty()) {
-            KolaClient &kola = KolaClient::Instance();
-            kola.resManager->AddResource(fileName.c_str());
-            pictureCount++;
-        }
+		if (not fileName.empty()) {
+			KolaClient &kola = KolaClient::Instance();
+			kola.resManager->AddResource(fileName.c_str());
+			pictureCount++;
+		}
 	}
-    
-    return pictureCount;
+
+	return pictureCount;
 }
 
 void AlbumPage::PutAlbum(KolaAlbum *album)

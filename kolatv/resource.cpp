@@ -21,7 +21,7 @@ CResource::~CResource()
 void CResource::Load(const string &url)
 {
 	resName = url;
-	md5Name = "/tmp/" + MD5STR(resName.c_str());
+	md5Name = "/tmp/" + MD5STR(resName.c_str()) + ".jpg";
 }
 
 void CResource::Run(void)
@@ -81,9 +81,6 @@ std::string& CFileResource::GetName() {
 
 CResourceManager::CResourceManager(size_t memory) : MaxMemory(memory), UseMemory(0)
 {
-	//    pthread_mutexattr_t attr;
-	//    pthread_mutexattr_init(&attr);
-	//    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
 	pthread_mutex_init(&lock, NULL);
 }
 

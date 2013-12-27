@@ -2,7 +2,7 @@ extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
-LUALIB_API int luaopen_kola(lua_State *L);
+	LUALIB_API int luaopen_kola(lua_State *L);
 }
 
 #include <stdio.h>
@@ -18,7 +18,6 @@ LUALIB_API int luaopen_kola(lua_State *L);
 
 static int f_mwget(lua_State *L)
 {
-//	int argc = lua_gettop(L);
 	double k;
 	const char *v = NULL;
 	vector<Http*> taskList;

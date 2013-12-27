@@ -134,18 +134,18 @@ class Task {
 };
 
 class CFileResource {
-public:
-    CFileResource() : res(NULL), used(false) {}
-    ~CFileResource();
-    
-    CResource *GetResource(CResourceManager *manage, const string &url);
-    std::string& GetName();
-    size_t GetSize();
-    void Clear();
-    bool used;
-private:
-    CResource *res;
-    std::string FileName;
+	public:
+		CFileResource() : res(NULL), used(false) {}
+		~CFileResource();
+
+		CResource *GetResource(CResourceManager *manage, const string &url);
+		std::string& GetName();
+		size_t GetSize();
+		void Clear();
+		bool used;
+	private:
+		CResource *res;
+		std::string FileName;
 };
 
 class EPG {
@@ -290,7 +290,7 @@ class KolaAlbum {
 		size_t GetTotalSet();
 		size_t GetVideoCount();
 		bool GetPictureFile(CFileResource& picture, enum PicType type);
-        string& GetPictureUrl(enum PicType type);
+		string &GetPictureUrl(enum PicType type);
 		KolaVideo *GetVideo(size_t id);
 	private:
 		void VideosClear();
@@ -333,13 +333,13 @@ class AlbumPage {
 		void PutAlbum(KolaAlbum *album);
 
 		size_t Count() { return albumList.size();}
-        size_t PictureCount() { return pictureCount; }
+		size_t PictureCount() { return pictureCount; }
 
 		void Clear();
 		int pageId;
 	private:
 		vector<KolaAlbum*> albumList;
-        size_t pictureCount;
+		size_t pictureCount;
 };
 
 class KolaMenu {
@@ -437,7 +437,7 @@ class KolaClient {
 		time_t GetTime();
 		KolaInfo& GetInfo();
 		int debug;
-        CResourceManager *resManager;
+		CResourceManager *resManager;
 	private:
 		KolaClient(void);
 		string baseUrl;

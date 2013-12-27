@@ -9,7 +9,7 @@
 #include "jansson.h"
 
 extern "C" {
-	#include "lua.h"
+#include "lua.h"
 }
 
 using namespace std;

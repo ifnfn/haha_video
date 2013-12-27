@@ -4,7 +4,7 @@
 import re
 import time, sys, traceback
 import tornado.escape
-#from bs4 import BeautifulSoup as bs
+from bs4 import BeautifulSoup as bs
 from xml.etree import ElementTree
 
 from engine import VideoEngine, KolaParser
@@ -159,6 +159,37 @@ class ParserAlbumXml(KolaParser):
 
         db.SaveAlbum(album, upsert=True)
 
+class ParserAlbumJsonAVList(KolaParser):
+    def __init__(self, albumid=None, tvid=None, albumUrl=None):
+        super().__init__()
+        if albumid and tvid and albumUrl:
+            self.cmd['source']  = 'http://cache.video.qiyi.com/avlist/%s/' % albumid
+            self.cmd['albumid'] = albumid
+            self.cmd['tvid'] = tvid
+            self.cmd['aurl'] = albumUrl
+
+    def CmdParser(self, js):
+        text = re.findall('videoListC=([\s\S]*)', js['data'])
+        if text:
+            text = text[0]
+        json = tornado.escape.json_decode(text)
+        if json['code'] != 'A00000':
+            ParserAlbumPage(js['aurl']).Execute()
+            return
+
+        #album = js['albumid']
+        tvid = js['tvid']
+        videoid = ''
+
+        for v in json['data']['vlist']:
+            videoid = v['vid']
+            break
+
+        if videoid and tvid:
+            ParserAlbumJson(tvid, videoid).Execute()
+            #ParserAlbumXml('http://cache.video.qiyi.com/v/%s' % videoid).Execute()
+
+
 class ParserAlbumJsonA(KolaParser):
     def __init__(self, albumid=None, tvid=None, videoid=None, ar=None, tg=None):
         super().__init__()
@@ -236,10 +267,10 @@ class ParserAlbumJsonA(KolaParser):
 
 # 补充地区与类型
 class ParserAlbumJson(KolaParser):
-    def __init__(self, url=None):
+    def __init__(self, tvid=None, videoid=None):
         super().__init__()
-        if url:
-            self.cmd['source'] = url
+        if tvid and videoid:
+            self.cmd['source'] = 'http://cache.video.qiyi.com/vi/%s/%s/' % (tvid, videoid)
 
     def CmdParser(self, js):
         json = tornado.escape.json_decode(js['data'])
@@ -270,7 +301,7 @@ class ParserAlbumPage(KolaParser):
 #            elif u[0] == 'albumid':
 #                albumid = u[1]
         if videoid and tvid:
-            ParserAlbumJson('http://cache.video.qiyi.com/vi/%s/%s/' % (tvid, videoid)).Execute()
+            ParserAlbumJson(tvid, videoid).Execute()
             #ParserAlbumXml('http://cache.video.qiyi.com/v/%s' % videoid).Execute()
 
 # 节目列表
@@ -279,8 +310,8 @@ class ParserAlbumList(KolaParser):
         super().__init__()
         if cid and page:
             self.cmd['source']  = 'http://list.iqiyi.com/www/%d/-6---------0--2-2-%d-1---.html' % (cid, page)
-            #self.cmd['regular'] = ['(<a  class="pic_list imgBg1"[\s\S]*?</a>)']
-            self.cmd['regular'] = ['class="imgBg1 pic_list" (href=".*")']
+            self.cmd['regular'] = ['(<a  class="pic_list imgBg1"[\s\S]*?</a>)']
+            #self.cmd['regular'] = ['class="imgBg1 pic_list" (href=".*")']
             #self.cmd['regular'] = ['(data-qidanadd-tvid=".*")']
             self.cmd['cid']     = cid
             self.cmd['page']    = page
@@ -288,19 +319,27 @@ class ParserAlbumList(KolaParser):
     def CmdParser(self, js):
         if not js['data']: return
 
-        #soup = bs(js['data'])  # , from_encoding = 'GBK')
-        #playlist = soup.findAll('a', { "class" : "pic_list imgBg1" })
-        playlist = js['data'].split()
+        soup = bs(js['data'])  # , from_encoding = 'GBK')
+        playlist = soup.findAll('a', { "class" : "pic_list imgBg1" })
+        #playlist = js['data'].split()
         for a in playlist:
             text = str(a)
 
             href = ''
+            albumid = ''
+            tvid = ''
             vlist = re.findall('(albumid|channelid|tvid|vip|href|title)="([\s\S]*?)"', text)
             for u in vlist:
                 if u[0] == 'href':
-                    href = autostr(u[1])
-            if href:
-                #ParserAlbumJsonA('http://cache.video.qiyi.com/a/%s' % href).Execute()
+                    href = u[1]
+                elif u[0] == 'albumid':
+                    albumid = u[1]
+                elif u[0] == 'tvid':
+                    tvid = u[1]
+
+            if tvid != albumid:
+                ParserAlbumJsonAVList(albumid, tvid, href).Execute()
+            elif href:
                 ParserAlbumPage(href).Execute()
 
         if len(playlist) > 0:
@@ -364,6 +403,7 @@ class QiyiEngine(VideoEngine):
             ParserAlbumPage(),
             ParserAlbumJson(),
             ParserAlbumJsonA(),
+            ParserAlbumJsonAVList(),
             ParserAlbumXml(),
         ]
 

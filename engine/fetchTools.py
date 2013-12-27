@@ -20,7 +20,7 @@ headers = {
     'Accept-Charset' : 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Keep-Alive'     : '115',
     'Connection'     : 'keep-alive',
- #   'Cache-Control'  : 'max-age=0'
+    'Cache-Control'  : 'max-age=0'
 }
 
 def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, referer=None, acceptencoding=None):
@@ -35,7 +35,8 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
 
     if method == 'POST':
         header['Content-Type'] = 'application/x-www-form-urlencoded'
-    conn = httplib2.Http('.cache', timeout=socket_timeout)
+    #conn = httplib2.Http('.cache', timeout=socket_timeout)
+    conn = httplib2.Http(timeout=socket_timeout)
     conn.follow_redirects = True
     response, responses = conn.request(uri=url, method=str(method).upper(), body=data,  headers=header)
     try:
@@ -59,7 +60,7 @@ def GetUrl(url, times = 0):
         return ''
     try:
         status, _, _, response = fetch_httplib2(url)
-        if status != '200':
+        if status != '200' and status != '304':
             print('status %s, try %d ...' % (status, times + 1))
             return GetUrl(url, times + 1)
         return response

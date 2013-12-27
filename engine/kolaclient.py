@@ -117,7 +117,7 @@ class KolaClient:
                     response = response.decode(coding)
                 cmd['data'] = response
             else:
-                print("[WARNING] Data is empty")
+                print("[WARNING] Data is empty", cmd['source'])
 
             body = json.dumps(cmd) #, ensure_ascii = False)
             ret = self.PostUrl(dest, body) != None

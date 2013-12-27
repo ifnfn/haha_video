@@ -26,6 +26,7 @@ ADD_GX_LIBRARY(kolatv
 	task.cpp
 	video.cpp
 	json.cpp
+	resource.cpp
 )
 
 SET(CMAKE_BUILD_TYPE "Debug")

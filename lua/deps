@@ -1,0 +1,132 @@
+objects/lapi.o: src/lapi.c
+	@echo "compiling [032m[gcc][0m":  src/lapi.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lcode.o: src/lcode.c
+	@echo "compiling [032m[gcc][0m":  src/lcode.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/ldo.o: src/ldo.c
+	@echo "compiling [032m[gcc][0m":  src/ldo.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lgc.o: src/lgc.c
+	@echo "compiling [032m[gcc][0m":  src/lgc.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/llex.o: src/llex.c
+	@echo "compiling [032m[gcc][0m":  src/llex.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/loadlib.o: src/loadlib.c
+	@echo "compiling [032m[gcc][0m":  src/loadlib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/loslib.o: src/loslib.c
+	@echo "compiling [032m[gcc][0m":  src/loslib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lstring.o: src/lstring.c
+	@echo "compiling [032m[gcc][0m":  src/lstring.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/ltablib.o: src/ltablib.c
+	@echo "compiling [032m[gcc][0m":  src/ltablib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lzio.o: src/lzio.c
+	@echo "compiling [032m[gcc][0m":  src/lzio.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lauxlib.o: src/lauxlib.c
+	@echo "compiling [032m[gcc][0m":  src/lauxlib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/ldblib.o: src/ldblib.c
+	@echo "compiling [032m[gcc][0m":  src/ldblib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/ldump.o: src/ldump.c
+	@echo "compiling [032m[gcc][0m":  src/ldump.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/linit.o: src/linit.c
+	@echo "compiling [032m[gcc][0m":  src/linit.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lmathlib.o: src/lmathlib.c
+	@echo "compiling [032m[gcc][0m":  src/lmathlib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lobject.o: src/lobject.c
+	@echo "compiling [032m[gcc][0m":  src/lobject.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lparser.o: src/lparser.c
+	@echo "compiling [032m[gcc][0m":  src/lparser.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lstrlib.o: src/lstrlib.c
+	@echo "compiling [032m[gcc][0m":  src/lstrlib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/ltm.o: src/ltm.c
+	@echo "compiling [032m[gcc][0m":  src/ltm.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lundump.o: src/lundump.c
+	@echo "compiling [032m[gcc][0m":  src/lundump.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lbaselib.o: src/lbaselib.c
+	@echo "compiling [032m[gcc][0m":  src/lbaselib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/ldebug.o: src/ldebug.c
+	@echo "compiling [032m[gcc][0m":  src/ldebug.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lfunc.o: src/lfunc.c
+	@echo "compiling [032m[gcc][0m":  src/lfunc.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/liolib.o: src/liolib.c
+	@echo "compiling [032m[gcc][0m":  src/liolib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lmem.o: src/lmem.c
+	@echo "compiling [032m[gcc][0m":  src/lmem.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lopcodes.o: src/lopcodes.c
+	@echo "compiling [032m[gcc][0m":  src/lopcodes.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lstate.o: src/lstate.c
+	@echo "compiling [032m[gcc][0m":  src/lstate.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/ltable.o: src/ltable.c
+	@echo "compiling [032m[gcc][0m":  src/ltable.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lvm.o: src/lvm.c
+	@echo "compiling [032m[gcc][0m":  src/lvm.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lbitlib.o: src/lbitlib.c
+	@echo "compiling [032m[gcc][0m":  src/lbitlib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lcorolib.o: src/lcorolib.c
+	@echo "compiling [032m[gcc][0m":  src/lcorolib.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lctype.o: src/lctype.c
+	@echo "compiling [032m[gcc][0m":  src/lctype.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lua_cjson.o: lua-cjson-xml/lua_cjson.c
+	@echo "compiling [032m[gcc][0m":  lua-cjson-xml/lua_cjson.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/strbuf.o: lua-cjson-xml/strbuf.c
+	@echo "compiling [032m[gcc][0m":  lua-cjson-xml/strbuf.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/fpconv.o: lua-cjson-xml/fpconv.c
+	@echo "compiling [032m[gcc][0m":  lua-cjson-xml/fpconv.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/lua_xml.o: lua-cjson-xml/lua_xml.c
+	@echo "compiling [032m[gcc][0m":  lua-cjson-xml/lua_xml.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/Lua-cURL-callback.o: lua-curl/src/Lua-cURL-callback.c
+	@echo "compiling [032m[gcc][0m":  lua-curl/src/Lua-cURL-callback.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/Lua-cURL-multi.o: lua-curl/src/Lua-cURL-multi.c
+	@echo "compiling [032m[gcc][0m":  lua-curl/src/Lua-cURL-multi.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/Lua-cURL-setopt.o: lua-curl/src/Lua-cURL-setopt.c
+	@echo "compiling [032m[gcc][0m":  lua-curl/src/Lua-cURL-setopt.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/Lua-cURL.o: lua-curl/src/Lua-cURL.c
+	@echo "compiling [032m[gcc][0m":  lua-curl/src/Lua-cURL.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/Lua-cURL-getinfo.o: lua-curl/src/Lua-cURL-getinfo.c
+	@echo "compiling [032m[gcc][0m":  lua-curl/src/Lua-cURL-getinfo.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/Lua-cURL-post.o: lua-curl/src/Lua-cURL-post.c
+	@echo "compiling [032m[gcc][0m":  lua-curl/src/Lua-cURL-post.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/Lua-cURL-share.o: lua-curl/src/Lua-cURL-share.c
+	@echo "compiling [032m[gcc][0m":  lua-curl/src/Lua-cURL-share.c
+	@gcc $(CFLAGS) -c -o $@ $^
+objects/Lua-utility.o: lua-curl/src/Lua-utility.c
+	@echo "compiling [032m[gcc][0m":  lua-curl/src/Lua-utility.c
+	@gcc $(CFLAGS) -c -o $@ $^

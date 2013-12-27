@@ -59,6 +59,7 @@
 		4473FEF4186C5AF300136610 /* task.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE86186C5AF300136610 /* task.cpp */; };
 		4473FEF5186C5AF300136610 /* threadpool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE87186C5AF300136610 /* threadpool.cpp */; };
 		4473FEF6186C5AF300136610 /* video.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE89186C5AF300136610 /* video.cpp */; };
+		44B49A49186D20AC0012D814 /* resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44B49A47186D20AC0012D814 /* resource.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -163,6 +164,8 @@
 		4473FE87186C5AF300136610 /* threadpool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = threadpool.cpp; path = ../threadpool.cpp; sourceTree = "<group>"; };
 		4473FE88186C5AF300136610 /* threadpool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = threadpool.hpp; path = ../threadpool.hpp; sourceTree = "<group>"; };
 		4473FE89186C5AF300136610 /* video.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = video.cpp; path = ../video.cpp; sourceTree = "<group>"; };
+		44B49A46186D1D4C0012D814 /* resource.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = resource.hpp; sourceTree = "<group>"; };
+		44B49A47186D20AC0012D814 /* resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = resource.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -219,6 +222,8 @@
 				4473FE88186C5AF300136610 /* threadpool.hpp */,
 				4473FE89186C5AF300136610 /* video.cpp */,
 				4473FDCD186C5ACA00136610 /* kolatv.1 */,
+				44B49A46186D1D4C0012D814 /* resource.hpp */,
+				44B49A47186D20AC0012D814 /* resource.cpp */,
 			);
 			path = kolatv;
 			sourceTree = "<group>";
@@ -375,6 +380,7 @@
 				4473FE8E186C5AF300136610 /* http.cpp in Sources */,
 				4473FED3186C5AF300136610 /* ldblib.c in Sources */,
 				4473FEEF186C5AF300136610 /* menu.cpp in Sources */,
+				44B49A49186D20AC0012D814 /* resource.cpp in Sources */,
 				4473FEEB186C5AF300136610 /* lzio.c in Sources */,
 				4473FEE6186C5AF300136610 /* ltable.c in Sources */,
 				4473FED6186C5AF300136610 /* ldump.c in Sources */,
@@ -568,6 +574,7 @@
 				4473FDD3186C5ACA00136610 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

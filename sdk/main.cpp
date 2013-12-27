@@ -4,12 +4,12 @@
 #include "kola.hpp"
 #include "resource.hpp"
 
-
-void test_resource()
+static void test_resource()
 {
 	const string f1("http://baike.baidu.com/view/1745213.htm");
 	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
 	KolaClient &kola = KolaClient::Instance();
+
 
 	CResourceManager *manage = kola.resManager;
 	manage->AddResource(f1);
@@ -18,25 +18,25 @@ void test_resource()
 	CFileResource pic;
 
 	manage->GetFile(pic, f1);
-	std::cout << pic.GetFileName() << std::endl;
+	std::cout << pic.GetName() << std::endl;
 
 	manage->GetFile(pic, f1);
-	std::cout << pic.GetFileName() << std::endl;
+	std::cout << pic.GetName() << std::endl;
 
 	manage->GetFile(pic, f2);
-	std::cout << pic.GetFileName() << std::endl;
+	std::cout << pic.GetName() << std::endl;
 
 	manage->GetFile(pic, f2);
-	std::cout << pic.GetFileName() << std::endl;
+	std::cout << pic.GetName() << std::endl;
 
 	manage->GetFile(pic, f2);
-	std::cout << pic.GetFileName() << std::endl;
+	std::cout << pic.GetName() << std::endl;
 
 	manage->GetFile(pic, f1);
-	std::cout << pic.GetFileName() << std::endl;
+	std::cout << pic.GetName() << std::endl;
 
 	manage->GetFile(pic, f1);
-	std::cout << pic.GetFileName() << std::endl;
+	std::cout << pic.GetName() << std::endl;
 }
 
 #if TEST
@@ -122,7 +122,6 @@ void test_livetv()
 	//	m->FilterAdd("PinYin", "zjw");
 	m->SetSort("Name", "1");
 	size_t count = m->GetAlbumCount();
-	int pos = 0;
 #if 1
 	for (size_t i=0; i < count; i++) {
 		KolaAlbum *album = m->GetAlbum(i);
@@ -221,10 +220,10 @@ void test_video(const char *menuName)
 		KolaAlbum *album = page.GetAlbum(i);
 		CFileResource picture;
 
-		if (kola.resManager->GetFile(picture, album->GetPictureUrl(PIC_LARGE)) == true) {
-			if (not picture.GetFileName().empty() && picture.used == false) {
+		if (album->GetPictureFile(picture, PIC_LARGE) == true) {
+			if (not picture.GetName().empty() && picture.used == false) {
 				printf("[%ld] %s: size=%ld\n", i,
-						picture.GetFileName().c_str(), 
+						picture.GetName().c_str(),
 						picture.GetSize());
 				picture.used = true;
 				count--;
@@ -238,22 +237,11 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	//    test_resource();
-
-	//    return 0;
 	KolaClient &kola = KolaClient::Instance();
 
 	KolaInfo& info = kola.GetInfo();
 	cout << info.Resolution.ToString() << endl;
 	cout << info.VideoSource.ToString() << endl;
-
-#if 0
-	while(1) {
-		printf("%d\n", kola.GetTime());
-
-		sleep(1);
-	}
-#endif
 
 	//while (true)
 	{
@@ -261,20 +249,21 @@ int main(int argc, char **argv)
 		cout << kola.GetTime() << endl;
 	}
 
-	//	test_script();
-	//	return 0;
-	//	test_custommenu();
-	//	return 0;
-	//	printf("Test LiveTV\n"); test_livetv();
-	//	return 0;
+	//test_resource();
+	//return 0;
+	//test_script();
+	//return 0;
+	//test_custommenu();
+	//return 0;
+	//printf("Test LiveTV\n"); test_livetv();
+	//return 0;
 
 	printf("Test Video\n"); test_video("电影");
+	printf("Test TV\n");    test_video("电视剧");
+	//while (true) {
+	//	sleep(1);
+	//}
 
-	//	printf("Test TV\n");    test_video("电视剧");
-	//    while (true) {
-	//        sleep(1);
-	//    }
-	//
-	//	printf("end\n");
-	//	test_task(); return 0;
+	//printf("end\n");
+	//test_task(); return 0;
 }

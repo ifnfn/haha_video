@@ -41,7 +41,7 @@ KolaMenu::KolaMenu(json_t *js)
 			string list;
 			json_array_foreach(values, v)
 				list = list + json_string_value(v) + ",";
-			//			printf("%s: %s\n", key, list.c_str());
+//			printf("%s: %s\n", key, list.c_str());
 			this->Filter.filterKey.insert(pair<string, FilterValue>(key, FilterValue(list)));
 		}
 	}
@@ -198,7 +198,7 @@ string KolaMenu::GetPostData()
 	}
 
 	body = body + "}";
-	//	cout << "Filter Body: " << body << endl;
+//	cout << "Filter Body: " << body << endl;
 
 	return body;
 }

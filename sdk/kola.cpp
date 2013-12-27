@@ -236,8 +236,6 @@ KolaClient::KolaClient(void)
 	signal(SIGPIPE, SIG_IGN);
 	char buffer[512];
 
-	HttpInit();
-
 	char *ip = GetIP(SERVER_HOST);
 
 	if (ip) {
@@ -272,9 +270,7 @@ KolaClient::~KolaClient(void)
 	ClearMenu();
 	Quit();
 	delete threadPool;
-	delete resManager;
-
-	HttpCleanup();
+    delete resManager;
 }
 
 bool KolaClient::UrlGet(string url, string &ret)
@@ -364,7 +360,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 			pcre.ClearRules();
 		}
 
-		//		text = pcre.MatchAll(text.c_str());
+		//text = pcre.MatchAll(text.c_str());
 	}
 
 	json_t *json_filter = json_geto(cmd, "json");

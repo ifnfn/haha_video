@@ -18,7 +18,6 @@ extern "C" {
 
 static int f_mwget(lua_State *L)
 {
-	//	int argc = lua_gettop(L);
 	double k;
 	const char *v = NULL;
 	vector<Http*> taskList;

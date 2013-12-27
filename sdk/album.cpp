@@ -6,6 +6,7 @@
 #include "resource.hpp"
 
 #define VIDEO_COUNT 8
+
 KolaAlbum::KolaAlbum(json_t *js)
 {
 	directVideos = false;
@@ -193,7 +194,19 @@ string &KolaAlbum::GetPictureUrl(enum PicType type)
 			break;
 	}
 
-	return fileName;
+    return fileName;
+}
+
+bool KolaAlbum::GetPictureFile(CFileResource& picture, enum PicType type)
+{
+	string &fileName = GetPictureUrl(type);
+
+    if (not fileName.empty()) {
+        KolaClient &kola = KolaClient::Instance();
+        return kola.resManager->GetFile(picture, fileName);
+    }
+
+	return false;
 }
 
 AlbumPage::AlbumPage()

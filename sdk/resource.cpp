@@ -1,11 +1,3 @@
-//
-//  cref.cpp
-//  kolatv
-//
-//  Created by Silicon on 13-12-27.
-//  Copyright (c) 2013年 Silicon. All rights reserved.
-//
-
 #include "resource.hpp"
 
 extern string MD5STR(const char *data);
@@ -21,7 +13,7 @@ CResource::~CResource()
 void CResource::Load(const string &url)
 {
 	resName = url;
-	md5Name = "/tmp/" + MD5STR(resName.c_str());
+	md5Name = "/tmp/" + MD5STR(resName.c_str()) + ".jpg";
 }
 
 void CResource::Run(void)
@@ -41,6 +33,7 @@ void CResource::Run(void)
 		}
 	}
 	delete http;
+
 	http = NULL;
 }
 
@@ -75,15 +68,12 @@ CResource *CFileResource::GetResource(CResourceManager *manage, const string &ur
 	return res;
 }
 
-std::string& CFileResource::GetFileName() {
+std::string& CFileResource::GetName() {
 	return FileName;
 }
 
 CResourceManager::CResourceManager(size_t memory) : MaxMemory(memory), UseMemory(0)
 {
-	//    pthread_mutexattr_t attr;
-	//    pthread_mutexattr_init(&attr);
-	//    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
 	pthread_mutex_init(&lock, NULL);
 }
 

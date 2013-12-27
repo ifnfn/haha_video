@@ -15,8 +15,8 @@ using namespace std;
 
 #define foreach(container,i) \
 	for(bool __foreach_ctrl__=true;__foreach_ctrl__;)\
-for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
-for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
+	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
+	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 #define DEFAULT_PAGE_SIZE 20
 
@@ -139,7 +139,7 @@ class CFileResource {
 		~CFileResource();
 
 		CResource *GetResource(CResourceManager *manage, const string &url);
-		std::string& GetFileName();
+		std::string& GetName();
 		size_t GetSize();
 		void Clear();
 		bool used;
@@ -147,7 +147,6 @@ class CFileResource {
 		CResource *res;
 		std::string FileName;
 };
-
 
 class EPG {
 	public:
@@ -290,6 +289,7 @@ class KolaAlbum {
 
 		size_t GetTotalSet();
 		size_t GetVideoCount();
+		bool GetPictureFile(CFileResource& picture, enum PicType type);
 		string &GetPictureUrl(enum PicType type);
 		KolaVideo *GetVideo(size_t id);
 	private:

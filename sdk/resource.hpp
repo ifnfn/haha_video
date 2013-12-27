@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <list>
 #include <string>
+
 #include "http.hpp"
 #include "kola.hpp"
 
@@ -70,15 +71,15 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 		const std::string &GetFileName() {return md5Name;}
 		size_t GetSize() const { return miDataSize; }
 
-		bool operator()(const CResource* t1, const CResource* t2){  
+		bool operator()(const CResource* t1, const CResource* t2){
 			int x = t1->GetRefCount() - t2->GetRefCount();
 			if (x == 0)
 				return t2->GetSize() - t1->GetSize();
 
 			return x;
-		}  
+		}
 
-		bool operator < (const CResource& ti) const {  
+		bool operator < (const CResource& ti) const {
 			int x = GetRefCount() - ti.GetRefCount();
 			if (x == 0)
 				return ti.GetSize() - GetSize();

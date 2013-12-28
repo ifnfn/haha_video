@@ -1,10 +1,25 @@
 #include <iostream>
 #include <unistd.h>
 
+#include "http.hpp"
 #include "kola.hpp"
 #include "resource.hpp"
 
-static void test_resource()
+void test_http()
+{
+    MultiHttp task;
+    Http http1("http://git.nationalchip.com/C-SKY-linux-3.0.8-20121214-CK610.tar.gz");
+    Http http2("http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz");
+    task.Add(&http1);
+    task.Add(&http2);
+    task.Start();
+    sleep(1);
+    task.Remove(&http2);
+    
+    task.Wait();
+}
+
+void test_resource(void)
 {
 	const string f1("http://baike.baidu.com/view/1745213.htm");
 	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
@@ -97,7 +112,6 @@ void test_custommenu()
 
 void test_livetv()
 {
-	AlbumPage page;
 	KolaMenu* m = NULL;
 
 	KolaClient &kola = KolaClient::Instance();
@@ -163,7 +177,6 @@ void test_livetv()
 
 void test_video(const char *menuName)
 {
-	AlbumPage page;
 	KolaMenu* m = NULL;
 
 	KolaClient &kola = KolaClient::Instance();
@@ -185,10 +198,16 @@ void test_video(const char *menuName)
 	//m->SetSort("评分最高");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
-	m->SetPageSize(100);
+	m->SetPageSize(4);
 
-	m->GetPage(page, 0);
-	page.CachePicture(PIC_LARGE);
+    AlbumPage &page = m->GetPage(0);
+    while (1) {
+        page = m->GetPage();
+		printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
+    }
+//    page = m->GetPage(1);
+//    page = m->GetPage();
+//    page = m->GetPage(4);
 
 #if 0
 	for (int i = 0; i < page.Count(); i++) {
@@ -237,6 +256,9 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
+    test_http();
+    
+    return 0;
 	KolaClient &kola = KolaClient::Instance();
 
 	KolaInfo& info = kola.GetInfo();

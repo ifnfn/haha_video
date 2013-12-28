@@ -38,7 +38,7 @@
 #define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE 16
+#define MAX_THREAD_POOL_SIZE 1
 #define TRY_TIMES 3
 
 static string loginKey;

@@ -40,6 +40,7 @@ void Task::Start() {
 	}
 
 	SetStatus(Task::StatusWait);
+    cancel = false;
 	client->threadPool->AddTask(this);
 }
 

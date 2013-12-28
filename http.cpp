@@ -114,8 +114,8 @@ class Curl {
 				curl_easy_setopt(curl, CURLOPT_TIMEOUT          , 5);
 				curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT   , 5);
 				curl_easy_setopt(curl, CURLOPT_USERAGENT        , "KolaClient");
-				curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
-				curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
+//				curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
+//				curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
 				if (curlinfo->features & CURL_VERSION_LIBZ)
 					curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING , "gzip,deflate");
 
@@ -163,8 +163,10 @@ Http::Http(const char *url)
 
 Http::~Http()
 {
-	if (curl)
+	if (curl) {
 		curl_easy_cleanup(curl);
+        curl = NULL;
+    }
 }
 
 void Http::SetCookie(const char *cookie)
@@ -259,30 +261,34 @@ void MultiHttp::Add(Http *http)
 
 void MultiHttp::Remove(Http *http)
 {
+    http->Cancel();
 	curl_multi_remove_handle(multi_handle, http->curl);
-	for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
+	for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end();) {
 		if (*it == http) {
-			httpList.erase(it);
+			httpList.erase(it++);
 			break;
 		}
+        else
+            it++;
 	}
 }
 
-void MultiHttp::Run()
+void MultiHttp::Exec()
 {
-	CURLMsg *msg;  /*  for picking up messages with the transfer status */
-	int msgs_left; /*  how many messages are left */
+    fd_set fdread;
+    fd_set fdwrite;
+    fd_set fdexcep;
+    struct timeval timeout;
 
 	/*  we start some action by calling perform right away */
 	curl_multi_perform(multi_handle, &still_running);
 
 	do {
-		struct timeval timeout;
+		/*  set a suitable timeout to play around with */
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
 		int rc; /*  select() return code */
 
-		fd_set fdread;
-		fd_set fdwrite;
-		fd_set fdexcep;
 		int maxfd = -1;
 
 		long curl_timeo = -1;
@@ -291,9 +297,6 @@ void MultiHttp::Run()
 		FD_ZERO(&fdwrite);
 		FD_ZERO(&fdexcep);
 
-		/*  set a suitable timeout to play around with */
-		timeout.tv_sec = 1;
-		timeout.tv_usec = 0;
 
 		curl_multi_timeout(multi_handle, &curl_timeo);
 		if(curl_timeo >= 0) {
@@ -315,35 +318,40 @@ void MultiHttp::Run()
 
 		rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
 
-		switch(rc) {
-			case -1:
-				/*  select error */
-				break;
-			case 0: /*  timeout */
-			default: /*  action */
-				curl_multi_perform(multi_handle, &still_running);
-				break;
-		}
+        while( curl_multi_perform(multi_handle, &still_running ) == CURLM_CALL_MULTI_PERFORM ) {
+            // DEBUG( "Exec(): %i transfers still running.\n", still_running );
+        }
+
+        /* Get any responses from libcurl */
+        CURLMsg *msg;  /*  for picking up messages with the transfer status */
+        int msgs_left; /*  how many messages are left */
+        
+        while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
+            if (msg->msg == CURLMSG_DONE) {
+                Http* http;
+                
+                curl_easy_getinfo( msg->easy_handle, CURLINFO_PRIVATE, (char**)&http );
+                
+                long code;
+                curl_easy_getinfo( msg->easy_handle, CURLINFO_RESPONSE_CODE, &code );
+                http->status = code;
+                
+                int found = 0;
+
+                /*  Find out which handle this message is about */
+                for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
+                    Http *http = *it;
+
+                    found = msg->easy_handle == http->curl;
+
+                    if(found) {
+                        http->msg = msg->msg;
+                        break;
+                    }
+                }
+
+                curl_multi_remove_handle( multi_handle, msg->easy_handle);
+            }
+        }
 	} while(still_running);
-
-	/*  See how the transfers went */
-	while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
-		if (msg->msg == CURLMSG_DONE) {
-			int found = 0;
-
-			/*  Find out which handle this message is about */
-			for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
-				Http *http = *it;
-
-				found = msg->easy_handle == http->curl;
-
-				if(found) {
-					http->msg = msg->msg;
-					break;
-				}
-			}
-
-			curl_multi_remove_handle( multi_handle, msg->easy_handle);
-		}
-	}
 }

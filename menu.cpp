@@ -4,33 +4,30 @@
 #include "kola.hpp"
 #include "http.hpp"
 
-KolaMenu::KolaMenu() {
+void KolaMenu::init()
+{
 	cid = -1;
 	PageId = -1;
 	Language = "zh";
 	PageSize = DEFAULT_PAGE_SIZE;
 	albumCount = 0;
-
+    
 	prev = &page[0];
 	cur = &page[1];
 	next = &page[2];
-
+    for (int i=0; i < PAGE_CACHE; i++)
+        page[i].SetMenu(this);
+    id = 0;
 	client = &KolaClient::Instance();
 }
 
 KolaMenu::KolaMenu(json_t *js)
 {
 	json_t *sub;
-	PageSize   = DEFAULT_PAGE_SIZE;
-	PageId     = -1;
-	albumCount = 0;
-	prev = &page[0];
-	cur  = &page[1];
-	next = &page[2];
+    init();
+    
 	cid        = json_geti(js, "cid" , -1);
 	json_gets(js, "name", name);
-
-	client = &KolaClient::Instance();
 
 	sub = json_geto(js, "filter");
 	if (sub) {
@@ -203,7 +200,26 @@ string KolaMenu::GetPostData()
 	return body;
 }
 
-int KolaMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
+int KolaMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
+{
+	char url[256];
+	string text;
+
+	string body = GetPostData();
+    page->Clear();
+
+	if (name.empty() or cid == -1)
+		return 0;
+
+	sprintf(url, "/video/list?page=%ld&size=%ld&cid=%ld", pageId, pageSize, cid);
+	if (client->UrlPost(url, body.c_str(), text) == true) {
+		return ParserJson(page, text);
+	}
+
+	return 0;
+}
+
+int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageSize)
 {
 	char url[256];
 	string text;
@@ -213,7 +229,7 @@ int KolaMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(url, "/video/list?page=%d&size=%d&cid=%ld", pageId, pageSize, cid);
+	sprintf(url, "/video/list?&size=%ld&cid=%ld&key=%s&value=%s", pageSize, cid, key.c_str(), value.c_str());
 	if (client->UrlPost(url, body.c_str(), text) == true) {
 		page->Clear();
 		return ParserJson(page, text);
@@ -222,90 +238,68 @@ int KolaMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 	return 0;
 }
 
-int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, int pageSize)
+AlbumPage &KolaMenu::GetPage(int pageNo)
 {
-	char url[256];
-	string text;
+    int x;
+    if (pageNo == -1) {// 下一页
+        PageId++;
+    }
+    else
+        PageId = pageNo;
 
-	string body = GetPostData();
-
-	if (name.empty() or cid == -1)
-		return 0;
-
-	sprintf(url, "/video/list?&size=%d&cid=%ld&key=%s&value=%s", pageSize, cid, key.c_str(), value.c_str());
-	if (client->UrlPost(url, body.c_str(), text) == true) {
-		page->Clear();
-		return ParserJson(page, text);
-	}
-
-	return 0;
+    x = PageId % PAGE_CACHE;
+    
+    if (page[x].pageId != PageId) {
+        page[x].pageId = PageId;
+        page[x].Start();
+    }
+    page[x].Wait();
+    
+    return page[x];
 }
 
-int KolaMenu::GetPage(AlbumPage &page, int pageNo)
+int KolaMenu::PageRotate(int direction) // <0 向上转，>0 向下转
 {
-	if (pageNo == -1)
-		PageId++;
-	else
-		PageId = pageNo;
-
-	return LowGetPage(&page, PageId, PageSize);
-}
-
-void KolaMenu::CleanPage()
-{
-	prev->Clear();
-	cur->Clear();
-	next->Clear();
+    if (direction < 0) {
+        id--;
+    }
+    else if (direction > 0) {
+        id++;
+    }
+    
+    id = id % PAGE_CACHE;
+//    page[id % 3];
+    return id % 3;
 }
 
 KolaAlbum* KolaMenu::GetAlbum(size_t position)
 {
 	int page = (int)(position / PageSize);
 	if (cur->pageId != page) {
-		if (cur->pageId + 1 == page) {  // 下一页
-			AlbumPage *tmp = prev;
-			prev = cur;
-			cur = next;
-			next = tmp;
-		}
-		else if (cur->pageId - 1 == page) { // 向上一页
-			AlbumPage *tmp = next;
-			next = cur;
-			cur = prev;
-			prev = tmp;
-		}
-		else  // 不在三页中
+		if (cur->pageId + 1 == page) // 下一页
+            PageRotate(1);
+		else if (cur->pageId - 1 == page) // 向上一页
+            PageRotate(-1);
+		else { // 不在三页中
 			CleanPage();
-		cur->Clear();
-		LowGetPage(cur, page, PageSize);
-#if 0
-		if (next->pageId == page) {
-			AlbumPage *tmp = prev;
-			prev = cur;
-			cur = next;
-			next = tmp;
-			next->Clear();
-			LowGetPage(next, page + 1, PageSize);
-		}
-		else if (prev->pageId == page) {
-			AlbumPage *tmp = next;
-			next = cur;
-			cur = prev;
-			prev = tmp;
-			prev->Clear();
-			LowGetPage(prev, page - 1, PageSize);
-		}
-		else {
-			CleanPage();
-			if (page > 0)
-				LowGetPage(prev, page - 1, PageSize);
-			LowGetPage(cur, page, PageSize);
-			LowGetPage(next, page + 1, PageSize);
-		}
-#endif
+            cur->pageId = page;
+            cur->Start();
+        }
+        cur->Wait();
+//		LowGetPage(cur, page, PageSize);
 	}
 
 	return cur->GetAlbum(position % PageSize);
+}
+
+void KolaMenu::CleanPage()
+{
+	prev->Wait();
+	prev->Clear();
+	cur->Wait();
+	cur->Clear();
+	next->Wait();
+	next->Clear();
 }
 
 CustomMenu::CustomMenu(string fileName)
@@ -353,7 +347,7 @@ bool CustomMenu::SaveToFile(string otherFile)
 		return albumIdList.SaveToFile(fileName);
 }
 
-int CustomMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
+int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 {
 	string text;
 	//int pos = pageId * pageSize;
@@ -365,7 +359,7 @@ int CustomMenu::LowGetPage(AlbumPage *page, int pageId, int pageSize)
 		string url;
 		string body = GetPostData();
 
-		sprintf(buf, "video/list?page=%d&size=%d&vid=", pageId, pageSize);
+		sprintf(buf, "video/list?page=%ld&size=%ld&vid=", pageId, pageSize);
 
 		text = UrlEncode(text);
 		url = buf + text;

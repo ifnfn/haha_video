@@ -18,8 +18,9 @@ using namespace std;
 	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
 	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
-#define DEFAULT_PAGE_SIZE 20
+#define DEFAULT_PAGE_SIZE 4
 
+#define PAGE_CACHE 8
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
@@ -108,7 +109,7 @@ class Task {
 		void Start();
 
 		virtual void Cancel();
-		virtual void Run(void)     {}
+		virtual void Run(void){}
 
 		void SetStatus(int st) { status = st; }
 		int  GetStatus() {return status; }
@@ -323,29 +324,33 @@ class KolaAlbum {
 		friend class CustomMenu;
 };
 
-class AlbumPage {
+class AlbumPage: public Task{
 	public:
 		AlbumPage();
 		~AlbumPage(void);
-		size_t CachePicture(enum PicType type);             // 将图片加至线程队列，后台下载
+		size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
 		KolaAlbum* GetAlbum(size_t index);
 
 		void PutAlbum(KolaAlbum *album);
+		virtual void Run(void);
 
 		size_t Count() { return albumList.size();}
 		size_t PictureCount() { return pictureCount; }
 
+		void SetMenu(KolaMenu *m) {
+				menu = m;
+		}
 		void Clear();
 		int pageId;
 	private:
 		vector<KolaAlbum*> albumList;
 		size_t pictureCount;
+		KolaMenu *menu;
 };
 
 class KolaMenu {
 	public:
-		KolaMenu(void);
-		KolaMenu(json_t *js);
+		KolaMenu(json_t *js=NULL);
 		virtual ~KolaMenu(void) {}
 
 		size_t     cid;
@@ -360,7 +365,7 @@ class KolaMenu {
 		void   SetSort(string v, string s);
 
 		void   SetLanguage(string lang);
-		int    GetPage(AlbumPage &page, int pageNo = -1);
+		AlbumPage &GetPage(int pageNo = -1);
 		bool   SetQuickFilter(string);
 		void   SetPageSize(int size);
 		size_t GetPageSize() { return PageSize;}
@@ -381,11 +386,15 @@ class KolaMenu {
 		string GetPostData();
 		void CleanPage();
 
-		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
-		virtual int LowGetPage(AlbumPage *page, string key, string value, int pageSize);
+		virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
+		virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 	private:
-		AlbumPage page[3];
+		void init();
+		int PageRotate(int direction); // <0 向上转，>0 向下转
+        int id;
+		AlbumPage page[PAGE_CACHE];
 		AlbumPage *prev, *cur, *next;
+		friend class AlbumPage;
 };
 
 class CustomMenu: public KolaMenu {
@@ -398,7 +407,7 @@ class CustomMenu: public KolaMenu {
 		bool SaveToFile(string otherFile = "");
 		virtual size_t GetAlbumCount();
 	protected:
-		virtual int LowGetPage(AlbumPage *page, int pageId, int pageSize);
+		virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
 	private:
 		StringList albumIdList;
 		string fileName;

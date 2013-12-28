@@ -18,8 +18,10 @@ KolaAlbum::KolaAlbum(json_t *js)
 
 KolaAlbum::~KolaAlbum() {
 	VideosClear();
-	if (videoListUrl)
+	if (videoListUrl) {
 		json_delete(videoListUrl);
+        videoListUrl = NULL;
+    }
 }
 
 void KolaAlbum::VideosClear() {
@@ -143,9 +145,6 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 	if (sub)
 		videoListUrl = json_deep_copy(sub);
 
-	//categories = json_gets(js, "categories", "");
-	//	cout << "KolaAlbum:" << albumName << endl;
-
 	sub = json_geto(js, "sources");
 	if (sub) {
 		json_t *v;
@@ -213,11 +212,20 @@ AlbumPage::AlbumPage()
 {
 	pageId = -1;
 	pictureCount = 0;
+    menu = NULL;
 }
 
 AlbumPage::~AlbumPage(void)
 {
 	Clear();
+}
+
+void AlbumPage::Run(void)
+{
+    if (menu && pageId >= 0) {
+        menu->LowGetPage(this, pageId, menu->GetPageSize());
+//        CachePicture(PIC_LARGE);
+    }
 }
 
 size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载

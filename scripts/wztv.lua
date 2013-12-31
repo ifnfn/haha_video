@@ -1,16 +1,18 @@
 function kola_main(url, id)
 	local text = kola.wget(url)
-	text = kola.pcre("streamer\' : '(.*)'\\+\\_info.source,", text)
 	if text ~= nil then
+		text = kola.pcre("streamer\' : '(.*)'\\+\\_info.source,", text)
 		return string.sub(text, 1, -2) .. id
 	end
 
 	return ""
 end
 
-
 function get_channel(vid)
 	local text = kola.wget(vid)
+	if text == nil then
+		return '{}'
+	end
 	text = kola.pcre("var _info = {'id':'(\\d*)','source':'(.*)','date':'(.*)'}", text)
 
 	ret = {}

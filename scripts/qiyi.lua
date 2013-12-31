@@ -42,6 +42,9 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 		local text = kola.wget(url)
 
 		text = kola.pcre("var videoListC=([\\s\\S]*)", text)
+		if text == nil then
+			return '{}'
+		end
 
 		local js = cjson.decode(text)
 		if js.code ~= 'A00000' then
@@ -124,6 +127,10 @@ function get_resolution(tvid, vid)
 	local text = kola.wget(url)
 
 	text = kola.pcre("var ipadUrl=([\\s\\S]*)", text)
+	if text == nil then
+		return '{}'
+	end
+
 	local js = cjson.decode(text)
 
 	if js.code ~= 'A00000' then

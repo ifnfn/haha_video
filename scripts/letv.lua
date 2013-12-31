@@ -22,28 +22,42 @@ function get_videolist(pid, vid, pageNo, pageSize)
 		local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
 		local text = kola.wget(url)
 		--print(url)
+		if text == nil then
+			return '{}'
+		end
 
 		text = kola.pcre("<playurl><!\\[CDATA(.*)\\]></playurl>", text)
+
+		if text == nil then
+			return '{}'
+		end
+
 		local js = cjson.decode(text)
 		--print(text)
 
 		local ret = {}
-		--ret.totalSet   = js.totalSets
-		ret.updateSet  = js.total
+		--ret.totalSet = js.totalSets
+		ret.updateSet = js.total
 		return cjson.encode(rx)
 	end
 
 	local ret = {}
 
 	if tonumber(pageNo) == 0 and tonumber(pageSize) == 0 then
-		ret = get_album_set(vid)
-		return cjson.encode(ret)
+		return get_album_set(vid)
 	end
 
 	local url = string.format('http://app.letv.com/ajax/getFocusVideo.php?p=1&top=0&max=1000&pid=%s', pid)
 	local text = kola.wget(url)
+	if text == nil then
+		return '{}'
+	end
 
 	text = string.sub(text, 2, -2)
+
+	if text == nil then
+		return '{}'
+	end
 
 	ret.size = 0
 	local videos = {}
@@ -109,6 +123,11 @@ function get_resolution(vid)
 
 	text = kola.pcre("<playurl>(.*)</playurl>", text)
 	text = kola.pcre("<!\\[CDATA(.*)\\]>", text)
+
+	if text == nil then
+		return '{}'
+	end
+
 	--print(text)
 	local js = cjson.decode(text)
 

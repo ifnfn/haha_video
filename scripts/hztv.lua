@@ -67,6 +67,9 @@ function get_channel(vid)
 
 	local ret = {}
 	text = kola.wget(url)
+	if text == nil then
+		return '{}'
+	end
 	x = xml.eval(text)
 	v= find(x, "program", "item")
 	for k, b in pairs(v) do

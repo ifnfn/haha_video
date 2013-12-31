@@ -6,7 +6,6 @@ function get_video_url(vid, cid)
 	end
 
 	local text = kola.wget(url)
-
 	if text == nil then
 		return ""
 	end
@@ -31,8 +30,10 @@ function get_video_url(vid, cid)
 	end
 
 	x = kola.mwget(urls)
-	for i, url in pairs(x) do
-		ret.sets[i].url = url
+	if x ~= nil then
+		for i, url in pairs(x) do
+			ret.sets[i].url = url
+		end
 	end
 
 	ret.totalBytes    = data.totalBytes
@@ -74,6 +75,9 @@ function get_resolution(vid, cid)
 	end
 
 	local text = kola.wget(url)
+	if text == nil then
+		return '{}'
+	end
 	local js = cjson.decode(text).data
 
 	local ret = {}

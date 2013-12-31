@@ -1,15 +1,20 @@
 function kola_main(url, cid)
 	local text = kola.wget(url)
 
+	if text == nil then
+		return ""
+	end
 	local ret = {}
 	local js = cjson.decode(text)
 	local live = js.data.live
 
 	text = kola.wget(live)
-	js = cjson.decode(text)
+	if text ~= nil then
+		js = cjson.decode(text)
 
-	if js.msg == "OK" then
-		return js.url
+		if js.msg == "OK" then
+			return js.url
+		end
 	end
 
 	return ""

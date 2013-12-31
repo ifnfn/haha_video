@@ -18,23 +18,20 @@ void CResource::Load(const string &url)
 
 void CResource::Run(void)
 {
-	http = new Http();
-	if (http->Get(resName.c_str()) != NULL) {
-		miDataSize = http->buffer.size;
+	Http http;
+	if (http.Get(resName.c_str()) != NULL) {
+		miDataSize = http.buffer.size;
 		if (miDataSize > 0 && manager) {
 			manager->GC(miDataSize);
 			manager->MemoryInc(miDataSize);
 
 			FILE *fp = fopen(md5Name.c_str(), "wb");
 			if (fp){
-				fwrite(http->buffer.mem, 1, http->buffer.size, fp);
+				fwrite(http.buffer.mem, 1, http.buffer.size, fp);
 				fclose(fp);
 			}
 		}
 	}
-	delete http;
-
-	http = NULL;
 }
 
 CFileResource::~CFileResource()
@@ -165,7 +162,7 @@ bool CResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	for (; it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
 
-		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
+		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == CTask::StatusFinish) {// 无人使用
 			pRet->DecRefCount();
 			mResources.erase(it++);
 		}

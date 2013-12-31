@@ -28,6 +28,7 @@ string UrlEncode(const string & sIn)
 		}
 		sOut += (char *)buf;
 	}
+
 	return sOut;
 }
 
@@ -74,6 +75,7 @@ HttpBuffer::HttpBuffer(HttpBuffer &buf)
 size_t HttpBuffer::write(void *ptr, size_t s, size_t nmemb)
 {
 	size_t realsize = s * nmemb;
+
 	mem = (char*)curlRealloc(mem, size + realsize + 1);
 	if (mem) {
 		memcpy( &(mem[size]), ptr, realsize );
@@ -150,12 +152,15 @@ Http::Http(const char *url)
 	download_cancel = 0;
 	msg = CURLMSG_NONE;
 
+	if (url)
+		this->url = url;
 	curl = Curlx.GetCurl(url);
 
 	if ( curl) {
 		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION   , curlWriteCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA       , (void*)this);
+		curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
 	}
 	else
 		syslog(LOG_ERR, "wget: cant initialize curl!");
@@ -181,8 +186,10 @@ void Http::SetReferer(const char *referer)
 
 void Http::Set(const char *url, const char *cookie, const char *referer)
 {
-	if (url && strlen(url) > 0)
+	if (url && strlen(url) > 0) {
+		this->url = url;
 		SetOpt(CURLOPT_URL, url);
+	}
 
 	SetCookie(cookie);
 	SetReferer(referer);
@@ -192,6 +199,7 @@ size_t Http::curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	struct Http *http = (Http*)data;
 
+	//    printf("%s: %ld, %ld\n", http->url.c_str(), size * nmemb, http->buffer.size);
 	if (http->download_cancel == 1)
 		return 0;
 
@@ -248,54 +256,45 @@ MultiHttp::MultiHttp()
 MultiHttp::~MultiHttp()
 {
 	curl_multi_cleanup(multi_handle);
-	httpList.clear();
 }
 
 void MultiHttp::Add(Http *http)
 {
+	mutex.lock();
 	curl_multi_add_handle(multi_handle, http->curl);
-	httpList.push_back(http);
+	mutex.unlock();
 }
 
 void MultiHttp::Remove(Http *http)
 {
+	mutex.lock();
 	curl_multi_remove_handle(multi_handle, http->curl);
-	for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
-		if (*it == http) {
-			httpList.erase(it);
-			break;
-		}
-	}
+	mutex.unlock();
 }
 
-void MultiHttp::Run()
+void MultiHttp::Exec()
 {
 	CURLMsg *msg;  /*  for picking up messages with the transfer status */
 	int msgs_left; /*  how many messages are left */
+	fd_set fdread;
+	fd_set fdwrite;
+	fd_set fdexcep;
+	struct timeval timeout;
 
-	/*  we start some action by calling perform right away */
-	curl_multi_perform(multi_handle, &still_running);
-
-	do {
-		struct timeval timeout;
-		int rc; /*  select() return code */
-
-		fd_set fdread;
-		fd_set fdwrite;
-		fd_set fdexcep;
+	while (1) {
 		int maxfd = -1;
-
 		long curl_timeo = -1;
 
 		FD_ZERO(&fdread);
 		FD_ZERO(&fdwrite);
 		FD_ZERO(&fdexcep);
+		mutex.lock();
+		curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
 
-		/*  set a suitable timeout to play around with */
-		timeout.tv_sec = 1;
+		timeout.tv_sec = 3;
 		timeout.tv_usec = 0;
-
 		curl_multi_timeout(multi_handle, &curl_timeo);
+
 		if(curl_timeo >= 0) {
 			timeout.tv_sec = curl_timeo / 1000;
 			if(timeout.tv_sec > 1)
@@ -303,47 +302,41 @@ void MultiHttp::Run()
 			else
 				timeout.tv_usec = (curl_timeo % 1000) * 1000;
 		}
+		//        mutex.unlock();
 
-		/*  get file descriptors from the transfers */
-		curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+		int rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
 
-		/*  In a real-world program you OF COURSE check the return code of the
-		 *  function calls.  On success, the value of maxfd is guaranteed to be
-		 *  greater or equal than -1.  We call select(maxfd + 1, ...), specially in
-		 *  case of (maxfd == -1), we call select(0, ...), which is basically equal
-		 *  to sleep. */
-
-		rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
-
-		switch(rc) {
-			case -1:
-				/*  select error */
-				break;
-			case 0: /*  timeout */
-			default: /*  action */
-				curl_multi_perform(multi_handle, &still_running);
-				break;
+		if (rc < 0) {
+			mutex.lock();
+			continue;
 		}
-	} while(still_running);
 
-	/*  See how the transfers went */
-	while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
-		if (msg->msg == CURLMSG_DONE) {
-			int found = 0;
+		while( curl_multi_perform( multi_handle, &still_running ) == CURLM_CALL_MULTI_PERFORM ) {
+			// DEBUG( "TransferThread::Run(): %i transfers still running.\n", nRunning );
+		}
 
-			/*  Find out which handle this message is about */
-			for (deque<Http*>::iterator it = httpList.begin(); it != httpList.end(); it++) {
-				Http *http = *it;
+		if (still_running == 0)
+			break;
 
-				found = msg->easy_handle == http->curl;
+		/*  See how the transfers went */
+		while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
+			if (msg->msg == CURLMSG_DONE) {
+				Http* http = NULL;
+				long ncode;
 
-				if(found) {
+				curl_easy_getinfo( msg->easy_handle, CURLINFO_PRIVATE, (char**)&http );
+				curl_easy_getinfo( msg->easy_handle, CURLINFO_RESPONSE_CODE, &ncode );
+
+				if (http) {
+					http->status = ncode;
 					http->msg = msg->msg;
-					break;
 				}
-			}
 
-			curl_multi_remove_handle( multi_handle, msg->easy_handle);
+				curl_multi_remove_handle( multi_handle, msg->easy_handle);
+			}
+			else
+				printf("TransferThread: Got unknown message code %i from curl_multi_info_read()!\n", msg->msg);
 		}
+		mutex.unlock();
 	}
 }

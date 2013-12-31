@@ -1,10 +1,34 @@
 #include <iostream>
 #include <unistd.h>
 
+#include "http.hpp"
 #include "kola.hpp"
 #include "resource.hpp"
 
-static void test_resource()
+void test_http()
+{
+	int count = 0;
+	MultiHttp task;
+	task.Start();
+	const string f1("http://baike.baidu.com/view/1745213.htm");
+	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
+	const char *s1 = "http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz";
+	const char *s2 = "http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz";
+	while (1) {
+		Http http1(s1);
+		Http http2(s2);
+		task.Add(&http1);
+		task.Add(&http2);
+		sleep(3);
+		task.Remove(&http2);
+		task.Remove(&http1);
+		printf("%d", count++);
+	}
+
+	task.Wait();
+}
+
+void test_resource(void)
 {
 	const string f1("http://baike.baidu.com/view/1745213.htm");
 	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
@@ -49,20 +73,6 @@ void test_script()
 	string ret = lua.RunScript(1, argv, "letv");
 }
 
-void test_task()
-{
-	int c = 100;
-	vector<Task*> tasks;
-	for (int i=0; i < c; i ++)
-		tasks.push_back(new Task());
-	for (int i=0; i < c; i ++)
-		tasks[i]->Start();
-	for (int i=0; i <c ; i++) {
-		delete tasks[i];
-	}
-	//	tasks.clear();
-	printf("end\n");
-}
 #endif
 
 void test_custommenu()
@@ -97,7 +107,6 @@ void test_custommenu()
 
 void test_livetv()
 {
-	AlbumPage page;
 	KolaMenu* m = NULL;
 
 	KolaClient &kola = KolaClient::Instance();
@@ -163,7 +172,6 @@ void test_livetv()
 
 void test_video(const char *menuName)
 {
-	AlbumPage page;
 	KolaMenu* m = NULL;
 
 	KolaClient &kola = KolaClient::Instance();
@@ -185,11 +193,27 @@ void test_video(const char *menuName)
 	//m->SetSort("评分最高");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
-	m->SetPageSize(100);
+	m->SetPageSize(40);
+	size_t count = m->GetAlbumCount();
+	while (1) {
+		AlbumPage &page = m->GetPage();
+		printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
+		size_t x = page.Count();
 
-	m->GetPage(page, 0);
-	page.CachePicture(PIC_LARGE);
+		if (page.Count() == 0)
+			break;
+		for (int i=0; i < x; i++) {
+			KolaAlbum *album = page.GetAlbum(i);
+			if (album)
+				std::cout << album->albumName << std::endl;
+		}
 
+	}
+	for (int i=0; i < count; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album)
+			std::cout << album->albumName << std::endl;
+	}
 #if 0
 	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
@@ -213,9 +237,9 @@ void test_video(const char *menuName)
 		}
 	}
 #endif
+#if 0
 	size_t count = page.PictureCount();
 	printf("Picture count %ld\n", count);
-#if 1
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		CFileResource picture;
@@ -237,6 +261,11 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
+	//test_http();
+	//return 0;
+
+	//    test_resource();
+	//	return 0;
 	KolaClient &kola = KolaClient::Instance();
 
 	KolaInfo& info = kola.GetInfo();
@@ -249,8 +278,6 @@ int main(int argc, char **argv)
 		cout << kola.GetTime() << endl;
 	}
 
-	//test_resource();
-	//return 0;
 	//test_script();
 	//return 0;
 	//test_custommenu();
@@ -260,9 +287,9 @@ int main(int argc, char **argv)
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");
-	//while (true) {
-	//	sleep(1);
-	//}
+	while (true) {
+		sleep(1);
+	}
 
 	//printf("end\n");
 	//test_task(); return 0;

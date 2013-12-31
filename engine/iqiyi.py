@@ -246,7 +246,7 @@ class ParserAlbumJsonA(KolaParser):
             if 'mainActors' in json: album.mainActors     = json['mainActors'] # 主演
             if 'actors' in json:     album.directors      = json['actors']     # 导演
 
-            album.totalPlayNum     = json['playCounts']                        # 总播放次数
+            album.totalPlayNum     = autoint(json['playCounts'])               # 总播放次数
             album.updateTime       = TimeStr(json['pubTime'])                  # 更新时间
 
             album.qiyi.vid     = js['videoid']

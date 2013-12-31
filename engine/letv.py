@@ -185,11 +185,11 @@ class ParserAlbumList(KolaParser):
                     album.totalSet = autoint(a['episodes'])           # 总集数
                 if 'nowEpisodes' in a:
                     album.updateSet = autoint(a['nowEpisodes'])       # 当前更新集
-                album.dailyPlayNum     = a['dayCount']                # 每日播放次数
-                album.weeklyPlayNum    = a['weekCount']               # 每周播放次数
-                album.monthlyPlayNum   = a['monthCount']              # 每月播放次数
-                album.totalPlayNum     = a['playCount']               # 总播放次数
-                album.dailyIndexScore  = a['rating']                  # 每日指数
+                album.dailyPlayNum     = autoint(a['dayCount'])       # 每日播放次数
+                album.weeklyPlayNum    = autoint(a['weekCount'])      # 每周播放次数
+                album.monthlyPlayNum   = autoint(a['monthCount'])     # 每月播放次数
+                album.totalPlayNum     = autoint(a['playCount'])      # 总播放次数
+                album.dailyIndexScore  = autoint(a['rating'])         # 每日指数
 
                 album.mainActors       = a['starring'].split(',')     # 主演
                 album.directors        = a['directory'].split(',')    # 导演

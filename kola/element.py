@@ -82,7 +82,7 @@ class TVMenu(db.VideoMenuBase):
             {'title' : '国内剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '内地' }      },
             {'title' : '日韩剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '韩剧,日剧' } },
             {'title' : '港台剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '港剧,台剧' } },
-            {'title' : '美剧新'  , 'sort' : '日播放最多', 'filter': {'地区' : '美剧' }     },
+            {'title' : '美剧'   , 'sort' : '日播放最多', 'filter': {'地区' : '美剧' }     },
         ]
 
 # 动漫

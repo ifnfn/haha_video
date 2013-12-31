@@ -83,7 +83,6 @@ const char *json_gets(json_t *js, const char *key, const char *def)
 	return def;
 }
 
-
 bool json_get_stringlist(json_t *js, const char *key, StringList *list)
 {
 	bool ret = false;

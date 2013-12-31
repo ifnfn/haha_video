@@ -321,15 +321,15 @@ class ParserAlbumScore(KolaParser):
                     return []
 
                 if 'dailyPlayNum' in index:
-                    album.dailyPlayNum    = index['dailyPlayNum']    # 每日播放次数
+                    album.dailyPlayNum    = autoint(index['dailyPlayNum'])    # 每日播放次数
                 if 'weeklyPlayNum' in index:
-                    album.weeklyPlayNum   = index['weeklyPlayNum']   # 每周播放次数
+                    album.weeklyPlayNum   = autoint(index['weeklyPlayNum'])   # 每周播放次数
                 if 'monthlyPlayNum' in index:
-                    album.monthlyPlayNum  = index['monthlyPlayNum']  # 每月播放次数
+                    album.monthlyPlayNum  = autoint(index['monthlyPlayNum'])  # 每月播放次数
                 if 'totalPlayNum' in index:
-                    album.totalPlayNum    = index['totalPlayNum']    # 总播放资料
+                    album.totalPlayNum    = autoint(index['totalPlayNum'])    # 总播放资料
                 if 'dailyIndexScore' in index:
-                    album.dailyIndexScore = index['dailyIndexScore'] # 每日指数
+                    album.dailyIndexScore = autoint(index['dailyIndexScore']) # 每日指数
 
                 db.SaveAlbum(album, upsert=False)
 

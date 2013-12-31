@@ -38,7 +38,7 @@
 #define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE 16
+#define MAX_THREAD_POOL_SIZE 8
 #define TRY_TIMES 3
 
 static string loginKey;
@@ -87,7 +87,7 @@ static char *GetIP(const char *hostp)
 
 	inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
 
-//	freehostent(host);
+	//	freehostent(host);
 	return strdup(str);
 }
 
@@ -201,7 +201,7 @@ KolaClient::KolaClient(void)
 	havecmd = true;
 	debug = 0;
 
-	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
+	threadPool = new CThreadPool(MAX_THREAD_POOL_SIZE);
 	resManager = new CResourceManager(1024 * 10240);
 
 	pthread_mutex_init(&lock, NULL);
@@ -222,7 +222,7 @@ KolaClient::~KolaClient(void)
 	ClearMenu();
 	Quit();
 	delete threadPool;
-    delete resManager;
+	delete resManager;
 }
 
 bool KolaClient::UrlGet(string url, string &ret)

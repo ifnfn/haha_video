@@ -49,7 +49,7 @@ class CRefCountable {
 		int miRefCount;
 };
 
-class CResource : public virtual CRefCountable, public virtual IDestructable, public Task {
+class CResource : public virtual CRefCountable, public virtual IDestructable, public CTask {
 	public:
 		CResource(CResourceManager *manage=NULL) {
 			manager = manage;

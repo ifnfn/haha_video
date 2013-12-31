@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <lua.hpp>
+#include <signal.h>
 
 extern "C" {
 	int luaopen_kola(lua_State *L);

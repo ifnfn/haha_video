@@ -24,7 +24,7 @@
 #include "script.hpp"
 
 #include "http.hpp"
-#include "Resource.hpp"
+#include "resource.hpp"
 
 #if TEST
 #define SERVER_HOST "192.168.56.1"
@@ -77,7 +77,6 @@ string MD5STR(const char *data)
 }
 #endif
 
-#if 1
 static char *GetIP(const char *hostp)
 {
 	char str[32];
@@ -88,56 +87,9 @@ static char *GetIP(const char *hostp)
 
 	inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
 
-	freehostent(host);
+//	freehostent(host);
 	return strdup(str);
 }
-
-#else
-static char *GetIP(const char *host)
-{
-	int        sockfd,n;
-	struct addrinfo hints, *res, *ressave;
-	char serv[64];
-	char str[32] = "";
-
-	bzero(&hints, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_CANONNAME | AI_NUMERICHOST;
-	//	hints.ai_protocol = IPPROTO_TCP;
-
-	sprintf(serv, "%d", PORT);
-	if( (n = getaddrinfo(host, "80", NULL, &res)) != 0)
-		printf("tcp_connect error for %s %s : %s\n",host,serv, gai_strerror(n));
-
-	printf("Hostname:\t%s\n", res->ai_canonname);
-	ressave = res;
-
-	do{
-		sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-		if(sockfd < 0)
-			continue;
-
-		if(connect(sockfd, res->ai_addr, res->ai_addrlen) == 0) {
-			const char *addr;
-			addr = (res->ai_family == AF_INET ?
-					(char *) &((struct sockaddr_in *) res->ai_addr)->sin_addr :
-					(char *) &((struct sockaddr_in6 *) res->ai_addr)->sin6_addr);
-			inet_ntop(res->ai_family, res->ai_addr, str, sizeof(str));
-			//			break;
-		}
-
-		close(sockfd);
-	}while( (res = res->ai_next) != NULL);
-
-	if(res == NULL)
-		printf("tcp_connect error for %s %s\n",host,serv);
-
-	freeaddrinfo(ressave);
-
-	return strdup(str);
-}
-#endif
 
 static char *ReadStringFile(FILE *fp)
 {

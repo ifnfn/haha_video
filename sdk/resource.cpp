@@ -19,6 +19,10 @@ void CResource::Load(const string &url)
 void CResource::Run(void)
 {
 	Http http;
+
+	if (status == CTask::StatusCancel)
+		return;
+
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		if (miDataSize > 0 && manager) {
@@ -152,12 +156,30 @@ void CResourceManager::MemoryDec(size_t size) {
 	UseMemory -= size;
 }
 
+static bool compare_nocase (const CResource* first, const CResource* second)
+{
+	int x = first->GetRefCount() - second->GetRefCount();
+	if (x == 0)
+		x = first->score - second->score;
+	if (x == 0)
+		return second->GetSize() - first->GetSize();
+
+	return x;
+}
+
 bool CResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	CResource* pRet = NULL;
+	bool ret = true;
 
 	Lock();
 
+	if (UseMemory + memsize <= MaxMemory) {
+		Unlock();
+		return ret;
+	}
+
+	mResources.sort(compare_nocase);
 	std::list<CResource*>::iterator it = mResources.begin();
 	for (; it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
@@ -169,7 +191,7 @@ bool CResourceManager::GC(size_t memsize) // 收回指定大小的内存
 		else
 			it++;
 	}
-	bool ret = UseMemory + memsize <= MaxMemory;
+	ret = UseMemory + memsize <= MaxMemory;
 	Unlock();
 
 	return ret;

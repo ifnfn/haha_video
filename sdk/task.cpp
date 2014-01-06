@@ -8,6 +8,7 @@
 CTask::CTask()
 {
 	_condvar = new ConditionVar();
+	status = StatusInit;
 }
 
 CTask::~CTask()
@@ -17,7 +18,7 @@ CTask::~CTask()
 
 void CTask::Wait() {
 	_condvar->lock();
-	if (status != StatusFinish) {
+	if (status != StatusFinish && status != StatusInit) {
 		_condvar->wait();
 		_condvar->unlock();
 	}
@@ -39,10 +40,12 @@ void CTask::operator()()
 	Wakeup();
 }
 
-void CTask::Start()
+void CTask::Start(bool priority)
 {
-	status = StatusDownloading;
-	KolaClient &client = KolaClient::Instance();
-	client.threadPool->addTask(this);
+	if (status == CTask::StatusInit) {
+		status = StatusDownloading;
+		KolaClient &client = KolaClient::Instance();
+		client.threadPool->addTask(this, priority);
+	}
 }
 

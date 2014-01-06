@@ -12,8 +12,7 @@
 #include <queue>
 #include "kola.hpp"
 
-class ConditionVar: public Mutex
-{
+class ConditionVar: public Mutex {
 	public:
 		ConditionVar(): Mutex() {
 			pthread_cond_init(&_cond, 0);
@@ -129,7 +128,7 @@ class CThreadPool {
 		CThreadPool(int num=0);
 		virtual ~CThreadPool();
 		bool init(size_t nbThread);
-		void addTask(CTask *task);
+		void addTask(CTask *task, bool priority=false);
 		void removeTask(CTask *task);
 	private:
 		void handleTask();

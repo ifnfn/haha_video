@@ -202,7 +202,7 @@ KolaClient::KolaClient(void)
 	debug = 0;
 
 	threadPool = new CThreadPool(MAX_THREAD_POOL_SIZE);
-	resManager = new CResourceManager(1024 * 10240);
+	resManager = new CResourceManager(1024 * 1024 * 2);
 
 	pthread_mutex_init(&lock, NULL);
 	Login(true);
@@ -516,6 +516,11 @@ KolaClient& KolaClient::Instance(const char *user_id)
 	static KolaClient m_kola;
 
 	return m_kola;
+}
+
+void KolaClient::SetPicutureCacheSize(size_t size)
+{
+	this->resManager->SetCacheSize(size);
 }
 
 string KolaClient::GetArea()

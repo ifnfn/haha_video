@@ -111,11 +111,14 @@ bool CThreadPool::init(size_t nbThread)
 	return true;
 }
 
-void CThreadPool::addTask(CTask *task)
+void CThreadPool::addTask(CTask *task, bool priority)
 {
 	if (task) {
 		_condvar.lock();
-		_tasksList.push_back(task);
+		if (priority)
+			_tasksList.push_front(task);
+		else
+			_tasksList.push_back(task);
 
 		_condvar.signal();
 		_condvar.unlock();
@@ -136,7 +139,6 @@ void CThreadPool::removeTask(CTask *task)
 		_condvar.unlock();
 	}
 }
-
 
 void CThreadPool::handleTask()
 {

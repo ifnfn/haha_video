@@ -201,7 +201,6 @@ int KolaMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 	string text;
 
 	string body = GetPostData();
-	page->Clear();
 
 	if (name.empty() or cid == -1)
 		return 0;
@@ -246,7 +245,7 @@ AlbumPage* KolaMenu::updateCache(int pos)
 {
 	int start = 0, end = 0;
 
-	if (pos == PageId)
+	if (cur && pos == cur->pageId)
 		return cur;
 	else if (pos > PageId) { // 向后
 		start = pos;
@@ -256,16 +255,25 @@ AlbumPage* KolaMenu::updateCache(int pos)
 		start = (int)pos - PAGE_CACHE / 2;
 		end = pos;
 	}
+	if (start < 0) start = 0;
 
 	PageId = pos;
 	cur = &pageCache[pos % PAGE_CACHE];
-	for (int i = start; i < end; i++) {
+
+	// 更新页中图片资源优先级
+	int x = pos % PAGE_CACHE;
+	for (int i = 0; i < PAGE_CACHE; i ++) {
+		pageCache[i].score = abs(i - x);
+		pageCache[i].UpdateCache();
+	}
+
+	for (int i = start; i <= end; i++) {
 		int x = i % PAGE_CACHE;
-		if (pageCache[x].pageId != pos) {
-			pageCache[x].pageId = pos;
-			pageCache[x].Start();
+		if (pageCache[x].pageId != i) {
+			pageCache[x].Clear();
+			pageCache[x].pageId = i;
+			pageCache[x].Start(true);
 		}
-		pos++;
 	}
 
 	cur->Wait();
@@ -282,7 +290,11 @@ KolaAlbum* KolaMenu::GetAlbum(size_t position)
 
 void KolaMenu::CleanPage()
 {
-	//	cur->Clear();
+	for (int i=0; i < PAGE_CACHE; i++) {
+		pageCache[i].Clear();
+	}
+	cur = NULL;
+	PageId = -1;
 }
 
 CustomMenu::CustomMenu(string fileName)

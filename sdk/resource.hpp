@@ -55,6 +55,7 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 			manager = manage;
 			miDataSize = 0;
 			http = NULL;
+			score = 0;
 		}
 		virtual ~CResource();
 		static CResource* Create(CResourceManager *manage) {
@@ -71,26 +72,13 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 		const std::string &GetFileName() {return md5Name;}
 		size_t GetSize() const { return miDataSize; }
 
-		bool operator()(const CResource* t1, const CResource* t2){
-			int x = t1->GetRefCount() - t2->GetRefCount();
-			if (x == 0)
-				return t2->GetSize() - t1->GetSize();
-
-			return x;
-		}
-
-		bool operator < (const CResource& ti) const {
-			int x = GetRefCount() - ti.GetRefCount();
-			if (x == 0)
-				return ti.GetSize() - GetSize();
-
-			return x;
-		}
 		virtual void Cancel() {
+			status = CTask::StatusCancel;
 			if (http)
 				http->Cancel();
 		}
 
+		int score;
 	protected:
 		size_t miDataSize;
 		std::string resName;
@@ -98,7 +86,6 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 		CResourceManager *manager;
 		Http *http;
 };
-
 
 class CResourceManager {
 	public:
@@ -108,19 +95,21 @@ class CResourceManager {
 		bool GetFile(CFileResource& picture, const string &url);
 		CResource* AddResource(const string &url);
 		CResource* GetResource(const string &url);
+		CResource* FindResource(const string &url);
 
 		bool GC(size_t mem); // 收回指定大小的内存
 		void MemoryInc(size_t size);
 		void MemoryDec(size_t size);
 		void Lock();
 		void Unlock();
+		void SetCacheSize(size_t size) {
+			MaxMemory = size;
+		}
 	protected:
-		CResource* FindResource(const string &url);
 		std::list<CResource*> mResources;
 		size_t MaxMemory;
 		size_t UseMemory;
 		pthread_mutex_t lock;
-
 };
 
 #endif

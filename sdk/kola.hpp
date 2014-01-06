@@ -44,6 +44,7 @@ enum PicType {
 	PIC_SMALL_HOR,
 	PIC_LARGE_VER,
 	PIC_SMALL_VER,
+	PIC_AUTO
 };
 
 class Mutex
@@ -63,24 +64,31 @@ class Mutex
 
 class CTask {
 	public:
-		enum {
+		enum TaskStatus {
 			StatusInit = 0,
-			StatusDownloading = 1,
-			StatusFinish = 2,
+			StatusCancel  = 1,
+			StatusDownloading = 2,
+			StatusFinish = 3,
 		};
 		CTask();
 		virtual ~CTask();
 		virtual void Run(void) = 0;
 		virtual void operator()();
+		virtual void Cancel(void) {
+			status = StatusCancel;
+		}
 		int  GetStatus() {return status; }
 
-		void Start();
+		void Start(bool priority=false);
 		void Wait();
 
+		void Clear() {
+			Wait();
+			status = StatusInit;
+		}
 		void Wakeup();
-
 	protected:
-		int status;
+		enum TaskStatus status;
 		ConditionVar *_condvar;
 };
 
@@ -271,6 +279,7 @@ class KolaAlbum {
 		KolaAlbum(json_t *js);
 		~KolaAlbum();
 
+		KolaMenu *menu;
 		string vid;
 		string albumName;
 		string albumDesc;
@@ -289,7 +298,7 @@ class KolaAlbum {
 		size_t GetTotalSet();
 		size_t GetVideoCount();
 		bool GetPictureFile(CFileResource& picture, enum PicType type);
-		string &GetPictureUrl(enum PicType type);
+		string &GetPictureUrl(enum PicType type=PIC_AUTO);
 		KolaVideo *GetVideo(size_t id);
 	private:
 		void VideosClear();
@@ -340,11 +349,14 @@ class AlbumPage: public CTask {
 
 		void Clear();
 		int pageId;
+		void UpdateCache();
+		int score;
 	private:
 		Mutex mutex;
 		vector<KolaAlbum*> albumList;
 		size_t pictureCount;
 		KolaMenu *menu;
+		enum PicType CachePcitureType;
 };
 
 class KolaMenu {
@@ -445,6 +457,7 @@ class KolaClient {
 		string GetArea();
 		time_t GetTime();
 		KolaInfo& GetInfo();
+		void SetPicutureCacheSize(size_t size);
 		int debug;
 		CResourceManager *resManager;
 		CThreadPool *threadPool;

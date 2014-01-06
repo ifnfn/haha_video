@@ -195,6 +195,7 @@ void test_video(const char *menuName)
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
 	size_t count = m->GetAlbumCount();
+	int c=0;
 	while (1) {
 		AlbumPage &page = m->GetPage();
 		printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
@@ -205,14 +206,19 @@ void test_video(const char *menuName)
 		for (int i=0; i < x; i++) {
 			KolaAlbum *album = page.GetAlbum(i);
 			if (album)
-				std::cout << album->albumName << std::endl;
+                printf("[%d][%d] %s\n", c, i, album->albumName.c_str());
 		}
 
+        c++;
+//        if (c++==10)
+//            break;
 	}
+	m->SetQuickFilter("热门电影");
+    count = m->GetAlbumCount();
 	for (int i=0; i < count; i++) {
 		KolaAlbum *album = m->GetAlbum(i);
 		if (album)
-			std::cout << album->albumName << std::endl;
+            printf("[%d] %s\n", i, album->albumName.c_str());
 	}
 #if 0
 	for (int i = 0; i < page.Count(); i++) {

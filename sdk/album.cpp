@@ -9,6 +9,7 @@
 
 KolaAlbum::KolaAlbum(json_t *js)
 {
+	menu = NULL;
 	directVideos = false;
 	videoPageSize = VIDEO_COUNT;
 	videoPageId = -1;
@@ -177,6 +178,9 @@ string &KolaAlbum::GetPictureUrl(enum PicType type)
 {
 	string &fileName = this->smallPicUrl;
 
+	if (type == PIC_AUTO && menu)
+		type = menu->PictureCacheType;
+
 	switch (type){
 		case PIC_LARGE:
 			fileName = this->largePicUrl; break;
@@ -214,6 +218,7 @@ AlbumPage::AlbumPage()
 	pageId = -1;
 	pictureCount = 0;
 	menu = NULL;
+	CachePcitureType = PIC_AUTO;
 }
 
 AlbumPage::~AlbumPage(void)
@@ -232,13 +237,20 @@ void AlbumPage::Run(void)
 size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
 	pictureCount = 0;
+	KolaClient &kola = KolaClient::Instance();
+
 	mutex.lock();
+	CachePcitureType = type;
 
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		string &fileName = (*it)->GetPictureUrl(type);
-		if (not fileName.empty()) {
-			KolaClient &kola = KolaClient::Instance();
-			kola.resManager->AddResource(fileName.c_str());
+		string &url = (*it)->GetPictureUrl(type);
+		if (not url.empty()) {
+			CResource *res = kola.resManager->GetResource(url);
+
+			if (res) {
+				res->score = score;
+				res->DecRefCount();
+			}
 			pictureCount++;
 		}
 	}
@@ -247,10 +259,28 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 	return pictureCount;
 }
 
+void AlbumPage::UpdateCache()
+{
+	KolaClient &kola = KolaClient::Instance();
+	mutex.lock();
+
+	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		string &url = (*it)->GetPictureUrl(CachePcitureType);
+		if (not url.empty()) {
+			CResource *res = kola.resManager->FindResource(url);
+			if (res) {
+				res->score = score;
+			}
+		}
+	}
+	mutex.unlock();
+}
+
 void AlbumPage::PutAlbum(KolaAlbum *album)
 {
 	mutex.lock();
 	if (album) {
+		album->menu = menu;
 		albumList.push_back(album);
 	}
 	mutex.unlock();
@@ -271,10 +301,22 @@ KolaAlbum* AlbumPage::GetAlbum(size_t index)
 
 void AlbumPage::Clear()
 {
+	KolaClient &kola = KolaClient::Instance();
+	CTask::Clear();
 	mutex.lock();
-	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++)
+	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		string &url = (*it)->GetPictureUrl(CachePcitureType);
+		if (not url.empty()) {
+			CResource *res = kola.resManager->FindResource(url);
+			if (res) {
+				res->score = 255;
+				res->Cancel();
+			}
+		}
 		delete (*it);
+	}
 
 	albumList.clear();
+	pageId = -1;
 	mutex.unlock();
 }

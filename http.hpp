@@ -11,6 +11,7 @@
 #include <deque>
 
 #include "kola.hpp"
+#include "threadpool.hpp"
 
 using namespace std;
 
@@ -58,6 +59,7 @@ class Http {
 		int download_cancel;
 		CURLMSG msg;
 		long status;
+		string url;
 	private:
 		CURL *curl;
 		char *curlGetCurlURL(int times=0);
@@ -66,22 +68,22 @@ class Http {
 		friend class MultiHttp;
 };
 
-class MultiHttp: public Task{
+class MultiHttp: public virtual CTask {
 	public:
 		MultiHttp();
 		~MultiHttp();
 		void Add(Http *http);
 		void Remove(Http *http);
-    virtual void Run(void) {
-        while (1) {
-            Exec();
-        }
-    }
-        void Exec();
+		virtual void Run(void) {
+			while (1) {
+				Exec();
+			}
+		}
+		void Exec();
 	private:
 		CURLM *multi_handle;
 		int still_running;
-		deque<Http*> httpList;
+		Mutex mutex;
 };
 
 #endif

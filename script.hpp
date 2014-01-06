@@ -6,11 +6,8 @@
 #include <map>
 #include <string>
 
+#include "lua.hpp"
 #include "jansson.h"
-
-extern "C" {
-#include "lua.h"
-}
 
 using namespace std;
 

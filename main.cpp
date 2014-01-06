@@ -7,16 +7,25 @@
 
 void test_http()
 {
-    MultiHttp task;
-    Http http1("http://git.nationalchip.com/C-SKY-linux-3.0.8-20121214-CK610.tar.gz");
-    Http http2("http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz");
-    task.Add(&http1);
-    task.Add(&http2);
-    task.Start();
-    sleep(1);
-    task.Remove(&http2);
-    
-    task.Wait();
+	int count = 0;
+	MultiHttp task;
+	task.Start();
+	const string f1("http://baike.baidu.com/view/1745213.htm");
+	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
+	const char *s1 = "http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz";
+	const char *s2 = "http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz";
+	while (1) {
+		Http http1(s1);
+		Http http2(s2);
+		task.Add(&http1);
+		task.Add(&http2);
+		sleep(3);
+		task.Remove(&http2);
+		task.Remove(&http1);
+		printf("%d", count++);
+	}
+
+	task.Wait();
 }
 
 void test_resource(void)
@@ -64,20 +73,6 @@ void test_script()
 	string ret = lua.RunScript(1, argv, "letv");
 }
 
-void test_task()
-{
-	int c = 100;
-	vector<Task*> tasks;
-	for (int i=0; i < c; i ++)
-		tasks.push_back(new Task());
-	for (int i=0; i < c; i ++)
-		tasks[i]->Start();
-	for (int i=0; i <c ; i++) {
-		delete tasks[i];
-	}
-	//	tasks.clear();
-	printf("end\n");
-}
 #endif
 
 void test_custommenu()
@@ -198,17 +193,33 @@ void test_video(const char *menuName)
 	//m->SetSort("评分最高");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
-	m->SetPageSize(4);
-
-    AlbumPage &page = m->GetPage(0);
-    while (1) {
-        page = m->GetPage();
+	m->SetPageSize(40);
+	size_t count = m->GetAlbumCount();
+	int c=0;
+	while (1) {
+		AlbumPage &page = m->GetPage();
 		printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
-    }
-//    page = m->GetPage(1);
-//    page = m->GetPage();
-//    page = m->GetPage(4);
+		size_t x = page.Count();
 
+		if (page.Count() == 0)
+			break;
+		for (int i=0; i < x; i++) {
+			KolaAlbum *album = page.GetAlbum(i);
+			if (album)
+                printf("[%d][%d] %s\n", c, i, album->albumName.c_str());
+		}
+
+        c++;
+//        if (c++==10)
+//            break;
+	}
+	m->SetQuickFilter("热门电影");
+    count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album)
+            printf("[%d] %s\n", i, album->albumName.c_str());
+	}
 #if 0
 	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
@@ -232,9 +243,9 @@ void test_video(const char *menuName)
 		}
 	}
 #endif
+#if 0
 	size_t count = page.PictureCount();
 	printf("Picture count %ld\n", count);
-#if 1
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		CFileResource picture;
@@ -256,9 +267,11 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-    test_http();
-    
-    return 0;
+	//test_http();
+	//return 0;
+
+	//    test_resource();
+	//	return 0;
 	KolaClient &kola = KolaClient::Instance();
 
 	KolaInfo& info = kola.GetInfo();
@@ -271,8 +284,6 @@ int main(int argc, char **argv)
 		cout << kola.GetTime() << endl;
 	}
 
-	//test_resource();
-	//return 0;
 	//test_script();
 	//return 0;
 	//test_custommenu();
@@ -282,9 +293,9 @@ int main(int argc, char **argv)
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");
-	//while (true) {
-	//	sleep(1);
-	//}
+	while (true) {
+		sleep(1);
+	}
 
 	//printf("end\n");
 	//test_task(); return 0;

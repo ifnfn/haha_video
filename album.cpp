@@ -9,6 +9,7 @@
 
 KolaAlbum::KolaAlbum(json_t *js)
 {
+	menu = NULL;
 	directVideos = false;
 	videoPageSize = VIDEO_COUNT;
 	videoPageId = -1;
@@ -18,17 +19,18 @@ KolaAlbum::KolaAlbum(json_t *js)
 
 KolaAlbum::~KolaAlbum() {
 	VideosClear();
-	if (videoListUrl) {
-		json_delete(videoListUrl);
-        videoListUrl = NULL;
-    }
 }
 
 void KolaAlbum::VideosClear() {
-	for (int i=(int)videos.size() - 1; i >= 0;i--)
-		delete videos[i];
+	size_t z = videoList.size();
+	for (int i=0; i < z; i++)
+		delete videoList[i];
 
-	videos.clear();
+	videoList.clear();
+	if (videoListUrl) {
+		json_delete(videoListUrl);
+		videoListUrl = NULL;
+	}
 }
 
 size_t KolaAlbum::GetTotalSet() {
@@ -92,7 +94,7 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 
 	videos = json_geto(js, "videos");
 	json_array_foreach(videos, v) {
-		this->videos.push_back(new KolaVideo(v));
+		this->videoList.push_back(new KolaVideo(v));
 	}
 
 	json_delete(js);
@@ -151,7 +153,7 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 		directVideos = true;
 		VideosClear();
 		json_array_foreach(sub, v) {
-			this->videos.push_back(new KolaVideo(v));
+			this->videoList.push_back(new KolaVideo(v));
 		}
 	}
 
@@ -166,8 +168,8 @@ KolaVideo *KolaAlbum::GetVideo(size_t id)
 	if (pageNo != videoPageId && directVideos == false)
 		LowVideoGetPage(pageNo, videoPageSize);
 
-	if (pos < videos.size())
-		return videos[pos];
+	if (pos < videoList.size())
+		return videoList[pos];
 
 	return NULL;
 }
@@ -175,6 +177,9 @@ KolaVideo *KolaAlbum::GetVideo(size_t id)
 string &KolaAlbum::GetPictureUrl(enum PicType type)
 {
 	string &fileName = this->smallPicUrl;
+
+	if (type == PIC_AUTO && menu)
+		type = menu->PictureCacheType;
 
 	switch (type){
 		case PIC_LARGE:
@@ -193,17 +198,17 @@ string &KolaAlbum::GetPictureUrl(enum PicType type)
 			break;
 	}
 
-    return fileName;
+	return fileName;
 }
 
 bool KolaAlbum::GetPictureFile(CFileResource& picture, enum PicType type)
 {
 	string &fileName = GetPictureUrl(type);
 
-    if (not fileName.empty()) {
-        KolaClient &kola = KolaClient::Instance();
-        return kola.resManager->GetFile(picture, fileName);
-    }
+	if (not fileName.empty()) {
+		KolaClient &kola = KolaClient::Instance();
+		return kola.resManager->GetFile(picture, fileName);
+	}
 
 	return false;
 }
@@ -212,7 +217,8 @@ AlbumPage::AlbumPage()
 {
 	pageId = -1;
 	pictureCount = 0;
-    menu = NULL;
+	menu = NULL;
+	CachePcitureType = PIC_AUTO;
 }
 
 AlbumPage::~AlbumPage(void)
@@ -222,49 +228,95 @@ AlbumPage::~AlbumPage(void)
 
 void AlbumPage::Run(void)
 {
-    if (menu && pageId >= 0) {
-        menu->LowGetPage(this, pageId, menu->GetPageSize());
-//        CachePicture(PIC_LARGE);
-    }
+	if (menu && pageId >= 0) {
+		menu->LowGetPage(this, pageId, menu->GetPageSize());
+		CachePicture(menu->PictureCacheType);
+	}
 }
 
 size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
 	pictureCount = 0;
+	KolaClient &kola = KolaClient::Instance();
+
+	mutex.lock();
+	CachePcitureType = type;
+
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		string &fileName = (*it)->GetPictureUrl(type);
-		if (not fileName.empty()) {
-			KolaClient &kola = KolaClient::Instance();
-			kola.resManager->AddResource(fileName.c_str());
+		string &url = (*it)->GetPictureUrl(type);
+		if (not url.empty()) {
+			CResource *res = kola.resManager->GetResource(url);
+
+			if (res) {
+				res->score = score;
+				res->DecRefCount();
+			}
 			pictureCount++;
 		}
 	}
+	mutex.unlock();
 
 	return pictureCount;
 }
 
+void AlbumPage::UpdateCache()
+{
+	KolaClient &kola = KolaClient::Instance();
+	mutex.lock();
+
+	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		string &url = (*it)->GetPictureUrl(CachePcitureType);
+		if (not url.empty()) {
+			CResource *res = kola.resManager->FindResource(url);
+			if (res) {
+				res->score = score;
+			}
+		}
+	}
+	mutex.unlock();
+}
+
 void AlbumPage::PutAlbum(KolaAlbum *album)
 {
+	mutex.lock();
 	if (album) {
+		album->menu = menu;
 		albumList.push_back(album);
 	}
+	mutex.unlock();
 }
 
 KolaAlbum* AlbumPage::GetAlbum(size_t index)
 {
-	if (index < albumList.size() )
-		return albumList.at(index);
+	KolaAlbum *album = NULL;
 
-	return NULL;
+	mutex.lock();
+	if (index < albumList.size() )
+		album = albumList.at(index);
+
+	mutex.unlock();
+
+	return album;
 }
 
 void AlbumPage::Clear()
 {
-	pageId = -1;
-
+	KolaClient &kola = KolaClient::Instance();
+	mutex.lock();
+	CTask::Clear();
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		string &url = (*it)->GetPictureUrl(CachePcitureType);
+		if (not url.empty()) {
+			CResource *res = kola.resManager->FindResource(url);
+			if (res) {
+				res->score = 255;
+				res->Cancel();
+			}
+		}
 		delete (*it);
 	}
 
 	albumList.clear();
+	pageId = -1;
+	mutex.unlock();
 }

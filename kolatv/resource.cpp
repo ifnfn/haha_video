@@ -1,11 +1,3 @@
-//
-//  cref.cpp
-//  kolatv
-//
-//  Created by Silicon on 13-12-27.
-//  Copyright (c) 2013年 Silicon. All rights reserved.
-//
-
 #include "resource.hpp"
 
 extern string MD5STR(const char *data);
@@ -26,7 +18,11 @@ void CResource::Load(const string &url)
 
 void CResource::Run(void)
 {
-    Http http;
+	Http http;
+
+	if (status == CTask::StatusCancel)
+		return;
+
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		if (miDataSize > 0 && manager) {
@@ -40,8 +36,6 @@ void CResource::Run(void)
 			}
 		}
 	}
-//	delete http;
-//	http = NULL;
 }
 
 CFileResource::~CFileResource()
@@ -162,24 +156,42 @@ void CResourceManager::MemoryDec(size_t size) {
 	UseMemory -= size;
 }
 
+static bool compare_nocase (const CResource* first, const CResource* second)
+{
+	int x = first->GetRefCount() - second->GetRefCount();
+	if (x == 0)
+		x = first->score - second->score;
+	if (x == 0)
+		return second->GetSize() - first->GetSize();
+
+	return x;
+}
+
 bool CResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	CResource* pRet = NULL;
+	bool ret = true;
 
 	Lock();
 
+	if (UseMemory + memsize <= MaxMemory) {
+		Unlock();
+		return ret;
+	}
+
+	mResources.sort(compare_nocase);
 	std::list<CResource*>::iterator it = mResources.begin();
 	for (; it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
 
-		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
+		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == CTask::StatusFinish) {// 无人使用
 			pRet->DecRefCount();
 			mResources.erase(it++);
 		}
 		else
 			it++;
 	}
-	bool ret = UseMemory + memsize <= MaxMemory;
+	ret = UseMemory + memsize <= MaxMemory;
 	Unlock();
 
 	return ret;

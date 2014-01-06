@@ -18,21 +18,22 @@ using namespace std;
 	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
 	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
-#define DEFAULT_PAGE_SIZE 4
+#define DEFAULT_PAGE_SIZE 20
+#define PAGE_CACHE 4
 
-#define PAGE_CACHE 8
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
 class CustomMenu;
 class KolaVideo;
 class AlbumPage;
-class ThreadPool;
-class Task;
+class CThreadPool;
+class CTask;
 class Http;
 class ScriptCommand;
 class CResource;
 class CResourceManager;
+class ConditionVar;
 
 extern void split(const string &s, string delim, vector< string > *ret);
 
@@ -43,6 +44,52 @@ enum PicType {
 	PIC_SMALL_HOR,
 	PIC_LARGE_VER,
 	PIC_SMALL_VER,
+	PIC_AUTO
+};
+
+class Mutex
+{
+	public:
+		Mutex() {
+			pthread_mutex_init(&_mutex, NULL);
+		}
+		virtual ~Mutex() {pthread_mutex_destroy(&_mutex);}
+		bool lock()      {return static_cast<bool>(!pthread_mutex_lock(&_mutex));}
+		bool unlock()    {return static_cast<bool>(!pthread_mutex_unlock(&_mutex));}
+		bool tryLock()   {return static_cast<bool>(!pthread_mutex_trylock(&_mutex));}
+	protected:
+		pthread_mutex_t _mutex;
+};
+
+
+class CTask {
+	public:
+		enum TaskStatus {
+			StatusInit = 0,
+			StatusCancel  = 1,
+			StatusDownloading = 2,
+			StatusFinish = 3,
+		};
+		CTask();
+		virtual ~CTask();
+		virtual void Run(void) = 0;
+		virtual void operator()();
+		virtual void Cancel(void) {
+			status = StatusCancel;
+		}
+		int  GetStatus() {return status; }
+
+		void Start(bool priority=false);
+		void Wait();
+
+		void Clear() {
+			Wait();
+			status = StatusInit;
+		}
+		void Wakeup();
+	protected:
+		enum TaskStatus status;
+		ConditionVar *_condvar;
 };
 
 class ScriptCommand {
@@ -91,47 +138,6 @@ class StringList: public vector<string> {
 		void Split(const string items, string sp=",");
 		bool SaveToFile(string fileName);
 		bool LoadFromFile(string fileName);
-};
-
-class Task {
-	public:
-		enum {
-			StatusInit = 0,
-			StatusFree = 1,
-			StatusWait = 2,
-			StatusDownloading = 3,
-			StatusFinish = 4,
-			StatusCancel = 5
-		};
-		Task(void);
-		virtual ~Task();
-
-		void Start();
-
-		virtual void Cancel();
-		virtual void Run(void){}
-
-		void SetStatus(int st) { status = st; }
-		int  GetStatus() {return status; }
-		void Wait(int msec = 0);
-	private:
-		int status;
-		bool cancel;
-		pthread_mutex_t mutex;
-		pthread_cond_t ready;
-		inline void lock()      { pthread_mutex_lock(&mutex);        }
-		inline void unlock()    { pthread_mutex_unlock(&mutex);      }
-		inline int wait(struct timespec *time = NULL) {
-			if (time)
-				return pthread_cond_timedwait(&ready, &mutex, time);
-			else
-				return pthread_cond_wait(&ready, &mutex);
-		}
-
-		inline void signal()    { pthread_cond_signal(&ready);       }
-		inline void broadcast() { pthread_cond_broadcast(&ready);    }
-		void lowRun();
-		friend class Thread;
 };
 
 class CFileResource {
@@ -273,6 +279,7 @@ class KolaAlbum {
 		KolaAlbum(json_t *js);
 		~KolaAlbum();
 
+		KolaMenu *menu;
 		string vid;
 		string albumName;
 		string albumDesc;
@@ -291,7 +298,7 @@ class KolaAlbum {
 		size_t GetTotalSet();
 		size_t GetVideoCount();
 		bool GetPictureFile(CFileResource& picture, enum PicType type);
-		string &GetPictureUrl(enum PicType type);
+		string &GetPictureUrl(enum PicType type=PIC_AUTO);
 		KolaVideo *GetVideo(size_t id);
 	private:
 		void VideosClear();
@@ -301,7 +308,7 @@ class KolaAlbum {
 		int cid;
 		string pid;
 		string playlistid;
-		vector<KolaVideo*> videos;
+		vector<KolaVideo*> videoList;
 
 		size_t totalSet;         // 总集数
 		size_t updateSet;        // 当前更新集
@@ -324,28 +331,32 @@ class KolaAlbum {
 		friend class CustomMenu;
 };
 
-class AlbumPage: public Task{
+class AlbumPage: public CTask {
 	public:
 		AlbumPage();
 		~AlbumPage(void);
+		size_t Count() { return albumList.size();}
+		size_t PictureCount() { return pictureCount; }
+
+		void SetMenu(KolaMenu *m) {
+			menu = m;
+		}
 		size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
 		KolaAlbum* GetAlbum(size_t index);
 
 		void PutAlbum(KolaAlbum *album);
 		virtual void Run(void);
 
-		size_t Count() { return albumList.size();}
-		size_t PictureCount() { return pictureCount; }
-
-		void SetMenu(KolaMenu *m) {
-				menu = m;
-		}
 		void Clear();
 		int pageId;
+		void UpdateCache();
+		int score;
 	private:
+		Mutex mutex;
 		vector<KolaAlbum*> albumList;
 		size_t pictureCount;
 		KolaMenu *menu;
+		enum PicType CachePcitureType;
 };
 
 class KolaMenu {
@@ -374,6 +385,7 @@ class KolaMenu {
 		string GetQuickFilter() { return quickFilter; }
 		KolaAlbum* GetAlbum(size_t position);
 
+		enum PicType PictureCacheType;
 		virtual size_t GetAlbumCount();
 	protected:
 		KolaClient *client;
@@ -390,10 +402,10 @@ class KolaMenu {
 		virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 	private:
 		void init();
-		int PageRotate(int direction); // <0 向上转，>0 向下转
-        int id;
-		AlbumPage page[PAGE_CACHE];
-		AlbumPage *prev, *cur, *next;
+		AlbumPage* updateCache(int pos);
+		int id;
+		AlbumPage pageCache[PAGE_CACHE];
+		AlbumPage *cur;
 		friend class AlbumPage;
 };
 
@@ -445,15 +457,16 @@ class KolaClient {
 		string GetArea();
 		time_t GetTime();
 		KolaInfo& GetInfo();
+		void SetPicutureCacheSize(size_t size);
 		int debug;
 		CResourceManager *resManager;
+		CThreadPool *threadPool;
 	private:
 		KolaClient(void);
 		string baseUrl;
 		map<string, KolaMenu*> menuMap;
 
 		int nextLoginSec;
-		ThreadPool *threadPool;
 
 		bool Login(bool quick=false);
 		char *Run(const char *cmd);

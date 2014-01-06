@@ -54,7 +54,6 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 		CResource(CResourceManager *manage=NULL) {
 			manager = manage;
 			miDataSize = 0;
-			http = NULL;
 			score = 0;
 		}
 		virtual ~CResource();
@@ -74,8 +73,6 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 
 		virtual void Cancel() {
 			status = CTask::StatusCancel;
-			if (http)
-				http->Cancel();
 		}
 
 		int score;
@@ -84,7 +81,6 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 		std::string resName;
 		std::string md5Name;
 		CResourceManager *manager;
-		Http *http;
 };
 
 class CResourceManager {

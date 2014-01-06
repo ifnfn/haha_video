@@ -18,11 +18,10 @@ void CResource::Load(const string &url)
 
 void CResource::Run(void)
 {
-	Http http;
-
 	if (status == CTask::StatusCancel)
 		return;
 
+	Http http;
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		if (miDataSize > 0 && manager) {

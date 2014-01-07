@@ -19,6 +19,10 @@ KolaAlbum::KolaAlbum(json_t *js)
 
 KolaAlbum::~KolaAlbum() {
 	VideosClear();
+	if (videoListUrl) {
+		json_delete(videoListUrl);
+		videoListUrl = NULL;
+	}
 }
 
 void KolaAlbum::VideosClear() {
@@ -27,10 +31,6 @@ void KolaAlbum::VideosClear() {
 		delete videoList[i];
 
 	videoList.clear();
-	if (videoListUrl) {
-		json_delete(videoListUrl);
-		videoListUrl = NULL;
-	}
 }
 
 size_t KolaAlbum::GetTotalSet() {

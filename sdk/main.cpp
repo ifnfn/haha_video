@@ -9,7 +9,6 @@ void test_http()
 {
 	int count = 0;
 	MultiHttp task;
-	task.Start();
 	const string f1("http://baike.baidu.com/view/1745213.htm");
 	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
 	const char *s1 = "http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz";
@@ -24,8 +23,6 @@ void test_http()
 		task.Remove(&http1);
 		printf("%d", count++);
 	}
-
-	task.Wait();
 }
 
 void test_resource(void)
@@ -195,6 +192,7 @@ void test_video(const char *menuName)
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
 	size_t count = m->GetAlbumCount();
+#if 0
 	while (true) {
 		int c=0;
 		m->SetQuickFilter("最新电影");
@@ -223,7 +221,9 @@ void test_video(const char *menuName)
 				break;
 		}
 	}
-#if 0
+#endif
+#if 1
+	AlbumPage &page = m->GetPage();
 	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
@@ -291,8 +291,8 @@ int main(int argc, char **argv)
 	//return 0;
 	//test_custommenu();
 	//return 0;
-	//printf("Test LiveTV\n"); test_livetv();
-	//return 0;
+	printf("Test LiveTV\n"); test_livetv();
+	return 0;
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");

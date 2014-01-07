@@ -68,17 +68,12 @@ class Http {
 		friend class MultiHttp;
 };
 
-class MultiHttp: public virtual CTask {
+class MultiHttp {
 	public:
 		MultiHttp();
 		~MultiHttp();
 		void Add(Http *http);
 		void Remove(Http *http);
-		virtual void Run(void) {
-			while (1) {
-				Exec();
-			}
-		}
 		void Exec();
 	private:
 		CURLM *multi_handle;

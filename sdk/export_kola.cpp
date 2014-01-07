@@ -36,7 +36,7 @@ static int f_mwget(lua_State *L)
 		}
 		lua_pop(L, 1);
 	}
-	multi.Run();
+	multi.Exec();
 
 	lua_newtable(L);
 

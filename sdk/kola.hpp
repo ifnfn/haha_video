@@ -81,14 +81,10 @@ class CTask {
 
 		void Start(bool priority=false);
 		void Wait();
-
-		void Reset() {
-			Wait();
-			status = StatusInit;
-		}
+		void Reset();
 		void Wakeup();
+        enum TaskStatus status;
 	protected:
-		enum TaskStatus status;
 		ConditionVar *_condvar;
 };
 
@@ -387,6 +383,7 @@ class KolaMenu {
 
 		enum PicType PictureCacheType;
 		virtual size_t GetAlbumCount();
+        void CleanPage();
 	protected:
 		KolaClient *client;
 		int         PageSize;
@@ -396,7 +393,6 @@ class KolaMenu {
 
 		int ParserJson(AlbumPage *page, string &jsonstr);
 		string GetPostData();
-		void CleanPage();
 
 		virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
 		virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);

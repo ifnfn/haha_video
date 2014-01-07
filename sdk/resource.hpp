@@ -92,6 +92,7 @@ class CResourceManager {
 		CResource* AddResource(const string &url);
 		CResource* GetResource(const string &url);
 		CResource* FindResource(const string &url);
+		void RemoveResource(CResource* res);
 
 		bool GC(size_t mem); // 收回指定大小的内存
 		void MemoryInc(size_t size);

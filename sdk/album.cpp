@@ -262,6 +262,7 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 void AlbumPage::UpdateCache()
 {
 	KolaClient &kola = KolaClient::Instance();
+
 	mutex.lock();
 
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
@@ -302,7 +303,8 @@ KolaAlbum* AlbumPage::GetAlbum(size_t index)
 void AlbumPage::Clear()
 {
 	KolaClient &kola = KolaClient::Instance();
-	Reset();
+	CTask::Reset();
+
 	mutex.lock();
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(CachePcitureType);
@@ -310,7 +312,8 @@ void AlbumPage::Clear()
 			CResource *res = kola.resManager->FindResource(url);
 			if (res) {
 				res->score = 255;
-				res->Cancel();
+				if (kola.threadPool->removeTask(res))
+					kola.resManager->RemoveResource(res);
 			}
 		}
 		delete (*it);

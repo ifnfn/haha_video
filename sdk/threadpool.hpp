@@ -83,17 +83,15 @@ class ThreadFunctor : public IThreadSubscriber {
 template <typename T, typename Arg>
 class ThreadFunctorArg : public IThreadSubscriber {
 	public:
-		ThreadFunctorArg(T &obj, Arg arg) : _call(obj), _arg(arg)
-	{}
+		ThreadFunctorArg(T &obj, Arg arg) : _call(obj), _arg(arg) {}
 
 		virtual ~ThreadFunctorArg(){};
-		virtual void call()
-		{
+		virtual void call() {
 			_call(_arg);
 		}
 
 	private:
-		T    &_call;
+		T   &_call;
 		Arg _arg;
 };
 
@@ -129,13 +127,14 @@ class CThreadPool {
 		virtual ~CThreadPool();
 		bool init(size_t nbThread);
 		void addTask(CTask *task, bool priority=false);
-		void removeTask(CTask *task);
+		bool removeTask(CTask *task);
 	private:
 		void handleTask();
 
 		std::list<CThread*> _threadsList;
 		std::deque<CTask*> _tasksList;
 		ConditionVar _condvar;
+		Mutex mutex;
 };
 
 #endif

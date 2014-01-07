@@ -16,18 +16,20 @@ CTask::~CTask()
 	delete _condvar;
 }
 
-void CTask::Wait() {
+void CTask::Wait()
+{
 	_condvar->lock();
-	if (status != StatusFinish && status != StatusInit) {
+
+	if (status != CTask::StatusFinish && status != CTask::StatusInit) {
 		_condvar->wait();
 		_condvar->unlock();
 	}
-	else {
+	else
 		_condvar->unlock();
-	}
 }
 
-void CTask::Wakeup() {
+void CTask::Wakeup()
+{
 	_condvar->lock();
 	_condvar->broadcast();
 	_condvar->unlock();
@@ -49,3 +51,8 @@ void CTask::Start(bool priority)
 	}
 }
 
+void CTask::Reset()
+{
+	Wait();
+	status = StatusInit;
+}

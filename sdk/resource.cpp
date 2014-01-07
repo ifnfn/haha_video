@@ -155,7 +155,21 @@ void CResourceManager::MemoryDec(size_t size) {
 	UseMemory -= size;
 }
 
-static bool compare_nocase (const CResource* first, const CResource* second)
+void CResourceManager::RemoveResource(CResource* res)
+{
+	Lock();
+	std::list<CResource*>::iterator it = mResources.begin();
+	for (; it != mResources.end(); it++) {
+		if (*it == res) {
+			res->DecRefCount();
+			mResources.erase(it++);
+			break;
+		}
+	}
+	Unlock();
+}
+
+static bool compare_nocase(const CResource* first, const CResource* second)
 {
 	int x = first->GetRefCount() - second->GetRefCount();
 	if (x == 0)

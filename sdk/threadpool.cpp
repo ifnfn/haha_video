@@ -115,29 +115,35 @@ void CThreadPool::addTask(CTask *task, bool priority)
 {
 	if (task) {
 		_condvar.lock();
+		mutex.lock();
 		if (priority)
 			_tasksList.push_front(task);
 		else
 			_tasksList.push_back(task);
 
+		mutex.unlock();
 		_condvar.signal();
 		_condvar.unlock();
 	}
 }
 
-void CThreadPool::removeTask(CTask *task)
+bool CThreadPool::removeTask(CTask *task)
 {
+	bool ret = false;
 	if (task) {
-		_condvar.lock();
+		mutex.lock();
 		for (deque<CTask*>::iterator it = _tasksList.begin(); it != _tasksList.end(); it++) {
 			if (*it == task) {
 				_tasksList.erase(it);
 				pr_debug("cur_queue_size = %d\n", taskList.size());
+				ret = true;
 				break;
 			}
 		}
-		_condvar.unlock();
+		mutex.unlock();
 	}
+
+	return ret;
 }
 
 void CThreadPool::handleTask()
@@ -151,8 +157,10 @@ void CThreadPool::handleTask()
 			this->_condvar.unlock();
 		}
 		else {
+			mutex.lock();
 			task = this->_tasksList.front();
 			this->_tasksList.pop_front();
+			mutex.unlock();
 			this->_condvar.unlock();
 			(*task)();
 		}

@@ -195,30 +195,33 @@ void test_video(const char *menuName)
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
 	size_t count = m->GetAlbumCount();
-	int c=0;
-	while (1) {
-		AlbumPage &page = m->GetPage();
-		printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
-		size_t x = page.Count();
+	while (true) {
+		int c=0;
+		m->SetQuickFilter("最新电影");
+		while (1) {
+			AlbumPage &page = m->GetPage();
+			printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
+			size_t x = page.Count();
 
-		if (page.Count() == 0)
-			break;
-		for (int i=0; i < x; i++) {
-			KolaAlbum *album = page.GetAlbum(i);
-			if (album)
-                printf("[%d][%d] %s\n", c, i, album->albumName.c_str());
+			if (page.Count() == 0)
+				break;
+			for (int i=0; i < x; i++) {
+				KolaAlbum *album = page.GetAlbum(i);
+				if (album)
+					printf("[%d][%d] %s\n", c, i, album->albumName.c_str());
+			}
+			c++;
+			//            m->CleanPage();
 		}
-
-        c++;
-//        if (c++==10)
-//            break;
-	}
-	m->SetQuickFilter("热门电影");
-    count = m->GetAlbumCount();
-	for (int i=0; i < count; i++) {
-		KolaAlbum *album = m->GetAlbum(i);
-		if (album)
-            printf("[%d] %s\n", i, album->albumName.c_str());
+		m->SetQuickFilter("热门电影");
+		count = m->GetAlbumCount();
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = m->GetAlbum(i);
+			if (album)
+				printf("[%d] %s\n", i, album->albumName.c_str());
+			if (i == 100)
+				break;
+		}
 	}
 #if 0
 	for (int i = 0; i < page.Count(); i++) {

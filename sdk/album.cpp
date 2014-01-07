@@ -323,3 +323,36 @@ void AlbumPage::Clear()
 	pageId = -1;
 	mutex.unlock();
 }
+
+PictureIterator::PictureIterator(AlbumPage *page, enum PicType type)
+{
+	this->page = page;
+	this->type = type;
+
+	for (int i = 0; i < page->Count(); i++) {
+		KolaAlbum *album = page->GetAlbum(i);
+		album->order = i;
+		albums.push_back(album);
+	}
+}
+
+int PictureIterator::Get(CFileResource &picture)
+{
+	std::list<KolaAlbum*>::iterator it;
+	for (it = albums.begin(); it != albums.end();) {
+		KolaAlbum* album = *it;
+		if (album->GetPictureFile(picture, type) == true) {
+			if (picture.isCached()) {
+				albums.erase(it);
+				return album->order;
+			}
+			it++;
+		}
+		else
+			albums.erase(it++);
+	}
+
+	return -1;
+}
+
+size_t PictureIterator::size() {return albums.size();}

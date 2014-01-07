@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <list>
 #include <unistd.h>
 
 #include <algorithm>
@@ -83,7 +84,7 @@ class CTask {
 		void Wait();
 		void Reset();
 		void Wakeup();
-        enum TaskStatus status;
+		enum TaskStatus status;
 	protected:
 		ConditionVar *_condvar;
 };
@@ -138,14 +139,15 @@ class StringList: public vector<string> {
 
 class CFileResource {
 	public:
-		CFileResource() : res(NULL), used(false) {}
+		CFileResource() : res(NULL) {}
 		~CFileResource();
 
 		CResource *GetResource(CResourceManager *manage, const string &url);
 		std::string& GetName();
 		size_t GetSize();
+		bool isCached();
+		void Wait();
 		void Clear();
-		bool used;
 	private:
 		CResource *res;
 		std::string FileName;
@@ -291,6 +293,8 @@ class KolaAlbum {
 		StringList mainActors;
 		StringList directors;
 
+		int order;
+
 		size_t GetTotalSet();
 		size_t GetVideoCount();
 		bool GetPictureFile(CFileResource& picture, enum PicType type);
@@ -355,6 +359,17 @@ class AlbumPage: public CTask {
 		enum PicType CachePcitureType;
 };
 
+class PictureIterator {
+	public:
+		PictureIterator(AlbumPage *page, enum PicType type);
+		int Get(CFileResource &picture);
+		size_t size();
+	private:
+		AlbumPage *page;
+		enum PicType type;
+		list<KolaAlbum*> albums;
+};
+
 class KolaMenu {
 	public:
 		KolaMenu(json_t *js=NULL);
@@ -383,7 +398,7 @@ class KolaMenu {
 
 		enum PicType PictureCacheType;
 		virtual size_t GetAlbumCount();
-        void CleanPage();
+		void CleanPage();
 	protected:
 		KolaClient *client;
 		int         PageSize;

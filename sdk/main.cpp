@@ -222,8 +222,8 @@ void test_video(const char *menuName)
 		}
 	}
 #endif
-#if 1
 	AlbumPage &page = m->GetPage();
+#if 0
 	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
@@ -246,19 +246,29 @@ void test_video(const char *menuName)
 		}
 	}
 #endif
-#if 0
-	size_t count = page.PictureCount();
+	PictureIterator x(&page, PIC_LARGE);
+
+	while (x.size() > 0) {
+		CFileResource picture;
+		int index = x.Get(picture);
+		if (index >=0 && picture.isCached()) {
+			printf("[%d] %s: size=%ld\n", index,
+					picture.GetName().c_str(),
+					picture.GetSize());
+		}
+	}
+#if 1
+    count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		CFileResource picture;
 
 		if (album->GetPictureFile(picture, PIC_LARGE) == true) {
-			if (not picture.GetName().empty() && picture.used == false) {
+			if (picture.isCached()) {
 				printf("[%ld] %s: size=%ld\n", i,
 						picture.GetName().c_str(),
 						picture.GetSize());
-				picture.used = true;
 				count--;
 			}
 		}

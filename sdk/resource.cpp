@@ -61,16 +61,31 @@ CResource *CFileResource::GetResource(CResourceManager *manage, const string &ur
 {
 	Clear();
 	res = manage->GetResource(url);
-	res->Wait();
-
-	FileName = res->GetFileName();
+	if (res)
+		FileName = res->GetFileName();
 
 	return res;
 }
 
-std::string& CFileResource::GetName() {
+std::string& CFileResource::GetName()
+{
 	return FileName;
 }
+
+bool CFileResource::isCached()
+{
+	if (res)
+		return res->GetStatus() == CTask::StatusFinish;
+
+	return false;
+}
+
+void CFileResource::Wait()
+{
+	if (res)
+		res->Wait();
+}
+
 
 CResourceManager::CResourceManager(size_t memory) : MaxMemory(memory), UseMemory(0)
 {

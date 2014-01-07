@@ -217,7 +217,7 @@ char *Http::curlGetCurlURL(int times)
 
 	res = curl_easy_perform(curl);
 	if ( res ) {
-		printf("curlGetCurlURL: cant perform curl: %s", errormsg);
+		printf("curlGetCurlURL: cant perform curl: %s\n", errormsg);
 		return curlGetCurlURL(times + 1);
 	}
 

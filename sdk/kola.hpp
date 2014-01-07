@@ -82,7 +82,7 @@ class CTask {
 		void Start(bool priority=false);
 		void Wait();
 
-		void Clear() {
+		void Reset() {
 			Wait();
 			status = StatusInit;
 		}

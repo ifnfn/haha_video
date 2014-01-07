@@ -302,7 +302,7 @@ KolaAlbum* AlbumPage::GetAlbum(size_t index)
 void AlbumPage::Clear()
 {
 	KolaClient &kola = KolaClient::Instance();
-	CTask::Clear();
+	Reset();
 	mutex.lock();
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(CachePcitureType);

@@ -84,6 +84,7 @@ size_t KolaMenu::GetAlbumCount()
 int KolaMenu::SeekByAlbumId(string vid)
 {
 	CleanPage();
+	cur = &this->pageCache[0];
 	int count = LowGetPage(cur, "vid", vid, PageSize);
 
 	PageId = cur->pageId;
@@ -100,6 +101,7 @@ int KolaMenu::SeekByAlbumId(string vid)
 int KolaMenu::SeekByAlbumName(string name)
 {
 	CleanPage();
+	cur = &this->pageCache[0];
 	int count = LowGetPage(cur, "albumName", name, PageSize);
 
 	PageId = cur->pageId;
@@ -305,6 +307,7 @@ void KolaMenu::CleanPage()
 CustomMenu::CustomMenu(string fileName)
 {
 	this->fileName = fileName;
+	this->cid = -1;
 	albumIdList.LoadFromFile(fileName);
 	albumCount = albumIdList.size();
 }
@@ -351,20 +354,39 @@ bool CustomMenu::SaveToFile(string otherFile)
 
 int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 {
-	string text;
-	//int pos = pageId * pageSize;
-
-	//text = albumIdList.ToString(pos, pageSize);
-	text = albumIdList.ToString();
-	if (text.size() > 0) {
+	string text = albumIdList.ToString();
+	if (not text.empty()) {
 		char buf[128];
 		string url;
 		string body = GetPostData();
 
 		sprintf(buf, "video/list?page=%ld&size=%ld&vid=", pageId, pageSize);
 
-		text = UrlEncode(text);
-		url = buf + text;
+		url = buf + UrlEncode(text);
+		if (client->UrlPost(url, body.c_str(), text) == true) {
+			return ParserJson(page, text);
+		}
+	}
+
+	return 0;
+}
+
+int CustomMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageSize)
+{
+	string text = albumIdList.ToString();
+
+	if (not text.empty()) {
+		char buf[256];
+		string url;
+		string body = GetPostData();
+
+		sprintf(buf, "/video/list?&full=0&size=%ld&key=%s&value=%s&vid=",
+				pageSize,
+				key.c_str(),
+				value.c_str()
+			);
+
+		url = buf + UrlEncode(text);
 		if (client->UrlPost(url, body.c_str(), text) == true) {
 			return ParserJson(page, text);
 		}

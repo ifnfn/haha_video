@@ -75,12 +75,11 @@ void test_script()
 void test_custommenu()
 {
 	size_t count;
-	CustomMenu *menu = new CustomMenu("abc");
+	CustomMenu *menu = new CustomMenu("/tmp/abc");
+	count = menu->GetAlbumCount();
+	printf("count=%ld\n", count);
 
 	while(1) {
-		count = menu->GetAlbumCount();
-		printf("count=%ld\n", count);
-
 		for (int i=0; i < count; i++) {
 			KolaAlbum *album = menu->GetAlbum(i);
 			if (album == NULL)
@@ -94,6 +93,24 @@ void test_custommenu()
 					player_url = video->GetVideoUrl();
 					printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				}
+			}
+		}
+		break;
+	}
+
+	int pos = menu->SeekByAlbumId("4419eb4d34");
+	for (int i=pos; i < count; i++) {
+		KolaAlbum *album = menu->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		string player_url;
+		for (int j = 0; j < video_count; j++) {
+			KolaVideo *video = album->GetVideo(j);
+			if (video) {
+				player_url = video->GetVideoUrl();
+				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 			}
 		}
 	}

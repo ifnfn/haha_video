@@ -427,6 +427,7 @@ class CustomMenu: public KolaMenu {
 		virtual size_t GetAlbumCount();
 	protected:
 		virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
+		virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 	private:
 		StringList albumIdList;
 		string fileName;

@@ -71,10 +71,6 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 		const std::string &GetFileName() {return md5Name;}
 		size_t GetSize() const { return miDataSize; }
 
-		virtual void Cancel() {
-			status = CTask::StatusCancel;
-		}
-
 		int score;
 	protected:
 		size_t miDataSize;

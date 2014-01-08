@@ -67,17 +67,13 @@ class CTask {
 	public:
 		enum TaskStatus {
 			StatusInit = 0,
-			StatusCancel  = 1,
-			StatusDownloading = 2,
-			StatusFinish = 3,
+			StatusDownloading = 1,
+			StatusFinish = 2,
 		};
 		CTask();
 		virtual ~CTask();
 		virtual void Run(void) = 0;
 		virtual void operator()();
-		virtual void Cancel(void) {
-			status = StatusCancel;
-		}
 		int  GetStatus() {return status; }
 
 		void Start(bool priority=false);
@@ -446,6 +442,15 @@ class KolaInfo {
 		friend class KolaClient;
 };
 
+class KolaArea {
+	public:
+		string ip;
+		string isp;
+		string country;
+		string province;
+		string city;
+};
+
 class KolaClient {
 	public:
 		static KolaClient& Instance(const char *user_id = NULL);
@@ -466,6 +471,7 @@ class KolaClient {
 		bool UrlPost(string url, const char *body, string &ret);
 		string& GetServer() { return baseUrl; }
 		string GetArea();
+		bool GetArea(KolaArea &area);
 		time_t GetTime();
 		KolaInfo& GetInfo();
 		void SetPicutureCacheSize(size_t size);

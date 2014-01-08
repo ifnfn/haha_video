@@ -11,6 +11,21 @@ function get_info()
 	return desc, time
 end
 
+function getip_detail()
+	local url = "http://iplocation.geo.qiyi.com/cityjson"
+	local text = kola.wget(url)
+	if text ~= nil then
+		text = kola.pcre("var returnIpCity =(.*);", text)
+		local js = cjson.decode(text)
+
+		if js.code == "A00000" then
+			return cjson.encode(js.data)
+		end
+	end
+
+	return ""
+end
+
 function getip(url)
 	local desc = ""
 	local time = ""

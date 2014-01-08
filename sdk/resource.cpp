@@ -18,9 +18,6 @@ void CResource::Load(const string &url)
 
 void CResource::Run(void)
 {
-	if (status == CTask::StatusCancel)
-		return;
-
 	Http http;
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;

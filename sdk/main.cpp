@@ -295,6 +295,16 @@ int main(int argc, char **argv)
 	{
 		cout << kola.GetArea() << endl;
 		cout << kola.GetTime() << endl;
+
+		KolaArea area;
+		if (kola.GetArea(area)) {
+			printf("IP: %s\n", area.ip.c_str());
+			printf("ISP: %s\n", area.isp.c_str());
+			printf("AREA: %s -> %s -> %s\n",
+					area.country.c_str(),
+					area.province.c_str(),
+					area.city.c_str());
+		}
 	}
 
 	//test_script();

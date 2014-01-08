@@ -531,6 +531,30 @@ string KolaClient::GetArea()
 	return lua.RunScript(1, argv, "getip", "getip");
 }
 
+bool KolaClient::GetArea(KolaArea &area)
+{
+	json_error_t error;
+	LuaScript &lua = LuaScript::Instance();
+	const char *argv[] = { "" };
+
+	string text = lua.RunScript(1, argv, "getip", "getip_detail");
+
+	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+
+	if (js) {
+		area.ip       = json_gets(js, "ip", "");
+		area.isp      = json_gets(js, "isp", "");
+		area.country  = json_gets(js, "country", "");
+		area.city     = json_gets(js, "city", "");
+		area.province = json_gets(js, "province", "");
+		json_delete(js);
+
+		return true;
+	}
+
+	return false;
+}
+
 time_t KolaClient::GetTime()
 {
 	static time_t init_time = 0;

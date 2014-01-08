@@ -20,7 +20,7 @@ void CTask::Wait()
 {
 	_condvar->lock();
 
-	if (status != CTask::StatusFinish && status != CTask::StatusInit) {
+	if (status != CTask::StatusFinish && status == CTask::StatusDownloading) {
 		_condvar->wait();
 		_condvar->unlock();
 	}

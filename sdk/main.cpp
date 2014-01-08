@@ -258,7 +258,7 @@ void test_video(const char *menuName)
 		}
 	}
 #if 1
-    count = page.PictureCount();
+	count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
@@ -299,8 +299,8 @@ int main(int argc, char **argv)
 
 	//test_script();
 	//return 0;
-	//test_custommenu();
-	//return 0;
+	test_custommenu();
+	return 0;
 	printf("Test LiveTV\n"); test_livetv();
 	return 0;
 

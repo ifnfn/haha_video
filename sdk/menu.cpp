@@ -225,7 +225,6 @@ int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageS
 
 	sprintf(url, "/video/list?&size=%ld&cid=%ld&key=%s&value=%s", pageSize, cid, key.c_str(), value.c_str());
 	if (client->UrlPost(url, body.c_str(), text) == true) {
-		page->Clear();
 		return ParserJson(page, text);
 	}
 
@@ -248,17 +247,16 @@ AlbumPage* KolaMenu::updateCache(int pos)
 	if (cur && pos == cur->pageId)
 		return cur;
 	else if (pos > PageId) { // 向后
-		start = pos;
+		start = pos + 1;
 		end = pos + PAGE_CACHE / 2;
 	}
 	else if (pos < PageId) { // 向后
 		start = (int)pos - PAGE_CACHE / 2;
-		end = pos;
+		end = pos - 1;
 	}
 	if (start < 0) start = 0;
 
 	PageId = pos;
-	cur = &pageCache[pos % PAGE_CACHE];
 
 	// 更新页中图片资源优先级
 	int x = pos % PAGE_CACHE;
@@ -266,6 +264,14 @@ AlbumPage* KolaMenu::updateCache(int pos)
 		pageCache[i].score = abs(i - x);
 		pageCache[i].UpdateCache();
 	}
+
+	cur = &pageCache[pos % PAGE_CACHE];
+	if (cur->pageId != PageId) {
+		cur->Clear();
+		cur->pageId = pos;
+		cur->Start(true);
+	}
+	cur->Wait();
 
 	for (int i = start; i <= end; i++) {
 		int x = i % PAGE_CACHE;
@@ -276,7 +282,6 @@ AlbumPage* KolaMenu::updateCache(int pos)
 		}
 	}
 
-	cur->Wait();
 	return cur;
 }
 
@@ -361,7 +366,6 @@ int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 		text = UrlEncode(text);
 		url = buf + text;
 		if (client->UrlPost(url, body.c_str(), text) == true) {
-			page->Clear();
 			return ParserJson(page, text);
 		}
 	}

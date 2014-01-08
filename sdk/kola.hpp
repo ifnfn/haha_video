@@ -28,12 +28,12 @@ class KolaAlbum;
 class CustomMenu;
 class KolaVideo;
 class AlbumPage;
-class CThreadPool;
-class CTask;
+class ThreadPool;
+class Task;
 class Http;
 class ScriptCommand;
-class CResource;
-class CResourceManager;
+class Resource;
+class ResourceManager;
 class ConditionVar;
 
 extern void split(const string &s, string delim, vector< string > *ret);
@@ -63,15 +63,15 @@ class Mutex
 };
 
 
-class CTask {
+class Task {
 	public:
 		enum TaskStatus {
 			StatusInit = 0,
 			StatusDownloading = 1,
 			StatusFinish = 2,
 		};
-		CTask();
-		virtual ~CTask();
+		Task();
+		virtual ~Task();
 		virtual void Run(void) = 0;
 		virtual void operator()();
 		int  GetStatus() {return status; }
@@ -133,19 +133,19 @@ class StringList: public vector<string> {
 		bool LoadFromFile(string fileName);
 };
 
-class CFileResource {
+class FileResource {
 	public:
-		CFileResource() : res(NULL) {}
-		~CFileResource();
+		FileResource() : res(NULL) {}
+		~FileResource();
 
-		CResource *GetResource(CResourceManager *manage, const string &url);
+		Resource *GetResource(ResourceManager *manage, const string &url);
 		std::string& GetName();
 		size_t GetSize();
 		bool isCached();
 		void Wait();
 		void Clear();
 	private:
-		CResource *res;
+		Resource *res;
 		std::string FileName;
 };
 
@@ -293,7 +293,7 @@ class KolaAlbum {
 
 		size_t GetTotalSet();
 		size_t GetVideoCount();
-		bool GetPictureFile(CFileResource& picture, enum PicType type);
+		bool GetPictureFile(FileResource& picture, enum PicType type);
 		string &GetPictureUrl(enum PicType type=PIC_AUTO);
 		KolaVideo *GetVideo(size_t id);
 	private:
@@ -327,7 +327,7 @@ class KolaAlbum {
 		friend class CustomMenu;
 };
 
-class AlbumPage: public CTask {
+class AlbumPage: public Task {
 	public:
 		AlbumPage();
 		~AlbumPage(void);
@@ -358,7 +358,7 @@ class AlbumPage: public CTask {
 class PictureIterator {
 	public:
 		PictureIterator(AlbumPage *page, enum PicType type);
-		int Get(CFileResource &picture);
+		int Get(FileResource &picture);
 		size_t size();
 	private:
 		AlbumPage *page;
@@ -476,8 +476,8 @@ class KolaClient {
 		KolaInfo& GetInfo();
 		void SetPicutureCacheSize(size_t size);
 		int debug;
-		CResourceManager *resManager;
-		CThreadPool *threadPool;
+		ResourceManager *resManager;
+		ThreadPool *threadPool;
 	private:
 		KolaClient(void);
 		string baseUrl;

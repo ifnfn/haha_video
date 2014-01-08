@@ -26,29 +26,29 @@
 
 static void *starter(void *arg)
 {
-	CThread *tmp = static_cast<CThread *>(arg);
+	Thread *tmp = static_cast<Thread *>(arg);
 	tmp->run();
 	return (0);
 }
 
-CThread::CThread(IThreadSubscriber &func) :_func(&func), _state(false)
+Thread::Thread(IThreadSubscriber &func) :_func(&func), _state(false)
 {
 
 }
 
-CThread::~CThread()
+Thread::~Thread()
 {
 	if (_state)
 		this->cancel();
 	delete _func;
 }
 
-void CThread::run()
+void Thread::run()
 {
 	_func->call();
 }
 
-bool CThread::start()
+bool Thread::start()
 {
 	if (this->_state == false)
 	{
@@ -57,7 +57,7 @@ bool CThread::start()
 	return (this->_state);
 }
 
-bool CThread::cancel()
+bool Thread::cancel()
 {
 	bool ret;
 
@@ -72,7 +72,7 @@ bool CThread::cancel()
 		return (false);
 }
 
-bool CThread::join(void **exit_value)
+bool Thread::join(void **exit_value)
 {
 	bool ret;
 
@@ -86,24 +86,21 @@ bool CThread::join(void **exit_value)
 		return false;
 }
 
-CThreadPool::CThreadPool(int num)
+ThreadPool::ThreadPool(int num)
 {
 	if (num > 0)
 		init(num);
 }
 
-CThreadPool::~CThreadPool()
+ThreadPool::~ThreadPool()
 {
 
 }
 
-bool CThreadPool::init(size_t nbThread)
+bool ThreadPool::init(size_t nbThread)
 {
-	CThread *thread;
-
-	for (; nbThread > 0; nbThread--)
-	{
-		thread = new CThread(this, &CThreadPool::handleTask);
+	for (; nbThread > 0; nbThread--) {
+		Thread* thread = new Thread(this, &ThreadPool::handleTask);
 		_threadsList.push_back(thread);
 		if (!thread->start())
 			return false;
@@ -111,7 +108,7 @@ bool CThreadPool::init(size_t nbThread)
 	return true;
 }
 
-void CThreadPool::addTask(CTask *task, bool priority)
+void ThreadPool::addTask(Task *task, bool priority)
 {
 	if (task) {
 		_condvar.lock();
@@ -127,12 +124,12 @@ void CThreadPool::addTask(CTask *task, bool priority)
 	}
 }
 
-bool CThreadPool::removeTask(CTask *task)
+bool ThreadPool::removeTask(Task *task)
 {
 	bool ret = false;
 	if (task) {
 		mutex.lock();
-		for (deque<CTask*>::iterator it = _tasksList.begin(); it != _tasksList.end(); it++) {
+		for (deque<Task*>::iterator it = _tasksList.begin(); it != _tasksList.end(); it++) {
 			if (*it == task) {
 				_tasksList.erase(it);
 				pr_debug("cur_queue_size = %d\n", taskList.size());
@@ -146,9 +143,9 @@ bool CThreadPool::removeTask(CTask *task)
 	return ret;
 }
 
-void CThreadPool::handleTask()
+void ThreadPool::handleTask()
 {
-	CTask *task;
+	Task *task;
 
 	while (true) {
 		this->_condvar.lock();

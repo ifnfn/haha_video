@@ -201,8 +201,8 @@ KolaClient::KolaClient(void)
 	havecmd = true;
 	debug = 0;
 
-	threadPool = new CThreadPool(MAX_THREAD_POOL_SIZE);
-	resManager = new CResourceManager(1024 * 1024 * 2);
+	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
+	resManager = new ResourceManager(1024 * 1024 * 2);
 
 	pthread_mutex_init(&lock, NULL);
 	Login(true);
@@ -289,7 +289,7 @@ char *KolaClient::Run(const char *cmd)
 bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 {
 	string text;
-	Pcre pcre;
+	KolaPcre pcre;
 	const char *source = json_gets(cmd, "source", NULL);
 
 	text = json_gets(cmd, "text", "");

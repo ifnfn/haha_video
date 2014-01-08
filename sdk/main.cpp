@@ -32,11 +32,11 @@ void test_resource(void)
 	KolaClient &kola = KolaClient::Instance();
 
 
-	CResourceManager *manage = kola.resManager;
+	ResourceManager *manage = kola.resManager;
 	manage->AddResource(f1);
 	manage->AddResource(f2);
 
-	CFileResource pic;
+	FileResource pic;
 
 	manage->GetFile(pic, f1);
 	std::cout << pic.GetName() << std::endl;
@@ -223,7 +223,7 @@ void test_video(const char *menuName)
 	}
 #endif
 	AlbumPage &page = m->GetPage();
-#if 0
+#if 1
 	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
@@ -249,7 +249,7 @@ void test_video(const char *menuName)
 	PictureIterator x(&page, PIC_LARGE);
 
 	while (x.size() > 0) {
-		CFileResource picture;
+		FileResource picture;
 		int index = x.Get(picture);
 		if (index >=0 && picture.isCached()) {
 			printf("[%d] %s: size=%ld\n", index,
@@ -262,7 +262,7 @@ void test_video(const char *menuName)
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
-		CFileResource picture;
+		FileResource picture;
 
 		if (album->GetPictureFile(picture, PIC_LARGE) == true) {
 			if (picture.isCached()) {
@@ -309,12 +309,12 @@ int main(int argc, char **argv)
 
 	//test_script();
 	//return 0;
-	test_custommenu();
-	return 0;
-	printf("Test LiveTV\n"); test_livetv();
-	return 0;
+//	test_custommenu();
+//	return 0;
+//	printf("Test LiveTV\n"); test_livetv();
+//	return 0;
 
-	printf("Test Video\n"); test_video("电影");
+//	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");
 	while (true) {
 		sleep(1);

@@ -201,7 +201,7 @@ string &KolaAlbum::GetPictureUrl(enum PicType type)
 	return fileName;
 }
 
-bool KolaAlbum::GetPictureFile(CFileResource& picture, enum PicType type)
+bool KolaAlbum::GetPictureFile(FileResource& picture, enum PicType type)
 {
 	string &fileName = GetPictureUrl(type);
 
@@ -245,7 +245,7 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(type);
 		if (not url.empty()) {
-			CResource *res = kola.resManager->GetResource(url);
+			Resource *res = kola.resManager->GetResource(url);
 
 			if (res) {
 				res->score = score;
@@ -268,7 +268,7 @@ void AlbumPage::UpdateCache()
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(CachePcitureType);
 		if (not url.empty()) {
-			CResource *res = kola.resManager->FindResource(url);
+			Resource *res = kola.resManager->FindResource(url);
 			if (res) {
 				res->score = score;
 			}
@@ -303,13 +303,13 @@ KolaAlbum* AlbumPage::GetAlbum(size_t index)
 void AlbumPage::Clear()
 {
 	KolaClient &kola = KolaClient::Instance();
-	CTask::Reset();
+	Task::Reset();
 
 	mutex.lock();
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(CachePcitureType);
 		if (not url.empty()) {
-			CResource *res = kola.resManager->FindResource(url);
+			Resource *res = kola.resManager->FindResource(url);
 			if (res) {
 				res->score = 255;
 				if (kola.threadPool->removeTask(res))
@@ -336,7 +336,7 @@ PictureIterator::PictureIterator(AlbumPage *page, enum PicType type)
 	}
 }
 
-int PictureIterator::Get(CFileResource &picture)
+int PictureIterator::Get(FileResource &picture)
 {
 	std::list<KolaAlbum*>::iterator it;
 	for (it = albums.begin(); it != albums.end();) {

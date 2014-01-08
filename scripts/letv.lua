@@ -43,11 +43,13 @@ function get_videolist(pid, vid, pageNo, pageSize)
 
 	local ret = {}
 
-	if tonumber(pageNo) == 0 and tonumber(pageSize) == 0 then
+	local pno = tonumber(pageNo)
+	local psize = tonumber(pageSize);
+	if pno == 0 and psize == 0 then
 		return get_album_set(vid)
 	end
 
-	local url = string.format('http://app.letv.com/ajax/getFocusVideo.php?p=1&top=0&max=1000&pid=%s', pid)
+	local url = string.format('http://app.letv.com/ajax/getFocusVideo.php?p=1&top=%d&max=%d&pid=%s', pno * psize, psize, pid)
 	local text = kola.wget(url)
 	if text == nil then
 		return '{}'

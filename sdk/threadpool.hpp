@@ -67,12 +67,9 @@ class ThreadMemberFunc : public IThreadSubscriber {
 template <typename T>
 class ThreadFunctor : public IThreadSubscriber {
 	public:
-		ThreadFunctor(T &obj) : _call(obj)
-	{}
-
+		ThreadFunctor(T &obj) : _call(obj){}
 		virtual ~ThreadFunctor(){};
-		virtual void call()
-		{
+		virtual void call() {
 			_call();
 		}
 
@@ -95,20 +92,20 @@ class ThreadFunctorArg : public IThreadSubscriber {
 		Arg _arg;
 };
 
-class CThread {
+class Thread {
 	public:
-		CThread(IThreadSubscriber &func);
+		Thread(IThreadSubscriber &func);
 
 		template <typename Functor>
-			CThread(Functor &functor) : _func(new ThreadFunctor<Functor>(functor)), _state(false){}
+			Thread(Functor &functor) : _func(new ThreadFunctor<Functor>(functor)), _state(false){}
 
 		template <typename Functor, typename Arg>
-			CThread(Functor &functor, Arg arg) : _func(new ThreadFunctorArg<Functor, Arg>(functor, arg)), _state(false){}
+			Thread(Functor &functor, Arg arg) : _func(new ThreadFunctorArg<Functor, Arg>(functor, arg)), _state(false){}
 
 		template <typename Object>
-			CThread(Object *obj, void (Object::*func)()) : _func(new ThreadMemberFunc<Object>(obj, func)), _state(false){}
+			Thread(Object *obj, void (Object::*func)()) : _func(new ThreadMemberFunc<Object>(obj, func)), _state(false){}
 
-		~CThread();
+		~Thread();
 
 		bool start();
 		bool cancel(void);
@@ -121,18 +118,18 @@ class CThread {
 		pthread_t _tid;
 };
 
-class CThreadPool {
+class ThreadPool {
 	public:
-		CThreadPool(int num=0);
-		virtual ~CThreadPool();
+		ThreadPool(int num=0);
+		virtual ~ThreadPool();
 		bool init(size_t nbThread);
-		void addTask(CTask *task, bool priority=false);
-		bool removeTask(CTask *task);
+		void addTask(Task *task, bool priority=false);
+		bool removeTask(Task *task);
 	private:
 		void handleTask();
 
-		std::list<CThread*> _threadsList;
-		std::deque<CTask*> _tasksList;
+		std::list<Thread*> _threadsList;
+		std::deque<Task*> _tasksList;
 		ConditionVar _condvar;
 		Mutex mutex;
 };

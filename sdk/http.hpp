@@ -18,6 +18,28 @@ using namespace std;
 string UrlEncode(const string& url);
 string UrlDecode(const string& sIn);
 
+class Curl {
+	public:
+		~Curl();
+		static Curl* Instance(void);
+		CURL *GetCurl(const char *url);
+	private:
+		Curl();
+		static void my_lock(CURL *handle, curl_lock_data data, curl_lock_access laccess, void *useptr) {
+			Curl *user = (Curl *)useptr;
+			pthread_mutex_lock(&user->lock);
+		}
+
+		static void my_unlock(CURL *handle, curl_lock_data data, void *useptr) {
+			Curl *user = (Curl *)useptr;
+			pthread_mutex_unlock(&user->lock);
+		}
+
+		pthread_mutex_t lock;
+		curl_version_info_data *curlinfo;
+		CURLSH *share_handle;
+};
+
 class HttpBuffer {
 	public:
 		HttpBuffer():mem(NULL), size(0) {}

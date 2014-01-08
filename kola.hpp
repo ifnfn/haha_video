@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <list>
 #include <unistd.h>
 
 #include <algorithm>
@@ -27,12 +28,12 @@ class KolaAlbum;
 class CustomMenu;
 class KolaVideo;
 class AlbumPage;
-class CThreadPool;
-class CTask;
+class ThreadPool;
+class Task;
 class Http;
 class ScriptCommand;
-class CResource;
-class CResourceManager;
+class Resource;
+class ResourceManager;
 class ConditionVar;
 
 extern void split(const string &s, string delim, vector< string > *ret);
@@ -62,33 +63,25 @@ class Mutex
 };
 
 
-class CTask {
+class Task {
 	public:
 		enum TaskStatus {
 			StatusInit = 0,
-			StatusCancel  = 1,
-			StatusDownloading = 2,
-			StatusFinish = 3,
+			StatusDownloading = 1,
+			StatusFinish = 2,
 		};
-		CTask();
-		virtual ~CTask();
+		Task();
+		virtual ~Task();
 		virtual void Run(void) = 0;
 		virtual void operator()();
-		virtual void Cancel(void) {
-			status = StatusCancel;
-		}
 		int  GetStatus() {return status; }
 
 		void Start(bool priority=false);
 		void Wait();
-
-		void Clear() {
-			Wait();
-			status = StatusInit;
-		}
+		void Reset();
 		void Wakeup();
-	protected:
 		enum TaskStatus status;
+	protected:
 		ConditionVar *_condvar;
 };
 
@@ -140,18 +133,19 @@ class StringList: public vector<string> {
 		bool LoadFromFile(string fileName);
 };
 
-class CFileResource {
+class FileResource {
 	public:
-		CFileResource() : res(NULL), used(false) {}
-		~CFileResource();
+		FileResource() : res(NULL) {}
+		~FileResource();
 
-		CResource *GetResource(CResourceManager *manage, const string &url);
+		Resource *GetResource(ResourceManager *manage, const string &url);
 		std::string& GetName();
 		size_t GetSize();
+		bool isCached();
+		void Wait();
 		void Clear();
-		bool used;
 	private:
-		CResource *res;
+		Resource *res;
 		std::string FileName;
 };
 
@@ -295,9 +289,11 @@ class KolaAlbum {
 		StringList mainActors;
 		StringList directors;
 
+		int order;
+
 		size_t GetTotalSet();
 		size_t GetVideoCount();
-		bool GetPictureFile(CFileResource& picture, enum PicType type);
+		bool GetPictureFile(FileResource& picture, enum PicType type);
 		string &GetPictureUrl(enum PicType type=PIC_AUTO);
 		KolaVideo *GetVideo(size_t id);
 	private:
@@ -331,7 +327,7 @@ class KolaAlbum {
 		friend class CustomMenu;
 };
 
-class AlbumPage: public CTask {
+class AlbumPage: public Task {
 	public:
 		AlbumPage();
 		~AlbumPage(void);
@@ -357,6 +353,17 @@ class AlbumPage: public CTask {
 		size_t pictureCount;
 		KolaMenu *menu;
 		enum PicType CachePcitureType;
+};
+
+class PictureIterator {
+	public:
+		PictureIterator(AlbumPage *page, enum PicType type);
+		int Get(FileResource &picture);
+		size_t size();
+	private:
+		AlbumPage *page;
+		enum PicType type;
+		list<KolaAlbum*> albums;
 };
 
 class KolaMenu {
@@ -387,6 +394,7 @@ class KolaMenu {
 
 		enum PicType PictureCacheType;
 		virtual size_t GetAlbumCount();
+		void CleanPage();
 	protected:
 		KolaClient *client;
 		int         PageSize;
@@ -396,7 +404,6 @@ class KolaMenu {
 
 		int ParserJson(AlbumPage *page, string &jsonstr);
 		string GetPostData();
-		void CleanPage();
 
 		virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
 		virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
@@ -435,6 +442,15 @@ class KolaInfo {
 		friend class KolaClient;
 };
 
+class KolaArea {
+	public:
+		string ip;
+		string isp;
+		string country;
+		string province;
+		string city;
+};
+
 class KolaClient {
 	public:
 		static KolaClient& Instance(const char *user_id = NULL);
@@ -455,12 +471,13 @@ class KolaClient {
 		bool UrlPost(string url, const char *body, string &ret);
 		string& GetServer() { return baseUrl; }
 		string GetArea();
+		bool GetArea(KolaArea &area);
 		time_t GetTime();
 		KolaInfo& GetInfo();
 		void SetPicutureCacheSize(size_t size);
 		int debug;
-		CResourceManager *resManager;
-		CThreadPool *threadPool;
+		ResourceManager *resManager;
+		ThreadPool *threadPool;
 	private:
 		KolaClient(void);
 		string baseUrl;

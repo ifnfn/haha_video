@@ -19,6 +19,10 @@ KolaAlbum::KolaAlbum(json_t *js)
 
 KolaAlbum::~KolaAlbum() {
 	VideosClear();
+	if (videoListUrl) {
+		json_delete(videoListUrl);
+		videoListUrl = NULL;
+	}
 }
 
 void KolaAlbum::VideosClear() {
@@ -27,10 +31,6 @@ void KolaAlbum::VideosClear() {
 		delete videoList[i];
 
 	videoList.clear();
-	if (videoListUrl) {
-		json_delete(videoListUrl);
-		videoListUrl = NULL;
-	}
 }
 
 size_t KolaAlbum::GetTotalSet() {
@@ -201,7 +201,7 @@ string &KolaAlbum::GetPictureUrl(enum PicType type)
 	return fileName;
 }
 
-bool KolaAlbum::GetPictureFile(CFileResource& picture, enum PicType type)
+bool KolaAlbum::GetPictureFile(FileResource& picture, enum PicType type)
 {
 	string &fileName = GetPictureUrl(type);
 
@@ -245,7 +245,7 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(type);
 		if (not url.empty()) {
-			CResource *res = kola.resManager->GetResource(url);
+			Resource *res = kola.resManager->GetResource(url);
 
 			if (res) {
 				res->score = score;
@@ -262,12 +262,13 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 void AlbumPage::UpdateCache()
 {
 	KolaClient &kola = KolaClient::Instance();
+
 	mutex.lock();
 
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(CachePcitureType);
 		if (not url.empty()) {
-			CResource *res = kola.resManager->FindResource(url);
+			Resource *res = kola.resManager->FindResource(url);
 			if (res) {
 				res->score = score;
 			}
@@ -302,15 +303,17 @@ KolaAlbum* AlbumPage::GetAlbum(size_t index)
 void AlbumPage::Clear()
 {
 	KolaClient &kola = KolaClient::Instance();
+	Task::Reset();
+
 	mutex.lock();
-	CTask::Clear();
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(CachePcitureType);
 		if (not url.empty()) {
-			CResource *res = kola.resManager->FindResource(url);
+			Resource *res = kola.resManager->FindResource(url);
 			if (res) {
 				res->score = 255;
-				res->Cancel();
+				if (kola.threadPool->removeTask(res))
+					kola.resManager->RemoveResource(res);
 			}
 		}
 		delete (*it);
@@ -320,3 +323,36 @@ void AlbumPage::Clear()
 	pageId = -1;
 	mutex.unlock();
 }
+
+PictureIterator::PictureIterator(AlbumPage *page, enum PicType type)
+{
+	this->page = page;
+	this->type = type;
+
+	for (int i = 0; i < page->Count(); i++) {
+		KolaAlbum *album = page->GetAlbum(i);
+		album->order = i;
+		albums.push_back(album);
+	}
+}
+
+int PictureIterator::Get(FileResource &picture)
+{
+	std::list<KolaAlbum*>::iterator it;
+	for (it = albums.begin(); it != albums.end();) {
+		KolaAlbum* album = *it;
+		if (album->GetPictureFile(picture, type) == true) {
+			if (picture.isCached()) {
+				albums.erase(it);
+				return album->order;
+			}
+			it++;
+		}
+		else
+			albums.erase(it++);
+	}
+
+	return -1;
+}
+
+size_t PictureIterator::size() {return albums.size();}

@@ -17,17 +17,17 @@
 #include "http.hpp"
 #include "kola.hpp"
 
-class CResourceManager;
+class ResourceManager;
 
 class IDestructable {
 	public:
 		virtual void Destroy() = 0;
 };
 
-class CRefCountable {
+class RefCountable {
 	public:
-		CRefCountable(): miRefCount(1){}
-		virtual ~CRefCountable() {assert(miRefCount == 0);}
+		RefCountable(): miRefCount(1){}
+		virtual ~RefCountable() {assert(miRefCount == 0);}
 
 		virtual int IncRefCount() {  return ++miRefCount; }
 		virtual int DecRefCount() {
@@ -49,20 +49,19 @@ class CRefCountable {
 		int miRefCount;
 };
 
-class CResource : public virtual CRefCountable, public virtual IDestructable, public CTask {
+class Resource : public virtual RefCountable, public virtual IDestructable, public Task {
 	public:
-		CResource(CResourceManager *manage=NULL) {
+		Resource(ResourceManager *manage=NULL) {
 			manager = manage;
 			miDataSize = 0;
-			http = NULL;
 			score = 0;
 		}
-		virtual ~CResource();
-		static CResource* Create(CResourceManager *manage) {
-			return dynamic_cast<CResource*>(new CResource(manage));
+		virtual ~Resource();
+		static Resource* Create(ResourceManager *manage) {
+			return dynamic_cast<Resource*>(new Resource(manage));
 		}
 		virtual void Destroy() {
-			delete dynamic_cast<CResource*>(this);
+			delete dynamic_cast<Resource*>(this);
 		}
 
 		void Load(const string &url);
@@ -72,30 +71,24 @@ class CResource : public virtual CRefCountable, public virtual IDestructable, pu
 		const std::string &GetFileName() {return md5Name;}
 		size_t GetSize() const { return miDataSize; }
 
-		virtual void Cancel() {
-			status = CTask::StatusCancel;
-			if (http)
-				http->Cancel();
-		}
-
 		int score;
 	protected:
 		size_t miDataSize;
 		std::string resName;
 		std::string md5Name;
-		CResourceManager *manager;
-		Http *http;
+		ResourceManager *manager;
 };
 
-class CResourceManager {
+class ResourceManager {
 	public:
-		CResourceManager(size_t memory = 1024 * 1024 * 10);
-		virtual ~CResourceManager();
+		ResourceManager(size_t memory = 1024 * 1024 * 10);
+		virtual ~ResourceManager();
 
-		bool GetFile(CFileResource& picture, const string &url);
-		CResource* AddResource(const string &url);
-		CResource* GetResource(const string &url);
-		CResource* FindResource(const string &url);
+		bool GetFile(FileResource& picture, const string &url);
+		Resource* AddResource(const string &url);
+		Resource* GetResource(const string &url);
+		Resource* FindResource(const string &url);
+		void RemoveResource(Resource* res);
 
 		bool GC(size_t mem); // 收回指定大小的内存
 		void MemoryInc(size_t size);
@@ -106,7 +99,7 @@ class CResourceManager {
 			MaxMemory = size;
 		}
 	protected:
-		std::list<CResource*> mResources;
+		std::list<Resource*> mResources;
 		size_t MaxMemory;
 		size_t UseMemory;
 		pthread_mutex_t lock;

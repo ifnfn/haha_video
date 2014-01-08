@@ -86,66 +86,54 @@ size_t HttpBuffer::write(void *ptr, size_t s, size_t nmemb)
 	return realsize;
 }
 
-class Curl {
-	public:
-		Curl() {
-			static int curl_init = 0;
-			if (curl_init == 0) {
-				pthread_mutex_init(&lock, NULL);
-				curl_global_init(CURL_GLOBAL_ALL);
-				share_handle = curl_share_init();
-				curlinfo = curl_version_info(CURLVERSION_NOW);
+Curl* Curl::Instance(void)
+{
+	static Curl _curl;
+	
+	return &_curl;
+}
 
-				curl_share_setopt(share_handle, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
-				curl_share_setopt(share_handle, CURLSHOPT_LOCKFUNC, my_lock);
-				curl_share_setopt(share_handle, CURLSHOPT_UNLOCKFUNC, my_unlock);
-				curl_share_setopt(share_handle, CURLSHOPT_USERDATA, this);
-				curl_init++;
-			}
-		}
-		~Curl() {
-			curl_share_cleanup(share_handle);
-			curl_global_cleanup();
-			pthread_mutex_destroy(&lock);
-		}
-		CURL *GetCurl(const char *url) {
-			CURL *curl = curl_easy_init();
+Curl::Curl() {
+	static int curl_init = 0;
+	if (curl_init == 0) {
+		pthread_mutex_init(&lock, NULL);
+		curl_global_init(CURL_GLOBAL_ALL);
+		share_handle = curl_share_init();
+		curlinfo = curl_version_info(CURLVERSION_NOW);
 
-			if ( curl ) {
-				curl_easy_setopt(curl, CURLOPT_NOSIGNAL         , 1L);
-				curl_easy_setopt(curl, CURLOPT_TIMEOUT          , 5);
-				curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT   , 5);
-				curl_easy_setopt(curl, CURLOPT_USERAGENT        , "KolaClient");
-				curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
-				curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
-				if (curlinfo->features & CURL_VERSION_LIBZ)
-					curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING , "gzip,deflate");
+		curl_share_setopt(share_handle, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+		curl_share_setopt(share_handle, CURLSHOPT_LOCKFUNC, my_lock);
+		curl_share_setopt(share_handle, CURLSHOPT_UNLOCKFUNC, my_unlock);
+		curl_share_setopt(share_handle, CURLSHOPT_USERDATA, this);
+		curl_init++;
+	}
+}
 
-				if (url && strlen(url) > 0)
-					curl_easy_setopt(curl, CURLOPT_URL, url);
-			}
+Curl::~Curl() {
+	curl_share_cleanup(share_handle);
+	curl_global_cleanup();
+	pthread_mutex_destroy(&lock);
+}
 
-			return curl;
-		}
-	private:
-		static void my_lock(CURL *handle, curl_lock_data data, curl_lock_access laccess, void *useptr)
-		{
-			Curl *user = (Curl *)useptr;
-			pthread_mutex_lock(&user->lock);
-		}
+CURL *Curl::GetCurl(const char *url) {
+	CURL *curl = curl_easy_init();
 
-		static void my_unlock(CURL *handle, curl_lock_data data, void *useptr )
-		{
-			Curl *user = (Curl *)useptr;
-			pthread_mutex_unlock(&user->lock);
-		}
+	if ( curl ) {
+		curl_easy_setopt(curl, CURLOPT_NOSIGNAL         , 1L);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT          , 5);
+		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT   , 5);
+		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "KolaClient");
+		curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
+		curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
+		if (curlinfo->features & CURL_VERSION_LIBZ)
+			curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING , "gzip,deflate");
 
-		pthread_mutex_t lock;
-		curl_version_info_data *curlinfo;
-		CURLSH *share_handle;
-};
+		if (url && strlen(url) > 0)
+			curl_easy_setopt(curl, CURLOPT_URL, url);
+	}
 
-static Curl Curlx;
+	return curl;
+}
 
 Http::Http(const char *url)
 {
@@ -154,7 +142,8 @@ Http::Http(const char *url)
 
 	if (url)
 		this->url = url;
-	curl = Curlx.GetCurl(url);
+
+	curl = Curl::Instance()->GetCurl(url);
 
 	if ( curl) {
 		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
@@ -217,7 +206,7 @@ char *Http::curlGetCurlURL(int times)
 
 	res = curl_easy_perform(curl);
 	if ( res ) {
-		printf("curlGetCurlURL: cant perform curl: %s", errormsg);
+		printf("curlGetCurlURL: cant perform curl: %s\n", errormsg);
 		return curlGetCurlURL(times + 1);
 	}
 

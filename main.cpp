@@ -9,7 +9,6 @@ void test_http()
 {
 	int count = 0;
 	MultiHttp task;
-	task.Start();
 	const string f1("http://baike.baidu.com/view/1745213.htm");
 	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
 	const char *s1 = "http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz";
@@ -24,8 +23,6 @@ void test_http()
 		task.Remove(&http1);
 		printf("%d", count++);
 	}
-
-	task.Wait();
 }
 
 void test_resource(void)
@@ -35,11 +32,11 @@ void test_resource(void)
 	KolaClient &kola = KolaClient::Instance();
 
 
-	CResourceManager *manage = kola.resManager;
+	ResourceManager *manage = kola.resManager;
 	manage->AddResource(f1);
 	manage->AddResource(f2);
 
-	CFileResource pic;
+	FileResource pic;
 
 	manage->GetFile(pic, f1);
 	std::cout << pic.GetName() << std::endl;
@@ -78,7 +75,7 @@ void test_script()
 void test_custommenu()
 {
 	size_t count;
-	CustomMenu *menu = new CustomMenu("abc");
+	CustomMenu *menu = new CustomMenu("/tmp/abc");
 
 	while(1) {
 		count = menu->GetAlbumCount();
@@ -195,31 +192,40 @@ void test_video(const char *menuName)
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
 	size_t count = m->GetAlbumCount();
-	int c=0;
-	while (1) {
-		AlbumPage &page = m->GetPage();
-		printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
-		size_t x = page.Count();
+#if 1
+	while (true) {
+		int c=0;
+		m->SetQuickFilter("最新电影");
+		while (1) {
+			AlbumPage &page = m->GetPage();
+			printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
+			size_t x = page.Count();
 
-		if (page.Count() == 0)
-			break;
-		for (int i=0; i < x; i++) {
-			KolaAlbum *album = page.GetAlbum(i);
-			if (album)
-                printf("[%d][%d] %s\n", c, i, album->albumName.c_str());
+			if (page.Count() == 0)
+				break;
+			for (int i=0; i < x; i++) {
+				KolaAlbum *album = page.GetAlbum(i);
+				if (album)
+					printf("[%d][%d] %s\n", c, i, album->albumName.c_str());
+			}
+			c++;
+			//            m->CleanPage();
 		}
-
-        c++;
-//        if (c++==10)
-//            break;
+		m->SetQuickFilter("热门电影");
+		count = m->GetAlbumCount();
+		for (int i=0; i < count; i++) {
+			KolaAlbum *album = m->GetAlbum(i);
+			if (album)
+				printf("[%d] %s\n", i, album->albumName.c_str());
+			if (i == 100)
+				break;
+		}
+        break;
 	}
-	m->SetQuickFilter("热门电影");
-    count = m->GetAlbumCount();
-	for (int i=0; i < count; i++) {
-		KolaAlbum *album = m->GetAlbum(i);
-		if (album)
-            printf("[%d] %s\n", i, album->albumName.c_str());
-	}
+#endif
+	kola.UpdateMenu();
+	m = kola[menuName];
+	AlbumPage &page = m->GetPage();
 #if 0
 	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
@@ -243,19 +249,29 @@ void test_video(const char *menuName)
 		}
 	}
 #endif
-#if 0
-	size_t count = page.PictureCount();
+	PictureIterator x(&page, PIC_LARGE);
+
+	while (x.size() > 0) {
+		FileResource picture;
+		int index = x.Get(picture);
+		if (index >=0 && picture.isCached()) {
+			printf("[%d] %s: size=%ld\n", index,
+					picture.GetName().c_str(),
+					picture.GetSize());
+		}
+	}
+#if 1
+	count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
-		CFileResource picture;
+		FileResource picture;
 
 		if (album->GetPictureFile(picture, PIC_LARGE) == true) {
-			if (not picture.GetName().empty() && picture.used == false) {
+			if (picture.isCached()) {
 				printf("[%ld] %s: size=%ld\n", i,
 						picture.GetName().c_str(),
 						picture.GetSize());
-				picture.used = true;
 				count--;
 			}
 		}
@@ -282,6 +298,16 @@ int main(int argc, char **argv)
 	{
 		cout << kola.GetArea() << endl;
 		cout << kola.GetTime() << endl;
+
+		KolaArea area;
+		if (kola.GetArea(area)) {
+			printf("IP: %s\n", area.ip.c_str());
+			printf("ISP: %s\n", area.isp.c_str());
+			printf("AREA: %s -> %s -> %s\n",
+					area.country.c_str(),
+					area.province.c_str(),
+					area.city.c_str());
+		}
 	}
 
 	//test_script();
@@ -293,9 +319,9 @@ int main(int argc, char **argv)
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");
-	while (true) {
-		sleep(1);
-	}
+//	while (true) {
+//		sleep(1);
+//	}
 
 	//printf("end\n");
 	//test_task(); return 0;

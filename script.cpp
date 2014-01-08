@@ -7,10 +7,10 @@
 #include <signal.h>
 
 extern "C" {
-	int luaopen_kola(lua_State *L);
-	int luaopen_cjson(lua_State *L);
-	int luaopen_LuaXML_lib(lua_State *L);
-	int luaopen_cURL(lua_State* L);
+	LUALIB_API int luaopen_kola(lua_State *L);
+	LUALIB_API int luaopen_cjson(lua_State *L);
+	LUALIB_API int luaopen_LuaXML_lib(lua_State *L);
+	LUALIB_API int luaopen_cURL(lua_State* L);
 }
 
 #include "json.hpp"

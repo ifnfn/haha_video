@@ -6,19 +6,19 @@
 #define VECSIZE 300
 using namespace std;
 
-Pcre::Pcre()
+KolaPcre::KolaPcre()
 {
 	re_arr.clear();
 }
 
-Pcre::~Pcre()
+KolaPcre::~KolaPcre()
 {
 	for(size_t i=0; i<re_arr.size(); i++)
 		pcre_free(re_arr[i]);
 }
 
 //Add a regrex patten and compile it.
-int Pcre::AddRule(const string &patten)
+int KolaPcre::AddRule(const string &patten)
 {
 	const char *error;
 	int erroffset;
@@ -41,7 +41,7 @@ int Pcre::AddRule(const string &patten)
 }
 
 //clear all the rule
-void Pcre::ClearRules()
+void KolaPcre::ClearRules()
 {
 	for(size_t i=0; i<re_arr.size(); i++)
 		pcre_free(re_arr[i]);
@@ -50,7 +50,7 @@ void Pcre::ClearRules()
 }
 
 //match all regrex, if any match, return the matched patten name and it's values
-string Pcre::MatchAll(const char *content)
+string KolaPcre::MatchAll(const char *content)
 {
 	int length = (int)strlen(content);
 	string result("");

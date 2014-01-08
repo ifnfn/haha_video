@@ -201,8 +201,8 @@ KolaClient::KolaClient(void)
 	havecmd = true;
 	debug = 0;
 
-	threadPool = new CThreadPool(MAX_THREAD_POOL_SIZE);
-	resManager = new CResourceManager(1024 * 1024 * 2);
+	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
+	resManager = new ResourceManager(1024 * 1024 * 2);
 
 	pthread_mutex_init(&lock, NULL);
 	Login(true);
@@ -289,7 +289,7 @@ char *KolaClient::Run(const char *cmd)
 bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 {
 	string text;
-	Pcre pcre;
+	KolaPcre pcre;
 	const char *source = json_gets(cmd, "source", NULL);
 
 	text = json_gets(cmd, "text", "");
@@ -529,6 +529,30 @@ string KolaClient::GetArea()
 	const char *argv[] = { "" };
 
 	return lua.RunScript(1, argv, "getip", "getip");
+}
+
+bool KolaClient::GetArea(KolaArea &area)
+{
+	json_error_t error;
+	LuaScript &lua = LuaScript::Instance();
+	const char *argv[] = { "" };
+
+	string text = lua.RunScript(1, argv, "getip", "getip_detail");
+
+	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+
+	if (js) {
+		area.ip       = json_gets(js, "ip", "");
+		area.isp      = json_gets(js, "isp", "");
+		area.country  = json_gets(js, "country", "");
+		area.city     = json_gets(js, "city", "");
+		area.province = json_gets(js, "province", "");
+		json_delete(js);
+
+		return true;
+	}
+
+	return false;
 }
 
 time_t KolaClient::GetTime()

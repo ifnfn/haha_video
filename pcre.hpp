@@ -8,10 +8,10 @@
 
 using namespace std;
 
-class Pcre {
+class KolaPcre {
 	public:
-		Pcre();
-		~Pcre();
+		KolaPcre();
+		~KolaPcre();
 
 		//Add a regrex, pass in name and regrex
 		int AddRule(const string &patten);

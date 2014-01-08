@@ -1,20 +1,16 @@
-extern "C" {
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
-	LUALIB_API int luaopen_kola(lua_State *L);
-}
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
 #include <math.h>
 
+#include "lua.hpp"
 #include "pcre.hpp"
 #include "http.hpp"
 #include "kola.hpp"
 #include "base64.hpp"
+
+extern "C" {LUALIB_API int luaopen_kola(lua_State *L);}
 
 static int f_mwget(lua_State *L)
 {
@@ -36,7 +32,7 @@ static int f_mwget(lua_State *L)
 		}
 		lua_pop(L, 1);
 	}
-	multi.Run();
+	multi.Exec();
 
 	lua_newtable(L);
 
@@ -125,7 +121,7 @@ static int f_pcre(lua_State *L)
 {
 	const char *regular = lua_tostring(L, 1);
 	const char *text = lua_tostring(L, 2);
-	Pcre pcre;
+	KolaPcre pcre;
 
 	if (text == NULL)
 		return 0;
@@ -194,7 +190,6 @@ static int f_base64_encode(lua_State *L)
 	return 0;
 }
 
-//size_t base64decode(const unsigned char *input, size_t input_length, unsigned char *output, size_t output_length);
 static int f_base64_decode(lua_State *L)
 {
 	const char *txt = lua_tostring(L, 1);

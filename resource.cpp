@@ -2,7 +2,7 @@
 
 extern string MD5STR(const char *data);
 
-CResource::~CResource()
+Resource::~Resource()
 {
 	if (manager && miDataSize > 0)
 		manager->MemoryDec(miDataSize);
@@ -10,19 +10,15 @@ CResource::~CResource()
 	unlink(md5Name.c_str());
 }
 
-void CResource::Load(const string &url)
+void Resource::Load(const string &url)
 {
 	resName = url;
 	md5Name = "/tmp/" + MD5STR(resName.c_str()) + ".jpg";
 }
 
-void CResource::Run(void)
+void Resource::Run(void)
 {
 	Http http;
-
-	if (status == CTask::StatusCancel)
-		return;
-
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		if (miDataSize > 0 && manager) {
@@ -38,12 +34,12 @@ void CResource::Run(void)
 	}
 }
 
-CFileResource::~CFileResource()
+FileResource::~FileResource()
 {
 	Clear();
 }
 
-void CFileResource::Clear()
+void FileResource::Clear()
 {
 	if (res) {
 		res->DecRefCount();
@@ -51,39 +47,54 @@ void CFileResource::Clear()
 	}
 }
 
-size_t CFileResource::GetSize() {
+size_t FileResource::GetSize() {
 	if (res)
 		return res->GetSize();
 	else
 		return 0;
 }
 
-CResource *CFileResource::GetResource(CResourceManager *manage, const string &url)
+Resource *FileResource::GetResource(ResourceManager *manage, const string &url)
 {
 	Clear();
 	res = manage->GetResource(url);
-	res->Wait();
-
-	FileName = res->GetFileName();
+	if (res)
+		FileName = res->GetFileName();
 
 	return res;
 }
 
-std::string& CFileResource::GetName() {
+std::string& FileResource::GetName()
+{
 	return FileName;
 }
 
-CResourceManager::CResourceManager(size_t memory) : MaxMemory(memory), UseMemory(0)
+bool FileResource::isCached()
+{
+	if (res)
+		return res->GetStatus() == Task::StatusFinish;
+
+	return false;
+}
+
+void FileResource::Wait()
+{
+	if (res)
+		res->Wait();
+}
+
+
+ResourceManager::ResourceManager(size_t memory) : MaxMemory(memory), UseMemory(0)
 {
 	pthread_mutex_init(&lock, NULL);
 }
 
-CResourceManager::~CResourceManager()
+ResourceManager::~ResourceManager()
 {
-	std::list<CResource*>::iterator it;
+	std::list<Resource*>::iterator it;
 	Lock();
 	for (it = mResources.begin(); it != mResources.end(); it++) {
-		CResource* pRes = *it;
+		Resource* pRes = *it;
 		pRes->DecRefCount();
 	}
 	mResources.clear();
@@ -91,17 +102,17 @@ CResourceManager::~CResourceManager()
 	pthread_mutex_destroy(&lock);
 }
 
-void CResourceManager::Lock()
+void ResourceManager::Lock()
 {
 	pthread_mutex_lock(&lock);
 }
 
-void CResourceManager::Unlock()
+void ResourceManager::Unlock()
 {
 	pthread_mutex_unlock(&lock);
 }
 
-bool CResourceManager::GetFile(CFileResource& picture, const string &url)
+bool ResourceManager::GetFile(FileResource& picture, const string &url)
 {
 	picture.Clear();
 	picture.GetResource(this, url);
@@ -109,9 +120,9 @@ bool CResourceManager::GetFile(CFileResource& picture, const string &url)
 	return true;
 }
 
-CResource* CResourceManager::AddResource(const string &url)
+Resource* ResourceManager::AddResource(const string &url)
 {
-	CResource* pResource = CResource::Create(this);
+	Resource* pResource = Resource::Create(this);
 	pResource->Load(url);
 	Lock();
 	mResources.insert(mResources.end(), pResource);
@@ -121,9 +132,9 @@ CResource* CResourceManager::AddResource(const string &url)
 	return pResource;
 }
 
-CResource* CResourceManager::GetResource(const string &url)
+Resource* ResourceManager::GetResource(const string &url)
 {
-	CResource* pResource = dynamic_cast<CResource*>(FindResource(url));
+	Resource* pResource = dynamic_cast<Resource*>(FindResource(url));
 	if (pResource == NULL)
 		pResource = AddResource(url);
 
@@ -132,10 +143,10 @@ CResource* CResourceManager::GetResource(const string &url)
 	return pResource;
 }
 
-CResource* CResourceManager::FindResource(const string &url)
+Resource* ResourceManager::FindResource(const string &url)
 {
-	CResource* pRet = NULL;
-	std::list<CResource*>::iterator it;
+	Resource* pRet = NULL;
+	std::list<Resource*>::iterator it;
 	Lock();
 	for (it = mResources.begin(); (it != mResources.end()) && (pRet == NULL); it++) {
 		if ((*it)->GetName() == url) {
@@ -148,15 +159,29 @@ CResource* CResourceManager::FindResource(const string &url)
 	return pRet;
 }
 
-void CResourceManager::MemoryInc(size_t size) {
+void ResourceManager::MemoryInc(size_t size) {
 	UseMemory += size;
 }
 
-void CResourceManager::MemoryDec(size_t size) {
+void ResourceManager::MemoryDec(size_t size) {
 	UseMemory -= size;
 }
 
-static bool compare_nocase (const CResource* first, const CResource* second)
+void ResourceManager::RemoveResource(Resource* res)
+{
+	Lock();
+	std::list<Resource*>::iterator it = mResources.begin();
+	for (; it != mResources.end(); it++) {
+		if (*it == res) {
+			res->DecRefCount();
+			mResources.erase(it++);
+			break;
+		}
+	}
+	Unlock();
+}
+
+static bool compare_nocase(const Resource* first, const Resource* second)
 {
 	int x = first->GetRefCount() - second->GetRefCount();
 	if (x == 0)
@@ -167,9 +192,9 @@ static bool compare_nocase (const CResource* first, const CResource* second)
 	return x;
 }
 
-bool CResourceManager::GC(size_t memsize) // 收回指定大小的内存
+bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
-	CResource* pRet = NULL;
+	Resource* pRet = NULL;
 	bool ret = true;
 
 	Lock();
@@ -180,11 +205,11 @@ bool CResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	}
 
 	mResources.sort(compare_nocase);
-	std::list<CResource*>::iterator it = mResources.begin();
+	std::list<Resource*>::iterator it = mResources.begin();
 	for (; it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
 
-		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == CTask::StatusFinish) {// 无人使用
+		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
 			pRet->DecRefCount();
 			mResources.erase(it++);
 		}

@@ -5,47 +5,54 @@
 #include "kola.hpp"
 #include "threadpool.hpp"
 
-CTask::CTask()
+Task::Task()
 {
 	_condvar = new ConditionVar();
 	status = StatusInit;
 }
 
-CTask::~CTask()
+Task::~Task()
 {
 	delete _condvar;
 }
 
-void CTask::Wait() {
+void Task::Wait()
+{
 	_condvar->lock();
-	if (status != StatusFinish && status != StatusInit) {
+
+	if (status != Task::StatusFinish && status == Task::StatusDownloading) {
 		_condvar->wait();
 		_condvar->unlock();
 	}
-	else {
+	else
 		_condvar->unlock();
-	}
 }
 
-void CTask::Wakeup() {
+void Task::Wakeup()
+{
 	_condvar->lock();
 	_condvar->broadcast();
 	_condvar->unlock();
 }
 
-void CTask::operator()()
+void Task::operator()()
 {
 	Run();
-	status = CTask::StatusFinish;
+	status = Task::StatusFinish;
 	Wakeup();
 }
 
-void CTask::Start(bool priority)
+void Task::Start(bool priority)
 {
-	if (status == CTask::StatusInit) {
-		status = StatusDownloading;
+	if (status == Task::StatusInit) {
+		status = Task::StatusDownloading;
 		KolaClient &client = KolaClient::Instance();
 		client.threadPool->addTask(this, priority);
 	}
 }
 
+void Task::Reset()
+{
+	Wait();
+	status = StatusInit;
+}

@@ -9,6 +9,7 @@
 #include "http.hpp"
 #include "kola.hpp"
 #include "base64.hpp"
+#include "resource.hpp"
 
 extern "C" {LUALIB_API int luaopen_kola(lua_State *L);}
 
@@ -58,38 +59,17 @@ static int f_wget(lua_State *L)
 {
 	int argc = lua_gettop(L);
 	const char *url;
-	const char *referer = NULL;
-	vector<string> urlList;
-
-	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {
-		urlList.push_back(url);
-	}
-	else if (lua_type(L, 1) == LUA_TTABLE) {
-		lua_pushnil(L);
-		while (lua_next(L, 1) != 0) {
-			if (lua_type(L, -1) == LUA_TSTRING && (url = lua_tostring(L, -1))) {
-				urlList.push_back(url);
-			}
-
-			lua_pop(L, 1);
-		}
-	}
-
-	if (urlList.size()  == 0)
+	if (argc < 1)
 		return 0;
 
-	if (argc >= 2)
-		referer = lua_tostring(L, 2);
+	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {
+		KolaClient &kola = KolaClient::Instance();
 
-	for (int i = 0; i < urlList.size(); i++) {
-		Http http;
-		http.SetReferer(referer);
-
-		if (http.Get(urlList[i].c_str()) != NULL) {
-			lua_pushstring(L, http.buffer.mem);
-		}
-		else
-			lua_pushstring(L, "");
+		Resource* res = kola.resManager->GetResource(url);
+		res->score = 254; // 优先级低于过期图片
+		res->Wait();
+		lua_pushstring(L, res->ToString().c_str());
+		res->DecRefCount();
 	}
 
 	return 1;

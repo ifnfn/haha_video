@@ -274,6 +274,7 @@ void AlbumPage::UpdateCache()
 			}
 		}
 	}
+
 	mutex.unlock();
 }
 
@@ -292,6 +293,7 @@ KolaAlbum* AlbumPage::GetAlbum(size_t index)
 	KolaAlbum *album = NULL;
 
 	mutex.lock();
+
 	if (index < albumList.size() )
 		album = albumList.at(index);
 

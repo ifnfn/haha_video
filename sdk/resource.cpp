@@ -21,6 +21,7 @@ void Resource::Run(void)
 	Http http;
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
+		this->ExpiryTime = http.Headers.GetExpiryTime();
 		if (miDataSize > 0 && manager) {
 			manager->GC(miDataSize);
 			manager->MemoryInc(miDataSize);
@@ -33,6 +34,24 @@ void Resource::Run(void)
 		}
 	}
 }
+
+std::string Resource::ToString()
+{
+	string ret;
+	FILE *fp = fopen(md5Name.c_str(), "r");
+	if (fp) {
+		char buffer[1024];
+		while (!feof(fp)) {
+			char *p = fgets(buffer, 1023, fp);
+			if (p)
+				ret.append(p);
+		}
+		fclose(fp);
+	}
+
+	return ret;
+}
+
 
 FileResource::~FileResource()
 {
@@ -82,7 +101,6 @@ void FileResource::Wait()
 	if (res)
 		res->Wait();
 }
-
 
 ResourceManager::ResourceManager(size_t memory) : MaxMemory(memory), UseMemory(0)
 {
@@ -137,6 +155,8 @@ Resource* ResourceManager::GetResource(const string &url)
 	Resource* pResource = dynamic_cast<Resource*>(FindResource(url));
 	if (pResource == NULL)
 		pResource = AddResource(url);
+	else
+		printf("Cached in: %s\n", url.c_str());
 
 	pResource->IncRefCount();
 
@@ -147,6 +167,7 @@ Resource* ResourceManager::FindResource(const string &url)
 {
 	Resource* pRet = NULL;
 	std::list<Resource*>::iterator it;
+
 	Lock();
 	for (it = mResources.begin(); (it != mResources.end()) && (pRet == NULL); it++) {
 		if ((*it)->GetName() == url) {
@@ -193,6 +214,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	Resource* pRet = NULL;
 	bool ret = true;
+	time_t now;
 
 	Lock();
 
@@ -202,8 +224,21 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	}
 
 	mResources.sort(compare_nocase);
-	std::list<Resource*>::iterator it = mResources.begin();
-	for (; it != mResources.end() && UseMemory + memsize > MaxMemory;) {
+
+#if 1
+	// 清除所有过期的文件
+	now = time(&now);
+
+	std::list<Resource*>::iterator it;
+	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
+		pRet = (*it);
+		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now)
+			mResources.erase(it++);
+		else
+			it++;
+	}
+#endif
+	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
 
 		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
@@ -213,6 +248,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 		else
 			it++;
 	}
+
 	ret = UseMemory + memsize <= MaxMemory;
 	Unlock();
 

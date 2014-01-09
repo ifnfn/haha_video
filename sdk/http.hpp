@@ -60,6 +60,19 @@ class HttpBuffer {
 		size_t size;
 };
 
+class HttpHeader {
+public:
+	HttpHeader(): Date(0), Expires(0) {}
+	time_t Date;
+	time_t Expires;
+	time_t GetExpiryTime() {
+		if (Expires != 0)
+			return Expires;
+		else
+			return Date + 60 * 60 * 24;
+	}
+};
+
 class Http {
 	public:
 		Http(const char *url=NULL);
@@ -81,12 +94,14 @@ class Http {
 		int download_cancel;
 		CURLMSG msg;
 		long status;
+		HttpHeader Headers;
 		string url;
 	private:
 		CURL *curl;
 		char *curlGetCurlURL(int times=0);
 		char errormsg[CURL_ERROR_SIZE];
 		static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data);
+		static size_t curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data);
 		friend class MultiHttp;
 };
 

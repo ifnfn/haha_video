@@ -146,14 +146,12 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 void KolaMenu::FilterAdd(string key, string value)
 {
 	Filter.KeyAdd(key, value);
-
 	CleanPage();
 }
 
 void KolaMenu::FilterRemove(string key)
 {
 	Filter.KeyRemove(key);
-
 	CleanPage();
 }
 
@@ -192,7 +190,7 @@ string KolaMenu::GetPostData()
 	}
 
 	body = body + "}";
-	//	cout << "Filter Body: " << body << endl;
+	//cout << "Filter Body: " << body << endl;
 
 	return body;
 }
@@ -264,6 +262,7 @@ AlbumPage* KolaMenu::updateCache(int pos)
 		pageCache[i].UpdateCache();
 	}
 
+	// 更新当前页
 	cur = &pageCache[pos % PAGE_CACHE];
 	if (cur->pageId != PageId) {
 		cur->Clear();

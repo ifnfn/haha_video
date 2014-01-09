@@ -139,6 +139,7 @@ Http::Http(const char *url)
 {
 	download_cancel = 0;
 	msg = CURLMSG_NONE;
+	status = 0;
 
 	if (url)
 		this->url = url;
@@ -147,9 +148,13 @@ Http::Http(const char *url)
 
 	if ( curl) {
 		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
+		curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
+
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION   , curlWriteCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA       , (void*)this);
-		curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
+
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION  , curlHeaderCallbck);
+		curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
 	}
 	else
 		syslog(LOG_ERR, "wget: cant initialize curl!");
@@ -186,13 +191,26 @@ void Http::Set(const char *url, const char *cookie, const char *referer)
 
 size_t Http::curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
-	struct Http *http = (Http*)data;
+	Http *http = (Http*)data;
 
-	//    printf("%s: %ld, %ld\n", http->url.c_str(), size * nmemb, http->buffer.size);
 	if (http->download_cancel == 1)
 		return 0;
 
 	return http->buffer.write(ptr, size, nmemb);
+}
+
+size_t Http::curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data)
+{
+	Http *http = (Http*)data;
+
+	const char *s = (const char *)ptr;
+
+	if (strncmp(s, "Date: ", 6) == 0)
+		http->Headers.Date = curl_getdate(&s[6], NULL);
+	else if (strncmp(s, "Expires: ", 9) == 0)
+		http->Headers.Expires = curl_getdate(&s[9], NULL);
+
+	return size * nmemb;
 }
 
 char *Http::curlGetCurlURL(int times)

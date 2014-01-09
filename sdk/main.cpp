@@ -138,6 +138,11 @@ void test_livetv()
 	//	m = kola[200];
 	if (m == NULL)
 		return;
+	foreach(m->Filter.filterKey, i) {
+		std::cout << i->first << ": ";
+		foreach(i->second, j)
+			std::cout << "\t:" << *j << std::endl;
+	}
 	//	m->FilterAdd("类型", "CCTV");
 
 	//	m->SetPageSize(3);

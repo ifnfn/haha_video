@@ -48,12 +48,9 @@ enum PicType {
 	PIC_AUTO
 };
 
-class Mutex
-{
+class Mutex {
 	public:
-		Mutex() {
-			pthread_mutex_init(&_mutex, NULL);
-		}
+		Mutex()          {pthread_mutex_init(&_mutex, NULL);}
 		virtual ~Mutex() {pthread_mutex_destroy(&_mutex);}
 		bool lock()      {return static_cast<bool>(!pthread_mutex_lock(&_mutex));}
 		bool unlock()    {return static_cast<bool>(!pthread_mutex_unlock(&_mutex));}
@@ -402,9 +399,9 @@ class KolaMenu {
 		size_t      albumCount;
 		string      quickFilter;
 
-		int ParserJson(AlbumPage *page, string &jsonstr);
-		string GetPostData();
+		int ParserFromUrl(AlbumPage *page, string &jsonstr);
 
+		virtual string GetPostData();
 		virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
 		virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 	private:

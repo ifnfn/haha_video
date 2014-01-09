@@ -183,13 +183,10 @@ void ResourceManager::RemoveResource(Resource* res)
 
 static bool compare_nocase(const Resource* first, const Resource* second)
 {
-	int x = first->GetRefCount() - second->GetRefCount();
-	if (x == 0)
-		x = first->score - second->score;
-	if (x == 0)
-		return second->GetSize() - first->GetSize();
-
-	return x;
+	if (first->score == second->score)
+		return first->GetSize() > second->GetSize();
+	else
+		return first->score > second->score;
 }
 
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存

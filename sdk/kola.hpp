@@ -36,7 +36,7 @@ class Resource;
 class ResourceManager;
 class ConditionVar;
 
-extern void split(const string &s, string delim, vector< string > *ret);
+extern void split(const string& src, const string& separator, vector<string>& dest);
 
 enum PicType {
 	PIC_LARGE,      // 大图片网址

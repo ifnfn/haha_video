@@ -4,20 +4,26 @@
 
 #include "kola.hpp"
 
-void split(const string &s, string delim, vector< string > *ret)
+void split(const string& src, const string& separator, vector<string>& dest)
 {
-	size_t last = 0;
-	size_t index=s.find_first_of(delim, last);
+	string str = src;
+	string substring;
+	string::size_type start = 0, index;
 
-	while (index!=string::npos) {
-		ret->push_back(s.substr(last,index-last));
-		last = index + 1;
-		index=s.find_first_of(delim, last);
-	}
-	if (index - last > 0)
-		ret->push_back(s.substr(last,index-last));
+	do {
+		index = str.find_first_of(separator,start);
+		if (index != string::npos) {
+			substring = str.substr(start,index-start);
+			dest.push_back(substring);
+			start = str.find_first_not_of(separator,index);
+			if (start == string::npos) return;
+		}
+	}while(index != string::npos);
+
+	//the last token
+	substring = str.substr(start);
+	dest.push_back(substring);
 }
-
 
 void StringList::Add(string v)
 {
@@ -80,7 +86,7 @@ string StringList::ToString(string s, string e, string split)
 void StringList::Split(const string items, string sp)
 {
 	clear();
-	split(items, sp, this);
+	split(items, sp, *this);
 }
 
 bool StringList::SaveToFile(string fileName)

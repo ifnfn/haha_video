@@ -37,7 +37,6 @@ KolaMenu::KolaMenu(json_t *js)
 			string list;
 			json_array_foreach(values, v)
 				list = list + json_string_value(v) + ",";
-			//			printf("%s: %s\n", key, list.c_str());
 			this->Filter.filterKey.insert(pair<string, FilterValue>(key, FilterValue(list)));
 		}
 	}
@@ -84,6 +83,7 @@ size_t KolaMenu::GetAlbumCount()
 int KolaMenu::SeekByAlbumId(string vid)
 {
 	CleanPage();
+	cur = &this->pageCache[0];
 	int count = LowGetPage(cur, "vid", vid, PageSize);
 
 	PageId = cur->pageId;
@@ -100,13 +100,10 @@ int KolaMenu::SeekByAlbumId(string vid)
 int KolaMenu::SeekByAlbumName(string name)
 {
 	CleanPage();
+	cur = &this->pageCache[0];
 	int count = LowGetPage(cur, "albumName", name, PageSize);
 
 	PageId = cur->pageId;
-
-	//	if (PageId > 0)
-	//		LowGetPage(prev, PageId - 1, PageSize);
-	//	LowGetPage(next, PageId + 1, PageSize);
 
 	for (int i=0; i<count; i++) {
 		KolaAlbum *album = cur->GetAlbum(i);
@@ -117,25 +114,30 @@ int KolaMenu::SeekByAlbumName(string name)
 	return -1;
 }
 
-int KolaMenu::ParserJson(AlbumPage *page, string &text)
+int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 {
 	int cnt = 0;
 	json_error_t error;
-	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-	if (js) {
-		albumCount = json_geti(js, "total", 0);
-		page->pageId = (int)json_geti(js, "page", page->pageId);
-		json_t *results = json_geto(js, "result");
+	string text;
 
-		if (json_is_array(results)) {
-			json_t *value;
-			json_array_foreach(results, value) {
-				page->PutAlbum(new KolaAlbum(value));
-				cnt++;
+	string body = GetPostData();
+	if (client->UrlPost(url, body.c_str(), text) == true) {
+		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+		if (js) {
+			albumCount = json_geti(js, "total", 0);
+			page->pageId = (int)json_geti(js, "page", page->pageId);
+			json_t *results = json_geto(js, "result");
+
+			if (json_is_array(results)) {
+				json_t *value;
+				json_array_foreach(results, value) {
+					page->PutAlbum(new KolaAlbum(value));
+					cnt++;
+				}
 			}
-		}
 
-		json_delete(js);
+			json_delete(js);
+		}
 	}
 
 	return cnt;
@@ -197,38 +199,35 @@ string KolaMenu::GetPostData()
 
 int KolaMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 {
-	char url[256];
-	string text;
-
-	string body = GetPostData();
+	char buf[256];
+	string url;
 
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(url, "/video/list?page=%ld&size=%ld&cid=%ld", pageId, pageSize, cid);
-	if (client->UrlPost(url, body.c_str(), text) == true) {
-		return ParserJson(page, text);
-	}
+	sprintf(buf, "/video/list?full=0&page=%ld&size=%ld&cid=%ld", pageId, pageSize, cid);
+	url = buf;
 
-	return 0;
+	return ParserFromUrl(page, url);
 }
 
 int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageSize)
 {
-	char url[256];
-	string text;
-
-	string body = GetPostData();
+	char buf[256];
+	string url;
 
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(url, "/video/list?&size=%ld&cid=%ld&key=%s&value=%s", pageSize, cid, key.c_str(), value.c_str());
-	if (client->UrlPost(url, body.c_str(), text) == true) {
-		return ParserJson(page, text);
-	}
+	sprintf(buf, "/video/list?&full=0&size=%ld&cid=%ld&key=%s&value=%s",
+		pageSize,
+		cid,
+		key.c_str(),
+		value.c_str());
 
-	return 0;
+	url = buf;
+
+	return ParserFromUrl(page, url);
 }
 
 AlbumPage &KolaMenu::GetPage(int pageNo)
@@ -265,6 +264,7 @@ AlbumPage* KolaMenu::updateCache(int pos)
 		pageCache[i].UpdateCache();
 	}
 
+	// 更新当前页
 	cur = &pageCache[pos % PAGE_CACHE];
 	if (cur->pageId != PageId) {
 		cur->Clear();
@@ -305,6 +305,7 @@ void KolaMenu::CleanPage()
 CustomMenu::CustomMenu(string fileName)
 {
 	this->fileName = fileName;
+	this->cid = -1;
 	albumIdList.LoadFromFile(fileName);
 	albumCount = albumIdList.size();
 }
@@ -351,23 +352,38 @@ bool CustomMenu::SaveToFile(string otherFile)
 
 int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 {
-	string text;
-	//int pos = pageId * pageSize;
-
-	//text = albumIdList.ToString(pos, pageSize);
-	text = albumIdList.ToString();
-	if (text.size() > 0) {
+	string text = albumIdList.ToString();
+	if (not text.empty()) {
 		char buf[128];
 		string url;
-		string body = GetPostData();
 
-		sprintf(buf, "video/list?page=%ld&size=%ld&vid=", pageId, pageSize);
+		sprintf(buf, "video/list?full=0&page=%ld&size=%ld&vid=", pageId, pageSize);
 
-		text = UrlEncode(text);
-		url = buf + text;
-		if (client->UrlPost(url, body.c_str(), text) == true) {
-			return ParserJson(page, text);
-		}
+		url = buf + UrlEncode(text);
+
+		return ParserFromUrl(page, url);
+	}
+
+	return 0;
+}
+
+int CustomMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageSize)
+{
+	string text = albumIdList.ToString();
+
+	if (not text.empty()) {
+		char buf[256];
+		string url;
+
+		sprintf(buf, "/video/list?&full=0&size=%ld&key=%s&value=%s&vid=",
+				pageSize,
+				key.c_str(),
+				value.c_str()
+			);
+
+		url = buf + UrlEncode(text);
+
+		return ParserFromUrl(page, url);
 	}
 
 	return 0;

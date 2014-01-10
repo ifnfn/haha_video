@@ -5,26 +5,6 @@
 #include "kola.hpp"
 #include "resource.hpp"
 
-void test_http()
-{
-	int count = 0;
-	MultiHttp task;
-	const string f1("http://baike.baidu.com/view/1745213.htm");
-	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
-	const char *s1 = "http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz";
-	const char *s2 = "http://git.nationalchip.com/csky-linux-3.0.8_modify_20121219_guoren.tgz";
-	while (1) {
-		Http http1(s1);
-		Http http2(s2);
-		task.Add(&http1);
-		task.Add(&http2);
-		sleep(3);
-		task.Remove(&http2);
-		task.Remove(&http1);
-		printf("%d", count++);
-	}
-}
-
 void test_resource(void)
 {
 	const string f1("http://baike.baidu.com/view/1745213.htm");
@@ -59,18 +39,6 @@ void test_resource(void)
 	manage->GetFile(pic, f1);
 	std::cout << pic.GetName() << std::endl;
 }
-
-#if TEST
-#include "script.hpp"
-void test_script()
-{
-	LuaScript &lua = LuaScript::Instance();
-	const char *argv[] = { "http://live.letv.com/lunbo" };
-
-	string ret = lua.RunScript(1, argv, "letv");
-}
-
-#endif
 
 void test_custommenu()
 {
@@ -214,7 +182,7 @@ void test_video(const char *menuName)
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
 	size_t count = m->GetAlbumCount();
-#if 1
+#if 0
 	while (true) {
 		int c=0;
 		m->SetQuickFilter("最新电影");
@@ -242,13 +210,11 @@ void test_video(const char *menuName)
 			if (i == 100)
 				break;
 		}
-        break;
+		break;
 	}
 #endif
-	kola.UpdateMenu();
-	m = kola[menuName];
 	AlbumPage &page = m->GetPage();
-#if 0
+#if 1
 	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
@@ -305,11 +271,6 @@ void test_video(const char *menuName)
 
 int main(int argc, char **argv)
 {
-	//test_http();
-	//return 0;
-
-	//    test_resource();
-	//	return 0;
 	KolaClient &kola = KolaClient::Instance();
 
 	KolaInfo& info = kola.GetInfo();
@@ -332,8 +293,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	//test_script();
-	//return 0;
 	//test_custommenu();
 	//return 0;
 	//printf("Test LiveTV\n"); test_livetv();
@@ -341,9 +300,9 @@ int main(int argc, char **argv)
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");
-//	while (true) {
-//		sleep(1);
-//	}
+	while (true) {
+		sleep(1);
+	}
 
 	//printf("end\n");
 	//test_task(); return 0;

@@ -65,6 +65,12 @@ public:
 	HttpHeader(): Date(0), Expires(0) {}
 	time_t Date;
 	time_t Expires;
+	time_t GetExpiryTime() {
+		if (Expires != 0)
+			return Expires;
+		else
+			return Date + 60 * 60 * 24;
+	}
 };
 
 class Http {

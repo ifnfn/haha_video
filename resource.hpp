@@ -55,6 +55,7 @@ class Resource : public virtual RefCountable, public virtual IDestructable, publ
 			manager = manage;
 			miDataSize = 0;
 			score = 0;
+			ExpiryTime = 0;
 		}
 		virtual ~Resource();
 		static Resource* Create(ResourceManager *manage) {
@@ -70,8 +71,10 @@ class Resource : public virtual RefCountable, public virtual IDestructable, publ
 		const std::string &GetName() {return resName;}
 		const std::string &GetFileName() {return md5Name;}
 		size_t GetSize() const { return miDataSize; }
+		std::string ToString();
 
 		int score;
+		time_t ExpiryTime;
 	protected:
 		size_t miDataSize;
 		std::string resName;

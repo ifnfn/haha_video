@@ -315,7 +315,7 @@ class KolaAlbum {
 
 		string videoScore;
 
-		string defaultPageUrl;  // 当前播放集
+		string defaultPageUrl;   // 当前播放集
 		bool directVideos;
 		size_t videoPageSize;
 		size_t videoPageId;

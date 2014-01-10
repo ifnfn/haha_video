@@ -95,7 +95,6 @@
 		4473FDEF186C5AF300136610 /* lua_xml.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lua_xml.c; sourceTree = "<group>"; };
 		4473FDF0186C5AF300136610 /* strbuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = strbuf.c; sourceTree = "<group>"; };
 		4473FDF1186C5AF300136610 /* strbuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = strbuf.h; sourceTree = "<group>"; };
-		4473FE42186C5AF300136610 /* install */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = install; sourceTree = "<group>"; };
 		4473FE43186C5AF300136610 /* lapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lapi.c; sourceTree = "<group>"; };
 		4473FE44186C5AF300136610 /* lapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lapi.h; sourceTree = "<group>"; };
 		4473FE45186C5AF300136610 /* lauxlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lauxlib.c; sourceTree = "<group>"; };
@@ -254,7 +253,6 @@
 		4473FE41186C5AF300136610 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				4473FE42186C5AF300136610 /* install */,
 				4473FE43186C5AF300136610 /* lapi.c */,
 				4473FE44186C5AF300136610 /* lapi.h */,
 				4473FE45186C5AF300136610 /* lauxlib.c */,

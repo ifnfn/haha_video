@@ -1,8 +1,0 @@
-#! /bin/sh
-
-cp luaconf.h ${GXLIB_PATH}/include/
-cp lauxlib.h ${GXLIB_PATH}/include/
-cp lua.h ${GXLIB_PATH}/include/
-cp lualib.h ${GXLIB_PATH}/include/
-cp liblua.a ${GXLIB_PATH}/lib/
-      

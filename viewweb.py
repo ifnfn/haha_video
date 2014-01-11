@@ -90,7 +90,6 @@ class GetVideoPlayerUrlHandle(BaseHandler):
         finally:
             self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
-
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=0'
 class GetVideoHandler(BaseHandler):

@@ -6,7 +6,7 @@ import time, sys, traceback
 import tornado.escape
 
 from engine import VideoEngine, KolaParser
-from kola import DB, autostr, autoint, Singleton, utils
+from kola import DB, autostr, autoint, autofloat, Singleton, utils
 import kola
 
 
@@ -189,7 +189,7 @@ class ParserAlbumList(KolaParser):
                 album.weeklyPlayNum    = autoint(a['weekCount'])      # 每周播放次数
                 album.monthlyPlayNum   = autoint(a['monthCount'])     # 每月播放次数
                 album.totalPlayNum     = autoint(a['playCount'])      # 总播放次数
-                album.dailyIndexScore  = autoint(a['rating'])         # 每日指数
+                album.dailyIndexScore  = autofloat(a['rating']) * 10  # 每日指数
 
                 album.mainActors       = a['starring'].split(',')     # 主演
                 album.directors        = a['directory'].split(',')    # 导演

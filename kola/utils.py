@@ -24,6 +24,15 @@ def autoint(i):
     else:
         return i
 
+def autofloat(i):
+    if i == None:
+        return 0.0
+
+    if type(i) == str:
+        return i and float(i) or 0.0
+    else:
+        return i;
+
 def json_get(sets, key, default):
     if key in sets:
         return sets[key]
@@ -62,7 +71,7 @@ def GetNameByUrl(url):
            '凤凰网'   : 'ifeng.com',
     }
     order = {
-           '乐视'    : 1,
+           '乐视'     : 1,
            '腾讯视频' : 2,
            '视讯中国' : 3,
            '凤凰网'   : 4,

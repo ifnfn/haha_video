@@ -149,13 +149,13 @@ class ParserAlbumXml(KolaParser):
         if album_js:
                 album.LoadFromJson(album_js)
 
-        album.albumName       = albumName
-        album.vid             = utils.genAlbumId(album.albumName)
-        album.area            = GetKey(video, 'area')
-        album.mainActors      = GetKey(video, 'mainActor').strip(' ')
-        album.directors       = GetKey(video, 'directors').strip(' ')
-        album.playLength      = GetKey(video, 'totalDuration')
-        album.qiyi.vid        = GetKey(video, 'vid')
+        album.albumName  = albumName
+        album.vid        = utils.genAlbumId(album.albumName)
+        album.area       = GetKey(video, 'area')
+        album.mainActors = GetKey(video, 'mainActor').strip(' ')
+        album.directors  = GetKey(video, 'directors').strip(' ')
+        album.playLength = GetKey(video, 'totalDuration')
+        album.qiyi.vid   = GetKey(video, 'vid')
 
         db.SaveAlbum(album, upsert=True)
 
@@ -382,7 +382,6 @@ class QiyiTV(QiyiVideoMenu):
     # 更新热门电影信息
     def UpdateHotInfo(self):
         pass
-
 
 # Qiyi 搜索引擎
 class QiyiEngine(VideoEngine):

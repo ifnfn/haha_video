@@ -181,8 +181,6 @@ static string gzip_base64(const char *data, size_t ndata)
 	return ret;
 }
 
-void *kola_login_thread(void *arg);
-
 KolaClient::KolaClient(void)
 {
 	signal(SIGPIPE, SIG_IGN);
@@ -493,7 +491,7 @@ static void cancel(void *any)
 	printf("Login thread canceled!!\n");
 }
 
-void *kola_login_thread(void *arg)
+void *KolaClient::kola_login_thread(void *arg)
 {
 	KolaClient *client = (KolaClient*)arg;
 

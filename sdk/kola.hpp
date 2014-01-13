@@ -494,8 +494,8 @@ class KolaClient {
 		pthread_mutex_t lock;
 		bool havecmd;
 		KolaInfo info;
+		static void *kola_login_thread(void *arg);
 
-		friend void *kola_login_thread(void *arg);
 		friend class KolaMenu;
 		friend class KolaVideo;
 		friend class KolaAlbum;

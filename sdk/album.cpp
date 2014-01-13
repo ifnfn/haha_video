@@ -155,8 +155,8 @@ bool KolaAlbum::LoadFromJson(json_t *js)
 
 		SourceList.clear();
 		json_object_foreach(sub, key, values) {
-			//			char *text = json_dumps(values, 0);
-			//			printf("%s: %s\n", key, text);
+//			char *text = json_dumps(values, 0);
+//			printf("%s: %s\n", key, text);
 			SourceList.insert(pair<string, Variant>(key, Variant(values)));
 		}
 	}
@@ -188,6 +188,8 @@ size_t KolaAlbum::GetSource(StringList &sources) // 获取节目的节目来源�
 bool KolaAlbum::SetSource(string &source)      // 设置节目来源，为""时，使用默认来源
 {
 	this->CurrentSource = source;
+	videoPageId = -1;
+	VideosClear();
 
 	return true;
 }

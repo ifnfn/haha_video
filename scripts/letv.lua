@@ -28,6 +28,7 @@ function get_videolist(pid, vid, pageNo, pageSize)
 
 		text = kola.pcre("<playurl><!\\[CDATA(.*)\\]></playurl>", text)
 
+		--print(text)
 		if text == nil then
 			return '{}'
 		end
@@ -37,8 +38,9 @@ function get_videolist(pid, vid, pageNo, pageSize)
 
 		local ret = {}
 		--ret.totalSet = js.totalSets
-		ret.updateSet = js.total
-		return cjson.encode(rx)
+		ret.updateSet = js[1].total
+
+		return cjson.encode(ret)
 	end
 
 	local ret = {}

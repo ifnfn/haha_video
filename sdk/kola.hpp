@@ -90,14 +90,14 @@ class ScriptCommand {
 		bool Exists() {return not script_name.empty(); }
 		void AddParams(const char *arg);
 		void AddParams(int arg);
+		void DelParams(int count=1);
 		virtual bool LoadFromJson(json_t *js);
 	protected:
 		bool directText;
 		string text;
 		string script_name;
 		string func_name;
-		char **argv;
-		int argc;
+		vector<string> args;
 };
 
 class Variant: public ScriptCommand {
@@ -290,6 +290,8 @@ class KolaAlbum {
 
 		size_t GetTotalSet();
 		size_t GetVideoCount();
+		size_t GetSource(StringList &sources); // 获取节目的节目来源列表
+		bool SetSource(string &source);        // 设置节目来源，为""时，使用默认来源
 		bool GetPictureFile(FileResource& picture, enum PicType type);
 		string &GetPictureUrl(enum PicType type=PIC_AUTO);
 		KolaVideo *GetVideo(size_t id);
@@ -319,7 +321,8 @@ class KolaAlbum {
 		bool directVideos;
 		size_t videoPageSize;
 		size_t videoPageId;
-		json_t *videoListUrl;
+		map<string, Variant> SourceList;
+		string CurrentSource;   // 设置节目来源
 
 		friend class CustomMenu;
 };

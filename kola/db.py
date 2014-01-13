@@ -528,6 +528,7 @@ class DB:
                 else:
                     engine_name = ''
                 for x in cursor:
+                    engine_list = {}
                     del x['_id']
                     if 'private'in x:
                         private = x['private']
@@ -538,6 +539,9 @@ class DB:
                                 if 'videoListUrl' in v:
                                     x['videoListUrl'] = v['videoListUrl']
                                     break
+                        for engine, v in private.items():
+                            engine_list[v['name']] = v['videoListUrl']
+
                     if not full:
                         if 'private' in x:
                             del x['private']
@@ -548,6 +552,7 @@ class DB:
                         if 'albumPageUrl' in x:
                             del x['albumPageUrl']
 
+                    x['engine'] = engine_list
                     ret.append(x)
         except:
             t, v, tb = sys.exc_info()

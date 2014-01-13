@@ -26,8 +26,13 @@ class AlbumListHandler(BaseHandler):
         args['size']  = int(self.get_argument('size', 20))
         args['full']  = int(self.get_argument('full', 0))
 
+        engine = self.get_argument('engine', '')
+        if engine:
+            args['engine'] = engine
+
         key = self.get_argument('key', '')
-        if key:   args['key'] = key
+        if key:
+            args['key'] = key
 
         value = self.get_argument('value', '')
         if value: args['value'] = value

@@ -68,17 +68,17 @@ class Resource : public virtual RefCountable, public virtual IDestructable, publ
 		void Load(const string &url);
 		virtual void Run(void);
 
-		const std::string &GetName() {return resName;}
-		const std::string &GetFileName() {return md5Name;}
+		const string &GetName() {return resName;}
+		const string &GetFileName() {return md5Name;}
 		size_t GetSize() const { return miDataSize; }
-		std::string ToString();
+		string ToString();
 
 		int score;
 		time_t ExpiryTime;
 	protected:
 		size_t miDataSize;
-		std::string resName;
-		std::string md5Name;
+		string resName;
+		string md5Name;
 		ResourceManager *manager;
 };
 
@@ -102,7 +102,7 @@ class ResourceManager {
 			MaxMemory = size;
 		}
 	protected:
-		std::list<Resource*> mResources;
+		list<Resource*> mResources;
 		size_t MaxMemory;
 		size_t UseMemory;
 		pthread_mutex_t lock;

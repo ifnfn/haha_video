@@ -31,7 +31,7 @@ class LuaScript {
 		~LuaScript();
 		string RunScript(vector<string> &args, const char *name, const char *fname="kola_main");
 	private:
-		std::map<string, script> scripts;
+		map<string, script> scripts;
 		bool GetScript(const char *name, string &text);
 };
 

@@ -19,25 +19,25 @@ void test_resource(void)
 	FileResource pic;
 
 	manage->GetFile(pic, f1);
-	std::cout << pic.GetName() << std::endl;
+	cout << pic.GetName() << endl;
 
 	manage->GetFile(pic, f1);
-	std::cout << pic.GetName() << std::endl;
+	cout << pic.GetName() << endl;
 
 	manage->GetFile(pic, f2);
-	std::cout << pic.GetName() << std::endl;
+	cout << pic.GetName() << endl;
 
 	manage->GetFile(pic, f2);
-	std::cout << pic.GetName() << std::endl;
+	cout << pic.GetName() << endl;
 
 	manage->GetFile(pic, f2);
-	std::cout << pic.GetName() << std::endl;
+	cout << pic.GetName() << endl;
 
 	manage->GetFile(pic, f1);
-	std::cout << pic.GetName() << std::endl;
+	cout << pic.GetName() << endl;
 
 	manage->GetFile(pic, f1);
-	std::cout << pic.GetName() << std::endl;
+	cout << pic.GetName() << endl;
 }
 
 void test_custommenu()
@@ -107,9 +107,9 @@ void test_livetv()
 	if (m == NULL)
 		return;
 	foreach(m->Filter.filterKey, i) {
-		std::cout << i->first << ": ";
+		cout << i->first << ": ";
 		foreach(i->second, j)
-			std::cout << "\t:" << *j << std::endl;
+			cout << "\t:" << *j << endl;
 	}
 	//	m->FilterAdd("类型", "CCTV");
 

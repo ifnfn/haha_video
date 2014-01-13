@@ -136,14 +136,14 @@ class FileResource {
 		~FileResource();
 
 		Resource *GetResource(ResourceManager *manage, const string &url);
-		std::string& GetName();
+		string& GetName();
 		size_t GetSize();
 		bool isCached();
 		void Wait();
 		void Clear();
 	private:
 		Resource *res;
-		std::string FileName;
+		string FileName;
 };
 
 class EPG {

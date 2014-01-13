@@ -374,7 +374,7 @@ PictureIterator::PictureIterator(AlbumPage *page, enum PicType type)
 
 int PictureIterator::Get(FileResource &picture)
 {
-	std::list<KolaAlbum*>::iterator it;
+	list<KolaAlbum*>::iterator it;
 	for (it = albums.begin(); it != albums.end();) {
 		KolaAlbum* album = *it;
 		if (album->GetPictureFile(picture, type) == true) {

@@ -87,9 +87,19 @@ void test_custommenu()
 	printf("%s End!!!\n", __func__);
 }
 
+class Player: public KolaPlayer {
+	virtual bool Play(string name, string url) {
+		// TODO
+		cout << url << endl;
+
+		return true;
+	}
+};
+
 void test_livetv()
 {
 	KolaMenu* m = NULL;
+	Player player;
 
 	KolaClient &kola = KolaClient::Instance();
 
@@ -130,6 +140,7 @@ void test_livetv()
 			string player_url;
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
+				player.AddVideo(video);
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 #if 0
@@ -156,13 +167,6 @@ void test_livetv()
 
 	printf("%s End!!!\n", __func__);
 }
-
-class Player: public KolaPlayer {
-	virtual void Play(string url) {
-		// TODO
-		cout << url << endl;
-	}
-};
 
 void test_video(const char *menuName)
 {

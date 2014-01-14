@@ -31,8 +31,10 @@ void KolaPlayer::Run()
 			_condvar->unlock();
 		}
 		else {
-			VideoUrls &video = this->videoList.front();
-			Play(video.Get());
+			VideoResolution &video = this->videoList.front();
+			string url = video.GetVideoUrl();
+			if (not url.empty())
+				Play(video.defaultKey, url);
 			videoList.pop_front();
 			_condvar->unlock();
 		}
@@ -94,7 +96,7 @@ bool KolaVideo::LoadFromJson(json_t *js)
 
 	//	json_get_stringlist(js, "resolution", &resolution);
 	json_get_variant(js, "info", &sc_info);
-	json_get_variant(js, "resolution", &sc_resolution);
+	json_get_variant(js, "resolution", &urls);
 	//cout << resolution.ToString() << endl;
 
 	return true;
@@ -102,23 +104,17 @@ bool KolaVideo::LoadFromJson(json_t *js)
 
 void KolaVideo::GetResolution(StringList& res)
 {
-	if (urls.Empty())
-		urls.Set(sc_resolution);
-
 	urls.GetResolution(res);
 }
 
 void KolaVideo::SetResolution(string &res)
 {
-	urls.currentResolution = res;
+	urls.defaultKey = res;
 }
 
 string KolaVideo::GetVideoUrl()
 {
-	if (urls.Empty())
-		urls.Set(sc_resolution);
-
-	return urls.Get();
+	return urls.GetVideoUrl();
 }
 
 string KolaVideo::GetInfo()
@@ -198,29 +194,22 @@ bool KolaEpg::Get(EPG &e, time_t t)
 	return false;
 }
 
-bool VideoUrls::Empty()
+bool VideoResolution::Empty()
 {
 	return urls.empty();
 }
 
-void VideoUrls::Clear()
+void VideoResolution::Clear()
 {
 	urls.clear();
 }
 
-void VideoUrls::Set(Variant &var)
-{
-	string text = var.GetString();
-
-	if (not text.empty())
-		Set(text);
-}
-
-void VideoUrls::Set(string &text)
+void VideoResolution::Set()
 {
 	json_error_t error;
 	const char *key;
 	json_t *value;
+	string text = GetString();
 
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 	json_object_foreach(js, key, value) {
@@ -233,14 +222,16 @@ void VideoUrls::Set(string &text)
 	json_delete(js);
 }
 
-void VideoUrls::GetResolution(StringList& res)
+void VideoResolution::GetResolution(StringList& res)
 {
+	if (Empty())
+		Set();
 	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++) {
 		res.Add(it->first);
 	}
 }
 
-bool VideoUrls::GetVariant(string &key, Variant &var)
+bool VideoResolution::GetVariant(string &key, Variant &var)
 {
 	if (key.empty())
 		key = defaultKey;
@@ -253,12 +244,18 @@ bool VideoUrls::GetVariant(string &key, Variant &var)
 	return false;
 }
 
-string VideoUrls::Get()
+string VideoResolution::GetVideoUrl()
 {
 	Variant var;
 
-	if (GetVariant(currentResolution, var))
+	if (Empty())
+		Set();
+
+	map<string ,Variant>::iterator it = urls.find(defaultKey);
+	if (it != urls.end()) {
+		var = it->second;
 		return var.GetString();
+	}
 
 	return "";
 }

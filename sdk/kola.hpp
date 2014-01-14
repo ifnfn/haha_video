@@ -171,19 +171,17 @@ class KolaEpg: public vector<EPG> {
 		bool Get(EPG &e, time_t time);
 };
 
-class VideoUrls {
+class VideoResolution: public Variant {
 	public:
-		void Set(string& text);
-		void Set(Variant& var);
 		void Clear();
 		void GetResolution(StringList& res);
-		string Get();
-		bool GetVariant(string &key, Variant &var);
+		string GetVideoUrl();
 		bool Empty();
-		string currentResolution;
-	private:
-		map<string, Variant> urls;
 		string defaultKey;
+	private:
+		void Set();
+		map<string, Variant> urls;
+		bool GetVariant(string &key, Variant &var);
 };
 
 class KolaPlayer {
@@ -191,10 +189,10 @@ class KolaPlayer {
 		KolaPlayer();
 		~KolaPlayer();
 		virtual void Run();
-		virtual void Play(string url) = 0;
+		virtual bool Play(string name, string url) = 0;
 		void AddVideo(KolaVideo *video);
 	private:
-		deque<VideoUrls> videoList;
+		deque<VideoResolution> videoList;
 		ConditionVar *_condvar;
 		Thread* thread;
 };
@@ -240,8 +238,7 @@ class KolaVideo {
 		string directPlayUrl;
 
 		Variant sc_info;
-		Variant sc_resolution;
-		VideoUrls urls;
+		VideoResolution urls;
 
 		friend class KolaPlayer;
 };

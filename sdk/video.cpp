@@ -5,10 +5,52 @@
 #include "kola.hpp"
 #include "json.hpp"
 #include "base64.hpp"
+#include "threadpool.hpp"
+
+KolaPlayer::KolaPlayer()
+{
+	_condvar = new ConditionVar();
+	thread = new Thread(this, &KolaPlayer::Run);
+	thread->start();
+}
+
+KolaPlayer::~KolaPlayer()
+{
+	thread->cancel();
+	_condvar->broadcast();
+	thread->join();
+	delete _condvar;
+}
+
+void KolaPlayer::Run()
+{
+	while (thread->_state == true) {
+		_condvar->lock();
+		if (videoList.empty()) {
+			_condvar->wait();
+			_condvar->unlock();
+		}
+		else {
+			VideoUrls &video = this->videoList.front();
+			Play(video.Get());
+			videoList.pop_front();
+			_condvar->unlock();
+		}
+	}
+}
+
+void KolaPlayer::AddVideo(KolaVideo *video)
+{
+	if (video) {
+		_condvar->lock();
+		videoList.push_back(video->urls);
+		_condvar->signal();
+		_condvar->unlock();
+	}
+}
 
 KolaVideo::KolaVideo(json_t *js)
 {
-	urls = NULL;
 	width = height = fps = totalBytes = 0;
 	order = 0;
 	isHigh = 0;
@@ -22,8 +64,6 @@ KolaVideo::KolaVideo(json_t *js)
 
 KolaVideo::~KolaVideo()
 {
-	if (urls)
-		delete urls;
 }
 
 bool KolaVideo::LoadFromJson(json_t *js)
@@ -62,54 +102,23 @@ bool KolaVideo::LoadFromJson(json_t *js)
 
 void KolaVideo::GetResolution(StringList& res)
 {
-	if (urls == NULL) {
-		string text = sc_resolution.GetString();
-		urls = new VideoUrls(text);
-	}
+	if (urls.Empty())
+		urls.Set(sc_resolution);
 
-	if (urls)
-		urls->GetResolution(res);
+	urls.GetResolution(res);
 }
 
-string KolaVideo::GetVideoUrl(string res)
+void KolaVideo::SetResolution(string &res)
 {
-	if (urls == NULL) {
-		string text = sc_resolution.GetString();
+	urls.currentResolution = res;
+}
 
-		if (not text.empty())
-			urls = new VideoUrls(text);
-	}
-	if (urls)
-		return urls->Get(res);
+string KolaVideo::GetVideoUrl()
+{
+	if (urls.Empty())
+		urls.Set(sc_resolution);
 
-	return "";
-
-#if 0
-	string ret;
-	string url = "/video/geturl?vid=" + vid;
-
-	if (not res.empty())
-		url = url + "&resolution=" + res;
-
-	json_t *js = json_loadurl(url.c_str());
-
-	if (js == NULL)
-		return "";
-
-	if (json_is_array(js)) {
-		json_t *v;
-		json_array_foreach(js, v) {
-			if (res == json_gets(v, "name", "") || res.empty()) {
-				if (json_gets(v, "url", ret) == true)
-					break;
-			}
-		}
-	}
-
-	json_delete(js);
-
-	return ret;
-#endif
+	return urls.Get();
 }
 
 string KolaVideo::GetInfo()
@@ -189,7 +198,25 @@ bool KolaEpg::Get(EPG &e, time_t t)
 	return false;
 }
 
-VideoUrls::VideoUrls(string text)
+bool VideoUrls::Empty()
+{
+	return urls.empty();
+}
+
+void VideoUrls::Clear()
+{
+	urls.clear();
+}
+
+void VideoUrls::Set(Variant &var)
+{
+	string text = var.GetString();
+
+	if (not text.empty())
+		Set(text);
+}
+
+void VideoUrls::Set(string &text)
 {
 	json_error_t error;
 	const char *key;
@@ -197,48 +224,41 @@ VideoUrls::VideoUrls(string text)
 
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 	json_object_foreach(js, key, value) {
-		Variant *var = new Variant(value);
 		if (json_geti(value, "default", 0) == 1) {
 			defaultKey = key;
 		}
-		urls.insert(pair<string, Variant*>(key, var));
+		urls.insert(pair<string, Variant>(key, Variant(value)));
 	}
 
 	json_delete(js);
 }
 
-VideoUrls::~VideoUrls()
-{
-	for (map<string, Variant*>::iterator it = urls.begin(); it != urls.end(); it++) {
-		delete it->second;
-	}
-}
-
 void VideoUrls::GetResolution(StringList& res)
 {
-	for (map<string, Variant*>::iterator it = urls.begin(); it != urls.end(); it++) {
+	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++) {
 		res.Add(it->first);
 	}
 }
 
-Variant *VideoUrls::GetVariant(string &key)
+bool VideoUrls::GetVariant(string &key, Variant &var)
 {
-	Variant *ret = NULL;
 	if (key.empty())
 		key = defaultKey;
-	map<string ,Variant*>::iterator it = urls.find(key);
-	if (it != urls.end())
-		ret = it->second;
+	map<string ,Variant>::iterator it = urls.find(key);
+	if (it != urls.end()) {
+		var = it->second;
+		return true;
+	}
 
-	return ret;
+	return false;
 }
 
-string VideoUrls::Get(string &key)
+string VideoUrls::Get()
 {
-	Variant *var = GetVariant(key);
+	Variant var;
 
-	if (var)
-		return var->GetString();
+	if (GetVariant(currentResolution, var))
+		return var.GetString();
 
 	return "";
 }

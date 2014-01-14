@@ -157,6 +157,12 @@ void test_livetv()
 	printf("%s End!!!\n", __func__);
 }
 
+class Player: public KolaPlayer {
+	virtual void Play(string url) {
+		cout << url << endl;
+	}
+};
+
 void test_video(const char *menuName)
 {
 	KolaMenu* m = NULL;
@@ -215,6 +221,8 @@ void test_video(const char *menuName)
 #endif
 	AlbumPage &page = m->GetPage();
 #if 1
+	Player player;
+
 	for (int i = 0; i < page.Count(); i++) {
 		KolaAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
@@ -225,12 +233,14 @@ void test_video(const char *menuName)
 			KolaVideo *video = album->GetVideo(j);
 			if (video) {
 				StringList res;
-				player_url = video->GetVideoUrl();
+//				player_url = video->GetVideoUrl();
 				printf("\t%s %s %s [%s] -> %s\n",
 						video->pid.c_str(), video->vid.c_str(),
 						video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				video->GetResolution(res);
 				printf("Resolution: %s\n", res.ToString().c_str());
+
+				player.AddVideo(video);
 			}
 			else
 				printf("video ============== NULL\n");

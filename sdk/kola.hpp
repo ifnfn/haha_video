@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <list>
+#include <deque>
 #include <unistd.h>
 
 #include <algorithm>
@@ -35,6 +36,7 @@ class ScriptCommand;
 class Resource;
 class ResourceManager;
 class ConditionVar;
+class Thread;
 
 extern void split(const string& src, const string& separator, vector<string>& dest);
 
@@ -170,14 +172,30 @@ class KolaEpg: public vector<EPG> {
 
 class VideoUrls {
 	public:
-		VideoUrls(string text);
-		~VideoUrls();
+		void Set(string& text);
+		void Set(Variant& var);
+		void Clear();
 		void GetResolution(StringList& res);
-		string Get(string &key);
-		Variant *GetVariant(string &key);
+		string Get();
+		bool GetVariant(string &key, Variant &var);
+		bool Empty();
+		string currentResolution;
 	private:
-		map<string, Variant*> urls;
+		map<string, Variant> urls;
 		string defaultKey;
+};
+
+class KolaPlayer {
+	public:
+		KolaPlayer();
+		~KolaPlayer();
+		virtual void Run();
+		virtual void Play(string url) = 0;
+		void AddVideo(KolaVideo *video);
+	private:
+		deque<VideoUrls> videoList;
+		ConditionVar *_condvar;
+		Thread* thread;
 };
 
 class KolaVideo {
@@ -189,7 +207,8 @@ class KolaVideo {
 
 		void Clear();
 		void GetResolution(StringList& res);
-		string GetVideoUrl(string res="");
+		void SetResolution(string &res);
+		string GetVideoUrl();
 		string GetSubtitle(const char *lang);
 		string GetInfo();
 
@@ -221,7 +240,9 @@ class KolaVideo {
 
 		Variant sc_info;
 		Variant sc_resolution;
-		VideoUrls *urls;
+		VideoUrls urls;
+
+		friend class KolaPlayer;
 };
 
 class FilterValue: public StringList {

@@ -159,6 +159,7 @@ void test_livetv()
 
 class Player: public KolaPlayer {
 	virtual void Play(string url) {
+		// TODO
 		cout << url << endl;
 	}
 };

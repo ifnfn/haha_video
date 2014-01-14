@@ -272,6 +272,9 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 	pictureCount = 0;
 	KolaClient &kola = KolaClient::Instance();
 
+	if (menu == NULL || menu->PictureCacheType == PIC_DISABLE)
+		return 0;
+
 	mutex.lock();
 
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {

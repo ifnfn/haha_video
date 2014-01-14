@@ -127,6 +127,7 @@ void test_livetv()
 	//	m->GetPage(page);
 	//	m->FilterAdd("PinYin", "zjw");
 	m->SetSort("Name", "1");
+	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
 #if 1
 	for (size_t i=0; i < count; i++) {

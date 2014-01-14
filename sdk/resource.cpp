@@ -1,3 +1,5 @@
+#include <ctype.h>
+
 #include "resource.hpp"
 
 extern string MD5STR(const char *data);

@@ -111,10 +111,10 @@ class Thread {
 		bool cancel(void);
 		bool join(void **exit_value = 0);
 		void run();
+		bool _state;
 
 	private:
 		IThreadSubscriber *_func;
-		bool _state;
 		pthread_t _tid;
 };
 

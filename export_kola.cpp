@@ -64,7 +64,7 @@ static int f_wget(lua_State *L)
 
 	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {
 		KolaClient &kola = KolaClient::Instance();
-		
+
 		Resource* res = kola.resManager->GetResource(url);
 		res->score = 254; // 优先级低于过期图片
 		res->Wait();

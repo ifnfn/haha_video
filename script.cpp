@@ -73,9 +73,10 @@ static int report (lua_State *L, int status)
 	return status;
 }
 
-static string lua_runscript(lua_State* L, const char *fn, const char *func, int argc, const char **argv)
+static string lua_runscript(lua_State* L, const char *fn, const char *func, vector<string> &args)
 {
 	int i, status;
+	int argc = (int)args.size();
 
 	string ret;
 
@@ -87,10 +88,7 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, int 
 	lua_getglobal(L, func);
 
 	for (i=0; i < argc; i++) {
-		if (argv[i] == NULL)
-			printf("argc[%d] error\n", i);
-		else
-			lua_pushstring(L, argv[i]);
+		lua_pushstring(L, args[i].c_str());
 	}
 
 	// 下面的第二个参数表示带调用的lua函数存在argc个参数。
@@ -103,10 +101,10 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, int 
 #if TEST
 		printf("%s(", func);
 		for (i = 0; i < argc - 1; i++)
-			printf("\"%s\", ", argv[i]);
+			printf("\"%s\", ", args[i].c_str());
 
 		if (argc > 0)
-			printf("\"%s\")\n", argv[argc - 1]);
+			printf("\"%s\")\n", args[argc - 1].c_str());
 #endif
 		return ret;
 	}
@@ -120,8 +118,11 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, int 
 
 	const char *r = lua_tostring(L, -1);
 
-	if (r)
+	if (r) {
+		if (strcmp(r, "null") == 0)
+			r = "";
 		ret.assign(r);
+	}
 
 	lua_pop(L, -1);
 
@@ -171,7 +172,7 @@ LuaScript& LuaScript::Instance()
 	return _lua;
 }
 
-string LuaScript::RunScript(int argc, const char **argv, const char *name, const char *fname)
+string LuaScript::RunScript(vector<string> &args, const char *name, const char *fname)
 {
 	string code, ret;
 
@@ -179,7 +180,7 @@ string LuaScript::RunScript(int argc, const char **argv, const char *name, const
 		lua_State *L = luaL_newstate();
 		if (L) {
 			luaL_openmini(L);
-			ret = lua_runscript(L, code.c_str(), fname, argc, argv);
+			ret = lua_runscript(L, code.c_str(), fname, args);
 			lua_close(L);
 		}
 	}
@@ -222,8 +223,7 @@ enum {
 ScriptCommand::ScriptCommand(json_t *js)
 {
 	func_name = "kola_main";
-	argv = NULL;
-	argc = 0;
+
 	directText = false;
 
 	if (js)
@@ -232,12 +232,12 @@ ScriptCommand::ScriptCommand(json_t *js)
 
 ScriptCommand::~ScriptCommand()
 {
-	for (int i = 0; i < argc; i++) {
-		if (argv[i])
-			free(argv[i]);
-	}
+}
 
-	free(argv);
+void ScriptCommand::DelParams(int count)
+{
+	for (int i=0; i < count; i++)
+		args.pop_back();
 }
 
 void ScriptCommand::AddParams(int arg)
@@ -251,15 +251,7 @@ void ScriptCommand::AddParams(int arg)
 
 void ScriptCommand::AddParams(const char *arg)
 {
-	argc++;
-	size_t size = sizeof(void*) * argc;
-
-	if (argv)
-		argv = (char**)realloc(argv, size);
-	else
-		argv = (char**)malloc(size);
-
-	argv[argc - 1] = strdup(arg);
+	args.push_back(arg);
 }
 
 bool ScriptCommand::LoadFromJson(json_t *js)
@@ -316,7 +308,7 @@ string ScriptCommand::Run()
 	string ret;
 	if (Exists()) {
 		LuaScript& lua = LuaScript::Instance();
-		ret = lua.RunScript(argc, (const char **)argv, script_name.c_str(), func_name.c_str());
+		ret = lua.RunScript(args, script_name.c_str(), func_name.c_str());
 	}
 
 	return ret;

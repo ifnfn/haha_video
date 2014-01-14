@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <list>
+#include <deque>
 #include <unistd.h>
 
 #include <algorithm>
@@ -35,6 +36,7 @@ class ScriptCommand;
 class Resource;
 class ResourceManager;
 class ConditionVar;
+class Thread;
 
 extern void split(const string& src, const string& separator, vector<string>& dest);
 
@@ -45,7 +47,8 @@ enum PicType {
 	PIC_SMALL_HOR,
 	PIC_LARGE_VER,
 	PIC_SMALL_VER,
-	PIC_AUTO
+	PIC_AUTO,
+	PIC_DISABLE
 };
 
 class Mutex {
@@ -90,14 +93,14 @@ class ScriptCommand {
 		bool Exists() {return not script_name.empty(); }
 		void AddParams(const char *arg);
 		void AddParams(int arg);
+		void DelParams(int count=1);
 		virtual bool LoadFromJson(json_t *js);
 	protected:
 		bool directText;
 		string text;
 		string script_name;
 		string func_name;
-		char **argv;
-		int argc;
+		vector<string> args;
 };
 
 class Variant: public ScriptCommand {
@@ -136,14 +139,14 @@ class FileResource {
 		~FileResource();
 
 		Resource *GetResource(ResourceManager *manage, const string &url);
-		std::string& GetName();
+		string& GetName();
 		size_t GetSize();
 		bool isCached();
 		void Wait();
 		void Clear();
 	private:
 		Resource *res;
-		std::string FileName;
+		string FileName;
 };
 
 class EPG {
@@ -168,16 +171,30 @@ class KolaEpg: public vector<EPG> {
 		bool Get(EPG &e, time_t time);
 };
 
-class VideoUrls {
+class VideoResolution: public Variant {
 	public:
-		VideoUrls(string text);
-		~VideoUrls();
+		void Clear();
 		void GetResolution(StringList& res);
-		string Get(string &key);
-		Variant *GetVariant(string &key);
-	private:
-		map<string, Variant*> urls;
+		string GetVideoUrl();
+		bool Empty();
 		string defaultKey;
+	private:
+		void Set();
+		map<string, Variant> urls;
+		bool GetVariant(string &key, Variant &var);
+};
+
+class KolaPlayer {
+	public:
+		KolaPlayer();
+		~KolaPlayer();
+		virtual void Run();
+		virtual bool Play(string name, string url) = 0;
+		void AddVideo(KolaVideo *video);
+	private:
+		deque<VideoResolution> videoList;
+		ConditionVar *_condvar;
+		Thread* thread;
 };
 
 class KolaVideo {
@@ -189,7 +206,8 @@ class KolaVideo {
 
 		void Clear();
 		void GetResolution(StringList& res);
-		string GetVideoUrl(string res="");
+		void SetResolution(string &res);
+		string GetVideoUrl();
 		string GetSubtitle(const char *lang);
 		string GetInfo();
 
@@ -220,8 +238,9 @@ class KolaVideo {
 		string directPlayUrl;
 
 		Variant sc_info;
-		Variant sc_resolution;
-		VideoUrls *urls;
+		VideoResolution urls;
+
+		friend class KolaPlayer;
 };
 
 class FilterValue: public StringList {
@@ -290,6 +309,8 @@ class KolaAlbum {
 
 		size_t GetTotalSet();
 		size_t GetVideoCount();
+		size_t GetSource(StringList &sources); // 获取节目的节目来源列表
+		bool SetSource(string &source);        // 设置节目来源，为""时，使用默认来源
 		bool GetPictureFile(FileResource& picture, enum PicType type);
 		string &GetPictureUrl(enum PicType type=PIC_AUTO);
 		KolaVideo *GetVideo(size_t id);
@@ -319,7 +340,8 @@ class KolaAlbum {
 		bool directVideos;
 		size_t videoPageSize;
 		size_t videoPageId;
-		json_t *videoListUrl;
+		map<string, Variant> SourceList;
+		string CurrentSource;   // 设置节目来源
 
 		friend class CustomMenu;
 };
@@ -349,7 +371,6 @@ class AlbumPage: public Task {
 		vector<KolaAlbum*> albumList;
 		size_t pictureCount;
 		KolaMenu *menu;
-		enum PicType CachePcitureType;
 };
 
 class PictureIterator {
@@ -491,8 +512,8 @@ class KolaClient {
 		pthread_mutex_t lock;
 		bool havecmd;
 		KolaInfo info;
+		static void *kola_login_thread(void *arg);
 
-		friend void *kola_login_thread(void *arg);
 		friend class KolaMenu;
 		friend class KolaVideo;
 		friend class KolaAlbum;

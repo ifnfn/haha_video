@@ -181,8 +181,6 @@ static string gzip_base64(const char *data, size_t ndata)
 	return ret;
 }
 
-void *kola_login_thread(void *arg);
-
 KolaClient::KolaClient(void)
 {
 	signal(SIGPIPE, SIG_IGN);
@@ -493,7 +491,7 @@ static void cancel(void *any)
 	printf("Login thread canceled!!\n");
 }
 
-void *kola_login_thread(void *arg)
+void *KolaClient::kola_login_thread(void *arg)
 {
 	KolaClient *client = (KolaClient*)arg;
 
@@ -526,18 +524,20 @@ void KolaClient::SetPicutureCacheSize(size_t size)
 string KolaClient::GetArea()
 {
 	LuaScript &lua = LuaScript::Instance();
-	const char *argv[] = { "" };
+	vector<string> args;
+	args.push_back("");
 
-	return lua.RunScript(1, argv, "getip", "getip");
+	return lua.RunScript(args, "getip", "getip");
 }
 
 bool KolaClient::GetArea(KolaArea &area)
 {
 	json_error_t error;
 	LuaScript &lua = LuaScript::Instance();
-	const char *argv[] = { "" };
+	vector<string> args;
+	args.push_back("");
 
-	string text = lua.RunScript(1, argv, "getip", "getip_detail");
+	string text = lua.RunScript(args, "getip", "getip_detail");
 
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
@@ -562,9 +562,10 @@ time_t KolaClient::GetTime()
 
 	if (init_time == 0) {
 		LuaScript &lua = LuaScript::Instance();
-		const char *argv[] = { "" };
+		vector<string> args;
+		args.push_back("");
 
-		string ret = lua.RunScript(1, argv, "getip", "gettime");
+		string ret = lua.RunScript(args, "getip", "gettime");
 
 		init_time = atol(ret.c_str());
 		hw_time = time(NULL);

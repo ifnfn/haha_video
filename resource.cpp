@@ -1,3 +1,5 @@
+#include <ctype.h>
+
 #include "resource.hpp"
 
 extern string MD5STR(const char *data);
@@ -10,10 +12,26 @@ Resource::~Resource()
 	unlink(md5Name.c_str());
 }
 
+static string StringGetFileExt(string path)
+{
+	if (path.rfind('/') != string::npos)
+		path = path.substr(path.rfind("/") + 1);
+
+	string::size_type start = path.rfind('.') == string::npos ? path.length() : path.rfind('.');
+
+	string ret;
+	while (start < path.size() && (isalpha(path[start]) || path[start] == '.'))
+		ret = ret + path[start++];
+
+	return ret;
+}
+
 void Resource::Load(const string &url)
 {
 	resName = url;
-	md5Name = "/tmp/" + MD5STR(resName.c_str()) + ".jpg";
+	string extname = StringGetFileExt(url);
+
+	md5Name = "/tmp/" + MD5STR(resName.c_str()) + extname;
 }
 
 void Resource::Run(void)
@@ -35,7 +53,7 @@ void Resource::Run(void)
 	}
 }
 
-std::string Resource::ToString()
+string Resource::ToString()
 {
 	string ret;
 	FILE *fp = fopen(md5Name.c_str(), "r");
@@ -46,9 +64,9 @@ std::string Resource::ToString()
 			if (p)
 				ret.append(p);
 		}
-		fclose(fp);	
+		fclose(fp);
 	}
-	
+
 	return ret;
 }
 
@@ -83,7 +101,7 @@ Resource *FileResource::GetResource(ResourceManager *manage, const string &url)
 	return res;
 }
 
-std::string& FileResource::GetName()
+string& FileResource::GetName()
 {
 	return FileName;
 }
@@ -109,7 +127,7 @@ ResourceManager::ResourceManager(size_t memory) : MaxMemory(memory), UseMemory(0
 
 ResourceManager::~ResourceManager()
 {
-	std::list<Resource*>::iterator it;
+	list<Resource*>::iterator it;
 	Lock();
 	for (it = mResources.begin(); it != mResources.end(); it++) {
 		Resource* pRes = *it;
@@ -166,7 +184,7 @@ Resource* ResourceManager::GetResource(const string &url)
 Resource* ResourceManager::FindResource(const string &url)
 {
 	Resource* pRet = NULL;
-	std::list<Resource*>::iterator it;
+	list<Resource*>::iterator it;
 
 	Lock();
 	for (it = mResources.begin(); (it != mResources.end()) && (pRet == NULL); it++) {
@@ -191,7 +209,7 @@ void ResourceManager::MemoryDec(size_t size) {
 void ResourceManager::RemoveResource(Resource* res)
 {
 	Lock();
-	std::list<Resource*>::iterator it = mResources.begin();
+	list<Resource*>::iterator it = mResources.begin();
 	for (; it != mResources.end(); it++) {
 		if (*it == res) {
 			res->DecRefCount();
@@ -229,7 +247,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	// 清除所有过期的文件
 	now = time(&now);
 
-	std::list<Resource*>::iterator it;
+	list<Resource*>::iterator it;
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
 		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now)

@@ -111,10 +111,10 @@ class Thread {
 		bool cancel(void);
 		bool join(void **exit_value = 0);
 		void run();
+		bool _state;
 
 	private:
 		IThreadSubscriber *_func;
-		bool _state;
 		pthread_t _tid;
 };
 
@@ -128,8 +128,8 @@ class ThreadPool {
 	private:
 		void handleTask();
 
-		std::list<Thread*> _threadsList;
-		std::deque<Task*> _tasksList;
+		list<Thread*> _threadsList;
+		deque<Task*> _tasksList;
 		ConditionVar _condvar;
 		Mutex mutex;
 };

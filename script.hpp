@@ -29,9 +29,9 @@ class LuaScript {
 		LuaScript();
 		static LuaScript& Instance();
 		~LuaScript();
-		string RunScript(int argc, const char **argv, const char *name, const char *fname="kola_main");
+		string RunScript(vector<string> &args, const char *name, const char *fname="kola_main");
 	private:
-		std::map<string, script> scripts;
+		map<string, script> scripts;
 		bool GetScript(const char *name, string &text);
 };
 

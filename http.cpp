@@ -204,12 +204,12 @@ size_t Http::curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data)
 	Http *http = (Http*)data;
 
 	const char *s = (const char *)ptr;
-	
+
 	if (strncmp(s, "Date: ", 6) == 0)
 		http->Headers.Date = curl_getdate(&s[6], NULL);
 	else if (strncmp(s, "Expires: ", 9) == 0)
 		http->Headers.Expires = curl_getdate(&s[9], NULL);
-	
+
 	return size * nmemb;
 }
 

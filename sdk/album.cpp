@@ -252,7 +252,6 @@ AlbumPage::AlbumPage()
 	pageId = -1;
 	pictureCount = 0;
 	menu = NULL;
-	CachePcitureType = PIC_AUTO;
 }
 
 AlbumPage::~AlbumPage(void)
@@ -274,7 +273,6 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 	KolaClient &kola = KolaClient::Instance();
 
 	mutex.lock();
-	CachePcitureType = type;
 
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(type);
@@ -297,10 +295,13 @@ void AlbumPage::UpdateCache()
 {
 	KolaClient &kola = KolaClient::Instance();
 
+	if (menu == NULL || menu->PictureCacheType == PIC_DISABLE)
+		return;
+
 	mutex.lock();
 
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		string &url = (*it)->GetPictureUrl(CachePcitureType);
+		string &url = (*it)->GetPictureUrl(menu->PictureCacheType);
 		if (not url.empty()) {
 			Resource *res = kola.resManager->FindResource(url);
 			if (res) {
@@ -341,9 +342,12 @@ void AlbumPage::Clear()
 	KolaClient &kola = KolaClient::Instance();
 	Task::Reset();
 
+	if (menu == NULL || menu->PictureCacheType == PIC_DISABLE)
+		return;
+
 	mutex.lock();
 	for (vector<KolaAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		string &url = (*it)->GetPictureUrl(CachePcitureType);
+		string &url = (*it)->GetPictureUrl(menu->PictureCacheType);
 		if (not url.empty()) {
 			Resource *res = kola.resManager->FindResource(url);
 			if (res) {

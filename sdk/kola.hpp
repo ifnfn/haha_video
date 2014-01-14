@@ -47,7 +47,8 @@ enum PicType {
 	PIC_SMALL_HOR,
 	PIC_LARGE_VER,
 	PIC_SMALL_VER,
-	PIC_AUTO
+	PIC_AUTO,
+	PIC_DISABLE
 };
 
 class Mutex {
@@ -373,7 +374,6 @@ class AlbumPage: public Task {
 		vector<KolaAlbum*> albumList;
 		size_t pictureCount;
 		KolaMenu *menu;
-		enum PicType CachePcitureType;
 };
 
 class PictureIterator {

@@ -542,7 +542,8 @@ class DB:
                         #             break
                         #=======================================================
                         for _, v in x['private'].items():
-                            engine_list[v['name']] = v['videoListUrl']
+                            if 'videoListUrl' in v:
+                                engine_list[v['name']] = v['videoListUrl']
 
                     x['engine'] = engine_list
                     if not full:

@@ -132,33 +132,45 @@ function get_resolution(vid)
 		return '{}'
 	end
 
-	--print(text)
 	local js = cjson.decode(text)
 
 	local ret = {}
 	for k,v in ipairs(js) do
-		for a,b in pairs(v.dispatch) do
-			ret[a] = base64_to_url(b[1])
-		end
-		for a,b in pairs(v.dispatchbak) do
-			if ret[a] == nil then
+		if v.dispatch ~= nil and type(v.dispatch) == "table" then
+			for a,b in pairs(v.dispatch) do
 				ret[a] = base64_to_url(b[1])
 			end
 		end
 
-		for a,b in pairs(v.dispatchbak1) do
-			if ret[a] == nil then
-				ret[a] = base64_to_url(b[1])
+		if v.dispatchbak ~= nil and type(v.dispatchbak) == "table" then
+			for a,b in pairs(v.dispatchbak) do
+				if ret[a] == nil then
+					ret[a] = base64_to_url(b[1])
+				end
 			end
 		end
-		for a,b in pairs(v.dispatchbak2) do
-			if ret[a] == nil then
-				ret[a] = base64_to_url(b[1])
+
+		if v.dispatchbak1 ~= nil and type(v.dispatchbak1) == "table" then
+			for a,b in pairs(v.dispatchbak1) do
+				if ret[a] == nil then
+					ret[a] = base64_to_url(b[1])
+				end
 			end
 		end
-		for a,b in pairs(v.dispatchspath) do
-			if ret[a] == nil then
-				ret[a] = base64_to_url(b[1])
+
+		if v.dispatchbak2 ~= nil and type(v.dispatchbak2) == "table" then
+			for a,b in pairs(v.dispatchbak2) do
+				if ret[a] == nil then
+					ret[a] = base64_to_url(b[1])
+				end
+			end
+		end
+
+		if v.dispatchspath ~= nil and type(v.dispatchspath) == "table" then
+			for a,b in pairs(v.dispatchspath) do
+				if ret[a] == nil then
+					ret[a] = base64_to_url(b[1])
+				end
 			end
 		end
 	end

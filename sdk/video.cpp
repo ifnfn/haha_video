@@ -31,7 +31,7 @@ void KolaPlayer::Run()
 			_condvar->unlock();
 		}
 		else {
-			VideoResolution &video = this->videoList.front();
+			VideoResolution video = this->videoList.front();
 			videoList.pop_front();
 			_condvar->unlock();
 
@@ -264,9 +264,15 @@ string VideoResolution::GetVideoUrl()
 	if (Empty())
 		Set();
 
-	map<string ,Variant>::iterator it = urls.find(defaultKey);
-	if (it != urls.end()) {
-		var = it->second;
+	if (not Empty()) {
+		map<string ,Variant>::iterator it = urls.find(defaultKey);
+		if (it != urls.end()) {
+			var = it->second;
+		}
+		else {
+			it = urls.begin();
+			var = it->second;
+		}
 		return var.GetString();
 	}
 

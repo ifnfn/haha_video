@@ -53,24 +53,15 @@ void KolaPlayer::AddVideo(IVideo *video)
 	}
 }
 
-KolaVideo::KolaVideo(json_t *js)
+KolaVideo::KolaVideo()
 {
-	width = height = fps = totalBytes = 0;
-	order = 0;
-	isHigh = 0;
-	videoPlayCount = 0;
-	videoScore = 0.0;
-	playLength = 0.0;
-
-	if (js)
-		LoadFromJson(js);
 }
 
 KolaVideo::~KolaVideo()
 {
 }
 
-bool KolaVideo::LoadFromJson(json_t *js)
+void KolaVideo::Parser(json_t *js)
 {
 	json_gets(js   , "name"         , name);
 	json_gets(js   , "pid"          , pid);
@@ -99,8 +90,6 @@ bool KolaVideo::LoadFromJson(json_t *js)
 	json_get_variant(js, "info", &sc_info);
 	json_get_variant(js, "resolution", &Resolution);
 	//cout << resolution.ToString() << endl;
-
-	return true;
 }
 
 void KolaVideo::GetResolution(StringList& res)

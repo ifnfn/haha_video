@@ -8,7 +8,6 @@ void KolaMenu::init()
 {
 	cid = -1;
 	PageId = -1;
-	Language = "zh";
 	PageSize = DEFAULT_PAGE_SIZE;
 	albumCount = 0;
 	PictureCacheType = PIC_LARGE;
@@ -16,11 +15,16 @@ void KolaMenu::init()
 	cur = &pageCache[0];
 	for (int i=0; i < PAGE_CACHE; i++)
 		pageCache[i].SetMenu(this);
-	id = 0;
+
 	client = &KolaClient::Instance();
 }
 
-KolaMenu::KolaMenu(json_t *js)
+KolaMenu::KolaMenu()
+{
+	init();
+}
+
+void KolaMenu::Parser(json_t *js)
 {
 	json_t *sub;
 	init();
@@ -89,7 +93,7 @@ int KolaMenu::SeekByAlbumId(string vid)
 	PageId = cur->pageId;
 
 	for (int i=0; i<count; i++) {
-		KolaAlbum *album = cur->GetAlbum(i);
+		IAlbum *album = cur->GetAlbum(i);
 		if (album && album->vid == vid)
 			return PageId * PageSize + i;
 	}
@@ -106,7 +110,7 @@ int KolaMenu::SeekByAlbumName(string name)
 	PageId = cur->pageId;
 
 	for (int i=0; i<count; i++) {
-		KolaAlbum *album = cur->GetAlbum(i);
+		IAlbum *album = cur->GetAlbum(i);
 		if (album && album->vid == name)
 			return i;
 	}
@@ -131,7 +135,9 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 			if (json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value) {
-					page->PutAlbum(new KolaAlbum(value));
+					KolaAlbum *album = new KolaAlbum();
+					album->Parser(value);
+					page->PutAlbum(album);
 					cnt++;
 				}
 			}
@@ -283,7 +289,7 @@ AlbumPage* KolaMenu::updateCache(int pos)
 	return cur;
 }
 
-KolaAlbum* KolaMenu::GetAlbum(size_t position)
+IAlbum* KolaMenu::GetAlbum(size_t position)
 {
 	int pos = (int)position / PageSize;
 

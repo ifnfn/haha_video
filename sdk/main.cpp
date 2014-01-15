@@ -49,7 +49,7 @@ void test_custommenu()
 
 	while(1) {
 		for (int i=0; i < count; i++) {
-			KolaAlbum *album = menu->GetAlbum(i);
+			IAlbum *album = menu->GetAlbum(i);
 			if (album == NULL)
 				continue;
 			size_t video_count = album->GetVideoCount();
@@ -68,7 +68,7 @@ void test_custommenu()
 
 	int pos = menu->SeekByAlbumId("4419eb4d34");
 	for (int i=pos; i < count; i++) {
-		KolaAlbum *album = menu->GetAlbum(i);
+		IAlbum *album = menu->GetAlbum(i);
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
@@ -98,7 +98,7 @@ class Player: public KolaPlayer {
 
 void test_livetv()
 {
-	KolaMenu* m = NULL;
+	IMenu* m = NULL;
 	Player player;
 
 	KolaClient &kola = KolaClient::Instance();
@@ -131,7 +131,7 @@ void test_livetv()
 	size_t count = m->GetAlbumCount();
 #if 1
 	for (size_t i=0; i < count; i++) {
-		KolaAlbum *album = m->GetAlbum(i);
+		IAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
@@ -174,7 +174,7 @@ void test_livetv()
 
 void test_video(const char *menuName)
 {
-	KolaMenu* m = NULL;
+	IMenu* m = NULL;
 
 	KolaClient &kola = KolaClient::Instance();
 
@@ -233,7 +233,7 @@ void test_video(const char *menuName)
 	Player player;
 
 	for (int i = 0; i < page.Count(); i++) {
-		KolaAlbum *album = page.GetAlbum(i);
+		IAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
 		printf("[%d]: Video:Count %ld\n", i, video_count);
 
@@ -271,7 +271,7 @@ void test_video(const char *menuName)
 	count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
-		KolaAlbum *album = page.GetAlbum(i);
+		IAlbum *album = page.GetAlbum(i);
 		FileResource picture;
 
 		if (album->GetPictureFile(picture, PIC_LARGE) == true) {

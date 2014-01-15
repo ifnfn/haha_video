@@ -393,7 +393,7 @@ bool KolaClient::Login(bool quick)
 
 void KolaClient::ClearMenu()
 {
-	map<string, KolaMenu*>::iterator it;
+	map<string, IMenu*>::iterator it;
 	for (it = menuMap.begin(); it != menuMap.end(); it++)
 		delete it->second;
 
@@ -412,7 +412,9 @@ bool KolaClient::UpdateMenu(void)
 		ClearMenu();
 		json_array_foreach(js, value) {
 			const char *name = json_gets(value, "name", "");
-			menuMap.insert(pair<string, KolaMenu*>(name, new KolaMenu(value)));
+			KolaMenu* menu = new KolaMenu();
+			menu->Parser(value);
+			menuMap.insert(pair<string, IMenu*>(name, menu));
 		}
 		json_delete(js);
 		return true;
@@ -421,14 +423,14 @@ bool KolaClient::UpdateMenu(void)
 	return false;
 }
 
-KolaMenu* KolaClient::operator[] (const char *name)
+IMenu* KolaClient::operator[] (const char *name)
 {
 	return GetMenuByName(name);
 }
 
-KolaMenu* KolaClient::operator[] (int index)
+IMenu* KolaClient::operator[] (int index)
 {
-	map<string, KolaMenu*>::iterator it = menuMap.begin();
+	map<string, IMenu*>::iterator it = menuMap.begin();
 	for(; it != menuMap.end() && index; it++, index--);
 
 	if (index == 0 && it != menuMap.end())
@@ -437,7 +439,7 @@ KolaMenu* KolaClient::operator[] (int index)
 	return NULL;
 }
 
-KolaMenu* KolaClient::GetMenuByCid(int cid)
+IMenu* KolaClient::GetMenuByCid(int cid)
 {
 	foreach(menuMap, i) {
 		if (i->second->cid == cid)
@@ -463,9 +465,9 @@ KolaInfo& KolaClient::GetInfo() {
 	return info;
 }
 
-KolaMenu* KolaClient::GetMenuByName(const char *menuName)
+IMenu* KolaClient::GetMenuByName(const char *menuName)
 {
-	map<string, KolaMenu*>::iterator it;
+	map<string, IMenu*>::iterator it;
 
 	if (menuName == NULL)
 		return NULL;

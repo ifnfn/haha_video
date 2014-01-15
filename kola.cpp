@@ -58,7 +58,6 @@ static string chipKey(void)
 	return "000001";
 }
 
-#if 1
 string MD5STR(const char *data)
 {
 	MD5_CTX ctx;
@@ -75,7 +74,6 @@ string MD5STR(const char *data)
 
 	return string(buf);
 }
-#endif
 
 static char *GetIP(const char *hostp)
 {
@@ -87,7 +85,7 @@ static char *GetIP(const char *hostp)
 
 	inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
 
-	//	freehostent(host);
+	//freehostent(host);
 	return strdup(str);
 }
 

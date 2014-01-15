@@ -140,6 +140,7 @@ Http::Http(const char *url)
 	download_cancel = 0;
 	msg = CURLMSG_NONE;
 	status = 0;
+	httpcode = 0;
 
 	if (url)
 		this->url = url;
@@ -205,7 +206,11 @@ size_t Http::curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data)
 
 	const char *s = (const char *)ptr;
 
-	if (strncmp(s, "Date: ", 6) == 0)
+	if (strncmp(s, "HTTP", 4) == 0) {
+		int httpversion_major, httpversion;
+		sscanf(s, "HTTP/%d.%d %3d", &httpversion_major, &httpversion, &http->httpcode);
+	}
+	else if (strncmp(s, "Date: ", 6) == 0)
 		http->Headers.Date = curl_getdate(&s[6], NULL);
 	else if (strncmp(s, "Expires: ", 9) == 0)
 		http->Headers.Expires = curl_getdate(&s[9], NULL);
@@ -213,14 +218,14 @@ size_t Http::curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data)
 	return size * nmemb;
 }
 
-char *Http::curlGetCurlURL(int times)
+const char *Http::curlGetCurlURL(int times)
 {
 	CURLcode res;
 
 	if (times > 3)
 		return NULL;
 
-	buffer.init();
+	buffer.reset();
 
 	res = curl_easy_perform(curl);
 	if ( res ) {
@@ -230,6 +235,11 @@ char *Http::curlGetCurlURL(int times)
 
 	if (buffer.mem == NULL)
 		return curlGetCurlURL(times + 1);
+
+	if (this->httpcode != 200 && this->httpcode != 304) {
+		buffer.reset();
+		return NULL;
+	}
 
 	return buffer.mem;
 }

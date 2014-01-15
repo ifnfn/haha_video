@@ -21,7 +21,7 @@ using namespace std;
 	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 #define DEFAULT_PAGE_SIZE 20
-#define PAGE_CACHE 4
+#define PAGE_CACHE 8
 
 class KolaClient;
 class KolaMenu;
@@ -61,7 +61,6 @@ class Mutex {
 	protected:
 		pthread_mutex_t _mutex;
 };
-
 
 class Task {
 	public:
@@ -161,7 +160,7 @@ class EPG {
 		string timeString;
 };
 
-class KolaEpg: public vector<EPG> {
+class KolaEpg:public vector<EPG> {
 	public:
 		KolaEpg() {}
 		bool LoadFromText(string text);
@@ -175,6 +174,7 @@ class VideoResolution: public Variant {
 	public:
 		void Clear();
 		void GetResolution(StringList& res);
+		void SetResolution(string &res);
 		string GetVideoUrl();
 		bool Empty();
 		string defaultKey;
@@ -184,63 +184,65 @@ class VideoResolution: public Variant {
 		bool GetVariant(string &key, Variant &var);
 };
 
+class IVideo {
+public:
+	virtual ~IVideo(){};
+	int    width;
+	int    height;
+	int    fps;
+	size_t totalBytes;
+
+	int    cid;
+	string pid;
+	string vid;
+	string name;
+	int order;
+	int isHigh;
+	size_t videoPlayCount;
+	double videoScore;
+	double playLength;
+
+	string showName;
+	string publishTime;
+	string videoDesc;
+	string smallPicUrl;
+	string largePicUrl;
+	VideoResolution Resolution;
+	virtual void GetResolution(StringList& res) = 0;
+	virtual void SetResolution(string &res) = 0;
+	virtual string GetVideoUrl() = 0;
+	virtual string GetSubtitle(const char *lang) = 0;
+	virtual bool GetEPG(KolaEpg &epg) = 0;
+};
+
 class KolaPlayer {
 	public:
 		KolaPlayer();
 		~KolaPlayer();
 		virtual void Run();
 		virtual bool Play(string name, string url) = 0;
-		void AddVideo(KolaVideo *video);
+		void AddVideo(IVideo *video);
 	private:
 		deque<VideoResolution> videoList;
 		ConditionVar *_condvar;
 		Thread* thread;
 };
 
-class KolaVideo {
+class KolaVideo: public IVideo {
 	public:
 		KolaVideo(json_t *js = NULL);
-		~KolaVideo();
+		virtual ~KolaVideo();
 
 		bool LoadFromJson(json_t *js);
 
-		void Clear();
-		void GetResolution(StringList& res);
-		void SetResolution(string &res);
-		string GetVideoUrl();
-		string GetSubtitle(const char *lang);
-		string GetInfo();
-
-		int    width;
-		int    height;
-		int    fps;
-		size_t totalBytes;
-
-		int    cid;
-		string pid;
-		string vid;
-		string name;
-		int order;
-		int isHigh;
-		size_t videoPlayCount;
-		double videoScore;
-		double playLength;
-
-		string showName;
-		string publishTime;
-		string videoDesc;
-		string smallPicUrl;
-		string largePicUrl;
+		virtual void GetResolution(StringList& res);
+		virtual void SetResolution(string &res);
+		virtual string GetVideoUrl();
+		virtual string GetSubtitle(const char *lang) {return "";}
+		virtual bool GetEPG(KolaEpg &epg);
 	private:
-		string localVideoFile;
-		string pageUrl;
-		string playUrl;
 		string directPlayUrl;
-
 		Variant sc_info;
-		VideoResolution urls;
-
-		friend class KolaPlayer;
 };
 
 class FilterValue: public StringList {
@@ -313,7 +315,7 @@ class KolaAlbum {
 		bool SetSource(string &source);        // 设置节目来源，为""时，使用默认来源
 		bool GetPictureFile(FileResource& picture, enum PicType type);
 		string &GetPictureUrl(enum PicType type=PIC_AUTO);
-		KolaVideo *GetVideo(size_t id);
+		IVideo *GetVideo(size_t id);
 	private:
 		void VideosClear();
 		bool LoadFromJson(json_t *js);
@@ -322,7 +324,7 @@ class KolaAlbum {
 		int cid;
 		string pid;
 		string playlistid;
-		vector<KolaVideo*> videoList;
+		vector<IVideo*> videoList;
 
 		size_t totalSet;         // 总集数
 		size_t updateSet;        // 当前更新集

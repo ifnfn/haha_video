@@ -503,8 +503,6 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/Users/silicon/works/kolatv/lib,
-					/Users/silicon/works/kolatv/lua,
 					/usr/local/lib,
 				);
 				OTHER_CFLAGS = (

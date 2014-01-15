@@ -58,21 +58,41 @@ static int f_mwget(lua_State *L)
 static int f_wget(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	const char *url;
+	const char *url = NULL;
+	bool cached = true;
 	if (argc < 1)
 		return 0;
+	if (argc >= 1 && lua_type(L, 1) == LUA_TSTRING)
+		url = lua_tostring(L, 1);
 
-	if (lua_type(L, 1) == LUA_TSTRING && (url = lua_tostring(L, 1))) {
-		KolaClient &kola = KolaClient::Instance();
+	if (argc >= 2 && lua_type(L, 2) == LUA_TBOOLEAN)
+		cached = lua_toboolean(L, 2);
 
-		Resource* res = kola.resManager->GetResource(url);
-		res->score = 254; // 优先级低于过期图片
-		res->Wait();
-		lua_pushstring(L, res->ToString().c_str());
-		res->DecRefCount();
+	if (url) {
+		if (cached) {
+			KolaClient &kola = KolaClient::Instance();
+
+			Resource* res = kola.resManager->GetResource(url);
+			res->score = 254; // 优先级低于过期图片
+			res->Wait();
+			string text = res->ToString();
+			res->DecRefCount();
+			if (not text.empty()) {
+				lua_pushstring(L, text.c_str());
+				return 1;
+			}
+		}
+		else {
+			Http http(url);
+			const char * text = http.Get();
+			if (text) {
+				lua_pushstring(L, text);
+				return 1;
+			}
+		}
 	}
 
-	return 1;
+	return 0;
 }
 
 static int f_wpost(lua_State *L)

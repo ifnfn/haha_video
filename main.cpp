@@ -56,7 +56,7 @@ void test_custommenu()
 			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 			string player_url;
 			for (int j = 0; j < video_count; j++) {
-				KolaVideo *video = album->GetVideo(j);
+				IVideo *video = album->GetVideo(j);
 				if (video) {
 					player_url = video->GetVideoUrl();
 					printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
@@ -75,7 +75,7 @@ void test_custommenu()
 		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 		string player_url;
 		for (int j = 0; j < video_count; j++) {
-			KolaVideo *video = album->GetVideo(j);
+			IVideo *video = album->GetVideo(j);
 			if (video) {
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
@@ -91,7 +91,7 @@ class Player: public KolaPlayer {
 	virtual bool Play(string name, string url) {
 		// TODO
 		cout << url << endl;
-		
+
 		return true;
 	}
 };
@@ -127,6 +127,7 @@ void test_livetv()
 	//	m->GetPage(page);
 	//	m->FilterAdd("PinYin", "zjw");
 	m->SetSort("Name", "1");
+	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
 #if 1
 	for (size_t i=0; i < count; i++) {
@@ -138,16 +139,19 @@ void test_livetv()
 #if 1
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
-			KolaVideo *video = album->GetVideo(j);
+//			if (album->vid != "cc44a1a804")
+//				continue;
+			IVideo *video = album->GetVideo(j);
 			if (video) {
-				player.AddVideo(video);
+				if (video->vid == "22c640b3" || video->vid == "562b3493")
+					printf("%s\n", video->vid.c_str());
+//				player.AddVideo(video);
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
-#if 0
+#if 1
 				KolaEpg epg;
 
-				string info = video->GetInfo();
-				epg.LoadFromText(info);
+				video->GetEPG(epg);
 
 				EPG e1, e2;
 				if (epg.GetCurrent(e1)) {
@@ -235,7 +239,7 @@ void test_video(const char *menuName)
 
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
-			KolaVideo *video = album->GetVideo(j);
+			IVideo *video = album->GetVideo(j);
 			if (video) {
 				StringList res;
 //				player_url = video->GetVideoUrl();
@@ -310,8 +314,8 @@ int main(int argc, char **argv)
 
 	//test_custommenu();
 	//return 0;
-	//printf("Test LiveTV\n"); test_livetv();
-	//return 0;
+	printf("Test LiveTV\n"); test_livetv();
+	return 0;
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");

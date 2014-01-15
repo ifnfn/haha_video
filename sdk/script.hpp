@@ -33,6 +33,7 @@ class LuaScript {
 	private:
 		map<string, script> scripts;
 		bool GetScript(const char *name, string &text);
+		string lua_runscript(lua_State* L, const char *filename, const char *fn, const char *func, vector<string> &args);
 };
 
 #endif

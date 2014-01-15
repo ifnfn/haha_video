@@ -23,6 +23,7 @@ end
 function get_channel(vid)
 	local url = string.format("http://poll.hd.sohu.com/live/stat/menu-segment.json?&sid=%s", vid)
 
+	print(url)
 	local ret = {}
 	text = kola.wget(url)
 	if text ~= nil then

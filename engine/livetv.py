@@ -7,9 +7,9 @@ from xml.etree import ElementTree
 
 import tornado.escape
 
+import engine
 from engine import VideoEngine, KolaParser
 from kola import VideoBase, AlbumBase, DB, json_get, GetNameByUrl, utils
-import kola
 from kola.element import LivetvMenu
 
 
@@ -125,7 +125,7 @@ class ParserLetvLivetv(LivetvParser):
                 vid = x[0][0]
                 name = x[0][2]
                 image = urljoin(js['source'], x[0][1])
-                print(name, vid, image)
+                #print(name, vid, image)
 
                 if name in ['中国教育一台', '中国教育三台', '中国教育二台', '游戏风云一套', '优漫卡通', '延边卫视', '星空卫视',
                             '五星体育', 'TVB翡翠台', '三沙卫视', '厦门卫视', 'NEOTV综合频道', '嘉佳卡通', '华娱卫视',
@@ -151,7 +151,7 @@ class ParserLetvLivetv(LivetvParser):
                 })
 
                 v.info = {
-                          'script' : 'letv',
+                          'script' : 'letvlive',
                           'function' : 'get_channel',
                           'parameters' : [vid]}
 
@@ -191,7 +191,7 @@ class ParserSohuLivetv(LivetvParser):
             })
 
             v.info = {
-                'script' : 'sohutv',
+                'script' : 'sohulive',
                 'function' : 'get_channel',
                 'parameters' : [pid],
             }
@@ -261,7 +261,7 @@ class ParserHangZhouLivetv(LivetvParser):
         #for i in range(1, 60):
         for i in (1, 2, 3, 5, 13, 14, 15):
             url = 'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i
-            text = kola.GetUrl(url).decode()
+            text = engine.GetUrl(url).decode()
             root = ElementTree.fromstring(text)
 
             name = self.GetAliasName(root.attrib['name'])

@@ -60,12 +60,14 @@ static int docall (lua_State *L, int narg, int nres)
 	return status;
 }
 
-static int report (lua_State *L, int status)
+static int report(lua_State *L, const char *filename, int status)
 {
 	if (status != LUA_OK && !lua_isnil(L, -1)) {
 		const char *msg = lua_tostring(L, -1);
-		if (msg == NULL) msg = "(error object is not a string)";
-		luai_writestringerror("%s\n", msg);
+		if (msg == NULL)
+			msg = "(error object is not a string)";
+		fprintf(stderr, "fileName: %s, error: %s\n", filename, msg);
+
 		lua_pop(L, 1);
 		/* force a complete garbage collection in case of errors */
 		lua_gc(L, LUA_GCCOLLECT, 0);
@@ -73,7 +75,7 @@ static int report (lua_State *L, int status)
 	return status;
 }
 
-static string lua_runscript(lua_State* L, const char *fn, const char *func, vector<string> &args)
+string LuaScript::lua_runscript(lua_State* L, const char *filename, const char *fn, const char *func, vector<string> &args)
 {
 	int i, status;
 	int argc = (int)args.size();
@@ -96,7 +98,7 @@ static string lua_runscript(lua_State* L, const char *fn, const char *func, vect
 	// lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
 	status = docall(L, argc, 1);
 	//status = lua_pcall(L, argc, 1, 0);
-	report(L, status);
+	report(L, filename, status);
 	if (status != LUA_OK) {
 #if TEST
 		printf("%s(", func);
@@ -180,7 +182,7 @@ string LuaScript::RunScript(vector<string> &args, const char *name, const char *
 		lua_State *L = luaL_newstate();
 		if (L) {
 			luaL_openmini(L);
-			ret = lua_runscript(L, code.c_str(), fname, args);
+			ret = lua_runscript(L, name, code.c_str(), fname, args);
 			lua_close(L);
 		}
 	}

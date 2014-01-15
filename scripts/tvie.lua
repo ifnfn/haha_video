@@ -1,5 +1,5 @@
 function get_timestamp()
-	local ret = kola.wget('http://epgsrv01.ucatv.com.cn/api/getUnixTimestamp')
+	local ret = kola.wget('http://epgsrv01.ucatv.com.cn/api/getUnixTimestamp', false)
 	if ret ~= nil then
 		local time_js = cjson.decode(ret)
 		return  tonumber(time_js.time)
@@ -20,16 +20,15 @@ function kola_main(url)
 				local video_url = ''
 				local timestamp = tonumber(data_obj.result.timestamp)
 				timestamp = math.floor(timestamp / 1000) * 1000
-				table.foreach(data_obj.result.datarates,
-					function(k, v)
-						video_url = string.format('http://%s/channels/%d/%s.flv/live?%s', v[1], 102, k, tostring(timestamp))
-						return true
-					end)
+
+				for k,v in pairs(data_obj.result.datarates) do
+					video_url = string.format('http://%s/channels/%d/%s.flv/live?%s', v[1], 102, k, tostring(timestamp))
+					break
+				end
 
 				return video_url
 			end
 		elseif type(data_obj.streams) == "table" then
-			--
 			--{
 			--	"id":"179",
 			--	"channel_name":"JiangSu-HD-Envivio",
@@ -45,17 +44,16 @@ function kola_main(url)
 			--		}
 			--	}
 			--}
-			--
-			--
+
 			local channel_name = data_obj['channel_name']
 			local customer_name = data_obj['customer_name']
 			local streams = data_obj['streams']
 			local video_url = ''
-			table.foreach(streams, function(k, v)
-							video_url = string.format('http://%s/channels/%s/%s/flv:%s/live?%d',
-									v.cdnlist[1], customer_name, channel_name, k, get_timestamp())
-							return true
-						end)
+			for k,v in pairs(streams) do
+				video_url = string.format('http://%s/channels/%s/%s/flv:%s/live?%d',
+					v.cdnlist[1], customer_name, channel_name, k, get_timestamp())
+				break
+			end
 
 			return video_url
 		end
@@ -63,7 +61,6 @@ function kola_main(url)
 
 	return ""
 end
-
 
 function get_channel(vid)
 	local url = string.format("%s/0/%d", vid, kola.gettime())

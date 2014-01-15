@@ -523,25 +523,28 @@ class DB:
                 cursor = cursor.skip(page * size).limit(size)
 
             if size or disablePage:
-                if 'engine' in arg:
-                    engine_name = arg['engine']
-                else:
-                    engine_name = ''
+                #if 'engine' in arg:
+                #    engine_name = arg['engine']
+                #else:
+                #    engine_name = ''
                 for x in cursor:
                     engine_list = {}
                     del x['_id']
                     if 'private'in x:
-                        private = x['private']
-                        if engine_name in private and 'videoListUrl' in private[engine_name]:
-                            x['videoListUrl'] = private[engine_name]['videoListUrl']
-                        else:
-                            for _,v in list(private.items()):
-                                if 'videoListUrl' in v:
-                                    x['videoListUrl'] = v['videoListUrl']
-                                    break
-                        for engine, v in private.items():
+                        #=======================================================
+                        # private = x['private']
+                        # if engine_name in private and 'videoListUrl' in private[engine_name]:
+                        #     x['videoListUrl'] = private[engine_name]['videoListUrl']
+                        # else:
+                        #     for _,v in list(private.items()):
+                        #         if 'videoListUrl' in v:
+                        #             x['videoListUrl'] = v['videoListUrl']
+                        #             break
+                        #=======================================================
+                        for _, v in x['private'].items():
                             engine_list[v['name']] = v['videoListUrl']
 
+                    x['engine'] = engine_list
                     if not full:
                         if 'private' in x:
                             del x['private']
@@ -552,7 +555,6 @@ class DB:
                         if 'albumPageUrl' in x:
                             del x['albumPageUrl']
 
-                    x['engine'] = engine_list
                     ret.append(x)
         except:
             t, v, tb = sys.exc_info()

@@ -31,13 +31,13 @@ void KolaPlayer::Run()
 			_condvar->unlock();
 		}
 		else {
-			VideoResolution video = this->videoList.front();
-			videoList.pop_front();
+			VideoResolution resolution = this->videoList.front();
+			videoList.clear();
 			_condvar->unlock();
 
-			string url = video.GetVideoUrl();
+			string url = resolution.GetVideoUrl();
 			if (not url.empty())
-				Play(video.defaultKey, url);
+				Play(resolution.defaultKey, url);
 		}
 	}
 }
@@ -259,21 +259,18 @@ bool VideoResolution::GetVariant(string &key, Variant &var)
 
 string VideoResolution::GetVideoUrl()
 {
-	Variant var;
-
 	if (Empty())
 		Set();
 
 	if (not Empty()) {
 		map<string ,Variant>::iterator it = urls.find(defaultKey);
 		if (it != urls.end()) {
-			var = it->second;
+			return it->second.GetString();
 		}
 		else {
 			it = urls.begin();
-			var = it->second;
+			return it->second.GetString();
 		}
-		return var.GetString();
 	}
 
 	return "";

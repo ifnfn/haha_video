@@ -32,20 +32,22 @@ void KolaPlayer::Run()
 		}
 		else {
 			VideoResolution &video = this->videoList.front();
+			videoList.pop_front();
+			_condvar->unlock();
+
 			string url = video.GetVideoUrl();
 			if (not url.empty())
 				Play(video.defaultKey, url);
-			videoList.pop_front();
-			_condvar->unlock();
 		}
 	}
 }
 
-void KolaPlayer::AddVideo(KolaVideo *video)
+void KolaPlayer::AddVideo(IVideo *video)
 {
 	if (video) {
 		_condvar->lock();
-		videoList.push_back(video->urls);
+		videoList.clear();
+		videoList.push_back(video->Resolution);
 		_condvar->signal();
 		_condvar->unlock();
 	}
@@ -87,7 +89,6 @@ bool KolaVideo::LoadFromJson(json_t *js)
 
 	json_gets(js   , "smallPicUrl"  , smallPicUrl);
 	json_gets(js   , "largePicUrl"  , largePicUrl);
-	json_gets(js   , "playUrl"      , playUrl);
 	json_gets(js   , "directPlayUrl", directPlayUrl);
 	width          = (int)json_geti(js, "width", 0);
 	height         = (int)json_geti(js, "height", 0);
@@ -96,7 +97,7 @@ bool KolaVideo::LoadFromJson(json_t *js)
 
 	//	json_get_stringlist(js, "resolution", &resolution);
 	json_get_variant(js, "info", &sc_info);
-	json_get_variant(js, "resolution", &urls);
+	json_get_variant(js, "resolution", &Resolution);
 	//cout << resolution.ToString() << endl;
 
 	return true;
@@ -104,22 +105,29 @@ bool KolaVideo::LoadFromJson(json_t *js)
 
 void KolaVideo::GetResolution(StringList& res)
 {
-	urls.GetResolution(res);
+	Resolution.GetResolution(res);
 }
 
 void KolaVideo::SetResolution(string &res)
 {
-	urls.defaultKey = res;
+	Resolution.SetResolution(res);
 }
 
 string KolaVideo::GetVideoUrl()
 {
-	return urls.GetVideoUrl();
+	return Resolution.GetVideoUrl();
 }
 
-string KolaVideo::GetInfo()
+bool KolaVideo::GetEPG(KolaEpg &epg)
 {
-	return sc_info.GetString();
+	string text = sc_info.GetString();
+
+	if (not text.empty()) {
+		epg.LoadFromText(text);
+		return true;
+	}
+
+	return false;
 }
 
 bool KolaEpg::LoadFromText(string text)
@@ -229,6 +237,11 @@ void VideoResolution::GetResolution(StringList& res)
 	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++) {
 		res.Add(it->first);
 	}
+}
+
+void VideoResolution::SetResolution(string &res)
+{
+	this->defaultKey = res;
 }
 
 bool VideoResolution::GetVariant(string &key, Variant &var)

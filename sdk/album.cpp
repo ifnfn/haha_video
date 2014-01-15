@@ -194,7 +194,7 @@ bool KolaAlbum::SetSource(string &source)      // 设置节目来源，为""时�
 	return true;
 }
 
-KolaVideo *KolaAlbum::GetVideo(size_t id)
+IVideo *KolaAlbum::GetVideo(size_t id)
 {
 	size_t pageNo = id / videoPageSize;
 	size_t pos = id % videoPageSize;

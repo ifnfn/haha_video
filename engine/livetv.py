@@ -333,7 +333,7 @@ class ParserWenZhouLivetv(LivetvParser):
 
             v.SetVideoUrl('default', {
                 'script' : 'wztv',
-                'parameters' : ['http://www.dhtv.cn/static/??js/tv.js?acm', source]
+                'parameters' : ['http://www.dhtv.cn/static/js/tv.js?acm', source]
             })
 
             v.info = {

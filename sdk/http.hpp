@@ -49,7 +49,7 @@ class HttpBuffer {
 			if (mem) free(mem);
 		}
 
-		void init() {
+		void reset() {
 			if (mem) free(mem);
 
 			mem = NULL;
@@ -96,9 +96,10 @@ class Http {
 		long status;
 		HttpHeader Headers;
 		string url;
+		int httpcode;
 	private:
 		CURL *curl;
-		char *curlGetCurlURL(int times=0);
+		const char *curlGetCurlURL(int times=0);
 		char errormsg[CURL_ERROR_SIZE];
 		static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data);
 		static size_t curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data);

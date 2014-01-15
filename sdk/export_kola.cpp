@@ -75,18 +75,21 @@ static int f_wget(lua_State *L)
 			Resource* res = kola.resManager->GetResource(url);
 			res->score = 254; // 优先级低于过期图片
 			res->Wait();
-			lua_pushstring(L, res->ToString().c_str());
+			string text = res->ToString();
 			res->DecRefCount();
+			if (not text.empty()) {
+				lua_pushstring(L, text.c_str());
+				return 1;
+			}
 		}
 		else {
 			Http http(url);
 			const char * text = http.Get();
-			if (text)
+			if (text) {
 				lua_pushstring(L, text);
-			else
-				lua_pushstring(L, "");
+				return 1;
+			}
 		}
-		return 1;
 	}
 
 	return 0;

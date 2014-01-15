@@ -139,9 +139,13 @@ void test_livetv()
 #if 1
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
+//			if (album->vid != "cc44a1a804")
+//				continue;
 			IVideo *video = album->GetVideo(j);
 			if (video) {
-				player.AddVideo(video);
+				if (video->vid == "22c640b3" || video->vid == "562b3493")
+					printf("%s\n", video->vid.c_str());
+//				player.AddVideo(video);
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 #if 1
@@ -310,8 +314,8 @@ int main(int argc, char **argv)
 
 	//test_custommenu();
 	//return 0;
-	//printf("Test LiveTV\n"); test_livetv();
-	//return 0;
+	printf("Test LiveTV\n"); test_livetv();
+	return 0;
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");

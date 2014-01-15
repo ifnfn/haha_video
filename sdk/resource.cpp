@@ -174,7 +174,7 @@ Resource* ResourceManager::GetResource(const string &url)
 	if (pResource == NULL)
 		pResource = AddResource(url);
 	else
-		printf("Cached in: %s\n", url.c_str());
+		printf("Cached in: %s, %s\n", url.c_str(), pResource->GetFileName().c_str());
 
 	pResource->IncRefCount();
 

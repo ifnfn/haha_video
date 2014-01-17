@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from .engine import EngineCommands, VideoEngine, KolaParser
+from .engine import EngineCommands, VideoEngine, KolaParser, KolaAlias
 from .livetv import LiveEngine
 from .sohu import SohuEngine
 from .letv import LetvEngine

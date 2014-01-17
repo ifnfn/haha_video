@@ -12,6 +12,30 @@ from kola import DB, KolaCommand
 global Debug
 Debug = True
 
+class KolaAlias:
+    def __init__(self):
+        self.alias = {}
+
+    def Get(self, v):
+        if v in self.alias:
+            return self.alias[v]
+        else:
+            return v
+
+    def GetList(self, v):
+        ret = []
+        for i in v:
+            if i in self.alias:
+                ret.append(self.alias[i])
+            else:
+                ret.append(i)
+        return ret
+
+    def GetStrings(self, v, sp):
+        v = v.split(sp)
+
+        return self.GetList(v)
+
 # 命令管理器
 class EngineCommands(KolaCommand):
     def __init__(self):

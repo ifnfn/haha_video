@@ -5,7 +5,7 @@ import re
 import time, sys, traceback
 import tornado.escape
 
-from engine import VideoEngine, KolaParser
+from engine import VideoEngine, KolaParser, KolaAlias
 from kola import DB, autostr, autoint, autofloat, Singleton, utils
 import kola
 
@@ -13,6 +13,61 @@ import kola
 #================================= 以下是搜狐视频的搜索引擎 =======================================
 global Debug
 Debug = True
+
+class SohuAlias(KolaAlias):
+    def __init__(self):
+        self.alias = {
+            # 电影
+            '剧情' : '剧情片',
+            '喜剧' : '喜剧片',
+            '动作' : '动作片',
+            '恐怖' : '恐怖片',
+            '动画' : '动画片',
+            '警匪' : '警匪片',
+            '武侠' : '武侠片',
+            '战争' : '战争片',
+            '短片' : '其他',
+            '爱情' : '爱情片',
+            '科幻' : '科幻片',
+            '奇幻' : '魔幻片',
+            '犯罪' : '警匪片',
+            '冒险' : '其他',
+            '灾难' : '灾难片',
+            '伦理' : '伦理片',
+            '传记' : '传记片',
+            '家庭' : '家庭片',
+            '纪录' : '纪录片',
+            '惊悚' : '惊悚片',
+            '历史' : '历史片',
+            '悬疑' : '悬疑片',
+            '歌舞' : '歌舞片',
+            '体育' : '其他',
+
+            # 电视剧
+            #'剧情' : '剧情片',
+            #'伦理' : '伦理片',
+            #'喜剧' : '喜剧片',
+            '军旅' : '军旅片',
+            #'奇幻' : '科幻片',
+            #'动作' : '动作片',
+            #'战争' : '战争片',
+            #'武侠' : '武侠片',
+            #'犯罪' : '警匪片',
+            #'悬疑' : '悬疑片',
+            '偶像' : '偶像片',
+            '都市' : '都市片',
+            #'历史' : '历史片',
+            #'灾难' : '灾难片',
+            #'古装' : '古装片',
+            #'科幻' : '科幻片',
+            '情景' : '剧情片',
+            '生活' : '其他',
+            '情感' : '其他',
+            #'家庭' : '家庭片',
+            '谍战' : '谍战片',
+            '刑侦' : '刑侦片',
+            '经典' : '其他',
+        }
 
 class LetvVideo(kola.VideoBase):
     def SaveToJson(self):
@@ -124,6 +179,7 @@ class ParserPlayCount(KolaParser):
 
 # 节目列表
 class ParserAlbumList(KolaParser):
+    alias = SohuAlias()
     def __init__(self, url=None, cid=0):
         super().__init__()
         if url and cid:
@@ -155,47 +211,54 @@ class ParserAlbumList(KolaParser):
                 album.vid = utils.genAlbumId(album.albumName)
                 album.cid = js['cid']
 
-                album.subName          = a['subname']
-                album.enAlbumName      = ''                                          # 英文名称
-                album.area             = a['areaName']                               # 地区
-                album.categories       = a['subCategoryName'].split(',')             # 类型
-                album.publishYear      = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
+                album.enAlbumName      = ''                                                 # 英文名称
 
-                vids = a['vids']
-                if vids:
-                    vids = vids.split(',')
-                    if not vids[0]:
-                        pass
-                    album.letv.vid = vids[0]
-                    album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(vids[0])
+                if 'subname' in a:         album.subName          = a['subname']
+                if 'areaName' in a:        album.area             = a['areaName']                                      # 地区
+                if 'subCategoryName' in a: album.categories       = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
+                if 'releaseDate' in a:     album.publishYear      = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
 
-                album.largePicUrl      = a['poster20']                # 大图 post20 最大的
-                album.smallPicUrl      = a['postS3']                  # 小图 // postS1 小中大的，postS3 小中最小的
-                album.largeHorPicUrl   = a['poster12']                # 横大图
-                album.smallHorPicUrl   = a['poster11']                # 横小图
-                album.largeVerPicUrl   = a['poster20']                # 竖大图
-                album.smallVerPicUrl   = a['postS2']                  # 竖小图
+                if 'vids' in a:
+                    vids = a['vids']
+                    if vids:
+                        vids = vids.split(',')
+                        if not vids[0]:
+                            pass
+                        album.letv.vid = vids[0]
+                        album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(vids[0])
+                elif 'vid' in a:
+                    album.letv.vid = a['vid']
+                    album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
+                else:
+                    print('aaa')
 
-                album.playLength       = autoint(a['duration']) * 60  # 时长
-                album.updateTime       = TimeStr(a['mtime'])          # 更新时间
-                album.albumDesc        = a['description']             # 简介
-                album.videoScore       = a['rating']                  # 推荐指数
+                if 'poster20' in a:    album.largePicUrl      = a['poster20']                # 大图 post20 最大的
+                if 'postS3' in a:      album.smallPicUrl      = a['postS3']                  # 小图 // postS1 小中大的，postS3 小中最小的
+                if 'poster12' in a:    album.largeHorPicUrl   = a['poster12']                # 横大图
+                if 'poster11' in a:    album.smallHorPicUrl   = a['poster11']                # 横小图
+                if 'poster20' in a:    album.largeVerPicUrl   = a['poster20']                # 竖大图
+                if 'postS2' in a:      album.smallVerPicUrl   = a['postS2']                  # 竖小图
+                if 'duration' in a:    album.playLength       = autoint(a['duration']) * 60  # 时长
+                if 'mtime' in a:       album.updateTime       = TimeStr(a['mtime'])          # 更新时间
+                if 'description' in a: album.albumDesc        = a['description']             # 简介
 
-                if 'episodes' in a:
-                    album.totalSet = autoint(a['episodes'])           # 总集数
-                if 'nowEpisodes' in a:
-                    album.updateSet = autoint(a['nowEpisodes'])       # 当前更新集
-                album.dailyPlayNum     = autoint(a['dayCount'])       # 每日播放次数
-                album.weeklyPlayNum    = autoint(a['weekCount'])      # 每周播放次数
-                album.monthlyPlayNum   = autoint(a['monthCount'])     # 每月播放次数
-                album.totalPlayNum     = autoint(a['playCount'])      # 总播放次数
-                album.dailyIndexScore  = autofloat(a['rating']) * 10  # 每日指数
+                if 'rating' in a:
+                    album.videoScore       = autofloat(a['rating']) * 10                  # 推荐指数
+                    album.dailyIndexScore  = autofloat(a['rating']) * 10  # 每日指数
 
-                album.mainActors       = a['starring'].split(',')     # 主演
-                album.directors        = a['directory'].split(',')    # 导演
-
-                if 'aid' in a:
-                    album.letv.playlistid = a['aid']
+                if 'episodes' in a:                     album.totalSet         = autoint(a['episodes'])           # 总集数
+                if 'nowEpisodes' in a:                  album.updateSet        = autoint(a['nowEpisodes'])       # 当前更新集
+                if 'dayCount' in a:                     album.dailyPlayNum     = autoint(a['dayCount'])       # 每日播放次数
+                if 'weekCount' in a:                    album.weeklyPlayNum    = autoint(a['weekCount'])      # 每周播放次数
+                if 'monthCount' in a:                   album.monthlyPlayNum   = autoint(a['monthCount'])     # 每月播放次数
+                if 'playCount' in a:                    album.totalPlayNum     = autoint(a['playCount'])      # 总播放次数
+                if 'starring' in a and a['starring']:
+                    if type(a['starring']) == dict:
+                        album.mainActors       = [x for _, x in a['starring'].items()]
+                    elif type(a['starring']) == str:
+                        album.mainActors       = a['starring'].split(',')     # 主演
+                if 'directory' in a and a['directory']: album.directors        = a['directory'].split(',')    # 导演
+                if 'aid' in a:                          album.letv.playlistid  = a['aid']
 
                 album.letv.videoListUrl = {
                     'script'     : 'letv',
@@ -255,6 +318,28 @@ class LetvTV(LetvVideoMenu):
     def UpdateHotInfo(self):
         pass
 
+# 动漫
+class LetvComic(LetvVideoMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        self.cid = 3
+        self.HomeUrlList = ['http://list.letv.com/apin/chandata.json?c=5&d=1&md=&o=20&p=1&s=1']
+
+    # 更新热门电影信息
+    def UpdateHotInfo(self):
+        pass
+
+# 记录片
+class LetvDocumentary(LetvVideoMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        self.cid = 3
+        self.HomeUrlList = ['http://list.letv.com/api/chandata.json?c=16&d=2&md=&o=1&p=1&t=119']
+
+    # 更新热门电影信息
+    def UpdateHotInfo(self):
+        pass
+
 
 # Letv 搜索引擎
 class LetvEngine(VideoEngine):
@@ -268,6 +353,8 @@ class LetvEngine(VideoEngine):
         self.menu = [
             LetvMovie('电影'),
             LetvTV('电视剧'),
+            LetvComic('动漫'),
+            LetvDocumentary('记录片'),
         ]
 
         self.parserList = [

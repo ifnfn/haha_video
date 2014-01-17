@@ -21,6 +21,8 @@ class KolatvServer:
         self.MenuList['直播']   = element.LivetvMenu('直播')
         self.MenuList['电影']   = element.MovieMenu('电影')
         self.MenuList['电视剧'] = element.TVMenu('电视剧')
+        self.MenuList['动漫']   = element.ComicMenu('动漫')
+        self.MenuList['记录片'] = element.SohuDocumentary('记录片')
 
     def GetVideoSource(self):
         return {

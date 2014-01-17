@@ -35,8 +35,8 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
 
     if method == 'POST':
         header['Content-Type'] = 'application/x-www-form-urlencoded'
-    #conn = httplib2.Http('.cache', timeout=socket_timeout)
-    conn = httplib2.Http(timeout=socket_timeout)
+    conn = httplib2.Http('.cache', timeout=socket_timeout)
+    #conn = httplib2.Http(timeout=socket_timeout)
     conn.follow_redirects = True
     response, responses = conn.request(uri=url, method=str(method).upper(), body=data,  headers=header)
     try:

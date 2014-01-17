@@ -7,7 +7,7 @@ import tornado.escape
 from bs4 import BeautifulSoup as bs
 from xml.etree import ElementTree
 
-from engine import VideoEngine, KolaParser
+from engine import VideoEngine, KolaParser, KolaAlias
 from kola import DB, autostr, autoint, Singleton, utils
 import kola
 
@@ -15,6 +15,69 @@ import kola
 #================================= 以下是搜狐视频的搜索引擎 =======================================
 global Debug
 Debug = True
+
+class QiyiAlias(KolaAlias):
+    def __init__(self):
+        self.alias = {
+            # 电视剧
+            '言情剧' : '言情片',
+            '历史剧' : '历史片',
+            '武侠剧' : '武侠片',
+            '古装剧' : '古装片',
+            '年代剧' : '年代片',
+            '农村剧' : '农村片',
+            '偶像剧' : '偶像片',
+            '悬疑剧' : '悬疑片',
+            '科幻剧' : '科幻片',
+            '喜剧'   : '喜剧片',
+            '宫廷剧' : '宫廷片',
+            '商战剧' : '谍战片',
+            '穿越剧' : '穿越片',
+            '罪案剧' : '刑侦片',
+            '谍战剧' : '谍战片',
+            '青春剧' : '偶像片',
+            '家庭剧' : '家庭片',
+            '军旅剧' : '军旅片',
+
+            # 电影
+            '爱情' : '爱情片',
+            '战争' : '战争片',
+            '喜剧' : '喜剧片',
+            '科幻' : '科幻片',
+            '恐怖' : '恐怖片',
+            '动作' : '动作片',
+            '动画' : '动画片',
+            '悲剧' : '悲剧片',
+            '灾难' : '灾难片',
+            '剧情' : '剧情片',
+            '惊悚' : '惊悚片',
+            '魔幻' : '魔幻片',
+            '青春' : '青春片',
+            '枪战' : '枪战片',
+            '伦理' : '伦理片',
+            '悬疑' : '悬疑片',
+            '犯罪' : '警匪片',
+            '传记' : '其他',
+            '歌舞' : '其他',
+            '运动' : '其他',
+            '其它' : '其他',
+
+            # 地址
+            '华语' : '内地',
+            '大陆' : '内地',
+        }
+
+class QiyiAliasComic(KolaAlias):
+    def __init__(self):
+        self.alias = {
+            # 动漫
+        '未来':'科幻',
+        '侦探':'悬疑',
+        '言情':'恋爱',
+    }
+
+alias = QiyiAlias()
+ComicAlias = QiyiAliasComic()
 
 class QiyiVideo(kola.VideoBase):
     def SaveToJson(self):
@@ -229,8 +292,14 @@ class ParserAlbumJsonA(KolaParser):
             album.vid = utils.genAlbumId(album.albumName)
             album.cid = json['albumType']
 
-            album.area             = js['ar']                                  # 地区
-            album.categories       = js['tg'].split(' ')                       # 类型
+            if album.cid == 3:
+                a = ComicAlias
+            else:
+                a = alias
+
+            album.area             = a.Get(js['ar'])                           # 地区
+            album.categories       = a.GetStrings(js['tg'], ' ')               # 类型
+            #album.categories       = [v+"片" for v in js['tg'].split(' ')]     # 类型
 
             album.publishYear      = autoint(json['tvYear']) // 10000          # 年
 
@@ -383,6 +452,28 @@ class QiyiTV(QiyiVideoMenu):
     def UpdateHotInfo(self):
         pass
 
+# 动漫
+class QiyiComic(QiyiVideoMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        self.cid = 3
+        self.HomeUrlList = ['http://list.iqiyi.com/www/4/------------2-1-1-1---.html']
+
+    # 更新热门电影信息
+    def UpdateHotInfo(self):
+        pass
+
+# 记录片
+class QiyiDocumentary(QiyiVideoMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        self.cid = 3
+        self.HomeUrlList = ['http://list.iqiyi.com/www/3/----------0--2-1-1-1---.html']
+
+    # 更新热门电影信息
+    def UpdateHotInfo(self):
+        pass
+
 # Qiyi 搜索引擎
 class QiyiEngine(VideoEngine):
     def __init__(self):
@@ -395,6 +486,8 @@ class QiyiEngine(VideoEngine):
         self.menu = [
             QiyiMovie('电影'),
             QiyiTV('电视剧'),
+            QiyiComic('动漫'),
+            QiyiDocumentary('记录片'),
         ]
 
         self.parserList = [

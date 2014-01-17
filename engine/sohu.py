@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup as bs
 import tornado.escape
 
 import engine
-from engine import VideoEngine, KolaParser
+from engine import VideoEngine, KolaParser, KolaAlias
 from kola import DB, autostr, autoint, Singleton, utils
 import kola
 
@@ -15,6 +15,21 @@ import kola
 #================================= 以下是搜狐视频的搜索引擎 =======================================
 global Debug
 Debug = True
+
+class SohuAlias(KolaAlias):
+    def __init__(self):
+        self.alias = {
+            #'内地' : '内地',
+            '港剧' : '香港',
+            '台剧' : '台湾',
+            '美剧' : '美国',
+            '韩剧' : '韩国',
+            '英剧' : '英国',
+            '泰剧' : '泰国',
+            '日剧' : '日本',
+            '其他' : '其他',
+            '情景片' : '剧情片'
+        }
 
 class SohuVideo(kola.VideoBase):
     def SaveToJson(self):
@@ -188,6 +203,7 @@ class ParserAlbumList(KolaParser):
 
 # 更新节目的完整信息
 class ParserAlbumFullInfo(KolaParser):
+    alias = SohuAlias()
     def __init__(self, playlistid=None, vid=None):
         super().__init__()
         if playlistid and vid:
@@ -224,8 +240,8 @@ class ParserAlbumFullInfo(KolaParser):
         if 'vid' in json            : album.sohu.vid        = vid
 
         if 'isHigh' in json         : album.isHigh         = json['isHigh']
-        if 'area' in json           : album.area           = json['area']
-        if 'categories' in json     : album.categories     = json['categories']
+        if 'area' in json           : album.area           = self.alias.Get(json['area'])
+        if 'categories' in json     : album.categories     = ParserAlbumFullInfo.alias.GetList(json['categories'])
         if 'publishYear' in json    : album.publishYear    = json['publishYear']
         if 'updateTime' in json     : album.updateTime     = json['updateTime']
 
@@ -429,16 +445,7 @@ class SohuComic(SohuVideoMenu):
     def __init__(self, name):
         self.number = 115
         super().__init__(name)
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
-# 综艺
-class SohuShow(SohuVideoMenu):
-    def __init__(self, name):
-        self.number = 106
-        super().__init__(name)
+        self.cid = 3
 
     # 更新热门电影信息
     def UpdateHotInfo(self):
@@ -448,6 +455,17 @@ class SohuShow(SohuVideoMenu):
 class SohuDocumentary(SohuVideoMenu):
     def __init__(self, name):
         self.number = 107
+        super().__init__(name)
+        self.cid = 4
+
+    # 更新热门电影信息
+    def UpdateHotInfo(self):
+        pass
+
+# 综艺
+class SohuShow(SohuVideoMenu):
+    def __init__(self, name):
+        self.number = 106
         super().__init__(name)
 
     # 更新热门电影信息
@@ -506,13 +524,13 @@ class SohuEngine(VideoEngine):
         self.menu = [
             SohuMovie('电影'), # 电影
             SohuTV('电视剧'), # 电视剧
-           #SohuShow('综艺'), # 综艺
-           #SohuYule('娱乐'), # 娱乐
-           #SohuComic('动漫'), # 动漫
-           #SohuDocumentary('纪录片'), # 纪录片
+            SohuComic('动漫'), # 动漫
+            SohuDocumentary('纪录片'), # 纪录片
            #SohuEdu('教育'), # 教育
            #SohuTour('旅游'), # 旅游
+           #SohuShow('综艺'), # 综艺
            #SohuNew('新闻') # 新闻
+           #SohuYule('娱乐'), # 娱乐
         ]
 
         self.parserList = [

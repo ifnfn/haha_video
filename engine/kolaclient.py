@@ -29,6 +29,7 @@ class KolaClient:
         return engine.GetUrl(url)
 
     def GetCacheUrl(self, url):
+        return engine.GetUrl(url)
         response = ''
 
         key = hashlib.md5(url.encode('utf8')).hexdigest().upper()

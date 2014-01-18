@@ -482,7 +482,7 @@ class CustomMenu: public KolaMenu {
 		CustomMenu(string fileName);
 		void AlbumAdd(IAlbum *album);
 		void AlbumAdd(string vid);
-		void AlbumRemove(KolaAlbum *album);
+		void AlbumRemove(IAlbum *album);
 		void AlbumRemove(string vid);
 		bool SaveToFile(string otherFile = "");
 		virtual size_t GetAlbumCount();

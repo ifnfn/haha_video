@@ -327,7 +327,7 @@ void CustomMenu::AlbumAdd(string vid)
 	albumCount = albumIdList.size();
 }
 
-void CustomMenu::AlbumRemove(KolaAlbum *album)
+void CustomMenu::AlbumRemove(IAlbum *album)
 {
 	if (album)
 		AlbumRemove(album->vid);

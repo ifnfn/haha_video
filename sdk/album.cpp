@@ -344,21 +344,21 @@ void AlbumPage::Clear()
 	KolaClient &kola = KolaClient::Instance();
 	Task::Reset();
 
-	if (menu == NULL || menu->PictureCacheType == PIC_DISABLE)
-		return;
-
 	mutex.lock();
-	for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		string &url = (*it)->GetPictureUrl(menu->PictureCacheType);
-		if (not url.empty()) {
-			Resource *res = kola.resManager->FindResource(url);
-			if (res) {
-				res->score = 255;
-				if (kola.threadPool->removeTask(res))
-					kola.resManager->RemoveResource(res);
+
+	if (menu && menu->PictureCacheType != PIC_DISABLE) {
+		for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+			string &url = (*it)->GetPictureUrl(menu->PictureCacheType);
+			if (not url.empty()) {
+				Resource *res = kola.resManager->FindResource(url);
+				if (res) {
+					res->score = 255;
+					if (kola.threadPool->removeTask(res))
+						kola.resManager->RemoveResource(res);
+				}
 			}
+			delete (*it);
 		}
-		delete (*it);
 	}
 
 	albumList.clear();

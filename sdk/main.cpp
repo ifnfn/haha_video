@@ -111,9 +111,7 @@ void test_livetv()
 	}
 #endif
 
-	//m = kola["直播"];
 	m = kola.GetMenuByCid(200);
-	//	m = kola[200];
 	if (m == NULL)
 		return;
 	foreach(m->Filter.filterKey, i) {
@@ -121,12 +119,12 @@ void test_livetv()
 		foreach(i->second, j)
 			cout << "\t:" << *j << endl;
 	}
-	//	m->FilterAdd("类型", "CCTV");
+	m->FilterAdd("类型", "央视台");
 
-	//	m->SetPageSize(3);
-	//	m->GetPage(page);
-	//	m->FilterAdd("PinYin", "zjw");
-	m->SetSort("Name", "1");
+	//m->SetPageSize(3);
+	//m->GetPage(page);
+	//m->FilterAdd("PinYin", "zjw");
+	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
 #if 1
@@ -165,9 +163,27 @@ void test_livetv()
 		}
 #endif
 	}
-
-	return;
 #endif
+
+	m->FilterAdd("类型", "卫视台");
+	count = m->GetAlbumCount();
+	for (size_t i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+	}
+
+	m->FilterAdd("类型", "体育台");
+	count = m->GetAlbumCount();
+	for (size_t i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+	}
 
 	printf("%s End!!!\n", __func__);
 }
@@ -183,13 +199,18 @@ void test_video(const char *menuName)
 
 	if (m == NULL)
 		return;
+	foreach(m->Filter.filterKey, i) {
+		cout << i->first << ": ";
+		foreach(i->second, j)
+		cout << "\t:" << *j << endl;
+	}
 
 	foreach(m->quickFilters, s) {
 		cout << *s << endl;
 	}
 	//m->FilterAdd("类型", "爱情片");
-	//m->FilterAdd("产地", "香港,台湾");
-	m->SetQuickFilter("推荐电影");
+	m->FilterAdd("产地", "香港,台湾");
+	//m->SetQuickFilter("推荐电影");
 
 	//m->SetSort("周播放最多");
 	//m->SetSort("评分最高");

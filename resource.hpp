@@ -20,92 +20,92 @@
 class ResourceManager;
 
 class IDestructable {
-	public:
-		virtual void Destroy() = 0;
+public:
+	virtual void Destroy() = 0;
 };
 
 class RefCountable {
-	public:
-		RefCountable(): miRefCount(1){}
-		virtual ~RefCountable() {assert(miRefCount == 0);}
+public:
+	RefCountable(): miRefCount(1){}
+	virtual ~RefCountable() {assert(miRefCount == 0);}
 
-		virtual int IncRefCount() {  return ++miRefCount; }
-		virtual int DecRefCount() {
-			miRefCount--;
-			int iRet = miRefCount;
-			if (miRefCount == 0) {
-				OnRefCountZero();
-			}
-			return iRet;
+	virtual int IncRefCount() {  return ++miRefCount; }
+	virtual int DecRefCount() {
+		miRefCount--;
+		int iRet = miRefCount;
+		if (miRefCount == 0) {
+			OnRefCountZero();
+		}
 
-		}
-		virtual int GetRefCount() const {
-			return miRefCount;
-		}
-		virtual void OnRefCountZero() {
-			(dynamic_cast<IDestructable*>(this))->Destroy();
-		}
-	protected:
-		int miRefCount;
+		return iRet;
+	}
+	virtual int GetRefCount() const {
+		return miRefCount;
+	}
+	virtual void OnRefCountZero() {
+		(dynamic_cast<IDestructable*>(this))->Destroy();
+	}
+protected:
+	int miRefCount;
 };
 
 class Resource : public virtual RefCountable, public virtual IDestructable, public Task {
-	public:
-		Resource(ResourceManager *manage=NULL) {
-			manager = manage;
-			miDataSize = 0;
-			score = 0;
-			ExpiryTime = 0;
-		}
-		virtual ~Resource();
-		static Resource* Create(ResourceManager *manage) {
-			return dynamic_cast<Resource*>(new Resource(manage));
-		}
-		virtual void Destroy() {
-			delete dynamic_cast<Resource*>(this);
-		}
+public:
+	Resource(ResourceManager *manage=NULL) {
+		manager = manage;
+		miDataSize = 0;
+		score = 0;
+		ExpiryTime = 0;
+	}
+	virtual ~Resource();
+	static Resource* Create(ResourceManager *manage) {
+		return dynamic_cast<Resource*>(new Resource(manage));
+	}
+	virtual void Destroy() {
+		delete dynamic_cast<Resource*>(this);
+	}
 
-		void Load(const string &url);
-		virtual void Run(void);
+	void Load(const string &url);
+	virtual void Run(void);
 
-		const string &GetName() {return resName;}
-		const string &GetFileName() {return md5Name;}
-		size_t GetSize() const { return miDataSize; }
-		string ToString();
+	const string &GetName() {return resName;}
+	const string &GetFileName() {return md5Name;}
+	size_t GetSize() const { return miDataSize; }
+	string ToString();
 
-		int score;
-		time_t ExpiryTime;
-	protected:
-		size_t miDataSize;
-		string resName;
-		string md5Name;
-		ResourceManager *manager;
+	int score;
+	time_t ExpiryTime;
+protected:
+	size_t miDataSize;
+	string resName;
+	string md5Name;
+	ResourceManager *manager;
 };
 
 class ResourceManager {
-	public:
-		ResourceManager(size_t memory = 1024 * 1024 * 10);
-		virtual ~ResourceManager();
+public:
+	ResourceManager(size_t memory = 1024 * 1024 * 10);
+	virtual ~ResourceManager();
 
-		bool GetFile(FileResource& picture, const string &url);
-		Resource* AddResource(const string &url);
-		Resource* GetResource(const string &url);
-		Resource* FindResource(const string &url);
-		void RemoveResource(Resource* res);
+	bool GetFile(FileResource& picture, const string &url);
+	Resource* AddResource(const string &url);
+	Resource* GetResource(const string &url);
+	Resource* FindResource(const string &url);
+	void RemoveResource(Resource* res);
 
-		bool GC(size_t mem); // 收回指定大小的内存
-		void MemoryInc(size_t size);
-		void MemoryDec(size_t size);
-		void Lock();
-		void Unlock();
-		void SetCacheSize(size_t size) {
-			MaxMemory = size;
-		}
-	protected:
-		list<Resource*> mResources;
-		size_t MaxMemory;
-		size_t UseMemory;
-		pthread_mutex_t lock;
+	bool GC(size_t mem); // 收回指定大小的内存
+	void MemoryInc(size_t size);
+	void MemoryDec(size_t size);
+	void Lock();
+	void Unlock();
+	void SetCacheSize(size_t size) {
+		MaxMemory = size;
+	}
+protected:
+	list<Resource*> mResources;
+	size_t MaxMemory;
+	size_t UseMemory;
+	pthread_mutex_t lock;
 };
 
 #endif

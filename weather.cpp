@@ -1,11 +1,3 @@
-//
-//  weather.cpp
-//  kolatv
-//
-//  Created by Silicon on 14-1-18.
-//  Copyright (c) 2014年 Silicon. All rights reserved.
-//
-
 #include "kola.hpp"
 #include "http.hpp"
 #include "json.hpp"
@@ -89,7 +81,8 @@ bool KolaWeather::UpdateFinish()
 	return status == Task::StatusFinish;
 }
 
-void KolaWeather::Update() {
+void KolaWeather::Update()
+{
 	Wait();
 	mutex.lock();
 	Clear();
@@ -97,7 +90,8 @@ void KolaWeather::Update() {
 	Start();
 }
 
-Weather *KolaWeather::Today() {
+Weather *KolaWeather::Today()
+{
 	Weather *w = NULL;
 	mutex.lock();
 	if (weatherList.size() > 0)
@@ -105,7 +99,9 @@ Weather *KolaWeather::Today() {
 	mutex.unlock();
 	return w;
 }
-Weather *KolaWeather::Tomorrow() {
+
+Weather *KolaWeather::Tomorrow()
+{
 	Weather *w = NULL;
 	mutex.lock();
 	if (weatherList.size() > 1)

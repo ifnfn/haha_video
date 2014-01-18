@@ -17,8 +17,8 @@ using namespace std;
 
 #define foreach(container,i) \
 	for(bool __foreach_ctrl__=true;__foreach_ctrl__;)\
-	for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
-	for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
+		for(typedef typeof(container) __foreach_type__;__foreach_ctrl__;__foreach_ctrl__=false)\
+			for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 #define DEFAULT_PAGE_SIZE 20
 #define PAGE_CACHE 8
@@ -55,136 +55,136 @@ enum PicType {
 };
 
 class Mutex {
-	public:
-		Mutex()          {pthread_mutex_init(&_mutex, NULL);}
-		virtual ~Mutex() {pthread_mutex_destroy(&_mutex);}
-		bool lock()      {return static_cast<bool>(!pthread_mutex_lock(&_mutex));}
-		bool unlock()    {return static_cast<bool>(!pthread_mutex_unlock(&_mutex));}
-		bool tryLock()   {return static_cast<bool>(!pthread_mutex_trylock(&_mutex));}
-	protected:
-		pthread_mutex_t _mutex;
+public:
+	Mutex()          {pthread_mutex_init(&_mutex, NULL);}
+	virtual ~Mutex() {pthread_mutex_destroy(&_mutex);}
+	bool lock()      {return static_cast<bool>(!pthread_mutex_lock(&_mutex));}
+	bool unlock()    {return static_cast<bool>(!pthread_mutex_unlock(&_mutex));}
+	bool tryLock()   {return static_cast<bool>(!pthread_mutex_trylock(&_mutex));}
+protected:
+	pthread_mutex_t _mutex;
 };
 
 class Task {
-	public:
-		enum TaskStatus {
-			StatusInit = 0,
-			StatusDownloading = 1,
-			StatusFinish = 2,
-		};
-		Task();
-		virtual ~Task();
-		virtual void Run(void) = 0;
-		virtual void operator()();
-		int  GetStatus() {return status; }
+public:
+	enum TaskStatus {
+		StatusInit = 0,
+		StatusDownloading = 1,
+		StatusFinish = 2,
+	};
+	Task();
+	virtual ~Task();
+	virtual void Run(void) = 0;
+	virtual void operator()();
+	int  GetStatus() {return status; }
 
-		void Start(bool priority=false);
-		void Wait();
-		void Reset();
-		void Wakeup();
-		enum TaskStatus status;
-	protected:
-		ConditionVar *_condvar;
+	void Start(bool priority=false);
+	void Wait();
+	void Reset();
+	void Wakeup();
+	enum TaskStatus status;
+protected:
+	ConditionVar *_condvar;
 };
 
 class ScriptCommand {
-	public:
-		ScriptCommand(json_t *js=NULL);
-		~ScriptCommand();
-		string Run();
-		bool Exists() {return not script_name.empty(); }
-		void AddParams(const char *arg);
-		void AddParams(int arg);
-		void DelParams(int count=1);
-		virtual bool LoadFromJson(json_t *js);
-	protected:
-		bool directText;
-		string text;
-		string script_name;
-		string func_name;
-		vector<string> args;
+public:
+	ScriptCommand(json_t *js=NULL);
+	~ScriptCommand();
+	string Run();
+	bool Exists() {return not script_name.empty(); }
+	void AddParams(const char *arg);
+	void AddParams(int arg);
+	void DelParams(int count=1);
+	virtual bool LoadFromJson(json_t *js);
+protected:
+	bool directText;
+	string text;
+	string script_name;
+	string func_name;
+	vector<string> args;
 };
 
 class Variant: public ScriptCommand {
-	public:
-		Variant(json_t *js=NULL);
-		string GetString();
-		long GetInteger();
-		double GetDouble();
-		virtual bool LoadFromJson(json_t *js);
-	private:
-		string valueStr;
-		long valueInt;
-		double valueDouble;
-		int directValue;
+public:
+	Variant(json_t *js=NULL);
+	string GetString();
+	long GetInteger();
+	double GetDouble();
+	virtual bool LoadFromJson(json_t *js);
+private:
+	string valueStr;
+	long valueInt;
+	double valueDouble;
+	int directValue;
 };
 
 class StringList: public vector<string> {
-	public:
-		StringList() {}
-		virtual ~StringList() {}
-		virtual void Add(string v);
-		virtual void Remove(string v);
-		void operator<< (string v);
-		void operator>> (string v);
-		bool Find(string v);
-		string ToString(string s = "", string e = "", string split = ",");
-		string ToString(int offset, int count, string s = "", string e = "", string split = ",");
-		void Split(const string items, string sp=",");
-		bool SaveToFile(string fileName);
-		bool LoadFromFile(string fileName);
+public:
+	StringList() {}
+	virtual ~StringList() {}
+	virtual void Add(string v);
+	virtual void Remove(string v);
+	void operator<< (string v);
+	void operator>> (string v);
+	bool Find(string v);
+	string ToString(string s = "", string e = "", string split = ",");
+	string ToString(int offset, int count, string s = "", string e = "", string split = ",");
+	void Split(const string items, string sp=",");
+	bool SaveToFile(string fileName);
+	bool LoadFromFile(string fileName);
 };
 
 class FileResource {
-	public:
-		FileResource() : res(NULL) {}
-		~FileResource();
+public:
+	FileResource() : res(NULL) {}
+	~FileResource();
 
-		Resource *GetResource(ResourceManager *manage, const string &url);
-		string& GetName();
-		size_t GetSize();
-		bool isCached();
-		void Wait();
-		void Clear();
-	private:
-		Resource *res;
-		string FileName;
+	Resource *GetResource(ResourceManager *manage, const string &url);
+	string& GetName();
+	size_t GetSize();
+	bool isCached();
+	void Wait();
+	void Clear();
+private:
+	Resource *res;
+	string FileName;
 };
 
 class EPG {
-	public:
-		EPG() {
-			startTime = 0;
-			duration = 0;
-		}
-		time_t startTime;
-		size_t duration;
-		string title;
-		string timeString;
+public:
+	EPG() {
+		startTime = 0;
+		duration = 0;
+	}
+	time_t startTime;
+	size_t duration;
+	string title;
+	string timeString;
 };
 
 class KolaEpg:public vector<EPG> {
-	public:
-		KolaEpg() {}
-		bool LoadFromText(string text);
-		bool LoadFromJson(json_t *js);
-		bool GetCurrent(EPG &e);
-		bool GetNext(EPG &e);
-		bool Get(EPG &e, time_t time);
+public:
+	KolaEpg() {}
+	bool LoadFromText(string text);
+	bool LoadFromJson(json_t *js);
+	bool GetCurrent(EPG &e);
+	bool GetNext(EPG &e);
+	bool Get(EPG &e, time_t time);
 };
 
 class VideoResolution: public Variant {
-	public:
-		void Clear();
-		void GetResolution(StringList& res);
-		void SetResolution(string &res);
-		string GetVideoUrl();
-		bool Empty();
-		string defaultKey;
-	private:
-		void Set();
-		map<string, Variant> urls;
-		bool GetVariant(string &key, Variant &var);
+public:
+	void Clear();
+	void GetResolution(StringList& res);
+	void SetResolution(string &res);
+	string GetVideoUrl();
+	bool Empty();
+	string defaultKey;
+private:
+	void Set();
+	map<string, Variant> urls;
+	bool GetVariant(string &key, Variant &var);
 };
 
 class FilterValue: public StringList {
@@ -351,147 +351,147 @@ public:
 };
 
 class KolaVideo: public IVideo {
-	public:
-		KolaVideo();
-		virtual ~KolaVideo();
+public:
+	KolaVideo();
+	virtual ~KolaVideo();
 
-		virtual void Parser(json_t *js);
+	virtual void Parser(json_t *js);
 
-		virtual void GetResolution(StringList& res);
-		virtual void SetResolution(string &res);
-		virtual string GetVideoUrl();
-		virtual string GetSubtitle(const char *lang) {return "";}
-		virtual bool GetEPG(KolaEpg &epg);
-	private:
-		string directPlayUrl;
-		Variant sc_info;
+	virtual void GetResolution(StringList& res);
+	virtual void SetResolution(string &res);
+	virtual string GetVideoUrl();
+	virtual string GetSubtitle(const char *lang) {return "";}
+	virtual bool GetEPG(KolaEpg &epg);
+private:
+	string directPlayUrl;
+	Variant sc_info;
 };
 
 class KolaAlbum: public IAlbum {
-	public:
-		KolaAlbum();
-		virtual ~KolaAlbum();
+public:
+	KolaAlbum();
+	virtual ~KolaAlbum();
 
-		virtual void Parser(json_t *js);
+	virtual void Parser(json_t *js);
 
-		virtual size_t GetTotalSet();
-		virtual size_t GetVideoCount();
-		virtual size_t GetSource(StringList &sources); // 获取节目的节目来源列表
-		virtual bool SetSource(string &source);        // 设置节目来源，为""时，使用默认来源
-		virtual bool GetPictureFile(FileResource& picture, enum PicType type);
-		virtual string &GetPictureUrl(enum PicType type=PIC_AUTO);
-		virtual IVideo *GetVideo(size_t id);
-	private:
-		void VideosClear();
-		bool LowVideoGetPage(size_t pageNo, size_t pageSize);
+	virtual size_t GetTotalSet();
+	virtual size_t GetVideoCount();
+	virtual size_t GetSource(StringList &sources); // 获取节目的节目来源列表
+	virtual bool SetSource(string &source);        // 设置节目来源，为""时，使用默认来源
+	virtual bool GetPictureFile(FileResource& picture, enum PicType type);
+	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO);
+	virtual IVideo *GetVideo(size_t id);
+private:
+	void VideosClear();
+	bool LowVideoGetPage(size_t pageNo, size_t pageSize);
 
-		int cid;
-		vector<IVideo*> videoList;
+	int cid;
+	vector<IVideo*> videoList;
 
-		size_t totalSet;         // 总集数
-		size_t updateSet;        // 当前更新集
-		string videoPlayUrl;
-		string largePicUrl;      // 大图片网址
-		string smallPicUrl;      // 小图片网址
-		string largeHorPicUrl;
-		string smallHorPicUrl;
-		string largeVerPicUrl;
-		string smallVerPicUrl;
-
-		string defaultPageUrl;   // 当前播放集
-		bool   directVideos;
-		size_t videoPageSize;
-		size_t videoPageId;
-		map<string, Variant> SourceList;
-		string CurrentSource;   // 设置节目来源
-
-		friend class CustomMenu;
+	size_t totalSet;         // 总集数
+	size_t updateSet;        // 当前更新集
+	string videoPlayUrl;
+	string largePicUrl;      // 大图片网址
+	string smallPicUrl;      // 小图片网址
+	string largeHorPicUrl;
+	string smallHorPicUrl;
+	string largeVerPicUrl;
+	string smallVerPicUrl;
+	
+	string defaultPageUrl;   // 当前播放集
+	bool   directVideos;
+	size_t videoPageSize;
+	size_t videoPageId;
+	map<string, Variant> SourceList;
+	string CurrentSource;   // 设置节目来源
+	
+	friend class CustomMenu;
 };
 
 class AlbumPage: public Task {
-	public:
-		AlbumPage();
-		~AlbumPage(void);
-		size_t Count() { return albumList.size();}
-		size_t PictureCount() { return pictureCount; }
+public:
+	AlbumPage();
+	~AlbumPage(void);
+	size_t Count() { return albumList.size();}
+	size_t PictureCount() { return pictureCount; }
 
-		void SetMenu(IMenu *m) {
-			menu = m;
-		}
-		size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
-		IAlbum* GetAlbum(size_t index);
+	void SetMenu(IMenu *m) {
+		menu = m;
+	}
+	size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
+	IAlbum* GetAlbum(size_t index);
 
-		void PutAlbum(IAlbum *album);
-		virtual void Run(void);
+	void PutAlbum(IAlbum *album);
+	virtual void Run(void);
 
-		void Clear();
-		int pageId;
-		void UpdateCache();
-		int score;
-	private:
-		Mutex mutex;
-		vector<IAlbum*> albumList;
-		size_t pictureCount;
-		IMenu *menu;
+	void Clear();
+	int pageId;
+	void UpdateCache();
+	int score;
+private:
+	Mutex mutex;
+	vector<IAlbum*> albumList;
+	size_t pictureCount;
+	IMenu *menu;
 };
 
 class KolaMenu: public IMenu {
-	public:
-		KolaMenu();
-		virtual ~KolaMenu(void) {}
+public:
+	KolaMenu();
+	virtual ~KolaMenu(void) {}
 
-		virtual void Parser(json_t *js);
+	virtual void Parser(json_t *js);
 
-		void CleanPage();
+	void CleanPage();
 
-		virtual IAlbum* GetAlbum(size_t position);
-		virtual void   FilterAdd(string key, string value);
-		virtual void   FilterRemove(string key);
-		virtual string GetQuickFilter() { return quickFilter; }
-		virtual bool   SetQuickFilter(string);
-		virtual void   SetSort(string v, string s);
+	virtual IAlbum* GetAlbum(size_t position);
+	virtual void   FilterAdd(string key, string value);
+	virtual void   FilterRemove(string key);
+	virtual string GetQuickFilter() { return quickFilter; }
+	virtual bool   SetQuickFilter(string);
+	virtual void   SetSort(string v, string s);
 
-		virtual AlbumPage &GetPage(int pageNo = -1);
-		virtual void   SetPageSize(int size);
-		virtual size_t GetPageSize() { return PageSize;}
-		virtual int    SeekByAlbumId(string vid);
-		virtual int    SeekByAlbumName(string name);
-		virtual size_t GetAlbumCount();
-	protected:
-		KolaClient *client;
-		int         PageSize;
-		int         PageId;
-		size_t      albumCount;
-		string      quickFilter;
+	virtual AlbumPage &GetPage(int pageNo = -1);
+	virtual void   SetPageSize(int size);
+	virtual size_t GetPageSize() { return PageSize;}
+	virtual int    SeekByAlbumId(string vid);
+	virtual int    SeekByAlbumName(string name);
+	virtual size_t GetAlbumCount();
+protected:
+	KolaClient *client;
+	int         PageSize;
+	int         PageId;
+	size_t      albumCount;
+	string      quickFilter;
 
-		int ParserFromUrl(AlbumPage *page, string &jsonstr);
+	int ParserFromUrl(AlbumPage *page, string &jsonstr);
 
-		virtual string GetPostData();
-		virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
-		virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
-	private:
-		void init();
-		AlbumPage* updateCache(int pos);
-		AlbumPage pageCache[PAGE_CACHE];
-		AlbumPage *cur;
-		friend class AlbumPage;
+	virtual string GetPostData();
+	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
+	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
+private:
+	void init();
+	AlbumPage* updateCache(int pos);
+	AlbumPage pageCache[PAGE_CACHE];
+	AlbumPage *cur;
+	friend class AlbumPage;
 };
 
 class CustomMenu: public KolaMenu {
-	public:
-		CustomMenu(string fileName);
-		void AlbumAdd(IAlbum *album);
-		void AlbumAdd(string vid);
-		void AlbumRemove(IAlbum *album);
-		void AlbumRemove(string vid);
-		bool SaveToFile(string otherFile = "");
-		virtual size_t GetAlbumCount();
-	protected:
-		virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
-		virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
-	private:
-		StringList albumIdList;
-		string fileName;
+public:
+	CustomMenu(string fileName);
+	void AlbumAdd(IAlbum *album);
+	void AlbumAdd(string vid);
+	void AlbumRemove(IAlbum *album);
+	void AlbumRemove(string vid);
+	bool SaveToFile(string otherFile = "");
+	virtual size_t GetAlbumCount();
+protected:
+	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
+	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
+private:
+	StringList albumIdList;
+	string fileName;
 };
 
 class PictureIterator {
@@ -519,22 +519,22 @@ private:
 };
 
 class KolaInfo {
-	public:
-		KolaInfo() : update(false) {}
-		StringList VideoSource;
-		StringList Resolution;
-	private:
-		bool update;
-		friend class KolaClient;
+public:
+	KolaInfo() : update(false) {}
+	StringList VideoSource;
+	StringList Resolution;
+private:
+	bool update;
+	friend class KolaClient;
 };
 
 class KolaArea {
-	public:
-		string ip;
-		string isp;
-		string country;
-		string province;
-		string city;
+public:
+	string ip;
+	string isp;
+	string country;
+	string province;
+	string city;
 };
 
 class Weather {
@@ -553,9 +553,9 @@ public:
 class KolaWeather: public Task {
 public:
 	virtual ~KolaWeather();
-//	void GetProvince(StringList &value);
-//	void GetArea(string province, StringList &area);
-//	void GetCounty(string province, string area, StringList &County);
+	//	void GetProvince(StringList &value);
+	//	void GetArea(string province, StringList &area);
+	//	void GetCounty(string province, string area, StringList &County);
 	void Update();
 	bool UpdateFinish();
 	Weather *Today();
@@ -577,67 +577,67 @@ protected:
 };
 
 class KolaClient: public IClient {
-	public:
-		static KolaClient& Instance(const char *user_id = NULL);
-		virtual ~KolaClient(void);
+public:
+	static KolaClient& Instance(const char *user_id = NULL);
+	virtual ~KolaClient(void);
 
-		void Quit(void);
-		void ClearMenu();
-		bool UpdateMenu(void);
+	void Quit(void);
+	void ClearMenu();
+	bool UpdateMenu(void);
 
-		IMenu* GetMenuByName(const char *name);
-		IMenu* GetMenuByCid(int cid);
-		inline size_t MenuCount() { return menuMap.size(); };
-		IMenu* operator[] (const char *name);
-		IMenu* operator[] (int inx);
-		bool haveCommand() { return havecmd; }
-		inline string GetFullUrl(string url);
-		bool UrlGet(string url, string &ret);
-		bool UrlPost(string url, const char *body, string &ret);
-		string& GetServer() { return baseUrl; }
-		string GetArea();
-		bool GetArea(KolaArea &area);
-		time_t GetTime();
-		KolaInfo& GetInfo();
-		void SetPicutureCacheSize(size_t size);
-		int debug;
-		ResourceManager *resManager;
-		ThreadPool *threadPool;
-		KolaWeather weather;
-	protected:
-		virtual IVideo* NewVideo() {
-			return new KolaVideo();
-		}
-		virtual IAlbum* NewAlbum() {
-			return new KolaAlbum();
-		}
-		virtual IMenu* NewMenu() {
-			return new KolaMenu();
-		}
+	IMenu* GetMenuByName(const char *name);
+	IMenu* GetMenuByCid(int cid);
+	inline size_t MenuCount() { return menuMap.size(); };
+	IMenu* operator[] (const char *name);
+	IMenu* operator[] (int inx);
+	bool haveCommand() { return havecmd; }
+	inline string GetFullUrl(string url);
+	bool UrlGet(string url, string &ret);
+	bool UrlPost(string url, const char *body, string &ret);
+	string& GetServer() { return baseUrl; }
+	string GetArea();
+	bool GetArea(KolaArea &area);
+	time_t GetTime();
+	KolaInfo& GetInfo();
+	void SetPicutureCacheSize(size_t size);
+	int debug;
+	ResourceManager *resManager;
+	ThreadPool *threadPool;
+	KolaWeather weather;
+protected:
+	virtual IVideo* NewVideo() {
+		return new KolaVideo();
+	}
+	virtual IAlbum* NewAlbum() {
+		return new KolaAlbum();
+	}
+	virtual IMenu* NewMenu() {
+		return new KolaMenu();
+	}
 
-	private:
-		KolaClient(void);
-		string baseUrl;
-		map<string, IMenu*> menuMap;
+private:
+	KolaClient(void);
+	string baseUrl;
+	map<string, IMenu*> menuMap;
 
-		int nextLoginSec;
+	int nextLoginSec;
 
-		bool Login(bool quick=false);
-		char *Run(const char *cmd);
-		bool ProcessCommand(json_t *cmd, const char *dest);
-		bool running;
-		pthread_t thread;
-		pthread_mutex_t lock;
-		bool havecmd;
-		KolaInfo info;
-		static void *kola_login_thread(void *arg);
+	bool Login(bool quick=false);
+	char *Run(const char *cmd);
+	bool ProcessCommand(json_t *cmd, const char *dest);
+	bool running;
+	pthread_t thread;
+	pthread_mutex_t lock;
+	bool havecmd;
+	KolaInfo info;
+	static void *kola_login_thread(void *arg);
 
-		friend class KolaMenu;
-		friend class KolaVideo;
-		friend class KolaAlbum;
-		friend class CustomMenu;
-		friend class Picture;
-		friend class Task;
+	friend class KolaMenu;
+	friend class KolaVideo;
+	friend class KolaAlbum;
+	friend class CustomMenu;
+	friend class Picture;
+	friend class Task;
 };
 
 #endif

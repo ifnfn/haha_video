@@ -75,7 +75,6 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 		var->DelParams(2);
 		if (not text.empty())
 			js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-
 	}
 
 	if (js == NULL) {

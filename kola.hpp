@@ -23,6 +23,9 @@ using namespace std;
 #define DEFAULT_PAGE_SIZE 20
 #define PAGE_CACHE 8
 
+class IMenu;
+class IAlbum;
+class IVideo;
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
@@ -184,9 +187,66 @@ class VideoResolution: public Variant {
 		bool GetVariant(string &key, Variant &var);
 };
 
-class IVideo {
+class FilterValue: public StringList {
 public:
-	virtual ~IVideo(){};
+	FilterValue(const string items);
+	FilterValue() {}
+	~FilterValue() {}
+	void Set(string v) { value = v; }
+	string Get(void) { return value; }
+protected:
+	string value;
+};
+
+class KolaFilter {
+public:
+	KolaFilter() {}
+	~KolaFilter() {}
+	string GetJsonStr(void);
+	FilterValue& operator[] (string key);
+	map<string, FilterValue> filterKey;
+protected:
+	void KeyAdd(string key, string value);
+	void KeyRemove(string key);
+	friend class KolaMenu;
+};
+
+class KolaSort: public FilterValue {
+public:
+	string GetJsonStr(void) {
+		string ret = Get();
+		if (not ret.empty()) {
+			ret = "\"sort\": \"" + ret + "," + sort +"\"";
+		}
+
+		return ret;
+	}
+protected:
+	void Set(string v, string s) { value = v, sort = s;}
+private:
+	string sort;
+	friend class KolaMenu;
+};
+
+
+class IObject {
+public:
+	virtual ~IObject() {}
+	virtual void Parser(json_t *js) = 0; // 从 json_t 中解析对象
+};
+
+// 视频基类
+class IVideo: public IObject {
+public:
+	IVideo() {
+		width = height = fps = totalBytes = 0;
+		order = 0;
+		isHigh = 0;
+		videoPlayCount = 0;
+		videoScore = 0.0;
+		playLength = 0.0;
+	}
+
 	int    width;
 	int    height;
 	int    fps;
@@ -208,6 +268,7 @@ public:
 	string smallPicUrl;
 	string largePicUrl;
 	VideoResolution Resolution;
+
 	virtual void GetResolution(StringList& res) = 0;
 	virtual void SetResolution(string &res) = 0;
 	virtual string GetVideoUrl() = 0;
@@ -215,25 +276,86 @@ public:
 	virtual bool GetEPG(KolaEpg &epg) = 0;
 };
 
-class KolaPlayer {
-	public:
-		KolaPlayer();
-		~KolaPlayer();
-		virtual void Run();
-		virtual bool Play(string name, string url) = 0;
-		void AddVideo(IVideo *video);
-	private:
-		deque<VideoResolution> videoList;
-		ConditionVar *_condvar;
-		Thread* thread;
+// 节目基类
+class IAlbum: public IObject {
+public:
+	IAlbum() {
+		menu = NULL;
+		publishYear = 0;
+		dailyPlayNum = 0;
+		weeklyPlayNum = 0;
+		monthlyPlayNum = 0;
+		totalPlayNum = 0;
+		dailyIndexScore = 0.0;
+		order = 0;
+	}
+
+	string vid;                  // Album ID
+	string albumName;            // 名称
+	string albumDesc;            // 节目介绍
+	string area;                 // 地区
+	string categories;           // 类型
+	string isHigh;               // 是否是高清
+	int publishYear;             // 发布年份
+	int dailyPlayNum;            // 每日播放次数
+	int weeklyPlayNum;           // 每周播放次数
+	int monthlyPlayNum;          // 每月播放次数
+	int totalPlayNum;            // 总播放资料
+	double dailyIndexScore;      // 每日指数
+	StringList mainActors;       // 主演
+	StringList directors;        // 导演
+	int order;                   // 编号
+	string videoScore;           // 指数
+	IMenu *menu;
+
+	virtual size_t GetTotalSet() = 0;
+	virtual size_t GetVideoCount() = 0;
+	virtual size_t GetSource(StringList &sources) = 0; // 获取节目的节目来源列表
+	virtual bool SetSource(string &source) = 0;        // 设置节目来源，为""时，使用默认来源
+	virtual bool GetPictureFile(FileResource& picture, enum PicType type) = 0;
+	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO) = 0;
+	virtual IVideo *GetVideo(size_t id) = 0;
+};
+
+// 菜单基类
+class IMenu: public IObject {
+public:
+	IMenu() {
+		cid = -1;
+		PictureCacheType = PIC_LARGE;
+	}
+
+	size_t     cid;
+	string     name;
+	enum PicType PictureCacheType;
+	StringList quickFilters;
+	KolaFilter Filter;
+	KolaSort   Sort;
+
+	virtual IAlbum* GetAlbum(size_t position) = 0;
+
+	virtual void   FilterAdd(string key, string value) = 0;
+	virtual void   FilterRemove(string key) = 0;
+	virtual string GetQuickFilter() = 0;
+	virtual bool   SetQuickFilter(string) = 0;
+	virtual void   SetSort(string v, string s) = 0;
+
+	virtual AlbumPage &GetPage(int pageNo = -1) = 0;
+	virtual void   SetPageSize(int size) = 0;
+	virtual size_t GetPageSize() = 0;
+	virtual int    SeekByAlbumId(string vid) = 0;
+	virtual int    SeekByAlbumName(string name) = 0;
+	virtual size_t GetAlbumCount() = 0;
+	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize) = 0;
+	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
 };
 
 class KolaVideo: public IVideo {
 	public:
-		KolaVideo(json_t *js = NULL);
+		KolaVideo();
 		virtual ~KolaVideo();
 
-		bool LoadFromJson(json_t *js);
+		virtual void Parser(json_t *js);
 
 		virtual void GetResolution(StringList& res);
 		virtual void SetResolution(string &res);
@@ -245,85 +367,25 @@ class KolaVideo: public IVideo {
 		Variant sc_info;
 };
 
-class FilterValue: public StringList {
+class KolaAlbum: public IAlbum {
 	public:
-		FilterValue(const string items);
-		FilterValue() {}
-		~FilterValue() {}
-		void Set(string v) { value = v; }
-		string Get(void) { return value; }
-	protected:
-		string value;
-};
+		KolaAlbum();
+		virtual ~KolaAlbum();
 
-class KolaFilter {
-	public:
-		KolaFilter() {}
-		~KolaFilter() {}
-		string GetJsonStr(void);
-		FilterValue& operator[] (string key);
-		map<string, FilterValue> filterKey;
-	protected:
-		void KeyAdd(string key, string value);
-		void KeyRemove(string key);
-		friend class KolaMenu;
-};
+		virtual void Parser(json_t *js);
 
-class KolaSort: public FilterValue {
-	public:
-		string GetJsonStr(void) {
-			string ret = Get();
-			if (not ret.empty()) {
-				ret = "\"sort\": \"" + ret + "," + sort +"\"";
-			}
-
-			return ret;
-		}
-	protected:
-		void Set(string v, string s) { value = v, sort = s;}
-	private:
-		string sort;
-		friend class KolaMenu;
-};
-
-class KolaAlbum {
-	public:
-		KolaAlbum(json_t *js);
-		~KolaAlbum();
-
-		KolaMenu *menu;
-		string vid;
-		string albumName;
-		string albumDesc;
-		string area;                 // 地区
-		string categories;           // 类型
-		string isHigh;               // 是否是高清
-		int publishYear;             // 发布年份
-		int dailyPlayNum;            // 每日播放次数
-		int weeklyPlayNum;           // 每周播放次数
-		int monthlyPlayNum;          // 每月播放次数
-		int totalPlayNum;            // 总播放资料
-		double dailyIndexScore;      // 每日指数
-		StringList mainActors;
-		StringList directors;
-
-		int order;
-
-		size_t GetTotalSet();
-		size_t GetVideoCount();
-		size_t GetSource(StringList &sources); // 获取节目的节目来源列表
-		bool SetSource(string &source);        // 设置节目来源，为""时，使用默认来源
-		bool GetPictureFile(FileResource& picture, enum PicType type);
-		string &GetPictureUrl(enum PicType type=PIC_AUTO);
-		IVideo *GetVideo(size_t id);
+		virtual size_t GetTotalSet();
+		virtual size_t GetVideoCount();
+		virtual size_t GetSource(StringList &sources); // 获取节目的节目来源列表
+		virtual bool SetSource(string &source);        // 设置节目来源，为""时，使用默认来源
+		virtual bool GetPictureFile(FileResource& picture, enum PicType type);
+		virtual string &GetPictureUrl(enum PicType type=PIC_AUTO);
+		virtual IVideo *GetVideo(size_t id);
 	private:
 		void VideosClear();
-		bool LoadFromJson(json_t *js);
 		bool LowVideoGetPage(size_t pageNo, size_t pageSize);
 
 		int cid;
-		string pid;
-		string playlistid;
 		vector<IVideo*> videoList;
 
 		size_t totalSet;         // 总集数
@@ -336,10 +398,8 @@ class KolaAlbum {
 		string largeVerPicUrl;
 		string smallVerPicUrl;
 
-		string videoScore;
-
 		string defaultPageUrl;   // 当前播放集
-		bool directVideos;
+		bool   directVideos;
 		size_t videoPageSize;
 		size_t videoPageId;
 		map<string, Variant> SourceList;
@@ -355,13 +415,13 @@ class AlbumPage: public Task {
 		size_t Count() { return albumList.size();}
 		size_t PictureCount() { return pictureCount; }
 
-		void SetMenu(KolaMenu *m) {
+		void SetMenu(IMenu *m) {
 			menu = m;
 		}
 		size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
-		KolaAlbum* GetAlbum(size_t index);
+		IAlbum* GetAlbum(size_t index);
 
-		void PutAlbum(KolaAlbum *album);
+		void PutAlbum(IAlbum *album);
 		virtual void Run(void);
 
 		void Clear();
@@ -370,51 +430,33 @@ class AlbumPage: public Task {
 		int score;
 	private:
 		Mutex mutex;
-		vector<KolaAlbum*> albumList;
+		vector<IAlbum*> albumList;
 		size_t pictureCount;
-		KolaMenu *menu;
+		IMenu *menu;
 };
 
-class PictureIterator {
+class KolaMenu: public IMenu {
 	public:
-		PictureIterator(AlbumPage *page, enum PicType type);
-		int Get(FileResource &picture);
-		size_t size();
-	private:
-		AlbumPage *page;
-		enum PicType type;
-		list<KolaAlbum*> albums;
-};
-
-class KolaMenu {
-	public:
-		KolaMenu(json_t *js=NULL);
+		KolaMenu();
 		virtual ~KolaMenu(void) {}
 
-		size_t     cid;
-		string     name;
-		string     Language;
-		StringList quickFilters;
-		KolaFilter Filter;
-		KolaSort   Sort;
+		virtual void Parser(json_t *js);
 
-		void   FilterAdd(string key, string value);
-		void   FilterRemove(string key);
-		void   SetSort(string v, string s);
-
-		void   SetLanguage(string lang);
-		AlbumPage &GetPage(int pageNo = -1);
-		bool   SetQuickFilter(string);
-		void   SetPageSize(int size);
-		size_t GetPageSize() { return PageSize;}
-		int    SeekByAlbumId(string vid);
-		int    SeekByAlbumName(string name);
-		string GetQuickFilter() { return quickFilter; }
-		KolaAlbum* GetAlbum(size_t position);
-
-		enum PicType PictureCacheType;
-		virtual size_t GetAlbumCount();
 		void CleanPage();
+
+		virtual IAlbum* GetAlbum(size_t position);
+		virtual void   FilterAdd(string key, string value);
+		virtual void   FilterRemove(string key);
+		virtual string GetQuickFilter() { return quickFilter; }
+		virtual bool   SetQuickFilter(string);
+		virtual void   SetSort(string v, string s);
+
+		virtual AlbumPage &GetPage(int pageNo = -1);
+		virtual void   SetPageSize(int size);
+		virtual size_t GetPageSize() { return PageSize;}
+		virtual int    SeekByAlbumId(string vid);
+		virtual int    SeekByAlbumName(string name);
+		virtual size_t GetAlbumCount();
 	protected:
 		KolaClient *client;
 		int         PageSize;
@@ -430,7 +472,6 @@ class KolaMenu {
 	private:
 		void init();
 		AlbumPage* updateCache(int pos);
-		int id;
 		AlbumPage pageCache[PAGE_CACHE];
 		AlbumPage *cur;
 		friend class AlbumPage;
@@ -439,9 +480,9 @@ class KolaMenu {
 class CustomMenu: public KolaMenu {
 	public:
 		CustomMenu(string fileName);
-		void AlbumAdd(KolaAlbum *album);
+		void AlbumAdd(IAlbum *album);
 		void AlbumAdd(string vid);
-		void AlbumRemove(KolaAlbum *album);
+		void AlbumRemove(IAlbum *album);
 		void AlbumRemove(string vid);
 		bool SaveToFile(string otherFile = "");
 		virtual size_t GetAlbumCount();
@@ -451,6 +492,30 @@ class CustomMenu: public KolaMenu {
 	private:
 		StringList albumIdList;
 		string fileName;
+};
+
+class PictureIterator {
+public:
+	PictureIterator(AlbumPage *page, enum PicType type);
+	int Get(FileResource &picture);
+	size_t size();
+private:
+	AlbumPage *page;
+	enum PicType type;
+	list<IAlbum*> albums;
+};
+
+class KolaPlayer {
+public:
+	KolaPlayer();
+	~KolaPlayer();
+	virtual void Run();
+	virtual bool Play(string name, string url) = 0;
+	void AddVideo(IVideo *video);
+private:
+	deque<VideoResolution> videoList;
+	ConditionVar *_condvar;
+	Thread* thread;
 };
 
 class KolaInfo {
@@ -472,20 +537,59 @@ class KolaArea {
 		string city;
 };
 
-class KolaClient {
+class Weather {
+public:
+	string date;
+	struct {
+		string picture;
+		string code;
+		string weather;
+		string temp;
+		string windDirection;
+		string windPower;
+	} day, night;
+};
+
+class KolaWeather: public Task {
+public:
+	virtual ~KolaWeather();
+//	void GetProvince(StringList &value);
+//	void GetArea(string province, StringList &area);
+//	void GetCounty(string province, string area, StringList &County);
+	void Update();
+	bool UpdateFinish();
+	Weather *Today();
+	Weather *Tomorrow();
+	vector<Weather*> weatherList;
+	string PM25;
+	virtual void Run(void);
+private:
+	Mutex mutex;
+	void Clear();
+};
+
+class IClient {
+protected:
+	virtual ~IClient() {}
+	virtual IVideo* NewVideo() = 0;
+	virtual IAlbum* NewAlbum() = 0;
+	virtual IMenu* NewMenu() = 0;
+};
+
+class KolaClient: public IClient {
 	public:
 		static KolaClient& Instance(const char *user_id = NULL);
-		~KolaClient(void);
+		virtual ~KolaClient(void);
 
 		void Quit(void);
 		void ClearMenu();
 		bool UpdateMenu(void);
 
-		KolaMenu* GetMenuByName(const char *name);
-		KolaMenu* GetMenuByCid(int cid);
+		IMenu* GetMenuByName(const char *name);
+		IMenu* GetMenuByCid(int cid);
 		inline size_t MenuCount() { return menuMap.size(); };
-		KolaMenu* operator[] (const char *name);
-		KolaMenu* operator[] (int inx);
+		IMenu* operator[] (const char *name);
+		IMenu* operator[] (int inx);
 		bool haveCommand() { return havecmd; }
 		inline string GetFullUrl(string url);
 		bool UrlGet(string url, string &ret);
@@ -499,10 +603,22 @@ class KolaClient {
 		int debug;
 		ResourceManager *resManager;
 		ThreadPool *threadPool;
+		KolaWeather weather;
+	protected:
+		virtual IVideo* NewVideo() {
+			return new KolaVideo();
+		}
+		virtual IAlbum* NewAlbum() {
+			return new KolaAlbum();
+		}
+		virtual IMenu* NewMenu() {
+			return new KolaMenu();
+		}
+
 	private:
 		KolaClient(void);
 		string baseUrl;
-		map<string, KolaMenu*> menuMap;
+		map<string, IMenu*> menuMap;
 
 		int nextLoginSec;
 

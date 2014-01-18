@@ -59,6 +59,7 @@
 		4473FEF4186C5AF300136610 /* task.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE86186C5AF300136610 /* task.cpp */; };
 		4473FEF5186C5AF300136610 /* threadpool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE87186C5AF300136610 /* threadpool.cpp */; };
 		4473FEF6186C5AF300136610 /* video.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE89186C5AF300136610 /* video.cpp */; };
+		44E3229E188A5EBF00E9452E /* weather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44E3229D188A5EBF00E9452E /* weather.cpp */; };
 		44F2E43B187A99E200B05FDB /* resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44F2E439187A99E200B05FDB /* resource.cpp */; };
 /* End PBXBuildFile section */
 
@@ -163,6 +164,7 @@
 		4473FE87186C5AF300136610 /* threadpool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = threadpool.cpp; path = ../threadpool.cpp; sourceTree = "<group>"; };
 		4473FE88186C5AF300136610 /* threadpool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = threadpool.hpp; path = ../threadpool.hpp; sourceTree = "<group>"; };
 		4473FE89186C5AF300136610 /* video.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = video.cpp; path = ../video.cpp; sourceTree = "<group>"; };
+		44E3229D188A5EBF00E9452E /* weather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = weather.cpp; path = ../weather.cpp; sourceTree = "<group>"; };
 		44F2E439187A99E200B05FDB /* resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = resource.cpp; path = ../resource.cpp; sourceTree = "<group>"; };
 		44F2E43A187A99E200B05FDB /* resource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = resource.hpp; path = ../resource.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -197,6 +199,7 @@
 		4473FDCA186C5ACA00136610 /* kolatv */ = {
 			isa = PBXGroup;
 			children = (
+				44E3229D188A5EBF00E9452E /* weather.cpp */,
 				44F2E439187A99E200B05FDB /* resource.cpp */,
 				44F2E43A187A99E200B05FDB /* resource.hpp */,
 				4473FDD7186C5AF300136610 /* album.cpp */,
@@ -413,6 +416,7 @@
 				4473FECD186C5AF300136610 /* lauxlib.c in Sources */,
 				4473FE8F186C5AF300136610 /* json.cpp in Sources */,
 				4473FECF186C5AF300136610 /* lbitlib.c in Sources */,
+				44E3229E188A5EBF00E9452E /* weather.cpp in Sources */,
 				4473FEF6186C5AF300136610 /* video.cpp in Sources */,
 				4473FE90186C5AF300136610 /* kola.cpp in Sources */,
 				4473FED1186C5AF300136610 /* lcorolib.c in Sources */,

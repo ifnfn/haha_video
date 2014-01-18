@@ -49,7 +49,7 @@ void test_custommenu()
 
 	while(1) {
 		for (int i=0; i < count; i++) {
-			KolaAlbum *album = menu->GetAlbum(i);
+			IAlbum *album = menu->GetAlbum(i);
 			if (album == NULL)
 				continue;
 			size_t video_count = album->GetVideoCount();
@@ -68,7 +68,7 @@ void test_custommenu()
 
 	int pos = menu->SeekByAlbumId("4419eb4d34");
 	for (int i=pos; i < count; i++) {
-		KolaAlbum *album = menu->GetAlbum(i);
+		IAlbum *album = menu->GetAlbum(i);
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
@@ -98,7 +98,7 @@ class Player: public KolaPlayer {
 
 void test_livetv()
 {
-	KolaMenu* m = NULL;
+	IMenu* m = NULL;
 	Player player;
 
 	KolaClient &kola = KolaClient::Instance();
@@ -111,9 +111,7 @@ void test_livetv()
 	}
 #endif
 
-	//m = kola["直播"];
 	m = kola.GetMenuByCid(200);
-	//	m = kola[200];
 	if (m == NULL)
 		return;
 	foreach(m->Filter.filterKey, i) {
@@ -121,22 +119,22 @@ void test_livetv()
 		foreach(i->second, j)
 			cout << "\t:" << *j << endl;
 	}
-	//	m->FilterAdd("类型", "CCTV");
+	m->FilterAdd("类型", "央视台");
 
-	//	m->SetPageSize(3);
-	//	m->GetPage(page);
-	//	m->FilterAdd("PinYin", "zjw");
-	m->SetSort("Name", "1");
+	//m->SetPageSize(3);
+	//m->GetPage(page);
+	//m->FilterAdd("PinYin", "zjw");
+	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
 #if 1
 	for (size_t i=0; i < count; i++) {
-		KolaAlbum *album = m->GetAlbum(i);
+		IAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
 		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
-#if 1
+#if 0
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 //			if (album->vid != "cc44a1a804")
@@ -165,16 +163,34 @@ void test_livetv()
 		}
 #endif
 	}
-
-	return;
 #endif
+
+	m->FilterAdd("类型", "卫视台");
+	count = m->GetAlbumCount();
+	for (size_t i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+	}
+
+	m->FilterAdd("类型", "体育台");
+	count = m->GetAlbumCount();
+	for (size_t i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+	}
 
 	printf("%s End!!!\n", __func__);
 }
 
 void test_video(const char *menuName)
 {
-	KolaMenu* m = NULL;
+	IMenu* m = NULL;
 
 	KolaClient &kola = KolaClient::Instance();
 
@@ -183,13 +199,18 @@ void test_video(const char *menuName)
 
 	if (m == NULL)
 		return;
+	foreach(m->Filter.filterKey, i) {
+		cout << i->first << ": ";
+		foreach(i->second, j)
+		cout << "\t:" << *j << endl;
+	}
 
 	foreach(m->quickFilters, s) {
 		cout << *s << endl;
 	}
 	//m->FilterAdd("类型", "爱情片");
-	//m->FilterAdd("产地", "香港,台湾");
-	m->SetQuickFilter("推荐电影");
+	m->FilterAdd("产地", "香港,台湾");
+	//m->SetQuickFilter("推荐电影");
 
 	//m->SetSort("周播放最多");
 	//m->SetSort("评分最高");
@@ -233,7 +254,7 @@ void test_video(const char *menuName)
 	Player player;
 
 	for (int i = 0; i < page.Count(); i++) {
-		KolaAlbum *album = page.GetAlbum(i);
+		IAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
 		printf("[%d]: Video:Count %ld\n", i, video_count);
 
@@ -271,7 +292,7 @@ void test_video(const char *menuName)
 	count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
-		KolaAlbum *album = page.GetAlbum(i);
+		IAlbum *album = page.GetAlbum(i);
 		FileResource picture;
 
 		if (album->GetPictureFile(picture, PIC_LARGE) == true) {
@@ -310,18 +331,38 @@ int main(int argc, char **argv)
 					area.province.c_str(),
 					area.city.c_str());
 		}
+
+		kola.weather.Update();
+//		kola.weather.Wait();
+
+		while (not kola.weather.UpdateFinish()) {
+			Weather *w = kola.weather.Today();
+			if (w) {
+				printf("%s: %s %s %s %s %s,%s\n",
+					w->date.c_str(),
+					w->day.temp.c_str(),
+				        w->day.code.c_str(),
+					w->day.weather.c_str(),
+					w->day.windDirection.c_str(),
+					w->day.windPower.c_str(),
+				        w->day.picture.c_str()
+				);
+				break;
+			}
+			printf("ddddd\n");
+		}
 	}
 
 	//test_custommenu();
 	//return 0;
-	printf("Test LiveTV\n"); test_livetv();
-	return 0;
+	//printf("Test LiveTV\n"); test_livetv();
+	//return 0;
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");
-	//while (true) {
-	//	sleep(1);
-	//}
+	while (true) {
+		sleep(1);
+	}
 
 	//printf("end\n");
 	//test_task(); return 0;

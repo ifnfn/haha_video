@@ -331,6 +331,25 @@ int main(int argc, char **argv)
 					area.province.c_str(),
 					area.city.c_str());
 		}
+
+		kola.weather.Update();
+//		kola.weather.Wait();
+
+		while (1) {
+			Weather *w = kola.weather.Today();
+			if (w) {
+				printf("%s: %s %s %s %s, %s\n",
+					w->date.c_str(),
+					w->day.temp.c_str(),
+					w->day.weather.c_str(),
+					w->day.windDirection.c_str(),
+					w->day.windPower.c_str(),
+				        w->day.picture.c_str()
+				);
+				break;
+			}
+			printf("ddddd\n");
+		}
 	}
 
 	//test_custommenu();

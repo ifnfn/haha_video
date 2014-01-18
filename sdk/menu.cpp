@@ -157,7 +157,7 @@ void KolaMenu::FilterAdd(string key, string value)
 
 void KolaMenu::FilterRemove(string key)
 {
-	Filter.KeyRemove(key);
+	Filter.KeyAdd(key, "");
 	CleanPage();
 }
 
@@ -314,7 +314,7 @@ CustomMenu::CustomMenu(string fileName)
 	albumCount = albumIdList.size();
 }
 
-void CustomMenu::AlbumAdd(KolaAlbum *album)
+void CustomMenu::AlbumAdd(IAlbum *album)
 {
 	if (album)
 		AlbumAdd(album->vid);

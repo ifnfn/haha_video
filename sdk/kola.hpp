@@ -480,7 +480,7 @@ class KolaMenu: public IMenu {
 class CustomMenu: public KolaMenu {
 	public:
 		CustomMenu(string fileName);
-		void AlbumAdd(KolaAlbum *album);
+		void AlbumAdd(IAlbum *album);
 		void AlbumAdd(string vid);
 		void AlbumRemove(KolaAlbum *album);
 		void AlbumRemove(string vid);
@@ -537,6 +537,34 @@ class KolaArea {
 		string city;
 };
 
+class Weather {
+public:
+	string date;
+	struct {
+		string picture;
+		string weather;
+		string temp;
+		string windDirection;
+		string windPower;
+	} day, night;
+};
+
+class KolaWeather: public Task {
+public:
+//	void GetProvince(StringList &value);
+//	void GetArea(string province, StringList &area);
+//	void GetCounty(string province, string area, StringList &County);
+	void Update();
+	Weather *Today();
+	Weather *Tomorrow();
+	vector<Weather*> weatherList;
+	string PM25;
+	virtual void Run(void);
+private:
+	Mutex mutex;
+	void Clear();
+};
+
 class IClient {
 protected:
 	virtual ~IClient() {}
@@ -572,6 +600,7 @@ class KolaClient: public IClient {
 		int debug;
 		ResourceManager *resManager;
 		ThreadPool *threadPool;
+		KolaWeather weather;
 	protected:
 		virtual IVideo* NewVideo() {
 			return new KolaVideo();

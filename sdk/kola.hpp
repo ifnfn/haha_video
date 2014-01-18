@@ -542,6 +542,7 @@ public:
 	string date;
 	struct {
 		string picture;
+		string code;
 		string weather;
 		string temp;
 		string windDirection;

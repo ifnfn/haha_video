@@ -338,9 +338,10 @@ int main(int argc, char **argv)
 		while (not kola.weather.UpdateFinish()) {
 			Weather *w = kola.weather.Today();
 			if (w) {
-				printf("%s: %s %s %s %s, %s\n",
+				printf("%s: %s %s %s %s %s,%s\n",
 					w->date.c_str(),
 					w->day.temp.c_str(),
+				        w->day.code.c_str(),
 					w->day.weather.c_str(),
 					w->day.windDirection.c_str(),
 					w->day.windPower.c_str(),

@@ -19,6 +19,7 @@ function kola_main(city)
 
 			info.day = {}
 			info.day.picture       = string.format("http://p2.qhimg.com/d/_hao360/weather/big/%s.png",  w.info.day[1])
+			info.day.code          = w.info.day[1]
 			info.day.weather       = w.info.day[2]
 			info.day.temp          = w.info.day[3]
 			info.day.windDirection = w.info.day[4]
@@ -26,6 +27,7 @@ function kola_main(city)
 
 			info.night = {}
 			info.night.picture       = string.format("http://p2.qhimg.com/d/_hao360/weather/big/%s.png",  w.info.night[1])
+			info.night.code          = w.info.night[1]
 			info.night.weather       = w.info.night[2]
 			info.night.temp          = w.info.night[3]
 			info.night.windDirection = w.info.night[4]

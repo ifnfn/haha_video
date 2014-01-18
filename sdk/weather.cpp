@@ -11,6 +11,10 @@
 #include "json.hpp"
 #include "script.hpp"
 
+KolaWeather::~KolaWeather()
+{
+	Clear();
+}
 
 void KolaWeather::Clear()
 {
@@ -76,6 +80,11 @@ void KolaWeather::Run(void)
 
 		json_delete(js);
 	}
+}
+
+bool KolaWeather::UpdateFinish()
+{
+	return status == Task::StatusFinish;
 }
 
 void KolaWeather::Update() {

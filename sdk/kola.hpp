@@ -551,10 +551,12 @@ public:
 
 class KolaWeather: public Task {
 public:
+	virtual ~KolaWeather();
 //	void GetProvince(StringList &value);
 //	void GetArea(string province, StringList &area);
 //	void GetCounty(string province, string area, StringList &County);
 	void Update();
+	bool UpdateFinish();
 	Weather *Today();
 	Weather *Tomorrow();
 	vector<Weather*> weatherList;

@@ -335,7 +335,7 @@ int main(int argc, char **argv)
 		kola.weather.Update();
 //		kola.weather.Wait();
 
-		while (1) {
+		while (not kola.weather.UpdateFinish()) {
 			Weather *w = kola.weather.Today();
 			if (w) {
 				printf("%s: %s %s %s %s, %s\n",

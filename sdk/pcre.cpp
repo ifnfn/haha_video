@@ -70,6 +70,7 @@ string KolaPcre::MatchAll(const char *content)
 			//flags |= PCRE_NOTBOL;
 		}
 	}
+
 	//cout << result << endl;
 	return result;
 }

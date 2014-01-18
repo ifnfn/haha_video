@@ -12,28 +12,28 @@
 using namespace std;
 
 class script {
-	public:
-		script() {
-			time(&dtime);
-		}
-		script(string t) {
-			text = t;
-			time(&dtime);
-		}
-		string text;
-		time_t dtime;
+public:
+	script() {
+		time(&dtime);
+	}
+	script(string t) {
+		text = t;
+		time(&dtime);
+	}
+	string text;
+	time_t dtime;
 };
 
 class LuaScript {
-	public:
-		LuaScript();
-		static LuaScript& Instance();
-		~LuaScript();
-		string RunScript(vector<string> &args, const char *name, const char *fname="kola_main");
-	private:
-		map<string, script> scripts;
-		bool GetScript(const char *name, string &text);
-		string lua_runscript(lua_State* L, const char *filename, const char *fn, const char *func, vector<string> &args);
+public:
+	LuaScript();
+	static LuaScript& Instance();
+	~LuaScript();
+	string RunScript(vector<string> &args, const char *name, const char *fname="kola_main");
+private:
+	map<string, script> scripts;
+	bool GetScript(const char *name, string &text);
+	string lua_runscript(lua_State* L, const char *filename, const char *fn, const char *func, vector<string> &args);
 };
 
 #endif

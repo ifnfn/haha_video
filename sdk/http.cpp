@@ -229,7 +229,7 @@ const char *Http::curlGetCurlURL(int times)
 
 	res = curl_easy_perform(curl);
 	if ( res ) {
-		printf("curlGetCurlURL: cant perform curl: %s\n", errormsg);
+		printf("curlGetCurlURL: %s, cant perform curl: %s\n", url.c_str(), errormsg);
 		return curlGetCurlURL(times + 1);
 	}
 

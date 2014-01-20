@@ -50,10 +50,11 @@ void Thread::run()
 
 bool Thread::start()
 {
-	if (this->_state == false)
-	{
+	if (this->_state == false) {
+		this->_state = true;
 		this->_state = static_cast<bool>(!pthread_create(&_tid, 0, &starter, static_cast<void*>(this)));
 	}
+
 	return (this->_state);
 }
 
@@ -61,12 +62,11 @@ bool Thread::cancel()
 {
 	bool ret;
 
-	if (_state == true)
-	{
+	if (_state == true) {
 		ret = static_cast<bool>(!pthread_cancel(_tid));
 		if (ret)
 			_state = false;
-		return (ret);
+		return ret;
 	}
 	else
 		return (false);
@@ -76,11 +76,10 @@ bool Thread::join(void **exit_value)
 {
 	bool ret;
 
-	if (_state != false)
-	{
+	if (_state != false) {
 		ret = static_cast<bool>(!pthread_join(_tid, exit_value));
 		_state = false;
-		return (ret);
+		return ret;
 	}
 	else
 		return false;

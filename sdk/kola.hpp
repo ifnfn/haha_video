@@ -512,6 +512,7 @@ public:
 	virtual void Run();
 	virtual bool Play(string name, string url) = 0;
 	void AddVideo(IVideo *video);
+	void DoPlay(string &name, string &url);
 private:
 	deque<VideoResolution> videoList;
 	ConditionVar *_condvar;

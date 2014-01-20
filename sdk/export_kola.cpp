@@ -13,7 +13,7 @@
 
 extern "C" {LUALIB_API int luaopen_kola(lua_State *L);}
 
-static int f_mwget(lua_State *L)
+static int lua_mwget(lua_State *L)
 {
 	double k;
 	const char *v = NULL;
@@ -55,7 +55,7 @@ static int f_mwget(lua_State *L)
 	return 1;
 }
 
-static int f_wget(lua_State *L)
+static int lua_wget(lua_State *L)
 {
 	int argc = lua_gettop(L);
 	const char *url = NULL;
@@ -95,7 +95,7 @@ static int f_wget(lua_State *L)
 	return 0;
 }
 
-static int f_wpost(lua_State *L)
+static int lua_wpost(lua_State *L)
 {
 	string ret;
 	int argc = lua_gettop(L);
@@ -117,7 +117,7 @@ static int f_wpost(lua_State *L)
 	return 0;
 }
 
-static int f_pcre(lua_State *L)
+static int lua_pcre(lua_State *L)
 {
 	const char *regular = lua_tostring(L, 1);
 	const char *text = lua_tostring(L, 2);
@@ -138,21 +138,21 @@ static int f_pcre(lua_State *L)
 	return 1;
 }
 
-static int f_getserver(lua_State *L)
+static int lua_getserver(lua_State *L)
 {
 	lua_pushstring(L, KolaClient::Instance().GetServer().c_str());
 
 	return 1;
 }
 
-static int f_gettime(lua_State *L)
+static int lua_gettime(lua_State *L)
 {
 	lua_pushnumber(L, KolaClient::Instance().GetTime());
 
 	return 1;
 }
 
-static int f_urlencode(lua_State *L)
+static int lua_urlencode(lua_State *L)
 {
 	string txt = lua_tostring(L, 1);
 
@@ -164,7 +164,7 @@ static int f_urlencode(lua_State *L)
 	return 0;
 }
 
-static int f_urldecode(lua_State *L)
+static int lua_urldecode(lua_State *L)
 {
 	const char *txt = lua_tostring(L, 1);
 
@@ -177,7 +177,7 @@ static int f_urldecode(lua_State *L)
 	return 0;
 }
 
-static int f_base64_encode(lua_State *L)
+static int lua_base64_encode(lua_State *L)
 {
 	const char *txt = lua_tostring(L, 1);
 	if (txt) {
@@ -190,7 +190,7 @@ static int f_base64_encode(lua_State *L)
 	return 0;
 }
 
-static int f_base64_decode(lua_State *L)
+static int lua_base64_decode(lua_State *L)
 {
 	const char *txt = lua_tostring(L, 1);
 	if (txt) {
@@ -207,16 +207,16 @@ static int f_base64_decode(lua_State *L)
 }
 
 static const struct luaL_Reg kola_lib[] = {
-	{"base64_encode" , f_base64_encode},
-	{"base64_decode" , f_base64_decode},
-	{"wget"          , f_wget},
-	{"mwget"         , f_mwget},
-	{"wpost"         , f_wpost},
-	{"pcre"          , f_pcre},
-	{"getserver"     , f_getserver},
-	{"gettime"       , f_gettime},
-	{"urlencode"     , f_urlencode},
-	{"urldecode"     , f_urldecode},
+	{"base64_encode" , lua_base64_encode},
+	{"base64_decode" , lua_base64_decode},
+	{"wget"          , lua_wget},
+	{"mwget"         , lua_mwget},
+	{"wpost"         , lua_wpost},
+	{"pcre"          , lua_pcre},
+	{"getserver"     , lua_getserver},
+	{"gettime"       , lua_gettime},
+	{"urlencode"     , lua_urlencode},
+	{"urldecode"     , lua_urldecode},
 	{NULL            , NULL},
 };
 

@@ -64,18 +64,33 @@ bool VideoResolution::GetVariant(string &key, Variant &var)
 
 string VideoResolution::GetVideoUrl()
 {
+	string url;
+	string key;
+
 	if (Empty())
 		Set();
+
+	key = vid + defaultKey;
+
+	bool find = false;
+	UrlCache &cache = KolaClient::Instance().cache;
+
+	find = cache.FindByVid(key, url);
+
+	if (find) {
+		return url;
+	}
 
 	if (not Empty()) {
 		map<string ,Variant>::iterator it = urls.find(defaultKey);
 		if (it != urls.end()) {
-			return it->second.GetString();
+			url = it->second.GetString();
 		}
 		else {
 			it = urls.begin();
-			return it->second.GetString();
+			url = it->second.GetString();
 		}
+		cache.Set(key, url);
 	}
 
 	return "";

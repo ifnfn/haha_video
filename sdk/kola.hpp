@@ -173,6 +173,30 @@ public:
 	bool Get(EPG &e, time_t time);
 };
 
+class CacheUrl {
+public:
+	void operator =(string url) {
+		this->url = url;
+		t = time(&t);
+	}
+	string url;
+	time_t t;
+};
+
+class UrlCache {
+public:
+	UrlCache();
+	void SetTimeout(size_t sec);
+	bool FindByVid(string &vid, string &url);
+	void Set(string&vid, string &url);
+	void Remove(string &vid);
+	void Update();
+private:
+	map<string, CacheUrl> mapList;
+	Mutex mutex;
+	size_t timeout;
+};
+
 class VideoResolution: public Variant {
 public:
 	void Clear();
@@ -181,6 +205,7 @@ public:
 	string GetVideoUrl();
 	bool Empty();
 	string defaultKey;
+	string vid;
 private:
 	void Set();
 	map<string, Variant> urls;
@@ -512,9 +537,9 @@ public:
 	virtual void Run();
 	virtual bool Play(string name, string url) = 0;
 	void AddVideo(IVideo *video);
-	void DoPlay(string &name, string &url);
+	bool DoPlay(string &name, string &url);
 private:
-	deque<VideoResolution> videoList;
+	list<VideoResolution> videoList;
 	ConditionVar *_condvar;
 	Thread* thread;
 };
@@ -554,9 +579,9 @@ public:
 class KolaWeather: public Task {
 public:
 	virtual ~KolaWeather();
-	//	void GetProvince(StringList &value);
-	//	void GetArea(string province, StringList &area);
-	//	void GetCounty(string province, string area, StringList &County);
+	//void GetProvince(StringList &value);
+	//void GetArea(string province, StringList &area);
+	//void GetCounty(string province, string area, StringList &County);
 	void Update();
 	bool UpdateFinish();
 	Weather *Today();
@@ -605,6 +630,7 @@ public:
 	ResourceManager *resManager;
 	ThreadPool *threadPool;
 	KolaWeather weather;
+	UrlCache cache;
 protected:
 	virtual IVideo* NewVideo() {
 		return new KolaVideo();

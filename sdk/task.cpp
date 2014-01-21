@@ -20,12 +20,10 @@ void Task::Wait()
 {
 	_condvar->lock();
 
-	if (status != Task::StatusFinish && status == Task::StatusDownloading) {
+	if (status != Task::StatusFinish && status == Task::StatusDownloading)
 		_condvar->wait();
-		_condvar->unlock();
-	}
-	else
-		_condvar->unlock();
+
+	_condvar->unlock();
 }
 
 void Task::Wakeup()

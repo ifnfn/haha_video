@@ -319,12 +319,11 @@ void MultiHttp::Exec()
 			else
 				timeout.tv_usec = (curl_timeo % 1000) * 1000;
 		}
-		//        mutex.unlock();
 
 		int rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
 
 		if (rc < 0) {
-			mutex.lock();
+			mutex.unlock();
 			continue;
 		}
 

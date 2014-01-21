@@ -22,9 +22,9 @@ KolaPlayer::~KolaPlayer()
 	delete _condvar;
 }
 
-void KolaPlayer::DoPlay(string &name, string &url)
+bool KolaPlayer::DoPlay(string &name, string &url)
 {
-	Play(name, url);
+	return Play(name, url);
 }
 
 void KolaPlayer::Run()

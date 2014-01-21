@@ -26,13 +26,6 @@ public:
 	bool broadcast() {
 		return (static_cast<bool>(!pthread_cond_broadcast(&_cond)));
 	}
-	bool uniqueWait() {
-		bool ret;
-
-		this->lock();
-		ret = this->wait();
-		return (ret);
-	}
 	bool wait() {
 		return (static_cast<bool>(!pthread_cond_wait(&_cond, &this->_mutex)));
 	}

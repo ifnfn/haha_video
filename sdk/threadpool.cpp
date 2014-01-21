@@ -112,13 +112,14 @@ void ThreadPool::addTask(Task *task, bool priority)
 {
 	if (task) {
 		_condvar.lock();
+
 		mutex.lock();
 		if (priority)
 			_tasksList.push_front(task);
 		else
 			_tasksList.push_back(task);
-
 		mutex.unlock();
+
 		_condvar.signal();
 		_condvar.unlock();
 	}

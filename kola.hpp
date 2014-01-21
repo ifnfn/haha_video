@@ -397,14 +397,14 @@ private:
 	string smallHorPicUrl;
 	string largeVerPicUrl;
 	string smallVerPicUrl;
-	
+
 	string defaultPageUrl;   // 当前播放集
 	bool   directVideos;
 	size_t videoPageSize;
 	size_t videoPageId;
 	map<string, Variant> SourceList;
 	string CurrentSource;   // 设置节目来源
-	
+
 	friend class CustomMenu;
 };
 
@@ -512,6 +512,7 @@ public:
 	virtual void Run();
 	virtual bool Play(string name, string url) = 0;
 	void AddVideo(IVideo *video);
+	void DoPlay(string &name, string &url);
 private:
 	deque<VideoResolution> videoList;
 	ConditionVar *_condvar;

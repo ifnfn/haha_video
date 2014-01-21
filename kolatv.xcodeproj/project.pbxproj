@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		446A5EA9188D01600046E0E3 /* player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 446A5EA8188D01600046E0E3 /* player.cpp */; };
+		446A5EAB188D024F0046E0E3 /* resolution.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 446A5EAA188D024F0046E0E3 /* resolution.cpp */; };
 		4473FDCE186C5ACA00136610 /* kolatv.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4473FDCD186C5ACA00136610 /* kolatv.1 */; };
 		4473FE8A186C5AF300136610 /* album.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FDD7186C5AF300136610 /* album.cpp */; };
 		4473FE8B186C5AF300136610 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FDD8186C5AF300136610 /* base64.cpp */; };
@@ -77,6 +79,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		446A5EA8188D01600046E0E3 /* player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = player.cpp; path = ../player.cpp; sourceTree = "<group>"; };
+		446A5EAA188D024F0046E0E3 /* resolution.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = resolution.cpp; path = ../resolution.cpp; sourceTree = "<group>"; };
 		4473FDC8186C5ACA00136610 /* kolatv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = kolatv; sourceTree = BUILT_PRODUCTS_DIR; };
 		4473FDCD186C5ACA00136610 /* kolatv.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = kolatv.1; sourceTree = "<group>"; };
 		4473FDD7186C5AF300136610 /* album.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = album.cpp; path = ../album.cpp; sourceTree = "<group>"; };
@@ -199,6 +203,8 @@
 		4473FDCA186C5ACA00136610 /* kolatv */ = {
 			isa = PBXGroup;
 			children = (
+				446A5EAA188D024F0046E0E3 /* resolution.cpp */,
+				446A5EA8188D01600046E0E3 /* player.cpp */,
 				44E3229D188A5EBF00E9452E /* weather.cpp */,
 				44F2E439187A99E200B05FDB /* resource.cpp */,
 				44F2E43A187A99E200B05FDB /* resource.hpp */,
@@ -370,6 +376,7 @@
 			files = (
 				4473FED8186C5AF300136610 /* lgc.c in Sources */,
 				4473FEE0186C5AF300136610 /* lopcodes.c in Sources */,
+				446A5EA9188D01600046E0E3 /* player.cpp in Sources */,
 				4473FEED186C5AF300136610 /* main.cpp in Sources */,
 				4473FEF4186C5AF300136610 /* task.cpp in Sources */,
 				4473FE8B186C5AF300136610 /* base64.cpp in Sources */,
@@ -378,6 +385,7 @@
 				4473FE8A186C5AF300136610 /* album.cpp in Sources */,
 				4473FED4186C5AF300136610 /* ldebug.c in Sources */,
 				4473FEE8186C5AF300136610 /* ltm.c in Sources */,
+				446A5EAB188D024F0046E0E3 /* resolution.cpp in Sources */,
 				4473FE8E186C5AF300136610 /* http.cpp in Sources */,
 				4473FED3186C5AF300136610 /* ldblib.c in Sources */,
 				4473FEEF186C5AF300136610 /* menu.cpp in Sources */,

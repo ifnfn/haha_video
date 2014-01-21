@@ -41,8 +41,7 @@ void KolaPlayer::Run()
 			_condvar->unlock();
 
 			string url = resolution.GetVideoUrl();
-			if (not url.empty())
-				DoPlay(resolution.defaultKey, url);
+			DoPlay(resolution.defaultKey, url);
 		}
 	}
 }

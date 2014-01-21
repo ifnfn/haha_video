@@ -355,13 +355,13 @@ class CutvStation(TVStation):
 cutv = CUTV()
 
 TVStationList = {
-    '新疆电视台' : UCATV,
+#    '新疆电视台' : UCATV,
 #    '浙江电视台' : ZJTV,
 #    '杭州电视台' : HZTV,
 #    '宁波电视台' : NBTV,
 #    '吉林电视台' : JLNTV,
 #    '温州电视台' : DHTV,
-#    '绍兴电视台' : CutvStation('绍兴台'),
+    '绍兴电视台' : CutvStation('绍兴台'),
 #    '深圳电视台' : CutvStation('深圳台'),
 #    '太原电视台' : CutvStation('太原台'),
 #    '荆州电视台' : CutvStation('荆州台'),

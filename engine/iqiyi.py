@@ -185,51 +185,15 @@ class QiyiDB(DB, Singleton):
         if album.albumName and album.qiyi.vid:
             self._save_update_append(None, album, key={'private.QiyiEngine.vid' : album.qiyi.tvid}, upsert=upsert)
 
-class ParserAlbumXml(KolaParser):
-    def __init__(self, url=None):
-        super().__init__()
-        if url:
-            self.cmd['source'] = url
-
-    def CmdParser(self, js):
-        def GetKey(node, key):
-            tmp = node.find(key)
-            if tmp:
-                return tmp.text
-            else:
-                return ''
-
-        db = QiyiDB()
-        root = ElementTree.fromstring(js['data'])
-        video = root.find('video')
-
-        albumName = db.GetAlbumName(GetKey(video, 'albumName'))
-        if not albumName:
-            return
-
-        album = QiyiAlbum()
-        album_js = DB().FindAlbumJson(albumName=albumName)
-        if album_js:
-                album.LoadFromJson(album_js)
-
-        album.albumName  = albumName
-        album.vid        = utils.genAlbumId(album.albumName)
-        album.area       = GetKey(video, 'area')
-        album.mainActors = GetKey(video, 'mainActor').strip(' ')
-        album.directors  = GetKey(video, 'directors').strip(' ')
-        album.playLength = GetKey(video, 'totalDuration')
-        album.qiyi.vid   = GetKey(video, 'vid')
-
-        db.SaveAlbum(album, upsert=True)
-
 class ParserAlbumJsonAVList(KolaParser):
-    def __init__(self, albumid=None, tvid=None, albumUrl=None):
+    def __init__(self, albumid=None, tvid=None, albumUrl=None, cid=None):
         super().__init__()
-        if albumid and tvid and albumUrl:
+        if albumid and tvid and albumUrl and cid:
             self.cmd['source']  = 'http://cache.video.qiyi.com/avlist/%s/' % albumid
             self.cmd['albumid'] = albumid
             self.cmd['tvid'] = tvid
             self.cmd['aurl'] = albumUrl
+            self.cmd['cid']  = cid
 
     def CmdParser(self, js):
         text = re.findall('videoListC=([\s\S]*)', js['data'])
@@ -249,20 +213,19 @@ class ParserAlbumJsonAVList(KolaParser):
             break
 
         if videoid and tvid:
-            ParserAlbumJson(tvid, videoid).Execute()
-            #ParserAlbumXml('http://cache.video.qiyi.com/v/%s' % videoid).Execute()
-
+            ParserAlbumJson(tvid, videoid, js['cid']).Execute()
 
 class ParserAlbumJsonA(KolaParser):
-    def __init__(self, albumid=None, tvid=None, videoid=None, ar=None, tg=None):
+    def __init__(self, albumid=None, tvid=None, videoid=None, ar=None, tg=None, cid=None):
         super().__init__()
-        if albumid and tvid and videoid:
+        if albumid and tvid and videoid and cid:
             self.cmd['source']  = 'http://cache.video.qiyi.com/a/%s' % albumid
             self.cmd['tvid']    = tvid
             self.cmd['videoid'] = videoid
             self.cmd['albumid'] = albumid
             self.cmd['ar']      = ar
             self.cmd['tg']      = tg
+            self.cmd['cid']     = cid
 
     def CmdParser(self, js):
         def TimeStr(t):
@@ -290,7 +253,8 @@ class ParserAlbumJsonA(KolaParser):
 
             album.albumName = albumName
             album.vid = utils.genAlbumId(album.albumName)
-            album.cid = json['albumType']
+            #album.cid = json['albumType']
+            album.cid = js['cid']
 
             if album.cid == 3:
                 a = ComicAlias
@@ -306,6 +270,8 @@ class ParserAlbumJsonA(KolaParser):
             album.albumPageUrl     = json['purl']                              # 'vu'
             album.largePicUrl      = json['tvPictureUrl']                      # 大图 post20 最大的
 
+            if not album.largePicUrl:
+                print(album.largePicUrl)
             if 'episodeCounts' in json:
                 album.totalSet = autoint(json['episodeCounts'])                # 总集数
             #if 'currentMaxEpisode' in json:
@@ -336,10 +302,11 @@ class ParserAlbumJsonA(KolaParser):
 
 # 补充地区与类型
 class ParserAlbumJson(KolaParser):
-    def __init__(self, tvid=None, videoid=None):
+    def __init__(self, tvid=None, videoid=None, cid=None):
         super().__init__()
-        if tvid and videoid:
+        if tvid and videoid and cid:
             self.cmd['source'] = 'http://cache.video.qiyi.com/vi/%s/%s/' % (tvid, videoid)
+            self.cmd['cid'] = cid
 
     def CmdParser(self, js):
         json = tornado.escape.json_decode(js['data'])
@@ -349,14 +316,15 @@ class ParserAlbumJson(KolaParser):
         vid = json['vid']
         tvid = json['tvid']
 
-        ParserAlbumJsonA(aid, tvid, vid, ar, tg).Execute()
+        ParserAlbumJsonA(aid, tvid, vid, ar, tg, js['cid']).Execute()
 
 class ParserAlbumPage(KolaParser):
-    def __init__(self, url=None):
+    def __init__(self, url=None, cid=None):
         super().__init__()
-        if url:
+        if url and cid:
             self.cmd['source']  = url
             self.cmd['regular'] = ['(data-player-videoid.*|data-player-tvid.*|data-player-albumid)']
+            self.cmd['cid'] = cid
 
     def CmdParser(self, js):
         if not js['data']: return
@@ -370,7 +338,7 @@ class ParserAlbumPage(KolaParser):
 #            elif u[0] == 'albumid':
 #                albumid = u[1]
         if videoid and tvid:
-            ParserAlbumJson(tvid, videoid).Execute()
+            ParserAlbumJson(tvid, videoid, js['cid']).Execute()
             #ParserAlbumXml('http://cache.video.qiyi.com/v/%s' % videoid).Execute()
 
 # 节目列表
@@ -407,9 +375,9 @@ class ParserAlbumList(KolaParser):
                     tvid = u[1]
 
             if tvid != albumid:
-                ParserAlbumJsonAVList(albumid, tvid, href).Execute()
+                ParserAlbumJsonAVList(albumid, tvid, href, js['cid']).Execute()
             elif href:
-                ParserAlbumPage(href).Execute()
+                ParserAlbumPage(href, js['cid']).Execute()
 
         if len(playlist) > 0:
                 ParserAlbumList(js['cid'], js['page'] + 1).Execute()
@@ -457,7 +425,9 @@ class QiyiComic(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 3
-        self.HomeUrlList = ['http://list.iqiyi.com/www/4/------------2-1-1-1---.html']
+        self.HomeUrlList = ['http://list.iqiyi.com/www/4/------------2-1-1-1---.html',
+                            'http://list.iqiyi.com/www/15/------------2-1-1-0---.html',
+                            ]
 
     # 更新热门电影信息
     def UpdateHotInfo(self):
@@ -496,6 +466,5 @@ class QiyiEngine(VideoEngine):
             ParserAlbumJson(),
             ParserAlbumJsonA(),
             ParserAlbumJsonAVList(),
-            ParserAlbumXml(),
         ]
 

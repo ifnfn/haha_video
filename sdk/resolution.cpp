@@ -91,6 +91,8 @@ string VideoResolution::GetVideoUrl()
 			url = it->second.GetString();
 		}
 		cache.Set(key, url);
+
+		return url;
 	}
 
 	return "";

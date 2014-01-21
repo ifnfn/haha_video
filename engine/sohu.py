@@ -6,8 +6,7 @@ import re
 from bs4 import BeautifulSoup as bs
 import tornado.escape
 
-import engine
-from engine import VideoEngine, KolaParser, KolaAlias
+from engine import VideoEngine, KolaParser, KolaAlias, EngineCommands
 from kola import DB, autostr, autoint, Singleton, utils
 import kola
 
@@ -391,7 +390,7 @@ class SohuVideoMenu(kola.VideoMenuBase):
         for album in SohuDB().GetMenuAlbumList(self.cid):
             album.UpdateScoreCommand()
 
-        engine.EngineCommands().Execute()
+        EngineCommands().Execute()
 
     def UpdateHotList(self):
         # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3&encode=GBK

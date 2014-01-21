@@ -6,7 +6,7 @@ import logging
 import redis
 import tornado.escape
 
-import engine
+from engine import QiyiEngine, LetvEngine, SohuEngine, LiveEngine, EngineCommands
 from kola import DB, ThreadPool
 
 
@@ -18,14 +18,14 @@ class KolaEngine:
     def __init__(self):
         self.thread_pool = ThreadPool(POOLSIZE)
         self.db = DB()
-        self.command = engine.EngineCommands()
+        self.command = EngineCommands()
         self.engines = []
         self.UpdateAlbumFlag = False
 
-        self.AddEngine(engine.LetvEngine)
-        self.AddEngine(engine.SohuEngine)
-        self.AddEngine(engine.QiyiEngine)
-        self.AddEngine(engine.LiveEngine)
+        self.AddEngine(LetvEngine)
+        self.AddEngine(SohuEngine)
+        self.AddEngine(QiyiEngine)
+        self.AddEngine(LiveEngine)
 
     def AddEngine(self, egClass):
         self.engines.append(egClass())

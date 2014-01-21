@@ -52,7 +52,7 @@ void KolaPlayer::AddVideo(IVideo *video)
 		_condvar->lock();
 		videoList.clear();
 		videoList.push_back(video->Resolution);
-		_condvar->signal();
+		_condvar->broadcast();
 		_condvar->unlock();
 	}
 }

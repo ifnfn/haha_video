@@ -74,6 +74,8 @@ class VideoBase:
             self.resolution[nameList[name]] = url
             if name == 'default':
                 self.resolution[nameList[name]]['default'] = 1
+        else:
+            self.resolution[name] = url
 
     def SaveToJson(self):
         ret = {}

@@ -7,8 +7,7 @@ from xml.etree import ElementTree
 
 import tornado.escape
 
-import engine
-from engine import VideoEngine, KolaParser
+from engine import VideoEngine, KolaParser, GetUrl
 from kola import VideoBase, AlbumBase, DB, json_get, GetNameByUrl, utils
 from kola.element import LivetvMenu
 
@@ -81,6 +80,8 @@ class LivetvVideoMenu(LivetvMenu):
         ParserHangZhouLivetv().Execute()
         ParserUCLivetv().Execute()
         ParserWenZhouLivetv().Execute()
+        #ParserNNLivetv().Execute()
+        ParserCutvLivetv('all').Execute()
         #ParserJLntvLivetv().Execute()
         #ParserTextLivetv().Execute()
 
@@ -111,7 +112,6 @@ class ParserLetvLivetv(LivetvParser):
         #self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
         self.cmd['source']  = 'http://www.leshizhibo.com/'
         self.cmd['regular'] = ['<p class="channelimg">(.*)</p>']
-
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -241,6 +241,121 @@ class ParserJLntvLivetv(LivetvParser):
             album.videos.append(v)
             db.SaveAlbum(album)
 
+class ParserCutvLivetv(LivetvParser):
+    def __init__(self, station=None, tv_id=None):
+        super().__init__()
+        self.area = ''
+
+        if station == 'all':
+            self.cmd['step'] = 1
+            self.cmd['source'] = 'http://ugc.sun-cam.com/api/tv_live_api.php?action=tv_live'
+        elif station and id:
+            self.cmd['step'] = 2
+            self.cmd['station'] = station
+            self.cmd['id'] = tv_id
+            self.cmd['source'] = 'http://ugc.sun-cam.com/api/tv_live_api.php?action=channel_prg_list&tv_id=' + utils.autostr(tv_id)
+
+    def CmdParser(self, js):
+        if js['step'] == 1:
+            self.CmdParserAll(js)
+        elif js['step'] == 2:
+            self.CmdParserTV(js)
+
+
+    def CmdParserAll(self, js):
+        text = js['data']
+        root = ElementTree.fromstring(text)
+        for p in root.findall('tv'):
+            ParserCutvLivetv(p.findtext('tv_name'), p.findtext('tv_id')).Execute()
+
+    def CmdParserTV(self, js):
+        db = LivetvDB()
+        text = js['data']
+        root = ElementTree.fromstring(text)
+        for p in root.findall('channel'):
+                album  = LivetvAlbum()
+                album.albumName  = p.findtext('channel_name')
+                album.categories = self.tvCate.GetCategories(album.albumName)
+                album.area       = self.area
+                album.vid        = utils.genAlbumId(album.area + album.albumName)
+
+                album.channel_id  = p.findtext('channel_id')
+                album.largePicUrl = p.findtext('thumb')
+
+                url = p.findtext('mobile_url')
+                v = album.NewVideo()
+                v.priority = 2
+                v.name     = "CUTV"
+                v.SetVideoUrl('default', {'text' : url})
+
+                x = url.split('/')
+                if len(x) > 4:
+                    v.vid  = x[4]
+                    v.info = {
+                        'script' : 'cutv',
+                        'function' : 'get_channel',
+                        'parameters' : [v.vid],
+                    }
+
+                album.videos.append(v)
+                db.SaveAlbum(album)
+
+class ParserNNLivetv(LivetvParser):
+    def __init__(self):
+        super().__init__()
+        self.cmd['source'] = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=104'
+        self.area = '中国-广西-南宁'
+
+
+    def CmdParser(self, js):
+        db = LivetvDB()
+        count = 0
+        for i in ('101', '105', '104', '103', '106', '117', '109'): #  新闻综合 都市生活 影视娱乐 公共频道 广电购物 老友LIVE CCTV-1
+            url = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=' + i
+            text = GetUrl(url).decode()
+            root = ElementTree.fromstring(text)
+
+            album = None
+            for p in root:
+                if p.tag == 'title':
+                    album  = LivetvAlbum()
+                    album.albumName  = p.text
+                    album.categories = self.tvCate.GetCategories(album.albumName)
+                    album.area       = self.area
+                    album.vid        = utils.genAlbumId(album.area + album.albumName)
+
+            if album == None:
+                return
+
+
+            v = album.NewVideo()
+            v.vid      = utils.getVidoId(url)
+            v.priority = 2
+            v.name     = "NNTV"
+
+            for p in root:
+                if p.tag == 'url':
+                    print(p.text)
+
+                    if count == 0:
+                        v.SetVideoUrl('default', {'text' : p.text})
+                    else:
+                        v.SetVideoUrl('url_%d' % count, {'text' : p.text})
+
+                    count += 1
+
+            if count == 0:
+                return
+
+            v.info = {
+                'script' : 'nntv',
+                'function' : 'get_channel',
+                'parameters' : [i],
+            }
+
+            album.videos.append(v)
+            db.SaveAlbum(album)
+
 # 杭州电视台
 class ParserHangZhouLivetv(LivetvParser):
     def __init__(self):
@@ -261,7 +376,7 @@ class ParserHangZhouLivetv(LivetvParser):
         #for i in range(1, 60):
         for i in (1, 2, 3, 5, 13, 14, 15):
             url = 'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i
-            text = engine.GetUrl(url).decode()
+            text = GetUrl(url).decode()
             root = ElementTree.fromstring(text)
 
             name = self.GetAliasName(root.attrib['name'])
@@ -507,5 +622,7 @@ class LiveEngine(VideoEngine):
             ParserUCLivetv(),
             ParserWenZhouLivetv(),
             #ParserJLntvLivetv(),
+            #ParserNNLivetv(),
+            ParserCutvLivetv(),
         ]
 

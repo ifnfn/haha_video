@@ -26,6 +26,9 @@ class LivetvMenu(db.VideoMenuBase):
             'PinYin' : []
         }
 
+    def UpdateAllScore(self):
+        pass
+
 # 电影
 class MovieMenu(db.VideoMenuBase):
     def __init__(self, name):

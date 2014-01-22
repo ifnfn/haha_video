@@ -19,7 +19,12 @@ class City():
         cityList.append(x)
     
     def __init__(self):
-        pass
+        if len(self.cityList) == 0:
+            self.Update()
+            self.cityList = []
+            for x in self.city_table.find():
+                del x['_id']
+                self.cityList.append(x)
 
     def Load(self):
         ret = []

@@ -193,6 +193,8 @@ class AlbumBase:
             ret['albumName'] = self.albumName
             ret['NamePy']    = GetPinYin(self.albumName)
 
+        if self.enAlbumName     : ret['enAlbumName']     = self.enAlbumName
+
         if self.vid             : ret['vid']             = self.vid
         if self.isHigh          : ret['isHigh']          = self.isHigh
 
@@ -228,7 +230,6 @@ class AlbumBase:
         if self.dailyIndexScore : ret['dailyIndexScore'] = self.dailyIndexScore  # 每日指数
         if self.sources         : ret['sources']         = self.sources
 
-
         #if self.videoListUrl: ret['videoListUrl']    = self.videoListUrl  # 每日指数
 
         ret['private'] = self.private
@@ -243,6 +244,7 @@ class AlbumBase:
         if self.engineName and self.engineName not in self.engineList:
             self.engineList.append(self.engineName)
 
+        if 'enAlbumName' in json    : self.enAlbumName     = json['enAlbumName']
         if 'vid' in json            : self.vid             = autostr(json['vid'])
 
         if 'isHigh' in json         : self.isHigh          = json['isHigh']

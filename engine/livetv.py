@@ -125,6 +125,8 @@ class ZheJianLiveTV(LivetvMenu):
         ParserHangZhouLivetv().Execute()     # 杭州市台
         ParserNBLivetv().Execute()           # 宁波
         ParserWenZhouLivetv().Execute()      # 温州
+        ParserYiwuLivetv().Execute()         # 义乌
+        ParserShaoxinLivetv().Execute()      # 绍兴
 
 class LivetvParser(KolaParser):
     def __init__(self):
@@ -132,6 +134,12 @@ class LivetvParser(KolaParser):
         self.tvCate = TVCategory()
         self.Alias = {}
         self.ExcludeName = ()
+        self.tvName = ''
+
+    def NewAlbum(self):
+        album  = LivetvAlbum()
+        album.enAlbumName = self.tvName
+        return album
 
     def GetAliasName(self, name):
         for p in list(self.ExcludeName):
@@ -150,6 +158,8 @@ class LivetvParser(KolaParser):
 class ParserLetvLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
+        self.tvName = '乐视'
+
         #self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
         self.cmd['source']  = 'http://www.leshizhibo.com/'
         self.cmd['regular'] = ['<p class="channelimg">(.*)</p>']
@@ -173,7 +183,7 @@ class ParserLetvLivetv(LivetvParser):
                             '湖北体育', '广东体育', 'CCTV女性时尚', 'CCTV电视指南', 'CCTV-5体育频道', '兵团卫视', '澳亚卫视',
                             ]:
                     continue
-                album  = LivetvAlbum()
+                album  = self.NewAlbum()
                 album.vid         = utils.genAlbumId(name)
                 album.albumName   = name
                 album.largePicUrl = image
@@ -203,6 +213,8 @@ class ParserLetvLivetv(LivetvParser):
 class ParserSohuLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
+        self.tvName = '搜狐'
+
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 
     def CmdParser(self, js):
@@ -213,7 +225,7 @@ class ParserSohuLivetv(LivetvParser):
             name = json_get(v, 'name', '')
             pid = json_get(v, 'id', '')
             vid = utils.genAlbumId(name)
-            album  = LivetvAlbum()
+            album  = self.NewAlbum()
             album.albumName   = json_get(v, 'name', '')
             album.categories  = self.tvCate.GetCategories(album.albumName)
             album.vid         = vid
@@ -244,6 +256,8 @@ class ParserSohuLivetv(LivetvParser):
 class ParserJLntvLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
+        self.tvName = '吉林电视台'
+
         self.cmd['source']  = 'http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6'
         self.cmd['regular'] = ['(<li id="T_Menu_.*</a></li>)']
 
@@ -257,7 +271,7 @@ class ParserJLntvLivetv(LivetvParser):
         ch_list = re.findall('<li id="T_Menu_(\d*)"><a href="(.*)">(.*)</a></li>', js['data'])
 
         for _, u, n in ch_list:
-            album  = LivetvAlbum()
+            album  = self.NewAlbum()
             album.vid        = utils.genAlbumId(n)
             album.albumName  = n
             album.categories = self.tvCate.GetCategories(n)
@@ -291,6 +305,8 @@ class ParserCutvLivetv(LivetvParser):
             self.cmd['step'] = 1
             self.cmd['source'] = 'http://ugc.sun-cam.com/api/tv_live_api.php?action=tv_live'
         elif station and id:
+            self.tvName = station
+
             self.cmd['step'] = 2
             self.cmd['station'] = station
             self.cmd['id'] = tv_id
@@ -316,7 +332,7 @@ class ParserCutvLivetv(LivetvParser):
         self.area = city.GetCity(js['station'])
         root = ElementTree.fromstring(text)
         for p in root.findall('channel'):
-                album  = LivetvAlbum()
+                album  = self.NewAlbum()
                 album.albumName  = p.findtext('channel_name')
                 album.categories = self.tvCate.GetCategories(album.albumName)
                 album.area       = self.area
@@ -343,9 +359,11 @@ class ParserCutvLivetv(LivetvParser):
                 album.videos.append(v)
                 db.SaveAlbum(album)
 
+# 南宁电视台
 class ParserNNLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
+        self.tvName = '南宁电视台'
         self.cmd['source'] = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=104'
         self.area = '中国,广西,南宁'
 
@@ -361,7 +379,7 @@ class ParserNNLivetv(LivetvParser):
             album = None
             for p in root:
                 if p.tag == 'title':
-                    album  = LivetvAlbum()
+                    album  = self.NewAlbum()
                     album.albumName  = p.text
                     album.categories = self.tvCate.GetCategories(album.albumName)
                     album.area       = self.area
@@ -403,15 +421,12 @@ class ParserNNLivetv(LivetvParser):
 class ParserHangZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        #self.cmd['source'] = 'http://www.hoolo.tv/'
-        #self.cmd['text'] = {
-        #        'script' : 'hztvchannels',
-        #        'parameters' : ['']
-        #}
+        self.tvName = '杭州电视台'
+
         self.cmd['text'] = 'OK'
         self.Alias = {}
         self.ExcludeName = ('交通918', 'FM1054', 'FM89')
-        self.area = '中国,淅江,杭州'
+        self.area = '中国,浙江,杭州'
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -437,7 +452,7 @@ class ParserHangZhouLivetv(LivetvParser):
             if ok == False:
                 continue
 
-            album  = LivetvAlbum()
+            album  = self.NewAlbum()
             album.albumName  = name
             album.categories = self.tvCate.GetCategories(album.albumName)
             album.vid        = utils.genAlbumId(name)
@@ -466,11 +481,13 @@ class ParserHangZhouLivetv(LivetvParser):
 class ParserWenZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
+        self.tvName = '温州电视台'
+
         self.cmd['source'] = 'http://v.dhtv.cn/tv/'
         self.cmd['regular'] = ['(http://v.dhtv.cn/tv/\?channal=.*</a></li>)']
         self.Alias = {}
         self.ExcludeName = ()
-        self.area = '中国,淅江,温州'
+        self.area = '中国,浙江,温州'
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -478,7 +495,7 @@ class ParserWenZhouLivetv(LivetvParser):
         ch_list = re.findall('(http://v.dhtv.cn/tv/\?channal=(.+))\">(.*)</a></li>', js['data'])
         for u, source, name in ch_list:
             vid = utils.genAlbumId(name)
-            album  = LivetvAlbum()
+            album  = self.NewAlbum()
             album.albumName  = name
             album.categories = self.tvCate.GetCategories(album.albumName)
             album.vid        = vid
@@ -516,8 +533,8 @@ class ParserTVIELivetv(LivetvParser):
         jdata = tornado.escape.json_decode(js['data'])
 
         for x in jdata['result']:
-            if 'group_names' in x and x['group_names'] == '':
-                continue
+            #if 'group_names' in x and x['group_names'] == '':
+            #    continue
             name = ''
             if 'name' in x: name = x['name']
             if 'display_name' in x: name = x['display_name']
@@ -526,7 +543,7 @@ class ParserTVIELivetv(LivetvParser):
             if name == '':
                 continue
 
-            album = LivetvAlbum()
+            album = self.NewAlbum()
             album.albumName  = name
             album.categories = self.tvCate.GetCategories(album.albumName)
             album.vid        = utils.genAlbumId(name)
@@ -559,8 +576,9 @@ class ParserTVIELivetv(LivetvParser):
 # 浙江电视台
 class ParserZJLivetv(ParserTVIELivetv):
     def __init__(self):
-        self.tvName = '浙江电视台'
         super().__init__('api.cztv.com')
+        self.tvName = '浙江电视台'
+
         self.Alias = {
             "频道101" : "浙江卫视",
             "频道102" : "钱江频道",
@@ -575,13 +593,14 @@ class ParserZJLivetv(ParserTVIELivetv):
             #"频道111" : "好易购"
         }
         self.ExcludeName = ('频道109', '频道1[1,2,3]\w*', '频道[23].*')
-        self.area = '中国,淅江'
+        self.area = '中国,浙江'
 
 # 宁波电视台
 class ParserNBLivetv(ParserTVIELivetv):
     def __init__(self):
-        self.tvName = '宁波电视台'
         super().__init__('ming-api.nbtv.cn')
+        self.tvName = '宁波电视台'
+
         self.Alias = {
             'nbtv1直播' : '宁波-新闻综合',
             'nbtv2直播' : '宁波-社会生活',
@@ -590,13 +609,39 @@ class ParserNBLivetv(ParserTVIELivetv):
             'nbtv5直播' : '宁波-少儿',
         }
         self.ExcludeName = ('.*广播', '阳光调频', 'sunhotline')
-        self.area = '中国,淅江,宁波'
+        self.area = '中国,浙江,宁波'
+
+# 义乌电视台
+class ParserYiwuLivetv(ParserTVIELivetv):
+    def __init__(self):
+        super().__init__('live-01.ywcity.cn')
+        self.tvName = '义乌电视台'
+        self.Alias = {
+            "新闻综合" : '义乌-新闻综合',
+            "商贸频道" : '义乌-商贸频道',
+        }
+        self.ExcludeName = ('FM')
+        self.area = '中国,浙江,金华,义乌'
+
+# 绍兴电视台
+class ParserShaoxinLivetv(ParserTVIELivetv):
+    def __init__(self):
+        super().__init__('115.239.168.72')
+        self.tvName = '绍兴电视台'
+        self.Alias = {
+            "新闻综合频道" : '绍兴-新闻综合频道',
+            "公共频道"     : '绍兴-公共频道',
+            "文化影视频道" : '绍兴-文化影视频道',
+        }
+        self.ExcludeName = ('.*广播', '直播')
+        self.area = '中国,浙江,绍兴'
 
 # 新疆电视台
 class ParserUCLivetv(ParserTVIELivetv):
     def __init__(self):
-        self.tvName = '新疆电视台'
         super().__init__('epgsrv01.ucatv.com.cn')
+        self.tvName = '新疆电视台'
+
         self.ExcludeName = ('.*广播', '106点5旅游音乐', '天山云LIVE')
         self.area = '中国,新疆'
 
@@ -633,7 +678,7 @@ class ParserTextLivetv(LivetvParser):
         for k,v in list(tv.items()):
             if k and v:
                 v.sort(key=lambda x:x['order'])
-                album  = LivetvAlbum()
+                album  = self.NewAlbum()
                 album.vid         = k
                 album.playlistid  = k
                 album.pid         = k
@@ -667,6 +712,8 @@ class LiveEngine(VideoEngine):
             ParserTextLivetv(),
             ParserZJLivetv(),
             ParserNBLivetv(),
+            ParserYiwuLivetv(),
+            ParserShaoxinLivetv(),
             ParserHangZhouLivetv(),
             ParserUCLivetv(),
             ParserWenZhouLivetv(),

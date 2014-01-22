@@ -12,6 +12,7 @@ import redis
 import tornado.escape
 import tornado.ioloop
 import tornado.web
+import tornado.options
 
 from kola import BaseHandler, log, utils, KolaCommand, element, DB
 

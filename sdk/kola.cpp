@@ -551,8 +551,6 @@ bool KolaClient::GetArea(KolaArea &area)
 			local_area.city     = json_gets(js, "city", "");
 			local_area.province = json_gets(js, "province", "");
 			json_delete(js);
-
-			return true;
 		}
 	}
 

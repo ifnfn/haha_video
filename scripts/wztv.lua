@@ -1,7 +1,7 @@
 function kola_main(url, id)
 	local text = kola.wget(url)
 	if text ~= nil then
-		text = kola.pcre("streamer\' : '(.*)',", text)
+		text = kola.pcre("file: '(.*)'", text)
 		return string.sub(text, 1, -2) .. id
 	end
 

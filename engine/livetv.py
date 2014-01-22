@@ -483,8 +483,8 @@ class ParserWenZhouLivetv(LivetvParser):
         super().__init__()
         self.tvName = '温州电视台'
 
-        self.cmd['source'] = 'http://v.dhtv.cn/tv/'
-        self.cmd['regular'] = ['(http://v.dhtv.cn/tv/\?channal=.*</a></li>)']
+        self.cmd['source'] = 'http://tv.dhtv.cn'
+        self.cmd['regular'] = ['<li class="on">(.*)</li>']
         self.Alias = {}
         self.ExcludeName = ()
         self.area = '中国,浙江,温州'
@@ -492,8 +492,9 @@ class ParserWenZhouLivetv(LivetvParser):
     def CmdParser(self, js):
         db = LivetvDB()
 
-        ch_list = re.findall('(http://v.dhtv.cn/tv/\?channal=(.+))\">(.*)</a></li>', js['data'])
-        for u, source, name in ch_list:
+        ch_list = re.findall('data-source="(.*?)" .*?>(.*?)<i>', js['data'])
+        for source, name in ch_list:
+            name = '温州-' + name
             vid = utils.genAlbumId(name)
             album  = self.NewAlbum()
             album.albumName  = name
@@ -502,7 +503,7 @@ class ParserWenZhouLivetv(LivetvParser):
             album.area       = self.area
 
             v = album.NewVideo()
-            v.vid      = utils.getVidoId(u)
+            v.vid      = utils.getVidoId(js['source'] + '/' + source)
             v.priority = 2
             v.name     = "WZTV"
 
@@ -514,7 +515,7 @@ class ParserWenZhouLivetv(LivetvParser):
             v.info = {
                 'script'     : 'wztv',
                 'function'   : 'get_channel',
-                'parameters' : [u],
+                'parameters' : [source],
             }
             album.videos.append(v)
             db.SaveAlbum(album)

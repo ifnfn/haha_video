@@ -13,5 +13,6 @@ _build*
 *.log
 *.*~
 build_x
+libs
 sdk.tar.bz2
 __pycache__

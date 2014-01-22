@@ -6,6 +6,8 @@ import zlib
 import base64
 import sys
 import traceback
+import hashlib
+import os
 
 global headers
 
@@ -68,6 +70,28 @@ def GetUrl(url, times = 0):
         t, v, tb = sys.exc_info()
         print("KolaClient.GetUrl: %s %s, %s, %s" % (url, t, v, traceback.format_tb(tb)))
         return GetUrl(url, times + 1)
+
+def GetCacheUrl(url):
+    response = ''
+
+    key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
+
+    filename = './cache/' + key
+    if os.path.exists(filename):
+        f = open(filename, 'rb')
+        response = f.read()
+        f.close()
+    else:
+        response = GetUrl(url)
+        if response:
+            try:
+                f = open(filename, 'wb')
+                f.write(response)
+                f.close()
+            except:
+                pass
+
+    return response
 
 def PostUrl(url, body, key=""):
     try:

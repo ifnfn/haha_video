@@ -6,9 +6,10 @@ import re
 from bs4 import BeautifulSoup as bs
 import tornado.escape
 
-from engine import VideoEngine, KolaParser, KolaAlias, EngineCommands
 from kola import DB, autostr, autoint, Singleton, utils
 import kola
+
+from .engines import VideoEngine, KolaParser, KolaAlias, EngineCommands
 
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================

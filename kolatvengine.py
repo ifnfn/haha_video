@@ -46,11 +46,9 @@ class KolaEngine:
 
     def UpdateNewest(self): # 更新最新节目
         print("UpdateNewest")
-        pass
 
     def UpdateAllHotList(self):
         print("UpdateAllHotList")
-        pass
 
     # 更新所有节目的排名数据
     def UpdateAllScore(self):
@@ -69,5 +67,3 @@ class KolaEngine:
 
     def AddTask(self, data):
         self.thread_pool.add_job(self.ParserHtml, [data])
-
-

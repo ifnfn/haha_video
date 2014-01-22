@@ -10,7 +10,7 @@ import traceback
 
 import tornado.escape
 
-import engine
+from .fetchTools import GetUrl, PostUrl
 
 HOST = 'http://127.0.0.1:9992'
 #HOST = 'http://192.168.188.135:9991'
@@ -26,10 +26,10 @@ class KolaClient:
 
     def GetUrl(self, url):
         print("Download: ", url)
-        return engine.GetUrl(url)
+        return GetUrl(url)
 
     def GetCacheUrl(self, url):
-        return engine.GetUrl(url)
+        return GetUrl(url)
         response = ''
 
         key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
@@ -52,7 +52,7 @@ class KolaClient:
         return response
 
     def PostUrl(self, url, body):
-        return engine.PostUrl(url, body, self.key)
+        return PostUrl(url, body, self.key)
 
     def RegularMatchUrl(self, url, regular):
         response = self.GetCacheUrl(url)

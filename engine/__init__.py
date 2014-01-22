@@ -1,12 +1,12 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+from .city import City
 from .engines import EngineCommands, VideoEngine, KolaParser, KolaAlias
+from .fetchTools import GetUrl, GetCacheUrl, PostUrl
+from .iqiyi import QiyiEngine
+from .letv import LetvEngine
 from .livetv import LiveEngine
 from .sohu import SohuEngine
-from .letv import LetvEngine
-from .iqiyi import QiyiEngine
-from .fetchTools import GetUrl, PostUrl
 
-
-_all__ = ['engines', 'livetv', 'sohu', 'wolidou', 'iqiyi']
+_all__ = ['engines', 'livetv', 'sohu', 'wolidou', 'iqiyi', 'city']

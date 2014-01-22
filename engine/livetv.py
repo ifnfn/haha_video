@@ -7,9 +7,12 @@ from xml.etree import ElementTree
 
 import tornado.escape
 
-from engine import VideoEngine, KolaParser, GetUrl
 from kola import VideoBase, AlbumBase, DB, json_get, GetNameByUrl, utils
 from kola.element import LivetvMenu
+
+from .city import City
+from .engines import VideoEngine, KolaParser
+from .fetchTools import GetUrl
 
 
 global Debug
@@ -70,20 +73,59 @@ class LivetvAlbum(AlbumBase):
     def UpdateScoreCommand(self):
         pass
 
-class LivetvVideoMenu(LivetvMenu):
-    # 更新该菜单下所有节目列表
+class SohuLiveTV(LivetvMenu):
+    '''
+    搜狐电视
+    '''
+    def UpdateAlbumList(self):
+        ParserSohuLivetv().Execute()
+
+class LetvLiveTV(LivetvMenu):
+    '''
+    乐视电视
+    '''
     def UpdateAlbumList(self):
         ParserLetvLivetv().Execute()
-        ParserSohuLivetv().Execute()
-        ParserZJLivetv().Execute()
-        ParserNBLivetv().Execute()
-        ParserHangZhouLivetv().Execute()
-        ParserUCLivetv().Execute()
-        ParserWenZhouLivetv().Execute()
-        #ParserNNLivetv().Execute()
+
+class CuLiveTV(LivetvMenu):
+    '''
+    联合电视台
+    '''
+    def UpdateAlbumList(self):
         ParserCutvLivetv('all').Execute()
-        #ParserJLntvLivetv().Execute()
-        #ParserTextLivetv().Execute()
+
+class JilingLiveTV(LivetvMenu):
+    '''
+    吉林所有电视台
+    '''
+    def UpdateAlbumList(self):
+        ParserJLntvLivetv().Execute()
+
+class GuangXiLiveTV(LivetvMenu):
+    '''
+    广西所有电视台
+    '''
+    def UpdateAlbumList(self):
+        ParserNNLivetv().Execute()
+
+class XinJianLiveTV(LivetvMenu):
+    '''
+    新疆所有电视台
+    '''
+    def UpdateAlbumList(self):
+        ParserUCLivetv().Execute()
+
+
+class ZheJianLiveTV(LivetvMenu):
+    '''
+    浙江省内所有电视台
+    '''
+    def UpdateAlbumList(self):
+        ParserZJLivetv().Execute()           # 浙江省台
+        ParserHangZhouLivetv().Execute()     # 杭州市台
+        ParserNBLivetv().Execute()           # 宁波
+        ParserWenZhouLivetv().Execute()      # 温州
+
 
 class LivetvParser(KolaParser):
     def __init__(self):
@@ -208,7 +250,7 @@ class ParserJLntvLivetv(LivetvParser):
 
         self.Alias = {}
         self.ExcludeName = ('交通918', 'FM1054', 'FM89')
-        self.area = '中国-淅江省-杭州市'
+        self.area = '中国,吉林'
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -271,6 +313,8 @@ class ParserCutvLivetv(LivetvParser):
     def CmdParserTV(self, js):
         db = LivetvDB()
         text = js['data']
+        city = City()
+        self.area = city.GetCity(js['station'])
         root = ElementTree.fromstring(text)
         for p in root.findall('channel'):
                 album  = LivetvAlbum()
@@ -304,7 +348,7 @@ class ParserNNLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.cmd['source'] = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=104'
-        self.area = '中国-广西-南宁'
+        self.area = '中国,广西,南宁'
 
 
     def CmdParser(self, js):
@@ -368,7 +412,7 @@ class ParserHangZhouLivetv(LivetvParser):
         self.cmd['text'] = 'OK'
         self.Alias = {}
         self.ExcludeName = ('交通918', 'FM1054', 'FM89')
-        self.area = '中国-淅江省-杭州市'
+        self.area = '中国,淅江,杭州'
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -427,7 +471,7 @@ class ParserWenZhouLivetv(LivetvParser):
         self.cmd['regular'] = ['(http://v.dhtv.cn/tv/\?channal=.*</a></li>)']
         self.Alias = {}
         self.ExcludeName = ()
-        self.area = '中国-淅江省-温州市'
+        self.area = '中国,淅江,温州'
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -532,7 +576,7 @@ class ParserZJLivetv(ParserTVIELivetv):
             #"频道111" : "好易购"
         }
         self.ExcludeName = ('频道109', '频道1[1,2,3]\w*', '频道[23].*')
-        self.area = '中国-淅江省'
+        self.area = '中国,淅江'
 
 # 宁波电视台
 class ParserNBLivetv(ParserTVIELivetv):
@@ -547,7 +591,7 @@ class ParserNBLivetv(ParserTVIELivetv):
             'nbtv5直播' : '宁波-少儿',
         }
         self.ExcludeName = ('.*广播', '阳光调频', 'sunhotline')
-        self.area = '中国-淅江省-宁波市'
+        self.area = '中国,淅江,宁波'
 
 # 新疆电视台
 class ParserUCLivetv(ParserTVIELivetv):
@@ -555,7 +599,7 @@ class ParserUCLivetv(ParserTVIELivetv):
         self.tvName = '新疆电视台'
         super().__init__('epgsrv01.ucatv.com.cn')
         self.ExcludeName = ('.*广播', '106点5旅游音乐', '天山云LIVE')
-        self.area = '中国-新疆'
+        self.area = '中国,新疆'
 
 # 文本导入
 class ParserTextLivetv(LivetvParser):
@@ -609,7 +653,13 @@ class LiveEngine(VideoEngine):
 
         # 引擎菜单
         self.menu = [
-            LivetvVideoMenu('直播')
+            ZheJianLiveTV('浙江'),
+            XinJianLiveTV('新疆'),
+            GuangXiLiveTV('广西'),
+            JilingLiveTV('吉林'),
+            CuLiveTV('CuTV'),
+            SohuLiveTV('Sohu'),
+            LetvLiveTV('Letv'),
         ]
 
         self.parserList = [
@@ -621,8 +671,7 @@ class LiveEngine(VideoEngine):
             ParserHangZhouLivetv(),
             ParserUCLivetv(),
             ParserWenZhouLivetv(),
-            #ParserJLntvLivetv(),
-            #ParserNNLivetv(),
+            ParserJLntvLivetv(),
+            ParserNNLivetv(),
             ParserCutvLivetv(),
         ]
-

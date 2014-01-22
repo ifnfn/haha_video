@@ -5,7 +5,7 @@ import re
 import time, sys, traceback
 import tornado.escape
 
-from engine import VideoEngine, KolaParser, KolaAlias
+from .engines import VideoEngine, KolaParser, KolaAlias
 from kola import DB, autostr, autoint, autofloat, Singleton, utils
 import kola
 

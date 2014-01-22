@@ -532,23 +532,32 @@ string KolaClient::GetArea()
 
 bool KolaClient::GetArea(KolaArea &area)
 {
-	json_error_t error;
-	LuaScript &lua = LuaScript::Instance();
-	vector<string> args;
-	args.push_back("");
+	static KolaArea local_area;
 
-	string text = lua.RunScript(args, "getip", "getip_detail");
+	if (local_area.Empty()) {
+		json_error_t error;
+		LuaScript &lua = LuaScript::Instance();
+		vector<string> args;
+		args.push_back("");
 
-	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+		string text = lua.RunScript(args, "getip", "getip_detail");
 
-	if (js) {
-		area.ip       = json_gets(js, "ip", "");
-		area.isp      = json_gets(js, "isp", "");
-		area.country  = json_gets(js, "country", "");
-		area.city     = json_gets(js, "city", "");
-		area.province = json_gets(js, "province", "");
-		json_delete(js);
+		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
+		if (js) {
+			local_area.ip       = json_gets(js, "ip", "");
+			local_area.isp      = json_gets(js, "isp", "");
+			local_area.country  = json_gets(js, "country", "");
+			local_area.city     = json_gets(js, "city", "");
+			local_area.province = json_gets(js, "province", "");
+			json_delete(js);
+
+			return true;
+		}
+	}
+
+	if (not local_area.Empty()) {
+		area = local_area;
 		return true;
 	}
 

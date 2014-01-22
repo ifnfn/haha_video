@@ -195,6 +195,13 @@ string KolaMenu::GetPostData()
 		body = body + sort;
 	}
 
+	KolaArea area;
+	if (client->GetArea(area)) {
+		if (not body.empty())
+			body = body + ", ";
+		body = body + area.toJson();
+	}
+
 	body = body + "}";
 	//cout << "Filter Body: " << body << endl;
 

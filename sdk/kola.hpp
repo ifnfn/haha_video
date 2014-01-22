@@ -561,6 +561,18 @@ public:
 	string country;
 	string province;
 	string city;
+
+	bool Empty() {
+		return ip.empty() && province.empty() && city.empty();
+	}
+	string toJson() {
+		string ret = "\"area\" : {";
+		ret = ret + "\"country\" : \"" + country + "\", ";
+		ret = ret + "\"province\" : \"" + province + "\", ";
+		ret = ret + "\"city\" : \"" + city + "\"}";
+
+		return ret;
+	}
 };
 
 class Weather {

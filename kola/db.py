@@ -302,6 +302,9 @@ class VideoMenuBase:
 
         return album
 
+    def FixArgument(self, argument):
+        pass
+
     def CheckQuickFilter(self, argument):
         if 'quickFilter' in argument:
             qf = GetQuickFilter(self.name, self.quickFilter)
@@ -382,7 +385,7 @@ class DB:
             '最新发布'   : 'publishTime',
             '评分最高'   : 'videoScore',
             '名称'       : 'NamePy',
-            'Name'       : 'NamePy',
+            'Name'      : 'NamePy',
             'vids'      : 'vid'
         }
         self.albumNameAlias = {}   # 别名
@@ -649,6 +652,8 @@ class DB:
         for key in f:
             if key.lower() == 'pinyin':
                 ret['NamePy'] = {'$regex':f[key], '$options':'i'}
+            elif key.lower() == 'local_area':
+                ret['area'] = {'$regex':f[key], '$options':'i'}
             elif key in self.fieldMapping:
                 newkey = self.fieldMapping[key]
                 ret[newkey] = { "$in" : f[key].split(',')}

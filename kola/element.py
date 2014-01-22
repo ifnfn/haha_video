@@ -18,6 +18,7 @@ class LivetvMenu(db.VideoMenuBase):
             '类型':
                 ['央视台',
                 '卫视台',
+                '本省台',
                 '体育台',
                 '综合台',
                 '少儿台',
@@ -25,6 +26,14 @@ class LivetvMenu(db.VideoMenuBase):
                 '境外台'],
             'PinYin' : []
         }
+
+    def FixArgument(self, argument):
+        if 'filter' in argument and 'area' in argument:
+            _filter = argument['filter']
+            c = '类型'
+            if c in _filter and _filter[c] == '本省台':
+                _filter['local_area'] = argument['area']['province']
+                del _filter[c]
 
     def UpdateAllScore(self):
         pass

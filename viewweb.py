@@ -58,7 +58,8 @@ class AlbumListHandler(BaseHandler):
 
         if self.request.body:
             try:
-                umap = tornado.escape.json_decode(self.request.body)
+                text = self.request.body
+                umap = tornado.escape.json_decode(text)
                 args.update(umap)
             except:
                 t, v, tb = sys.exc_info()

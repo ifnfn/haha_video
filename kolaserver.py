@@ -51,6 +51,7 @@ class KolatvServer:
     def _GetMenuAlbumList(self, menu, argument):
         if menu:
             menu.CheckQuickFilter(argument)
+            menu.FixArgument(argument)
             return self.db.GetAlbumListJson(argument, menu.cid)
 
         return [], 0

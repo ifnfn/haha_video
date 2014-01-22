@@ -126,7 +126,6 @@ class ZheJianLiveTV(LivetvMenu):
         ParserNBLivetv().Execute()           # 宁波
         ParserWenZhouLivetv().Execute()      # 温州
 
-
 class LivetvParser(KolaParser):
     def __init__(self):
         super().__init__()

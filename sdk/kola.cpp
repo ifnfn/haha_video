@@ -473,7 +473,7 @@ bool KolaClient::GetInfo(KolaInfo &info) {
 
 	info = Info;
 
-	return Info.Empty();
+	return not Info.Empty();
 }
 
 IMenu* KolaClient::GetMenuByName(const char *menuName)

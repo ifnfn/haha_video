@@ -633,7 +633,7 @@ public:
 	inline string GetFullUrl(string url);
 	bool UrlGet(string url, string &ret);
 	bool UrlPost(string url, const char *body, string &ret);
-	string& GetServer() { return baseUrl; }
+	string& GetServer();
 	string GetArea();
 	bool GetArea(KolaArea &area);
 	time_t GetTime();
@@ -658,7 +658,8 @@ protected:
 
 private:
 	KolaClient(void);
-	string baseUrl;
+
+	string base_url;
 	map<string, IMenu*> menuMap;
 
 	int nextLoginSec;

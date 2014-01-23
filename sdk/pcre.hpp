@@ -24,4 +24,5 @@ public:
 private:
 	vector<pcre*> re_arr;
 };
+
 #endif

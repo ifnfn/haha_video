@@ -1,8 +1,6 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import os
-import hashlib
 import json
 import re
 import sys
@@ -10,7 +8,7 @@ import traceback
 
 import tornado.escape
 
-from .fetchTools import GetUrl, PostUrl
+from .fetchTools import GetUrl, GetCacheUrl, PostUrl
 
 HOST = 'http://127.0.0.1:9992'
 #HOST = 'http://192.168.188.135:9991'
@@ -29,27 +27,8 @@ class KolaClient:
         return GetUrl(url)
 
     def GetCacheUrl(self, url):
-        return GetUrl(url)
-        response = ''
-
-        key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
-
-        filename = './cache/' + key
-        if os.path.exists(filename):
-            f = open(filename, 'rb')
-            response = f.read()
-            f.close()
-        else:
-            response = self.GetUrl(url)
-            if response:
-                try:
-                    f = open(filename, 'wb')
-                    f.write(response)
-                    f.close()
-                except:
-                    pass
-
-        return response
+        #return GetUrl(url)
+        return GetCacheUrl(url)
 
     def PostUrl(self, url, body):
         return PostUrl(url, body, self.key)

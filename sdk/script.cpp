@@ -39,7 +39,7 @@ static int traceback (lua_State *L)
 	const char *msg = lua_tostring(L, 1);
 	if (msg)
 		luaL_traceback(L, L, msg, 1);
-	else if (!lua_isnoneornil(L, 1)) {  /* is there an error object? */
+	else if (!lua_isnoneornil(L, 1)) {               /* is there an error object?     */
 		if (!luaL_callmeta(L, 1, "__tostring"))  /* try its 'tostring' metamethod */
 			lua_pushliteral(L, "(no error message)");
 	}
@@ -49,14 +49,14 @@ static int traceback (lua_State *L)
 static int docall (lua_State *L, int narg, int nres)
 {
 	int status;
-	int base = lua_gettop(L) - narg;  /* function index */
-	lua_pushcfunction(L, traceback);  /* push traceback function */
-	lua_insert(L, base);  /* put it under chunk and args */
-	globalL = L;  /* to be available to 'laction' */
+	int base = lua_gettop(L) - narg;  /* function index               */
+	lua_pushcfunction(L, traceback);  /* push traceback function      */
+	lua_insert(L, base);              /* put it under chunk and args  */
+	globalL = L;                      /* to be available to 'laction' */
 	signal(SIGINT, laction);
 	status = lua_pcall(L, narg, nres, base);
 	signal(SIGINT, SIG_DFL);
-	lua_remove(L, base);  /* remove traceback function */
+	lua_remove(L, base);              /* remove traceback function    */
 	return status;
 }
 
@@ -75,7 +75,8 @@ static int report(lua_State *L, const char *filename, int status)
 	return status;
 }
 
-string LuaScript::lua_runscript(lua_State* L, const char *filename, const char *fn, const char *func, vector<string> &args)
+string LuaScript::lua_runscript(lua_State* L, const char *filename,
+				const char *fn, const char *func, vector<string> &args)
 {
 	int i, status;
 	int argc = (int)args.size();
@@ -97,7 +98,6 @@ string LuaScript::lua_runscript(lua_State* L, const char *filename, const char *
 	// 第三个参数表示即使带调用的函数存在多个返回值，那么也只有一个在执行后会被压入栈中。
 	// lua_pcall调用后，虚拟栈中的函数参数和函数名均被弹出。
 	status = docall(L, argc, 1);
-	//status = lua_pcall(L, argc, 1, 0);
 	report(L, filename, status);
 	if (status != LUA_OK) {
 #if TEST
@@ -132,7 +132,7 @@ string LuaScript::lua_runscript(lua_State* L, const char *filename, const char *
 }
 
 static const luaL_Reg lualibs[] = {
-	{"_G"           , luaopen_base},
+	{"_G"           , luaopen_base      },
 	{LUA_TABLIBNAME , luaopen_table     },
 	{LUA_IOLIBNAME  , luaopen_io        },
 	{LUA_OSLIBNAME  , luaopen_os        },
@@ -153,9 +153,10 @@ static const luaL_Reg lualibs[] = {
 static void luaL_openmini(lua_State *L)
 {
 	const luaL_Reg *lib;
+
 	for (lib = lualibs; lib->func; lib++) {
 		luaL_requiref(L, lib->name, lib->func, 1);
-		lua_pop(L, 1);  /* remove lib */
+		lua_pop(L, 1);
 	}
 }
 
@@ -192,7 +193,7 @@ string LuaScript::RunScript(vector<string> &args, const char *name, const char *
 
 bool LuaScript::GetScript(const char *name, string &text)
 {
-	map<string ,script>::iterator it = scripts.find(name);
+	map<string ,Script>::iterator it = scripts.find(name);
 	if (it != scripts.end()) {
 		time_t now = time(NULL);
 		if (now - it->second.dtime > 60)
@@ -207,7 +208,7 @@ bool LuaScript::GetScript(const char *name, string &text)
 	string url("/scripts/");
 
 	if (kola.UrlGet(url + name + ".lua", text) == true) {
-		scripts.insert(pair<string, script>(name, script(text)));
+		scripts.insert(pair<string, Script>(name, Script(text)));
 		return true;
 	}
 

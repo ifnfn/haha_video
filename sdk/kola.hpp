@@ -207,7 +207,7 @@ public:
 	string defaultKey;
 	string vid;
 private:
-	void Set();
+	void Calc();
 	map<string, Variant> urls;
 	bool GetVariant(string &key, Variant &var);
 };

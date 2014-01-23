@@ -55,7 +55,7 @@ static string xsrf_cookie;
 
 static string chipKey(void)
 {
-	return "000001";
+	return "000002";
 }
 
 string MD5STR(const char *data)

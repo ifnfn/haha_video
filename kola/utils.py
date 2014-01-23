@@ -65,7 +65,7 @@ def dec2hex(string_num):
 
 def GetNameByUrl(url):
     maps = {
-           '乐视': 'letv.com',
+           '乐视'     : 'letv.com',
            '腾讯视频' : ('qq.com', 'qqlive.dnion.com'),
            '视讯中国' : 'cnlive.com',
            '凤凰网'   : 'ifeng.com',

@@ -217,6 +217,7 @@ static const struct luaL_Reg kola_lib[] = {
 	{"gettime"       , lua_gettime},
 	{"urlencode"     , lua_urlencode},
 	{"urldecode"     , lua_urldecode},
+
 	{NULL            , NULL},
 };
 

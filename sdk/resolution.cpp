@@ -17,7 +17,7 @@ void VideoResolution::Clear()
 	urls.clear();
 }
 
-void VideoResolution::Set()
+void VideoResolution::Calc()
 {
 	json_error_t error;
 	const char *key;
@@ -38,7 +38,8 @@ void VideoResolution::Set()
 void VideoResolution::GetResolution(StringList& res)
 {
 	if (Empty())
-		Set();
+		Calc();
+
 	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++) {
 		res.Add(it->first);
 	}
@@ -68,7 +69,7 @@ string VideoResolution::GetVideoUrl()
 	string key;
 
 	if (Empty())
-		Set();
+		Calc();
 
 	key = vid + defaultKey;
 

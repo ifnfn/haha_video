@@ -27,6 +27,9 @@ ADD_GX_LIBRARY(kolatv
 	video.cpp
 	json.cpp
 	resource.cpp
+	weather.cpp
+	player.cpp
+	resolution.cpp
 )
 
 SET(CMAKE_BUILD_TYPE "Debug")

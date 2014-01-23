@@ -26,7 +26,6 @@ void KolaWeather::Run(void)
 	
 	string text = lua.RunScript(args, "weather");
 
-	printf("%s\n", text.c_str());
 	if (not text.empty()) {
 		json_error_t error;
 

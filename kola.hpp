@@ -173,6 +173,30 @@ public:
 	bool Get(EPG &e, time_t time);
 };
 
+class CacheUrl {
+public:
+	void operator =(string url) {
+		this->url = url;
+		t = time(&t);
+	}
+	string url;
+	time_t t;
+};
+
+class UrlCache {
+public:
+	UrlCache();
+	void SetTimeout(size_t sec);
+	bool FindByVid(string &vid, string &url);
+	void Set(string&vid, string &url);
+	void Remove(string &vid);
+	void Update();
+private:
+	map<string, CacheUrl> mapList;
+	Mutex mutex;
+	size_t timeout;
+};
+
 class VideoResolution: public Variant {
 public:
 	void Clear();
@@ -181,8 +205,9 @@ public:
 	string GetVideoUrl();
 	bool Empty();
 	string defaultKey;
+	string vid;
 private:
-	void Set();
+	void Calc();
 	map<string, Variant> urls;
 	bool GetVariant(string &key, Variant &var);
 };
@@ -512,20 +537,21 @@ public:
 	virtual void Run();
 	virtual bool Play(string name, string url) = 0;
 	void AddVideo(IVideo *video);
-	void DoPlay(string &name, string &url);
+	bool DoPlay(string &name, string &url);
 private:
-	deque<VideoResolution> videoList;
+	list<VideoResolution> videoList;
 	ConditionVar *_condvar;
 	Thread* thread;
 };
 
 class KolaInfo {
 public:
-	KolaInfo() : update(false) {}
 	StringList VideoSource;
 	StringList Resolution;
+	bool Empty() {
+		return VideoSource.size() == 0 || Resolution.size() == 0;
+	}
 private:
-	bool update;
 	friend class KolaClient;
 };
 
@@ -536,6 +562,18 @@ public:
 	string country;
 	string province;
 	string city;
+
+	bool Empty() {
+		return ip.empty() && province.empty() && city.empty();
+	}
+	string toJson() {
+		string ret = "\"area\" : {";
+		ret = ret + "\"country\" : \"" + country + "\", ";
+		ret = ret + "\"province\" : \"" + province + "\", ";
+		ret = ret + "\"city\" : \"" + city + "\"}";
+
+		return ret;
+	}
 };
 
 class Weather {
@@ -554,9 +592,9 @@ public:
 class KolaWeather: public Task {
 public:
 	virtual ~KolaWeather();
-	//	void GetProvince(StringList &value);
-	//	void GetArea(string province, StringList &area);
-	//	void GetCounty(string province, string area, StringList &County);
+	//void GetProvince(StringList &value);
+	//void GetArea(string province, StringList &area);
+	//void GetCounty(string province, string area, StringList &County);
 	void Update();
 	bool UpdateFinish();
 	Weather *Today();
@@ -599,12 +637,14 @@ public:
 	string GetArea();
 	bool GetArea(KolaArea &area);
 	time_t GetTime();
-	KolaInfo& GetInfo();
+	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
+	bool InternetReady();
 	int debug;
 	ResourceManager *resManager;
 	ThreadPool *threadPool;
 	KolaWeather weather;
+	UrlCache cache;
 protected:
 	virtual IVideo* NewVideo() {
 		return new KolaVideo();
@@ -630,7 +670,7 @@ private:
 	pthread_t thread;
 	pthread_mutex_t lock;
 	bool havecmd;
-	KolaInfo info;
+	KolaInfo Info;
 	static void *kola_login_thread(void *arg);
 
 	friend class KolaMenu;

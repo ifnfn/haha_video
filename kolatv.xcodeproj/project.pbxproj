@@ -518,7 +518,7 @@
 					/usr/local/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=1",
+					"-DTEST=0",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
@@ -549,7 +549,7 @@
 					/usr/local/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=1",
+					"-DTEST=0",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (

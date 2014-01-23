@@ -13,8 +13,6 @@
 #include "kola.hpp"
 #include "threadpool.hpp"
 
-using namespace std;
-
 string UrlEncode(const string& url);
 string UrlDecode(const string& sIn);
 

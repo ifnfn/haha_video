@@ -41,9 +41,9 @@ void KolaVideo::Parser(json_t *js)
 	totalBytes     = (int)json_geti(js, "totalBytes", 0);
 	fps            = (int)json_geti(js, "fps", 0);
 
-	//	json_get_stringlist(js, "resolution", &resolution);
 	json_get_variant(js, "info", &sc_info);
 	json_get_variant(js, "resolution", &Resolution);
+	Resolution.vid = vid;
 	//cout << resolution.ToString() << endl;
 }
 
@@ -145,3 +145,61 @@ bool KolaEpg::Get(EPG &e, time_t t)
 
 	return false;
 }
+
+UrlCache::UrlCache()
+{
+	timeout = 3600;
+}
+
+void UrlCache::SetTimeout(size_t sec)
+{
+	timeout = sec;
+}
+
+bool UrlCache::FindByVid(string &vid, string &url) {
+	bool found = false;
+	Update();
+
+	mutex.lock();
+	map<string, CacheUrl>::iterator it = mapList.find(vid);
+	if (it != mapList.end()) {
+		url = it->second.url;
+		found = true;
+	}
+	mutex.unlock();
+
+	return found;
+}
+
+void UrlCache::Set(string&vid, string &url)
+{
+	mutex.lock();
+	mapList[vid] = url;
+	mutex.unlock();
+}
+
+void UrlCache::Remove(string &vid)
+{
+	mutex.lock();
+	mapList.erase(vid);
+	mutex.unlock();
+}
+
+void UrlCache::Update()
+{
+	map<string, CacheUrl>::iterator it;
+
+	time_t now;
+	now = time(&now);
+
+	mutex.lock();
+	for(it = mapList.begin(); it != mapList.end();) {
+		if (now - it->second.t > timeout)
+			mapList.erase(it++);
+		else
+			it++;
+
+	}
+	mutex.unlock();
+}
+

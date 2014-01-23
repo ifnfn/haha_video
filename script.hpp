@@ -11,15 +11,16 @@
 
 using namespace std;
 
-class script {
+class Script {
 public:
-	script() {
+	Script() {
 		time(&dtime);
 	}
-	script(string t) {
+	Script(string t) {
 		text = t;
 		time(&dtime);
 	}
+
 	string text;
 	time_t dtime;
 };
@@ -27,13 +28,14 @@ public:
 class LuaScript {
 public:
 	LuaScript();
-	static LuaScript& Instance();
 	~LuaScript();
+	static LuaScript& Instance();
 	string RunScript(vector<string> &args, const char *name, const char *fname="kola_main");
 private:
-	map<string, script> scripts;
+	map<string, Script> scripts;
 	bool GetScript(const char *name, string &text);
-	string lua_runscript(lua_State* L, const char *filename, const char *fn, const char *func, vector<string> &args);
+	string lua_runscript(lua_State* L, const char *filename,
+			     const char *fn, const char *func, vector<string> &args);
 };
 
 #endif

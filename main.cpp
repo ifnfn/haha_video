@@ -119,8 +119,8 @@ void test_livetv()
 		foreach(i->second, j)
 			cout << "\t:" << *j << endl;
 	}
-	m->FilterAdd("类型", "央视台");
-
+	m->FilterAdd("类型", "本省台");
+	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
 	//m->FilterAdd("PinYin", "zjw");
@@ -137,13 +137,11 @@ void test_livetv()
 #if 1
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
-//			if (album->vid != "cc44a1a804")
-//				continue;
 			IVideo *video = album->GetVideo(j);
 			if (video) {
 				if (video->vid == "22c640b3" || video->vid == "562b3493")
 					printf("%s\n", video->vid.c_str());
-				player.AddVideo(video);
+//				player.AddVideo(video);
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 #if 0
@@ -162,6 +160,30 @@ void test_livetv()
 			}
 		}
 #endif
+	}
+#endif
+
+#if 1
+	for (size_t i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+
+		for (size_t j = 0; j < video_count; j++) {
+			string player_url;
+			//			if (album->vid != "cc44a1a804")
+			//				continue;
+			IVideo *video = album->GetVideo(j);
+			if (video) {
+				if (video->vid == "22c640b3" || video->vid == "562b3493")
+					printf("%s\n", video->vid.c_str());
+				player.AddVideo(video);
+				player_url = video->GetVideoUrl();
+				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+			}
+		}
 	}
 #endif
 
@@ -313,9 +335,11 @@ int main(int argc, char **argv)
 {
 	KolaClient &kola = KolaClient::Instance();
 
-	KolaInfo& info = kola.GetInfo();
-	cout << info.Resolution.ToString() << endl;
-	cout << info.VideoSource.ToString() << endl;
+	KolaInfo info;
+	if (kola.GetInfo(info)) {
+		cout << info.Resolution.ToString() << endl;
+		cout << info.VideoSource.ToString() << endl;
+	}
 
 	//while (true)
 	{
@@ -333,7 +357,7 @@ int main(int argc, char **argv)
 		}
 
 		kola.weather.Update();
-//		kola.weather.Wait();
+		kola.weather.Wait();
 
 		while (not kola.weather.UpdateFinish()) {
 			Weather *w = kola.weather.Today();
@@ -349,7 +373,6 @@ int main(int argc, char **argv)
 				);
 				break;
 			}
-			printf("ddddd\n");
 		}
 	}
 
@@ -360,9 +383,9 @@ int main(int argc, char **argv)
 
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");
-	while (true) {
-		sleep(1);
-	}
+//	while (true) {
+//		sleep(1);
+//	}
 
 	//printf("end\n");
 	//test_task(); return 0;

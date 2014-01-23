@@ -193,6 +193,14 @@ string KolaMenu::GetPostData()
 		if (count)
 			body = body + ",";
 		body = body + sort;
+		count++;
+	}
+
+	KolaArea area;
+	if (client->GetArea(area)) {
+		if (count)
+			body = body + ", ";
+		body = body + area.toJson();
 	}
 
 	body = body + "}";

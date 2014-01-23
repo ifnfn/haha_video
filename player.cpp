@@ -22,9 +22,9 @@ KolaPlayer::~KolaPlayer()
 	delete _condvar;
 }
 
-void KolaPlayer::DoPlay(string &name, string &url)
+bool KolaPlayer::DoPlay(string &name, string &url)
 {
-	Play(name, url);
+	return Play(name, url);
 }
 
 void KolaPlayer::Run()
@@ -41,8 +41,7 @@ void KolaPlayer::Run()
 			_condvar->unlock();
 
 			string url = resolution.GetVideoUrl();
-			if (not url.empty())
-				DoPlay(resolution.defaultKey, url);
+			DoPlay(resolution.defaultKey, url);
 		}
 	}
 }
@@ -53,7 +52,7 @@ void KolaPlayer::AddVideo(IVideo *video)
 		_condvar->lock();
 		videoList.clear();
 		videoList.push_back(video->Resolution);
-		_condvar->signal();
+		_condvar->broadcast();
 		_condvar->unlock();
 	}
 }

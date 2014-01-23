@@ -5,7 +5,7 @@
 #include "base64.hpp"
 #include "resource.hpp"
 
-#define VIDEO_COUNT 8
+#define VIDEO_COUNT 16
 
 KolaAlbum::KolaAlbum()
 {

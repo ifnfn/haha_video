@@ -128,6 +128,14 @@ class ZheJianLiveTV(LivetvMenu):
         ParserYiwuLivetv().Execute()         # 义乌
         ParserShaoxinLivetv().Execute()      # 绍兴
 
+class JianSuLiveTV(LivetvMenu):
+    '''
+    江苏省内所有电视台
+    '''
+    def UpdateAlbumList(self):
+        ParserJiansuLivetv().Execute()           # 江苏省台
+
+
 class LivetvParser(KolaParser):
     def __init__(self):
         super().__init__()
@@ -139,6 +147,7 @@ class LivetvParser(KolaParser):
     def NewAlbum(self):
         album  = LivetvAlbum()
         album.enAlbumName = self.tvName
+        album.area        = self.area
         return album
 
     def GetAliasName(self, name):
@@ -477,6 +486,61 @@ class ParserHangZhouLivetv(LivetvParser):
             album.videos.append(v)
             db.SaveAlbum(album)
 
+# 江苏电视台
+class ParserJiansuLivetv(LivetvParser):
+    def __init__(self):
+        super().__init__()
+        self.tvName = '江苏电视台'
+
+        self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_1.html'
+        self.Alias = {}
+        self.ExcludeName = ()
+        self.area = '中国,江苏'
+
+    def CmdParser(self, js):
+        db = LivetvDB()
+
+        tvlist = tornado.escape.json_decode(js['data'])
+
+        if tvlist['status'] == 'ok':
+            for ch in tvlist['paramz']['stations'][0]['channels']:
+                album  = self.NewAlbum()
+                album.albumName = ch['name']
+                album.vid = utils.genAlbumId(album.albumName)
+                album.categories = self.tvCate.GetCategories(album.albumName)
+                album.largePicUrl = 'http://newplayer.jstv.com' + ch['logo']
+
+                v = album.NewVideo()
+                v.vid      = utils.getVidoId('http://streamabr.jstv.com' + ch['name'])
+                v.priority = 2
+                v.name     = "JSTV"
+
+                videoUrl = 'http://streamabr.jstv.com'
+
+                v.SetVideoUrl('default', {
+                    'text' : videoUrl + ch['auto']
+                })
+
+                v.SetVideoUrl('super', {
+                    'text' : videoUrl + ch['supor']
+                })
+
+                v.SetVideoUrl('high', {
+                    'text' : videoUrl + ch['high']
+                })
+
+                v.SetVideoUrl('normal', {
+                    'text' : videoUrl + ch['fluent']
+                })
+
+                v.info = {
+                    'script'     : 'jstv',
+                    'function'   : 'get_channel',
+                    'parameters' : [ch['id']],
+                }
+                album.videos.append(v)
+                db.SaveAlbum(album)
+
 # 温州电视台
 class ParserWenZhouLivetv(LivetvParser):
     def __init__(self):
@@ -500,7 +564,6 @@ class ParserWenZhouLivetv(LivetvParser):
             album.albumName  = name
             album.categories = self.tvCate.GetCategories(album.albumName)
             album.vid        = vid
-            album.area       = self.area
 
             v = album.NewVideo()
             v.vid      = utils.getVidoId(js['source'] + '/' + source)
@@ -714,6 +777,7 @@ class LiveEngine(VideoEngine):
 
         # 引擎菜单
         self.menu = [
+            JianSuLiveTV('江苏'),
             ZheJianLiveTV('浙江'),
             XinJianLiveTV('新疆'),
             GuangXiLiveTV('广西'),
@@ -737,4 +801,5 @@ class LiveEngine(VideoEngine):
             ParserJLntvLivetv(),
             ParserNNLivetv(),
             ParserCutvLivetv(),
+            ParserJiansuLivetv(),
         ]

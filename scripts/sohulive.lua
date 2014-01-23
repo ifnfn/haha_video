@@ -28,7 +28,6 @@ function get_channel(vid)
 	text = kola.wget(url)
 	if text ~= nil then
 		local d = os.date("*t", kola.gettime())
-		local prev_d = d
 		local js = cjson.decode(text)
 		for k,v in ipairs(js.attachment[1].MENU_LIST) do
 			t = v.START_TIME

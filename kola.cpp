@@ -176,23 +176,9 @@ static string gzip_base64(const char *data, size_t ndata)
 	return ret;
 }
 
-bool KolaClient::InternetReady()
-{
-	return gethostbyname(SERVER_HOST) != NULL;
-}
-
 KolaClient::KolaClient(void)
 {
 	signal(SIGPIPE, SIG_IGN);
-	char buffer[512];
-
-	char *ip = GetIP(SERVER_HOST);
-
-	if (ip) {
-		sprintf(buffer, "http://%s:%d", ip, PORT);
-		baseUrl = buffer;
-		free(ip);
-	}
 
 	nextLoginSec = 3;
 	running = true;
@@ -206,6 +192,28 @@ KolaClient::KolaClient(void)
 	Login(true);
 	pthread_create(&thread, NULL, kola_login_thread, this);
 }
+
+bool KolaClient::InternetReady()
+{
+	return gethostbyname(SERVER_HOST) != NULL;
+}
+
+
+string& KolaClient::GetServer() {
+	if (base_url.empty()) {
+		char buffer[512];
+		char *ip = GetIP(SERVER_HOST);
+
+		if (ip) {
+			sprintf(buffer, "http://%s:%d", ip, PORT);
+			base_url = buffer;
+			free(ip);
+		}
+	}
+
+	return base_url;
+}
+
 
 void KolaClient::Quit(void)
 {
@@ -373,7 +381,7 @@ bool KolaClient::Login(bool quick)
 		loginKeyCookie = "key=" + loginKey;
 		UNLOCK(lock);
 
-		baseUrl = json_gets(js, "server", baseUrl.c_str());
+		base_url = json_gets(js, "server", base_url.c_str());
 		json_t *cmd = json_geto(js, "command");
 		if (cmd) {
 			const char *dest = json_gets(js, "dest", NULL);
@@ -465,7 +473,7 @@ bool KolaClient::GetInfo(KolaInfo &info) {
 
 	info = Info;
 
-	return Info.Empty();
+	return not Info.Empty();
 }
 
 IMenu* KolaClient::GetMenuByName(const char *menuName)
@@ -593,9 +601,7 @@ time_t KolaClient::GetTime()
 string KolaClient::GetFullUrl(string url)
 {
 	if (!url.empty() && url.at(0) != '/')
-		return baseUrl + '/' + url;
+		return GetServer() + '/' + url;
 	else
-		return baseUrl + url;
-	//url = uri_join(home_url, url.c_str());
-	//url = uriJoin(home_url, url);
+		return GetServer() + url;
 }

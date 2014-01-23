@@ -2,14 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <pcre.h>
-#include <iostream>
-#include <fstream>
-#include <ios>
 #include <sstream>
-#include <stdexcept>
 #include <sys/socket.h>
-#include <sys/time.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <zlib.h>
@@ -77,16 +71,19 @@ string MD5STR(const char *data)
 
 static char *GetIP(const char *hostp)
 {
-	char str[32];
+	char str[32] = "";
 	struct hostent *host = gethostbyname(hostp);
 
 	if (host == NULL)
 		return NULL;
 
-	inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
+	const char *p = inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
 
 	//freehostent(host);
-	return strdup(str);
+	if (p)
+		return strdup(str);
+	else
+		return NULL;
 }
 
 static char *ReadStringFile(FILE *fp)
@@ -177,6 +174,11 @@ static string gzip_base64(const char *data, size_t ndata)
 	free(zdata);
 
 	return ret;
+}
+
+bool KolaClient::InternetReady()
+{
+	return gethostbyname(SERVER_HOST) != NULL;
 }
 
 KolaClient::KolaClient(void)
@@ -449,20 +451,21 @@ IMenu* KolaClient::GetMenuByCid(int cid)
 	return NULL;
 }
 
-KolaInfo& KolaClient::GetInfo() {
-	if (info.update == false) {
+bool KolaClient::GetInfo(KolaInfo &info) {
+	if (Info.Empty()) {
 		json_t *js = json_loadurl("/video/getinfo");
 
 		if (js) {
-			json_get_stringlist(js, "source", &info.VideoSource);
-			json_get_stringlist(js, "resolution", &info.Resolution);
+			json_get_stringlist(js, "source", &Info.VideoSource);
+			json_get_stringlist(js, "resolution", &Info.Resolution);
 
-			info.update = true;
 			json_delete(js);
 		}
 	}
 
-	return info;
+	info = Info;
+
+	return Info.Empty();
 }
 
 IMenu* KolaClient::GetMenuByName(const char *menuName)

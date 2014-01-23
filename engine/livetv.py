@@ -25,7 +25,7 @@ class TVCategory:
             '类型' : {
                 '央视台' : 'cctv|CCTV',
                 '卫视台' : '卫视|卡酷少儿|炫动卡通',
-                '体育台' : '体育|足球|网球',
+                '体育台' : '体育|足球|网球|cctv-5|CCTV5|cctv5|CCTV-5',
                 '综合台' : '综合|财|都市|经济|旅游',
                 '少儿台' : '动画|卡通|动漫|少儿',
                 '地方台' : '^(?!.*?(cctv|CCTV|卫视|测试|卡酷少儿|炫动卡通' + self.Outside + ')).*$',
@@ -546,7 +546,7 @@ class ParserTVIELivetv(LivetvParser):
 
             album = self.NewAlbum()
             album.albumName  = name
-            album.categories = self.tvCate.GetCategories(album.albumName)
+            album.categories = self.GetCategories(album.albumName)
             album.vid        = utils.genAlbumId(name)
             album.area       = self.area
 
@@ -573,6 +573,9 @@ class ParserTVIELivetv(LivetvParser):
 
             album.videos.append(v)
             db.SaveAlbum(album)
+
+    def GetCategories(self, name):
+        return self.tvCate.GetCategories(name)
 
 # 浙江电视台
 class ParserZJLivetv(ParserTVIELivetv):
@@ -639,8 +642,21 @@ class ParserShaoxinLivetv(ParserTVIELivetv):
 
 # 新疆电视台
 class ParserUCLivetv(ParserTVIELivetv):
+    class UCTVCategory(TVCategory):
+        def __init__(self):
+            super().__init__()
+            self.filter = {
+                '类型' : {
+                    '体育台' : '体育|足球|网球|cctv-5|CCTV5|cctv5|CCTV-5|中央电视台五套',
+                    '综合台' : '综合|财|都市|经济|旅游',
+                    '少儿台' : '动画|卡通|动漫|少儿',
+                    '地方台' : '.*',
+                }
+            }
+
     def __init__(self):
         super().__init__('epgsrv01.ucatv.com.cn')
+        self.tvCate = self.UCTVCategory()
         self.tvName = '新疆电视台'
 
         self.ExcludeName = ('.*广播', '106点5旅游音乐', '天山云LIVE')

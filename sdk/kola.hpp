@@ -546,11 +546,12 @@ private:
 
 class KolaInfo {
 public:
-	KolaInfo() : update(false) {}
 	StringList VideoSource;
 	StringList Resolution;
+	bool Empty() {
+		return VideoSource.size() == 0 || Resolution.size() == 0;
+	}
 private:
-	bool update;
 	friend class KolaClient;
 };
 
@@ -636,8 +637,9 @@ public:
 	string GetArea();
 	bool GetArea(KolaArea &area);
 	time_t GetTime();
-	KolaInfo& GetInfo();
+	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
+	bool InternetReady();
 	int debug;
 	ResourceManager *resManager;
 	ThreadPool *threadPool;
@@ -668,7 +670,7 @@ private:
 	pthread_t thread;
 	pthread_mutex_t lock;
 	bool havecmd;
-	KolaInfo info;
+	KolaInfo Info;
 	static void *kola_login_thread(void *arg);
 
 	friend class KolaMenu;

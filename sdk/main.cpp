@@ -208,8 +208,6 @@ void test_livetv()
 	}
 
 	printf("%s End!!!\n", __func__);
-	while(1)
-		sleep(1);
 }
 
 void test_video(const char *menuName)
@@ -337,9 +335,11 @@ int main(int argc, char **argv)
 {
 	KolaClient &kola = KolaClient::Instance();
 
-	KolaInfo& info = kola.GetInfo();
-	cout << info.Resolution.ToString() << endl;
-	cout << info.VideoSource.ToString() << endl;
+	KolaInfo info;
+	if (kola.GetInfo(info)) {
+		cout << info.Resolution.ToString() << endl;
+		cout << info.VideoSource.ToString() << endl;
+	}
 
 	//while (true)
 	{

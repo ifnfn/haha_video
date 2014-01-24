@@ -212,6 +212,7 @@ bool LuaScript::GetScript(const char *name, string &text)
 		return true;
 	}
 
+	printf("Not found script %s\n", name);
 	return false;
 }
 
@@ -264,7 +265,10 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 	// 直接值
 	json_t *tx = json_geto(js ,"text");
 	if (tx != NULL) {
-		text = json_string_value(tx);
+		if (json_is_string(tx))
+			text = json_string_value(tx);
+		else
+			json_dump_str(tx, text);
 
 		directText = true;
 		return true;

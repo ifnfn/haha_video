@@ -49,21 +49,41 @@ class LivetvVideo(VideoBase):
     def __init__(self, js = None):
         super().__init__(js)
 
+class LivetvPrivate:
+    def __init__(self):
+        self.name =  '直播'
+        self.videoListUrl = {}
+
+    def Json(self):
+        json = {'name' : self.name}
+        if self.videoListUrl : json['videoListUrl'] = self.videoListUrl
+
+        return json
+
+    def Load(self, js):
+        if 'name' in js         : self.name         = js['name']
+        if 'videoListUrl' in js : self.videoListUrl = js['videoListUrl']
+
 class LivetvAlbum(AlbumBase):
     def __init__(self):
         self.engineName = 'LivetvEngine'
         super().__init__()
         self.cid =  200
         self.albumPageUrl = ''
+        self.livetv = LivetvPrivate()
         self.videoClass = LivetvVideo
 
     def SaveToJson(self):
+        if self.livetv:
+            self.private[self.engineName] = self.livetv.Json()
         ret = super().SaveToJson()
 
         return ret
 
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
+        if self.engineName in self.private:
+            self.livetv.Load(self.private[self.engineName])
 
     # 更新节目完整信息
     def UpdateFullInfoCommand(self):
@@ -135,6 +155,12 @@ class JianSuLiveTV(LivetvMenu):
     def UpdateAlbumList(self):
         ParserJiansuLivetv().Execute()           # 江苏省台
 
+class AnHuiLiveTV(LivetvMenu):
+    '''
+    安徽省内所有电视台
+    '''
+    def UpdateAlbumList(self):
+        ParserAnhuiLivetv().Execute()           # 安徽省台
 
 class LivetvParser(KolaParser):
     def __init__(self):
@@ -367,6 +393,42 @@ class ParserCutvLivetv(LivetvParser):
 
                 album.videos.append(v)
                 db.SaveAlbum(album)
+
+# 安徽电视台
+class ParserAnhuiLivetv(LivetvParser):
+    def __init__(self):
+        super().__init__()
+        self.tvName = '安徽电视台'
+        self.cmd['source'] = 'http://www.ahtv.cn/m2o/player/channel_xml.php?first=1&id=7'
+        self.cmd['step']   = 1
+        self.area = '中国,安徽'
+
+    def CmdParser(self, js):
+        ChannelMap = {
+            '安徽卫视' : 2,
+            '安徽公共' : 3,
+            '安徽-科教频道' : 4,
+            '安徽-综艺频道' : 5,
+            '安徽-影视频道' : 6,
+            '安徽-经济生活' : 7,
+            '安徽国际'     : 8,
+            '安徽-人物频道' : 9
+        }
+
+        db = LivetvDB()
+        for k,v in ChannelMap.items():
+            #url = 'http://www.ahtv.cn/m2o/player/channel_xml.php?first=1&id=%d' % v
+            album  = self.NewAlbum()
+            album.albumName  = k
+            album.categories = self.tvCate.GetCategories(album.albumName)
+            album.area       = self.area
+            album.vid        = utils.genAlbumId(album.area + album.albumName)
+            album.livetv.videoListUrl = {
+                'script': 'ahtv',
+                'function' : 'get_videolist',
+                'parameters' : [album.cid, album.vid, v]
+            }
+            db.SaveAlbum(album)
 
 # 南宁电视台
 class ParserNNLivetv(LivetvParser):
@@ -779,6 +841,7 @@ class LiveEngine(VideoEngine):
         self.menu = [
             JianSuLiveTV('江苏'),
             ZheJianLiveTV('浙江'),
+            AnHuiLiveTV('安徽'),
             XinJianLiveTV('新疆'),
             GuangXiLiveTV('广西'),
             JilingLiveTV('吉林'),
@@ -802,4 +865,5 @@ class LiveEngine(VideoEngine):
             ParserNNLivetv(),
             ParserCutvLivetv(),
             ParserJiansuLivetv(),
+            ParserAnhuiLivetv(),
         ]

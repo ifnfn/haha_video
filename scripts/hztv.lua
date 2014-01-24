@@ -50,8 +50,8 @@ function kola_main(url)
 		return ''
 	end
 
-	x = xml.eval(text)
-	v= find(x, "video", "item")
+	local x = xml.eval(text)
+	local v= find(x, "video", "item")
 	for a, b in pairs(v) do
 		if b['url'] ~= nil then
 			ret_url = b['url']

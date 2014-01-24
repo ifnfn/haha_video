@@ -206,6 +206,72 @@ static int lua_base64_decode(lua_State *L)
 	return 0;
 }
 
+static int StringToTime(const string &strDateStr,time_t &timeData)
+{
+	char *pBeginPos = (char*) strDateStr.c_str();
+	char *pPos = strstr(pBeginPos,"-");
+	if(pPos == NULL)
+	{
+		printf("strDateStr[%s] err \n", strDateStr.c_str());
+		return -1;
+	}
+	int iYear = atoi(pBeginPos);
+	int iMonth = atoi(pPos + 1);
+	pPos = strstr(pPos + 1,"-");
+	if(pPos == NULL)
+	{
+		printf("strDateStr[%s] err \n", strDateStr.c_str());
+		return -1;
+	}
+	int iDay = atoi(pPos + 1);
+	int iHour=0;
+	int iMin=0;
+	int iSec=0;
+	pPos = strstr(pPos + 1," ");
+	//为了兼容有些没精确到时分秒的
+	if(pPos != NULL)
+	{
+		iHour=atoi(pPos + 1);
+		pPos = strstr(pPos + 1,":");
+		if(pPos != NULL)
+		{
+			iMin=atoi(pPos + 1);
+			pPos = strstr(pPos + 1,":");
+			if(pPos != NULL)
+			{
+				iSec=atoi(pPos + 1);
+			}
+		}
+	}
+
+	struct tm sourcedate;
+	bzero((void*)&sourcedate,sizeof(sourcedate));
+	sourcedate.tm_sec = iSec;
+	sourcedate.tm_min = iMin;
+	sourcedate.tm_hour = iHour;
+	sourcedate.tm_mday = iDay;
+	sourcedate.tm_mon = iMonth - 1;
+	sourcedate.tm_year = iYear - 1900;
+	timeData = mktime(&sourcedate);
+	return 0;
+}
+
+static int lua_date(lua_State *L)
+{
+	const char *txt = lua_tostring(L, 1);
+	if (txt) {
+		string text = txt;
+		time_t time;
+		if (StringToTime(text, time) == 0) {
+			lua_pushinteger(L, time);
+
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static const struct luaL_Reg kola_lib[] = {
 	{"base64_encode" , lua_base64_encode},
 	{"base64_decode" , lua_base64_decode},
@@ -217,6 +283,7 @@ static const struct luaL_Reg kola_lib[] = {
 	{"gettime"       , lua_gettime},
 	{"urlencode"     , lua_urlencode},
 	{"urldecode"     , lua_urldecode},
+	{"date"          , lua_date},
 
 	{NULL            , NULL},
 };

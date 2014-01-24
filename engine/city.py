@@ -17,7 +17,7 @@ class City():
     for x in city_table.find():
         del x['_id']
         cityList.append(x)
-    
+
     def __init__(self):
         if len(self.cityList) == 0:
             self.Update()
@@ -36,7 +36,7 @@ class City():
     def Parser(self, url, pid=None):
         text = engine.GetCacheUrl(url).decode()
         x = re.findall('callback\((.*)\);', text)
-        
+
         ret = []
         if x:
             js = tornado.escape.json_decode(x[0])
@@ -67,14 +67,23 @@ class City():
                     p = prov['name'] + ',' + p
                 else:
                     p = prov['name']
-                
+
                 if prov['pid'] != '0':
                     return self.GetFullById(p, prov['pid'])
                 else:
                     return p
         return p
-    
+
     def GetCity(self, city):
+        if '东南' in city:
+            return '福建'
+        elif '上视新娱乐' in city:
+            return '上海'
+        elif '南方卫视' in city:
+            return '广东省'
+        elif '旅游南方' in city:
+            return '海南'
+
         # 优先找前匹配的
         for prov in self.cityList:
             city.find(prov['name'], )

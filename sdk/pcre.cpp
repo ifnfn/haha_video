@@ -55,12 +55,13 @@ string KolaPcre::MatchAll(const char *content)
 	int length = (int)strlen(content);
 	string result("");
 	int ovector[VECSIZE] ={'\0'};
+	int flags = PCRE_NOTEMPTY;
 
 	for(size_t i=0; i<re_arr.size(); i++) {
 		int offset = 0;
 		int rc;
 
-		while(offset < length && (rc = pcre_exec(re_arr[i], NULL, content, length, offset, PCRE_NOTEMPTY, ovector, VECSIZE)) >= 0) {
+		while(offset < length && (rc = pcre_exec(re_arr[i], NULL, content, length, offset, flags, ovector, VECSIZE)) >= 0) {
 			//			printf("rc=%d\n", rc);
 			result.append(content, ovector[2], ovector[3] - ovector[2]);
 			result = result + "\n";

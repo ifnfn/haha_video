@@ -169,6 +169,7 @@ class LivetvParser(KolaParser):
         self.Alias = {}
         self.ExcludeName = ()
         self.tvName = ''
+        self.area = ''
 
     def NewAlbum(self):
         album  = LivetvAlbum()
@@ -254,18 +255,20 @@ class ParserSohuLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
+        city = City()
 
         tvlist = tornado.escape.json_decode(js['data'])
         for v in tvlist['attachment']:
             name = json_get(v, 'name', '')
             pid = json_get(v, 'id', '')
             vid = utils.genAlbumId(name)
+
             album  = self.NewAlbum()
             album.albumName   = json_get(v, 'name', '')
             album.categories  = self.tvCate.GetCategories(album.albumName)
             album.vid         = vid
-            #album.enAlbumName = json_get(v, 'enName', '')
             album.smallPicUrl = json_get(v, 'ico', '')
+            album.area = city.GetCity(album.albumName)
 
             v = album.NewVideo()
             playUrl    = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
@@ -438,7 +441,6 @@ class ParserNNLivetv(LivetvParser):
         self.cmd['source'] = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=104'
         self.area = '中国,广西,南宁'
 
-
     def CmdParser(self, js):
         db = LivetvDB()
         count = 0
@@ -458,7 +460,6 @@ class ParserNNLivetv(LivetvParser):
 
             if album == None:
                 return
-
 
             v = album.NewVideo()
             v.vid      = utils.getVidoId(url)

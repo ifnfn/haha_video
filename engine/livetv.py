@@ -107,6 +107,14 @@ class LetvLiveTV(LivetvMenu):
     def UpdateAlbumList(self):
         ParserLetvLivetv().Execute()
 
+class CntvLiveTV(LivetvMenu):
+    '''
+    CNTV电视台
+    '''
+    def UpdateAlbumList(self):
+        ParserCntvLivetv('all').Execute()
+
+
 class CuLiveTV(LivetvMenu):
     '''
     联合电视台
@@ -333,6 +341,11 @@ class ParserJLntvLivetv(LivetvParser):
 
             album.videos.append(v)
             db.SaveAlbum(album)
+
+class ParserCntvLivetv(LivetvParser):
+    def __init__(self, station=None, tv_id=None):
+        super().__init__()
+        self.area = ''
 
 class ParserCutvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):
@@ -849,6 +862,7 @@ class LiveEngine(VideoEngine):
             GuangXiLiveTV('广西'),
             JilingLiveTV('吉林'),
             CuLiveTV('CuTV'),
+            CntvLiveTV("CNTV"),
             SohuLiveTV('Sohu'),
             LetvLiveTV('Letv'),
         ]
@@ -869,4 +883,5 @@ class LiveEngine(VideoEngine):
             ParserCutvLivetv(),
             ParserJiansuLivetv(),
             ParserAnhuiLivetv(),
+            ParserCntvLivetv(),
         ]

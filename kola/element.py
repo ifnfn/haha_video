@@ -27,6 +27,9 @@ class LivetvMenu(db.VideoMenuBase):
             'PinYin' : []
         }
 
+        self.parserList = []
+        self.parserClassList = []
+
     def FixArgument(self, argument):
         if 'filter' in argument and 'area' in argument:
             _filter = argument['filter']
@@ -35,8 +38,16 @@ class LivetvMenu(db.VideoMenuBase):
                 _filter['local_area'] = argument['area']['province']
                 del _filter[c]
 
+    def RegisterParser(self, parserList):
+        for p in self.parserClassList:
+            parserList.append(p())
+
     def UpdateAllScore(self):
         pass
+
+    def UpdateAlbumList(self):
+        for p in self.parserClassList:
+            p().Execute()
 
 # 电影
 class MovieMenu(db.VideoMenuBase):

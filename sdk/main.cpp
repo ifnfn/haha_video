@@ -163,7 +163,7 @@ void test_livetv()
 	}
 #endif
 
-#if 1
+#if 0
 	for (size_t i=0; i < count; i++) {
 		IAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
@@ -187,6 +187,7 @@ void test_livetv()
 	}
 #endif
 
+#if 0
 	m->FilterAdd("类型", "卫视台");
 	count = m->GetAlbumCount();
 	for (size_t i=0; i < count; i++) {
@@ -206,6 +207,7 @@ void test_livetv()
 		size_t video_count = album->GetVideoCount();
 		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 	}
+#endif
 
 	printf("%s End!!!\n", __func__);
 }

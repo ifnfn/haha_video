@@ -27,8 +27,8 @@ end
 
 function check_m3u8(url)
 	maps = {
+		'http://hdshls.cntv.chinacache.net',
 		'http://vapptime1.cntv.chinacache.net',
-		'http://hdshls.cntv.chinacache.net'
 	}
 	for _, u in pairs(maps) do
 		local furl = u .. url
@@ -64,13 +64,15 @@ function geturl_hds(url, aid)
 					u = string.gsub(b.url, "seg1", "seg0")
 					video_url = '/' .. string.sub(u, 4) .. ".m3u8"
 				end
-				video_url = check_m3u8(video_url)
+				local x = check_m3u8(video_url)
+				if x ~= nil then
+					video_url = x
+				end
 			end
-			--print(b.url, b.bitrate)
 		end
 	end
 
-	--print("aaa:", video_url)
+	print("aaa:", video_url)
 
 	return video_url
 end

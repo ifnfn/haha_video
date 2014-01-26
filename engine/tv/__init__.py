@@ -37,7 +37,7 @@ class LiveEngine(VideoEngine):
         #self.AddMenu(CuLiveTV     ('CuTV'))
         self.AddMenu(CntvLiveTV   ("CNTV"))
         #self.AddMenu(SohuLiveTV   ('Sohu'))
-        #self.AddMenu(LetvLiveTV   ('Letv'))
+        self.AddMenu(LetvLiveTV   ('Letv'))
 
     def AddMenu(self, menu):
         self.menu.append(menu)

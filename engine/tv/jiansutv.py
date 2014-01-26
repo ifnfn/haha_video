@@ -15,8 +15,8 @@ class ParserJiansuLivetv(LivetvParser):
         super().__init__()
         self.tvName = '江苏电视台'
 
-        #self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_1.html'
-        self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_2.html'
+        self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_1.html'
+        #self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_2.html'
         self.Alias = {}
         self.ExcludeName = ()
         self.area = '中国,江苏'

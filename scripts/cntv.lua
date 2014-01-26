@@ -25,12 +25,11 @@ function find(var, tag, key, value)
 	end
 end
 
-function kola_main(vid, aid)
-	print(vid, aid)
-	local url = string.format("http://vcbox.cntv.chinacache.net/cache/hds%s.f4m", vid)
+function geturl_hds(url, aid)
 	local text = kola.wget(url, false)
 	if text == nil then
 		url = string.format('http://vcbox.cntv.chinacache.net/cache/%s_/seg1/index.f4m', aid)
+		print(url)
 		text = kola.wget(url, false)
 	end
 
@@ -40,7 +39,84 @@ function kola_main(vid, aid)
 
 	local x = xml.eval(text)
 
-	--print(url)
+	local video_url = ''
+	local bitrate = 0
+	local v= find(x, "manifest", "media")
+	for a, b in pairs(v) do
+		if b.streamId ~= nil then
+			this_b = tonumber(b.bitrate)
+			if this_b > bitrate then
+				if b.url == 'index' then
+					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s_/seg0/index.m3u8', aid)
+				else
+					u = string.gsub(b.url, "seg1", "seg0")
+					u = string.sub(u, 10)
+					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s.m3u8', u)
+				end
+				bitrate = this_b
+			end
+			--print(b.url, b.bitrate)
+		end
+	end
+
+	print(video_url)
+
+	return video_url
+end
+
+function cctv_p2p_url(vid, aid)
+	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s", vid)
+	local text = kola.wget(url, false)
+	local video_url = ''
+	if text ~= nil then
+		text = kola.pcre("var html5VideoData = '(.*)';", text)
+		--print(text)
+		local js = cjson.decode(text)
+
+		-- 如果有 hds
+		if js['hds_url'] ~= nil then
+			local u = js['hds_url']['hds1']
+			if string.find(u, "http://") ~= nil and string.find(u, "f4m") ~= nil then
+				return geturl_hds(u, aid)
+			end
+		end
+
+		-- 如果有 hls
+		for a, url in pairs(js["hls_url"]) do
+			if url ~= nil and string.find(url, "http://") ~= nil then
+				text = kola.wget(url, false)
+
+				if text ~= nil and string.find(text, "EXTM3U") ~= nil then
+					video_url = url
+				end
+			end
+		end
+	end
+
+	return video_url
+end
+
+function kola_main(vid, aid)
+	return cctv_p2p_url(vid, aid)
+end
+
+function kola_main1(vid, aid)
+	print(vid, aid)
+	local url = string.format("http://vcbox.cntv.chinacache.net/cache/hds%s.f4m", vid)
+	print(url)
+	local text = kola.wget(url, false)
+	if text == nil then
+		url = string.format('http://vcbox.cntv.chinacache.net/cache/%s_/seg1/index.f4m', aid)
+		print(url)
+		text = kola.wget(url, false)
+	end
+
+	if text == nil then
+		return ''
+	end
+
+	local x = xml.eval(text)
+
 	local video_url = ''
 	local bitrate = 0
 	local v= find(x, "manifest", "media")

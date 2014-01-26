@@ -26,29 +26,43 @@ function find(var, tag, key, value)
 end
 
 function kola_main(vid, a)
-	return string.format('http://hdshls.cntv.chinacache.net/cache/%s_/seg0/index.m3u8', a)
-	--local url = string.format("http://vcbox.cntv.chinacache.net/cache/hds%s.f4m", vid)
-	--local text = kola.wget(url)
-	--if text == nil then
-	--	url = string.format('http://vcbox.cntv.chinacache.net/cache/%s_/seg1/index.f4m', a)
-	--	text = kola.wget(url)
-	--end
+	local url = string.format("http://vcbox.cntv.chinacache.net/cache/hds%s.f4m", vid)
+	local text = kola.wget(url)
+	if text == nil then
+		url = string.format('http://vcbox.cntv.chinacache.net/cache/%s_/seg1/index.f4m', a)
+		text = kola.wget(url)
+	end
 
-	--if text == nil then
-	--	return ''
-	--end
+	if text == nil then
+		return ''
+	end
 
-	--local x = xml.eval(text)
+	local x = xml.eval(text)
 
-	--local v= find(x, "manifest", "media")
-	--for a, b in pairs(v) do
-	--	--print(a,b)
-	--	if b.streamId ~= nil then
-	--		print(a, b.streamId, b.url, b.bitrate)
-	--	end
-	--end
+	--print(url)
+	local video_url = ''
+	local bitrate = 0
+	local v= find(x, "manifest", "media")
+	for a, b in pairs(v) do
+		if b.streamId ~= nil then
+			this_b = tonumber(b.bitrate)
+			if this_b > bitrate then
+				if b.url == 'index' then
+					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s_/seg0/index.m3u8', a)
+				else
+					u = string.gsub(b.url, "seg1", "seg0")
+					u = string.sub(u, 10)
+					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s.m3u8', u)
+				end
+				bitrate = this_b
+			end
+			--print(b.url, b.bitrate)
+		end
+	end
 
-	--return ''
+	--print(video_url)
+
+	return video_url
 end
 
 function get_channel(vid)

@@ -25,12 +25,13 @@ function find(var, tag, key, value)
 	end
 end
 
-function kola_main(vid, a)
+function kola_main(vid, aid)
+	print(vid, aid)
 	local url = string.format("http://vcbox.cntv.chinacache.net/cache/hds%s.f4m", vid)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	if text == nil then
-		url = string.format('http://vcbox.cntv.chinacache.net/cache/%s_/seg1/index.f4m', a)
-		text = kola.wget(url)
+		url = string.format('http://vcbox.cntv.chinacache.net/cache/%s_/seg1/index.f4m', aid)
+		text = kola.wget(url, false)
 	end
 
 	if text == nil then
@@ -48,7 +49,7 @@ function kola_main(vid, a)
 			this_b = tonumber(b.bitrate)
 			if this_b > bitrate then
 				if b.url == 'index' then
-					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s_/seg0/index.m3u8', a)
+					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s_/seg0/index.m3u8', aid)
 				else
 					u = string.gsub(b.url, "seg1", "seg0")
 					u = string.sub(u, 10)

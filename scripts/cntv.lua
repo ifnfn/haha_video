@@ -50,8 +50,8 @@ function geturl_hds(url, aid)
 					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s_/seg0/index.m3u8', aid)
 				else
 					u = string.gsub(b.url, "seg1", "seg0")
-					u = string.sub(u, 10)
-					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s.m3u8', u)
+					u = string.sub(u, 4)
+					video_url = string.format('http://hdshls.cntv.chinacache.net/%s.m3u8', u)
 				end
 				bitrate = this_b
 			end

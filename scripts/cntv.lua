@@ -50,7 +50,7 @@ function geturl_hds(url, aid)
 
 	local x = xml.eval(text)
 
-	local video_url = ''
+	local video_url = nil
 	local bitrate = 0
 	local v= find(x, "manifest", "media")
 	for a, b in pairs(v) do
@@ -58,21 +58,17 @@ function geturl_hds(url, aid)
 			this_b = tonumber(b.bitrate)
 			if this_b > bitrate then
 				bitrate = this_b
-				if b.url == 'index' then
-					video_url = string.format('/cache/%s_/seg0/index.m3u8', aid)
-				else
+				if b.url ~= 'index' then
 					u = string.gsub(b.url, "seg1", "seg0")
 					video_url = '/' .. string.sub(u, 4) .. ".m3u8"
-				end
-				local x = check_m3u8(video_url)
-				if x ~= nil then
-					video_url = x
+					local u = check_m3u8(video_url)
+					if u ~= nil then
+						video_url = u
+					end
 				end
 			end
 		end
 	end
-
-	print("aaa:", video_url)
 
 	return video_url
 end
@@ -90,7 +86,14 @@ function cctv_p2p_url(vid, aid)
 		if js['hds_url'] ~= nil then
 			local u = js['hds_url']['hds1']
 			if string.find(u, "http://") ~= nil and string.find(u, "f4m") ~= nil then
-				return geturl_hds(u, aid)
+				u = geturl_hds(u, aid)
+				if u ~= nil then
+					return u
+				end
+			end
+			local u = js['hds_url']['hds2']
+			if string.find(u, "http://") ~= nil and string.find(u, "channel") ~= nil then
+				return u
 			end
 		end
 
@@ -105,48 +108,6 @@ end
 
 function kola_main(vid, aid)
 	return cctv_p2p_url(vid, aid)
-end
-
-function kola_main1(vid, aid)
-	print(vid, aid)
-	local url = string.format("http://vcbox.cntv.chinacache.net/cache/hds%s.f4m", vid)
-	print(url)
-	local text = kola.wget(url, false)
-	if text == nil then
-		url = string.format('http://vcbox.cntv.chinacache.net/cache/%s_/seg1/index.f4m', aid)
-		print(url)
-		text = kola.wget(url, false)
-	end
-
-	if text == nil then
-		return ''
-	end
-
-	local x = xml.eval(text)
-
-	local video_url = ''
-	local bitrate = 0
-	local v= find(x, "manifest", "media")
-	for a, b in pairs(v) do
-		if b.streamId ~= nil then
-			this_b = tonumber(b.bitrate)
-			if this_b > bitrate then
-				if b.url == 'index' then
-					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s_/seg0/index.m3u8', aid)
-				else
-					u = string.gsub(b.url, "seg1", "seg0")
-					u = string.sub(u, 10)
-					video_url = string.format('http://hdshls.cntv.chinacache.net/cache/%s.m3u8', u)
-				end
-				bitrate = this_b
-			end
-			--print(b.url, b.bitrate)
-		end
-	end
-
-	--print(video_url)
-
-	return video_url
 end
 
 function get_channel(vid)

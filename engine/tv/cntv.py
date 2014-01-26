@@ -24,8 +24,7 @@ class ParserCntvLivetv(LivetvParser):
             if x in [ "数字频道", "城市频道"]:
                 continue
             for ch in v:
-                print(ch)
-                if ch[2] == '0':
+                if ch[2] == '0' or ch[1] in ['厦门卫视', '香港卫视', '山东教育台', '延边卫视']:
                     continue
                 album  = self.NewAlbum(ch[1])
                 album.categories = self.tvCate.GetCategories(album.albumName)

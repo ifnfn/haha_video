@@ -335,9 +335,9 @@ public:
 
 	virtual size_t GetTotalSet() = 0;
 	virtual size_t GetVideoCount() = 0;
-	virtual size_t GetSource(StringList &sources) = 0; // 获取节目的节目来源列表
-	virtual bool SetSource(string &source) = 0;        // 设置节目来源，为""时，使用默认来源
-	virtual bool GetPictureFile(FileResource& picture, enum PicType type) = 0;
+	virtual size_t GetSource(StringList &sources) = 0;   // 获取节目的节目来源列表
+	virtual bool   SetSource(string &source) = 0;        // 设置节目来源，为""时，使用默认来源
+	virtual bool   GetPictureFile(FileResource& picture, enum PicType type) = 0;
 	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO) = 0;
 	virtual IVideo *GetVideo(size_t id) = 0;
 };
@@ -658,21 +658,21 @@ protected:
 
 private:
 	KolaClient(void);
+	void Login();
 
 	string base_url;
 	map<string, IMenu*> menuMap;
 
 	int nextLoginSec;
 
-	bool Login(bool quick=false);
+	bool LoginOne(bool quick=false);
 	char *Run(const char *cmd);
 	bool ProcessCommand(json_t *cmd, const char *dest);
 	bool running;
-	pthread_t thread;
-	pthread_mutex_t lock;
+	Thread* thread;
+	Mutex mutex;
 	bool havecmd;
 	KolaInfo Info;
-	static void *kola_login_thread(void *arg);
 
 	friend class KolaMenu;
 	friend class KolaVideo;

@@ -39,14 +39,6 @@ static string loginKey;
 static string loginKeyCookie;
 static string xsrf_cookie;
 
-#if 1
-#define LOCK(lock)   pthread_mutex_lock(&lock)
-#define UNLOCK(lock) pthread_mutex_unlock(&lock)
-#else
-#define LOCK(lock)   do {} while(0)
-#define UNLOCK(lock) do {} while(0)
-#endif
-
 static string chipKey(void)
 {
 	return "000002";
@@ -188,9 +180,10 @@ KolaClient::KolaClient(void)
 	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
 	resManager = new ResourceManager(1024 * 1024 * 2);
 
-	pthread_mutex_init(&lock, NULL);
-	Login(true);
-	pthread_create(&thread, NULL, kola_login_thread, this);
+	LoginOne(true);
+//	pthread_create(&thread, NULL, kola_login_thread, this);
+	thread = new Thread(this, &KolaClient::Login);
+	thread->start();
 }
 
 bool KolaClient::InternetReady()
@@ -218,8 +211,9 @@ string& KolaClient::GetServer() {
 void KolaClient::Quit(void)
 {
 	running = false;
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
+	delete thread;
+	//pthread_cancel(thread);
+	//pthread_join(thread, NULL);
 	printf("KolaClient Quit: %p\n", this);
 }
 
@@ -236,10 +230,10 @@ bool KolaClient::UrlGet(string url, string &ret)
 	const char *cookie = NULL;
 
 	if (url.compare(0, strlen("http://"), "http://") != 0) {
-		LOCK(lock);
+		mutex.lock();
 		cookie = loginKeyCookie.c_str();
 		url = GetFullUrl(url);
-		UNLOCK(lock);
+		mutex.unlock();
 	}
 
 	Http http;
@@ -261,10 +255,10 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	const char *cookie = NULL;
 
 	if (url.compare(0, strlen("http://"), "http://") != 0) {
-		LOCK(lock);
+		mutex.lock();
 		cookie = loginKeyCookie.c_str();
 		url = GetFullUrl(url);
-		UNLOCK(lock);
+		mutex.unlock();
 	}
 
 	string new_body = gzip_base64(body, strlen(body));
@@ -358,7 +352,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	return 0;
 }
 
-bool KolaClient::Login(bool quick)
+bool KolaClient::LoginOne(bool quick)
 {
 	json_error_t error;
 	string text;
@@ -376,10 +370,10 @@ bool KolaClient::Login(bool quick)
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	if (js) {
-		LOCK(lock);
+		mutex.lock();
 		loginKey = json_gets(js, "key", "");
 		loginKeyCookie = "key=" + loginKey;
-		UNLOCK(lock);
+		mutex.unlock();
 
 		base_url = json_gets(js, "server", base_url.c_str());
 		json_t *cmd = json_geto(js, "command");
@@ -502,22 +496,18 @@ static void cancel(void *any)
 	printf("Login thread canceled!!\n");
 }
 
-void *KolaClient::kola_login_thread(void *arg)
+void KolaClient::Login()
 {
-	KolaClient *client = (KolaClient*)arg;
-
 	pthread_cleanup_push(cancel, NULL);
-	while (client->running) {
+	while (thread->_state) {
 		pthread_testcancel();
-		client->Login(false);
+		LoginOne(false);
 		pthread_testcancel();
-		sleep(client->nextLoginSec);
+		sleep(nextLoginSec);
 	}
 	pthread_cleanup_pop(0);
 
 	pthread_exit(NULL);
-
-	return NULL;
 }
 
 KolaClient& KolaClient::Instance(const char *user_id)

@@ -5,8 +5,9 @@
 
 #include "http.hpp"
 
-inline static unsigned char toHex(unsigned char x)
-{
+#define NETWORK_TIMEOUT 10
+
+inline static unsigned char toHex(unsigned char x) {
 	return x > 9 ? x + 55 : x + 48;
 }
 
@@ -101,10 +102,10 @@ Curl::Curl() {
 		share_handle = curl_share_init();
 		curlinfo = curl_version_info(CURLVERSION_NOW);
 
-		curl_share_setopt(share_handle, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
-		curl_share_setopt(share_handle, CURLSHOPT_LOCKFUNC, my_lock);
+		curl_share_setopt(share_handle, CURLSHOPT_SHARE     , CURL_LOCK_DATA_DNS);
+		curl_share_setopt(share_handle, CURLSHOPT_LOCKFUNC  , my_lock);
 		curl_share_setopt(share_handle, CURLSHOPT_UNLOCKFUNC, my_unlock);
-		curl_share_setopt(share_handle, CURLSHOPT_USERDATA, this);
+		curl_share_setopt(share_handle, CURLSHOPT_USERDATA  , this);
 		curl_init++;
 	}
 }
@@ -120,8 +121,8 @@ CURL *Curl::GetCurl(const char *url) {
 
 	if ( curl ) {
 		curl_easy_setopt(curl, CURLOPT_NOSIGNAL         , 1L);
-		curl_easy_setopt(curl, CURLOPT_TIMEOUT          , 5);
-		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT   , 5);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT          , NETWORK_TIMEOUT);
+		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT   , NETWORK_TIMEOUT);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "KolaClient");
 		curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
 		curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);

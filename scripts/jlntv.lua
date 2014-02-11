@@ -1,7 +1,8 @@
 function kola_main(url)
 	local text = kola.wget(url)
 	if text ~= nil then
-		return kola.pcre("var playurl = '(.*)';", text)
+		text = kola.pcre("var playurl = '(.*)';", text)
+		return string.sub(text, 1, -2)
 	end
 
 	return ""

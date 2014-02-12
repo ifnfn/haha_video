@@ -40,21 +40,15 @@ class ParserJiansuLivetv(LivetvParser):
 
                     videoUrl = 'http://streamabr.jstv.com'
 
-                    v.SetVideoUrl('default', {
-                        'text' : videoUrl + ch['auto']
-                    })
+                    if ch['supor']:
+                        v.SetVideoUrl('default', {'text' : videoUrl + ch['supor']})
+                        v.SetVideoUrl('super',   {'text' : videoUrl + ch['supor']})
 
-                    v.SetVideoUrl('super', {
-                        'text' : videoUrl + ch['supor']
-                    })
+                    if ch['high']:
+                        v.SetVideoUrl('high', {'text' : videoUrl + ch['high']})
 
-                    v.SetVideoUrl('high', {
-                        'text' : videoUrl + ch['high']
-                    })
-
-                    v.SetVideoUrl('normal', {
-                        'text' : videoUrl + ch['fluent']
-                    })
+                    if ch['fluent']:
+                        v.SetVideoUrl('normal', {'text' : videoUrl + ch['fluent']})
 
                     v.info = {
                         'script'     : 'jstv',

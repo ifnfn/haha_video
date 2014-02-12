@@ -128,7 +128,7 @@ class ComicMenu(db.VideoMenuBase):
         }
 
 # 记录片
-class SohuDocumentary(db.VideoMenuBase):
+class DocumentaryMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 4
@@ -140,46 +140,36 @@ class SohuDocumentary(db.VideoMenuBase):
         }
 
 # 综艺
-class SohuShow(db.VideoMenuBase):
+class ShowMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
-        self.cid = 106
+        self.cid = 5
         self.sort = filter_sort
+        
         self.filter = {
-            '类型' : ['访谈', '时尚', '游戏竞技', 'KTV', '交友', '选秀', '音乐', '曲艺',
-                      '养生', '脱口秀', '歌舞', '娱乐节目', '真人秀', '其他'],
+            '类型' : ['访谈', '情感', '访谈', '搞笑', '时尚', '游戏', 'KTV', '美食', '文化', '命理',
+                      '交友', '选秀', '音乐', '曲艺', '养生', '歌舞', '娱乐', '纪实', '歌舞',
+                      '真人秀', '脱口秀', '其他'],
             '产地' : ['内地', '港台', '欧美', '日韩', '其他'],
             'PinYin' : []
         }
 
 # 教育
-class SohuEdu(db.VideoMenuBase):
+class EduMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
-        self.cid = 119
+        self.cid = 6
         self.sort = filter_sort
         self.filter = {
             '类型': ['公开课', '考试辅导', '职业培训', '外语学习', '幼儿教育', '乐活', '职场管理', '中小学教育'],
             'PinYin' : []
         }
 
-# 新闻
-class SohuNew(db.VideoMenuBase):
-    def __init__(self, name):
-        super().__init__(name)
-        self.cid = 122
-        self.sort = filter_sort
-        self.filter = {
-            '类型': ['国内', '国际', '军事', '科技', '财经', '社会', '生活'],
-            '范围': ['今天', '本周', '本月'],
-            'PinYin' : []
-        }
-
 # 娱乐
-class SohuYule(db.VideoMenuBase):
+class YuleMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
-        self.cid = 112
+        self.cid = 7
         self.sort = filter_sort
         self.filter = {
             '类型' : ['明星', '电影', '电视', '音乐', '戏剧', '动漫', '其他'],
@@ -188,10 +178,10 @@ class SohuYule(db.VideoMenuBase):
         }
 
 # 旅游
-class SohuTour(db.VideoMenuBase):
+class TourMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
-        self.cid = 131
+        self.cid = 8
         self.sort = filter_sort
         self.filter = {
             '类型': [

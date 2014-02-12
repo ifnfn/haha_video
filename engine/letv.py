@@ -14,9 +14,10 @@ import kola
 global Debug
 Debug = True
 
-class SohuAlias(KolaAlias):
+class LetvAlias(KolaAlias):
     def __init__(self):
         self.alias = {
+            '中国大陆' : '内地',
             # 电影
             '剧情' : '剧情片',
             '喜剧' : '喜剧片',
@@ -179,7 +180,7 @@ class ParserPlayCount(KolaParser):
 
 # 节目列表
 class ParserAlbumList(KolaParser):
-    alias = SohuAlias()
+    alias = LetvAlias()
     def __init__(self, url=None, cid=0):
         super().__init__()
         if url and cid:
@@ -214,7 +215,7 @@ class ParserAlbumList(KolaParser):
                 album.enAlbumName      = ''                                                 # 英文名称
 
                 if 'subname' in a:         album.subName          = a['subname']
-                if 'areaName' in a:        album.area             = a['areaName']                                      # 地区
+                if 'areaName' in a:        album.area             = self.alias.Get(a['areaName'])                      # 地区
                 if 'subCategoryName' in a: album.categories       = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
                 if 'releaseDate' in a:     album.publishYear      = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
 
@@ -246,8 +247,8 @@ class ParserAlbumList(KolaParser):
                     album.videoScore       = autofloat(a['rating']) * 10                  # 推荐指数
                     album.dailyIndexScore  = autofloat(a['rating']) * 10  # 每日指数
 
-                if 'episodes' in a:                     album.totalSet         = autoint(a['episodes'])           # 总集数
-                if 'nowEpisodes' in a:                  album.updateSet        = autoint(a['nowEpisodes'])       # 当前更新集
+                if 'episodes' in a:                     album.totalSet         = autoint(a['episodes'])       # 总集数
+                if 'nowEpisodes' in a:                  album.updateSet        = autoint(a['nowEpisodes'])    # 当前更新集
                 if 'dayCount' in a:                     album.dailyPlayNum     = autoint(a['dayCount'])       # 每日播放次数
                 if 'weekCount' in a:                    album.weeklyPlayNum    = autoint(a['weekCount'])      # 每周播放次数
                 if 'monthCount' in a:                   album.monthlyPlayNum   = autoint(a['monthCount'])     # 每月播放次数
@@ -333,8 +334,19 @@ class LetvComic(LetvVideoMenu):
 class LetvDocumentary(LetvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
-        self.cid = 3
+        self.cid = 4
         self.HomeUrlList = ['http://list.letv.com/api/chandata.json?c=16&d=2&md=&o=1&p=1&t=119']
+
+    # 更新热门电影信息
+    def UpdateHotInfo(self):
+        pass
+
+# 综艺
+class LetvShow(LetvVideoMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        self.cid = 5
+        self.HomeUrlList = ['http://list.letv.com/apin/chandata.json?c=11&d=2&md=&o=1&p=2&s=1']
 
     # 更新热门电影信息
     def UpdateHotInfo(self):

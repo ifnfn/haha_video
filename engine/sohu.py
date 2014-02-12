@@ -28,7 +28,9 @@ class SohuAlias(KolaAlias):
             '泰剧' : '泰国',
             '日剧' : '日本',
             '其他' : '其他',
-            '情景片' : '剧情片'
+            '情景片' : '剧情片',
+            '游戏竞技' : '游戏',
+            '娱乐节目' : '娱乐'
         }
 
 class SohuVideo(kola.VideoBase):

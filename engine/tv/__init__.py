@@ -28,15 +28,15 @@ class LiveEngine(VideoEngine):
         # 引擎菜单
         self.menu = []
 
-        #self.AddMenu(JianSuLiveTV ('江苏'))
-        #self.AddMenu(ZheJianLiveTV('浙江'))
-        #self.AddMenu(AnHuiLiveTV  ('安徽'))
-        #self.AddMenu(XinJianLiveTV('新疆'))
-        #self.AddMenu(GuangXiLiveTV('广西'))
-        #self.AddMenu(JilingLiveTV ('吉林'))
-        #self.AddMenu(CuLiveTV     ('CuTV'))
+        self.AddMenu(JianSuLiveTV ('江苏'))
+        self.AddMenu(ZheJianLiveTV('浙江'))
+        self.AddMenu(AnHuiLiveTV  ('安徽'))
+        self.AddMenu(XinJianLiveTV('新疆'))
+        self.AddMenu(GuangXiLiveTV('广西'))
+        self.AddMenu(JilingLiveTV ('吉林'))
+        self.AddMenu(CuLiveTV     ('CuTV'))
         self.AddMenu(CntvLiveTV   ("CNTV"))
-        #self.AddMenu(SohuLiveTV   ('Sohu'))
+        self.AddMenu(SohuLiveTV   ('Sohu'))
         self.AddMenu(LetvLiveTV   ('Letv'))
 
     def AddMenu(self, menu):

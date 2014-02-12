@@ -11,7 +11,7 @@ class ParserCutvLivetv(LivetvParser):
         super().__init__()
         self.area = ''
 
-        if station == 'all':
+        if station == None:
             self.cmd['step'] = 1
             self.cmd['source'] = 'http://ugc.sun-cam.com/api/tv_live_api.php?action=tv_live'
         elif station and id:
@@ -28,7 +28,6 @@ class ParserCutvLivetv(LivetvParser):
         elif js['step'] == 2:
             self.CmdParserTV(js)
 
-
     def CmdParserAll(self, js):
         text = js['data']
         root = ElementTree.fromstring(text)
@@ -38,23 +37,29 @@ class ParserCutvLivetv(LivetvParser):
     def CmdParserTV(self, js):
         db = LivetvDB()
         text = js['data']
+        tv_id = js['id']
         city = City()
         self.area = city.GetCity(js['station'])
         root = ElementTree.fromstring(text)
         for p in root.findall('channel'):
             name = p.findtext('channel_name')
+            channel_id = p.findtext('channel_id')
             album  = self.NewAlbum(name)
             album.categories = self.tvCate.GetCategories(album.albumName)
             album.area       = self.area
 
-            album.channel_id  = p.findtext('channel_id')
+            album.channel_id  = channel_id
             album.largePicUrl = p.findtext('thumb')
 
             url = p.findtext('mobile_url')
             v = album.NewVideo()
             v.priority = 2
             v.name     = "CUTV"
-            v.SetVideoUrl('default', {'text' : url})
+
+            v.SetVideoUrl('default', {
+                'script' : 'cutv',
+                'parameters' : [tv_id, channel_id]
+            })
 
             x = url.split('/')
             if len(x) > 4:

@@ -33,7 +33,6 @@
 #endif
 
 #define MAX_THREAD_POOL_SIZE 8
-#define TRY_TIMES 3
 
 static string loginKey;
 static string loginKeyCookie;
@@ -190,7 +189,6 @@ bool KolaClient::InternetReady()
 {
 	return gethostbyname(SERVER_HOST) != NULL;
 }
-
 
 string& KolaClient::GetServer() {
 	if (base_url.empty()) {

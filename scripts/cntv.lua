@@ -26,16 +26,9 @@ function find(var, tag, key, value)
 end
 
 function check_m3u8(url)
-	maps = {
-		'http://hdshls.cntv.chinacache.net',
-		'http://vapptime1.cntv.chinacache.net',
-	}
-	for _, u in pairs(maps) do
-		local furl = u .. url
-		local text = kola.wget(furl, false)
-		if text ~= nil and string.find(text, "EXTM3U") ~= nil then
-			return furl
-		end
+	local text = kola.wget(url, false)
+	if text ~= nil and string.find(text, "EXTM3U") ~= nil then
+		return url
 	end
 
 	return nil
@@ -74,15 +67,36 @@ function geturl_hds(url, aid)
 end
 
 function cctv_p2p_url(vid, aid)
-	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s", vid)
+	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s&client=html5", vid)
 	local text = kola.wget(url, false)
 	local video_url = ''
 	if text ~= nil then
+		local hls_vod_url = ''
+
 		text = kola.pcre("var html5VideoData = '(.*)';", text)
 		--print(text)
 		local js = cjson.decode(text)
 
+		if js.hls_url ~= nil then
+			if js.hls_url.hls1 ~= nil and js.hls_url.hls1 ~= '' then
+				hls_vod_url = js.hls_url.hls1
+			else
+				hls_vod_url = js.hls_url.hls2
+			end
+
+			video_url = check_m3u8(hls_vod_url)
+			if video_url ~= nil then
+				return video_url
+			end
+		end
+
+		video_url = js['hds_url']['hds2']
+		if string.find(video_url, "http://") ~= nil and string.find(video_url, "channel") ~= nil then
+			return video_url
+		end
+
 		-- 如果有 hds
+		video_url = ''
 		if js['hds_url'] ~= nil then
 			local u = js['hds_url']['hds1']
 			if string.find(u, "http://") ~= nil and string.find(u, "f4m") ~= nil then
@@ -91,15 +105,6 @@ function cctv_p2p_url(vid, aid)
 					return u
 				end
 			end
-			local u = js['hds_url']['hds2']
-			if string.find(u, "http://") ~= nil and string.find(u, "channel") ~= nil then
-				return u
-			end
-		end
-
-		-- 如果有 hls
-		for a, url in pairs(js["hls_url"]) do
-			video_url = check_m3u8(url)
 		end
 	end
 

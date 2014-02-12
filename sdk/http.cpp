@@ -6,6 +6,7 @@
 #include "http.hpp"
 
 #define NETWORK_TIMEOUT 10
+#define TRY_TIME 1
 
 inline static unsigned char toHex(unsigned char x) {
 	return x > 9 ? x + 55 : x + 48;
@@ -223,7 +224,7 @@ const char *Http::curlGetCurlURL(int times)
 {
 	CURLcode res;
 
-	if (times > 3)
+	if (times >= TRY_TIME)
 		return NULL;
 
 	buffer.reset();

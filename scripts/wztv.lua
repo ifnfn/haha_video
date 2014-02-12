@@ -30,7 +30,7 @@ function get_channel(vid)
 			d.min=tonumber(string.sub(t, string.find(t, ":") + 1))
 			d.sec= 0
 			ret[k] = {}
-			ret[k].time_string = v.start
+			ret[k].time_string = string.format('')
 			ret[k].time = os.time(d)
 			ret[k].duration = 0
 			ret[k].title = v.name

@@ -152,6 +152,20 @@ static int lua_gettime(lua_State *L)
 	return 1;
 }
 
+static int lua_getdate(lua_State *L)
+{
+	time_t now = KolaClient::Instance().GetTime();
+
+	struct tm *tm_now = gmtime(&now);
+
+	tm_now->tm_sec = tm_now->tm_min = tm_now->tm_hour = 0;
+	now = mktime(tm_now);
+
+	lua_pushnumber(L, now);
+
+	return 1;
+}
+
 static int lua_urlencode(lua_State *L)
 {
 	string txt = lua_tostring(L, 1);
@@ -281,6 +295,7 @@ static const struct luaL_Reg kola_lib[] = {
 	{"pcre"          , lua_pcre},
 	{"getserver"     , lua_getserver},
 	{"gettime"       , lua_gettime},
+	{"getdate"       , lua_getdate},
 	{"urlencode"     , lua_urlencode},
 	{"urldecode"     , lua_urldecode},
 	{"date"          , lua_date},

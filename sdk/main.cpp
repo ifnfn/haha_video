@@ -144,7 +144,7 @@ void test_livetv()
 //				player.AddVideo(video);
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
-#if 0
+#if 1
 				KolaEpg epg;
 
 				video->GetEPG(epg);
@@ -159,6 +159,7 @@ void test_livetv()
 #endif
 			}
 		}
+		break;
 #endif
 	}
 #endif

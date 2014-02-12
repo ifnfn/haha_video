@@ -59,5 +59,32 @@ function kola_main(tv_id, channel_id)
 end
 
 function get_channel(vid)
-	return ""
+	local url = string.format('http://cls.cutv.com/live/ajax/getprogrammelist2/id/%s/callback/callTslEpg', vid)
+	local text = kola.wget(url)
+	local ret = {}
+
+	--print(url)
+	if text ~= nil then
+		text = kola.pcre("callTslEpg\\((.*)\\)", text)
+		local js = cjson.decode(text)
+
+		for id, ch in ipairs(js.list) do
+			local date = ch.daytime / 1000
+			if date == kola.getdate() then
+				for k,a in ipairs(ch.programme) do
+					local start_time = date + a.s / 1000
+					ret[k] = {}
+					ret[k].time_string = os.date("%H:%M", start_time)
+					ret[k].time        = start_time
+					ret[k].duration    = 0
+					ret[k].title       = a.t
+					if k > 1 then
+						ret[k-1].duration = os.difftime(ret[k].time, ret[k-1].time)
+					end
+				end
+			end
+		end
+	end
+
+	return cjson.encode(ret)
 end

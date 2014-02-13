@@ -293,7 +293,7 @@ class ParserShowList(KolaParser):
 
         json = tornado.escape.json_decode(js['data'])
         for a in json['data_list']:
-            albumName = db.GetAlbumName(a['albumName'])
+            albumName = db.GetAlbumName(a['name'])
             if not albumName:
                 continue
             album = LetvAlbum()
@@ -307,6 +307,33 @@ class ParserShowList(KolaParser):
 
                 album.enAlbumName = ''  # 英文名称
 
+                if 'images' in a:
+                    images = a['images']
+
+                    # 横大图
+                    if   '970*300' in images: album.largeHorPicUrl = images['970*300']
+                    elif '400*300' in images: album.largeHorPicUrl = images['400*300']
+                    elif '220*145' in images: album.largeHorPicUrl = images['220*145']
+
+                    # 横小图
+                    if   '160*120' in images: album.smallHorPicUrl = images['160*120']
+                    elif '130*80'  in images: album.smallHorPicUrl = images['130*80']
+                    elif '120*90'  in images: album.smallHorPicUrl = images['120*90']
+                    elif '132*99'  in images: album.smallHorPicUrl = images['132*99']
+                    elif '128*96'  in images: album.smallHorPicUrl = images['128*96']
+
+                    # 竖小图
+                    if   '150*200' in images: album.smallVerPicUrl = images['150*200']
+                    elif '96*128'  in images: album.smallVerPicUrl = images['96*128']
+                    elif '90*120'  in images: album.smallVerPicUrl = images['90*120']
+
+                    # 竖大图
+                    if   '600*800' in images: album.largeVerPicUrl = images['600*800']
+                    elif '300*400' in images: album.largeVerPicUrl = images['300*400']
+
+                    album.largePicUrl      = album.largeVerPicUrl
+                    album.smallPicUrl      = album.smallVerPicUrl
+
                 if 'subname' in a:         album.subName        = a['subname']
                 if 'areaName' in a:        album.area           = self.alias.Get(a['areaName'])                      # 地区
                 if 'subCategoryName' in a: album.categories     = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
@@ -317,10 +344,22 @@ class ParserShowList(KolaParser):
                 if 'weekCount' in a:       album.weeklyPlayNum  = autoint(a['weekCount'])  # 每周播放次数
                 if 'monthCount' in a:      album.monthlyPlayNum = autoint(a['monthCount']) # 每月播放次数
                 if 'playCount' in a:       album.totalPlayNum   = autoint(a['playCount'])  # 总播放次数
+                if 'rating' in a:
+                    album.videoScore       = autofloat(a['rating']) * 10                  # 推荐指数
+                    album.dailyIndexScore  = autofloat(a['rating']) * 10  # 每日指数
 
-                if 'vid' in a:
+                if 'vids' in a:
+                    vids = a['vids']
+                    if vids:
+                        vids = vids.split(',')
+                        if not vids[0]:
+                            pass
+                        album.letv.vid = vids[0]
+                        album.albumPageUrl = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(vids[0])
+                elif 'vid' in a:
                     album.letv.vid = a['vid']
-                    album.albumPageUrl = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
+                    album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
+
                 if 'aid' in a:
                     album.letv.playlistid = a['aid']
 
@@ -398,7 +437,7 @@ class LetvShow(LetvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 5
-        self.HomeUrlList = ['http://list.letv.com/apin/chandata.json?c=11&d=2&md=&o=1&p=2&s=1']
+        self.HomeUrlList = ['http://list.letv.com/apin/chandata.json?c=11&d=1&md=&o=20&p=1&s=3']
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):

@@ -31,7 +31,7 @@ class KolatvServer:
         self.MenuList['电视剧'] = element.TVMenu('电视剧')              # 2
         self.MenuList['动漫']   = element.ComicMenu('动漫')            # 3
         self.MenuList['记录片'] = element.DocumentaryMenu('记录片')     # 4
-        #self.MenuList['综艺']   = element.ShowMenu('综艺')             # 5
+        self.MenuList['综艺']   = element.ShowMenu('综艺')             # 5
         #self.MenuList['教育']   = element.EduMenu('教育')              # 6
         #self.MenuList['娱乐']   = element.YuleMenu('娱乐')             # 7
         #self.MenuList['旅游']   = element.TourMenu('旅游')             # 8

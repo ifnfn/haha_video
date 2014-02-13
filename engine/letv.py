@@ -141,7 +141,6 @@ class LetvDB(DB, Singleton):
         self.albumNameAlias = {}   # 别名
         self.blackAlbumName = {}   # 黑名单
 
-
     # 从数据库中找到 album
     def FindAlbumJson(self, playlistid='', albumName=''):
         playlistid = autostr(playlistid)
@@ -202,22 +201,19 @@ class ParserAlbumList(KolaParser):
             if album_js:
                     album.LoadFromJson(album_js)
 
-            if a['aid'] == '86913':
-                pass
-
             try:
-                album.albumName       = db.GetAlbumName(a['name'])
+                album.albumName = db.GetAlbumName(a['name'])
                 if not album.albumName:
                     continue
                 album.vid = utils.genAlbumId(album.albumName)
                 album.cid = js['cid']
 
-                album.enAlbumName      = ''                                                 # 英文名称
+                album.enAlbumName      = ''  # 英文名称
 
-                if 'subname' in a:         album.subName          = a['subname']
-                if 'areaName' in a:        album.area             = self.alias.Get(a['areaName'])                      # 地区
-                if 'subCategoryName' in a: album.categories       = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
-                if 'releaseDate' in a:     album.publishYear      = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
+                if 'subname' in a:         album.subName     = a['subname']
+                if 'areaName' in a:        album.area        = self.alias.Get(a['areaName'])                      # 地区
+                if 'subCategoryName' in a: album.categories  = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
+                if 'releaseDate' in a:     album.publishYear = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
 
                 if 'vids' in a:
                     vids = a['vids']
@@ -226,12 +222,10 @@ class ParserAlbumList(KolaParser):
                         if not vids[0]:
                             pass
                         album.letv.vid = vids[0]
-                        album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(vids[0])
+                        album.albumPageUrl = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(vids[0])
                 elif 'vid' in a:
                     album.letv.vid = a['vid']
                     album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
-                else:
-                    print('aaa')
 
                 if 'poster20' in a:    album.largePicUrl      = a['poster20']                # 大图 post20 最大的
                 if 'postS3' in a:      album.smallPicUrl      = a['postS3']                  # 小图 // postS1 小中大的，postS3 小中最小的
@@ -280,6 +274,76 @@ class ParserAlbumList(KolaParser):
                 newurl = re.sub(link, 'p=%d' % (current_page + 1), js['source'])
                 ParserAlbumList(newurl, js['cid']).Execute()
 
+# 节目列表
+class ParserShowList(KolaParser):
+    alias = LetvAlias()
+    def __init__(self, url=None, cid=0):
+        super().__init__()
+        if url and cid:
+            self.cmd['source']  = url
+            self.cmd['cid']     = cid
+
+    def CmdParser(self, js):
+        def TimeStr(t):
+            return time.strftime('%Y-%m-%d', time.gmtime(autoint(t) / 1000))
+
+        if not js['data']: return
+
+        db = LetvDB()
+
+        json = tornado.escape.json_decode(js['data'])
+        for a in json['data_list']:
+            albumName = db.GetAlbumName(a['albumName'])
+            if not albumName:
+                continue
+            album = LetvAlbum()
+            album_js = DB().FindAlbumJson(albumName=albumName)
+            if album_js:
+                    continue
+            try:
+                album.albumName = albumName
+                album.vid = utils.genAlbumId(album.albumName)
+                album.cid = js['cid']
+
+                album.enAlbumName = ''  # 英文名称
+
+                if 'subname' in a:         album.subName        = a['subname']
+                if 'areaName' in a:        album.area           = self.alias.Get(a['areaName'])                      # 地区
+                if 'subCategoryName' in a: album.categories     = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
+                if 'releaseDate' in a:     album.publishYear    = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
+                if 'mtime' in a:           album.updateTime     = TimeStr(a['mtime'])      # 更新时间
+                if 'description' in a:     album.albumDesc      = a['description']         # 简介
+                if 'dayCount' in a:        album.dailyPlayNum   = autoint(a['dayCount'])   # 每日播放次数
+                if 'weekCount' in a:       album.weeklyPlayNum  = autoint(a['weekCount'])  # 每周播放次数
+                if 'monthCount' in a:      album.monthlyPlayNum = autoint(a['monthCount']) # 每月播放次数
+                if 'playCount' in a:       album.totalPlayNum   = autoint(a['playCount'])  # 总播放次数
+
+                if 'vid' in a:
+                    album.letv.vid = a['vid']
+                    album.albumPageUrl = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
+                if 'aid' in a:
+                    album.letv.playlistid = a['aid']
+
+                album.letv.videoListUrl = {
+                    'script'     : 'letv',
+                    'function'   : 'get_videolist',
+                    'parameters' : [album.letv.playlistid, album.letv.vid]
+                }
+
+                db.SaveAlbum(album)
+            except:
+                t, v, tb = sys.exc_info()
+                print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+
+        if len(json['data_list']) > 0:
+            g = re.search('p=(\d+)', js['source'])
+            if g:
+                current_page = int(g.group(1))
+                link = re.compile('p=\d+')
+                newurl = re.sub(link, 'p=%d' % (current_page + 1), js['source'])
+                ParserShowList(newurl, js['cid']).Execute()
+
+
 class LetvVideoMenu(kola.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
@@ -315,20 +379,12 @@ class LetvTV(LetvVideoMenu):
         self.cid = 2
         self.HomeUrlList = ['http://list.letv.com/api/chandata.json?c=2&o=20&p=2&s=1']
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 动漫
 class LetvComic(LetvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 3
         self.HomeUrlList = ['http://list.letv.com/apin/chandata.json?c=5&d=1&md=&o=20&p=1&s=1']
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
 
 # 记录片
 class LetvDocumentary(LetvVideoMenu):
@@ -337,10 +393,6 @@ class LetvDocumentary(LetvVideoMenu):
         self.cid = 4
         self.HomeUrlList = ['http://list.letv.com/api/chandata.json?c=16&d=2&md=&o=1&p=1&t=119']
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 综艺
 class LetvShow(LetvVideoMenu):
     def __init__(self, name):
@@ -348,10 +400,10 @@ class LetvShow(LetvVideoMenu):
         self.cid = 5
         self.HomeUrlList = ['http://list.letv.com/apin/chandata.json?c=11&d=2&md=&o=1&p=2&s=1']
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
+    # 更新该菜单下所有节目列表
+    def UpdateAlbumList(self):
+        for url in self.HomeUrlList:
+            ParserShowList(url, self.cid).Execute()
 
 # Letv 搜索引擎
 class LetvEngine(VideoEngine):
@@ -363,12 +415,14 @@ class LetvEngine(VideoEngine):
 
         # 引擎主菜单
         self.menu = [
-            LetvMovie('电影'),
-            LetvTV('电视剧'),
-            LetvComic('动漫'),
-            LetvDocumentary('记录片'),
+            #LetvMovie('电影'),
+            #LetvTV('电视剧'),
+            #LetvComic('动漫'),
+            #LetvDocumentary('记录片'),
+            LetvShow('综艺')
         ]
 
         self.parserList = [
             ParserAlbumList(),
+            ParserShowList(),
         ]

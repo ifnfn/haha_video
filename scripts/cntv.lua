@@ -66,7 +66,7 @@ function geturl_hds(url, aid)
 	return video_url
 end
 
-function cctv_p2p_url(vid, aid)
+function kola_main(vid, aid)
 	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s&client=html5", vid)
 	local text = kola.wget(url, false)
 	local video_url = ''
@@ -77,6 +77,7 @@ function cctv_p2p_url(vid, aid)
 		--print(text)
 		local js = cjson.decode(text)
 
+		-- 如果有 hls
 		if js.hls_url ~= nil then
 			if js.hls_url.hls1 ~= nil and js.hls_url.hls1 ~= '' then
 				hls_vod_url = js.hls_url.hls1
@@ -90,29 +91,24 @@ function cctv_p2p_url(vid, aid)
 			end
 		end
 
-		video_url = js['hds_url']['hds2']
-		if string.find(video_url, "http://") ~= nil and string.find(video_url, "channel") ~= nil then
-			return video_url
-		end
-
 		-- 如果有 hds
-		video_url = ''
 		if js['hds_url'] ~= nil then
-			local u = js['hds_url']['hds1']
-			if string.find(u, "http://") ~= nil and string.find(u, "f4m") ~= nil then
-				u = geturl_hds(u, aid)
-				if u ~= nil then
-					return u
+			video_url = js['hds_url']['hds2']
+			if string.find(video_url, "http://") ~= nil and string.find(video_url, "channel") ~= nil then
+				return video_url
+			end
+
+			video_url = js['hds_url']['hds1']
+			if string.find(video_url, "http://") ~= nil and string.find(video_url, "f4m") ~= nil then
+				video_url = geturl_hds(video_url, aid)
+				if video_url ~= nil then
+					return video_url
 				end
 			end
 		end
 	end
 
-	return video_url
-end
-
-function kola_main(vid, aid)
-	return cctv_p2p_url(vid, aid)
+	return ''
 end
 
 function get_channel(vid)

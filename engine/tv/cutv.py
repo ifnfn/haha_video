@@ -10,6 +10,11 @@ class ParserCutvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):
         super().__init__()
         self.area = ''
+        self.Alias = {
+            "绍兴影视娱乐" : '绍兴-文化影视频道',
+            "绍兴公共频道" : '绍兴-公共频道',
+            "绍兴新闻综合" : '绍兴-新闻综合频道',
+        }
 
         if station == None:
             self.cmd['step'] = 1

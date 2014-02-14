@@ -9,7 +9,7 @@ import tornado.escape
 from kola import DB, autostr, autoint, Singleton, utils
 import kola
 
-from .engines import VideoEngine, KolaParser, KolaAlias, EngineCommands
+from .engines import VideoEngine, KolaParser, KolaAlias, EngineCommands, EngineVideoMenu
 
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
@@ -376,7 +376,7 @@ class ParserAlbumHotList(KolaParser):
                         album.UpdateFullInfoCommand()
                         album.UpdateScoreCommand()
 
-class SohuVideoMenu(kola.VideoMenuBase):
+class SohuVideoMenu(EngineVideoMenu):
     def __init__(self, name):
         super().__init__(name)
 
@@ -386,17 +386,12 @@ class SohuVideoMenu(kola.VideoMenuBase):
             self.HomeUrlList = []
 
         self.albumClass = SohuAlbum
+        self.DBClass = SohuDB
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:
             ParserAlbumList(url, self.cid).Execute()
-
-    def UpdateAllScore(self):
-        for album in SohuDB().GetMenuAlbumList(self.cid):
-            album.UpdateScoreCommand()
-
-        EngineCommands().Execute()
 
     def UpdateHotList(self):
         # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3&encode=GBK

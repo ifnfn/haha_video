@@ -12,7 +12,7 @@ import tornado.escape
 from kola import DB, autostr, autoint, Singleton, utils
 import kola
 
-from .engines import VideoEngine, KolaParser, KolaAlias
+from .engines import VideoEngine, KolaParser, KolaAlias, EngineCommands, EngineVideoMenu
 
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
@@ -150,6 +150,14 @@ class QiyiAlbum(kola.AlbumBase):
     def UpdateFullInfoCommand(self):
         pass
 
+    # 更新节目指数信息
+    def UpdateScoreCommand(self):
+        'http://cache.video.qiyi.com/p/200206401/'
+        'http://score.video.qiyi.com/ud/200206401/'
+        if self.sohu.playlistid:
+            ParserAlbumPlayCount(self).Execute()
+            ParserAlbumScore(self).Execute()
+
 class QiyiDB(DB, Singleton):
     def __init__(self):
         super().__init__()
@@ -187,6 +195,28 @@ class QiyiDB(DB, Singleton):
     def SaveAlbum(self, album, upsert=True):
         if album.albumName and album.qiyi.vid:
             self._save_update_append(None, album, key={'private.QiyiEngine.vid' : album.qiyi.tvid}, upsert=upsert)
+
+class ParserAlbumPlayCount(KolaParser):
+    def __init__(self, album=None):
+        super().__init__()
+        if album:
+            self.cmd['albumName'] = album.albumName
+            album.qiyi.albumid
+            self.cmd['source']  = 'http://cache.video.qiyi.com/p/%s/' % album.qiyi.albumid
+
+    def CmdParser(self, js):
+        pass
+
+class ParserAlbumScore(KolaParser):
+    def __init__(self, album=None):
+        super().__init__()
+        if album:
+            self.cmd['albumName'] = album.albumName
+            album.qiyi.albumid
+            self.cmd['source']  = 'http://score.video.qiyi.com/ud/%s/' % album.qiyi.albumid
+
+    def CmdParser(self, js):
+        pass
 
 class ParserAlbumJsonAVList(KolaParser):
     def __init__(self, albumid=None, tvid=None, albumUrl=None, cid=None):
@@ -409,7 +439,6 @@ class ParserShowAlbumList(KolaParser):
             href = a.attrs['href']
             text = a.text
 
-
         try:
             db = QiyiDB()
 
@@ -483,21 +512,16 @@ class ParserShowAlbumList(KolaParser):
         if len(playlist) > 0:
                 ParserAlbumList(js['cid'], js['baseurl'], js['page'] + 1).Execute()
 
-class QiyiVideoMenu(kola.VideoMenuBase):
+class QiyiVideoMenu(EngineVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.albumClass = QiyiAlbum
+        self.DBClass = QiyiDB
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:
             ParserAlbumList(self.cid, url, 1).Execute()
-
-    def UpdateHotList(self):
-        pass
-
-    def UpdateAllScore(self):
-        pass
 
 # 电影
 class QiyiMovie(QiyiVideoMenu):
@@ -585,5 +609,7 @@ class QiyiEngine(VideoEngine):
             ParserAlbumJson(),
             ParserAlbumJsonA(),
             ParserAlbumJsonAVList(),
+            ParserAlbumPlayCount(),
+            ParserAlbumScore(),
         ]
 

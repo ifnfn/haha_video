@@ -5,7 +5,7 @@ import re
 import time, sys, traceback
 import tornado.escape
 
-from .engines import VideoEngine, KolaParser, KolaAlias
+from .engines import VideoEngine, KolaParser, KolaAlias, EngineCommands, EngineVideoMenu
 from kola import DB, autostr, autoint, autofloat, Singleton, utils
 import kola
 
@@ -135,6 +135,11 @@ class LetvAlbum(kola.AlbumBase):
     def UpdateFullInfoCommand(self):
         pass
 
+    # 更新节目指数信息
+    def UpdateScoreCommand(self):
+        if self.sohu.playlistid:
+            ParserPlayCount(self).Execute()
+
 class LetvDB(DB, Singleton):
     def __init__(self):
         super().__init__()
@@ -173,9 +178,29 @@ class LetvDB(DB, Singleton):
             self._save_update_append(None, album, key={'private.LetvEngine.playlistid' : album.letv.playlistid}, upsert=upsert)
 
 class ParserPlayCount(KolaParser):
-    def __init__(self):
+    def __init__(self, album=None):
         super().__init__()
-        self.cmd['source'] = 'http://stat.letv.com/vplay/queryMmsTotalPCount?mid=3574083&pid=92280&platform=101&cid=2&vid=2209753'
+        if album:
+            self.cmd['name'] = album.albumName
+            self.cmd['source'] = 'http://stat.letv.com/vplay/queryMmsTotalPCount?pid=%d&vid=%d' % ( album.letv.playlistid, album.letv.vid)
+
+    def CmdParser(self, js):
+        if not js['data']: return
+
+        db = LetvDB()
+        album = LetvAlbum()
+        album_js = DB().FindAlbumJson(albumName=js['name'])
+        if album_js:
+                album.LoadFromJson(album_js)
+
+        json = tornado.escape.json_decode(js['data'])
+        json['plist_play_count']
+        album.videoScore       = autofloat(json['plist_score']) * 10                  # 推荐指数
+        album.dailyIndexScore  = autofloat(json['plist_score']) * 10  # 每日指数
+        if 'plist_play_count' in json:
+            album.dailyPlayNum     = autoint(json['dayCount'])       # 每日播放次数
+
+        db.SaveAlbum(album)
 
 # 节目列表
 class ParserAlbumList(KolaParser):
@@ -383,21 +408,16 @@ class ParserShowList(KolaParser):
                 ParserShowList(newurl, js['cid']).Execute()
 
 
-class LetvVideoMenu(kola.VideoMenuBase):
+class LetvVideoMenu(EngineVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.albumClass = LetvAlbum
+        self.DBClass = LetvDB
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:
             ParserAlbumList(url, self.cid).Execute()
-
-    def UpdateHotList(self):
-        pass
-
-    def UpdateAllScore(self):
-        pass
 
 # 电影
 class LetvMovie(LetvVideoMenu):
@@ -464,4 +484,5 @@ class LetvEngine(VideoEngine):
         self.parserList = [
             ParserAlbumList(),
             ParserShowList(),
+            ParserPlayCount(),
         ]

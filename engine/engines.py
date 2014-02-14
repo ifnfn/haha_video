@@ -6,7 +6,7 @@ import json
 import sys
 import traceback
 
-from kola import DB, KolaCommand
+from kola import DB, KolaCommand, VideoMenuBase
 
 
 global Debug
@@ -95,6 +95,26 @@ class KolaParser:
         self.AddCommand()
         self.command.Execute()
 
+class EngineVideoMenu(VideoMenuBase):
+    def __init__(self, name):
+        super().__init__(name)
+        self.DBClass = DB
+
+    # 更新该菜单下所有节目列表
+    def UpdateAlbumList(self):
+        pass
+
+    # 更新排名数据
+    def UpdateAllScore(self):
+        for album in self.DBClass().GetMenuAlbumList(self.cid):
+            album.UpdateScoreCommand()
+
+        EngineCommands().Execute()
+
+    # 更新热门节目列表
+    def UpdateHotList(self):
+        pass
+
 class VideoEngine:
     def __init__(self):
         self.engine_name = 'EngineBase'
@@ -152,4 +172,3 @@ class VideoEngine:
     # 更新热门节目信息
     def UpdateAllHotList(self):
         print("UpdateAllHotList")
-

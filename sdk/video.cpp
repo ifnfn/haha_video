@@ -8,22 +8,14 @@
 #include "threadpool.hpp"
 
 
-KolaVideo::KolaVideo()
-{
-}
-
-KolaVideo::~KolaVideo()
-{
-}
-
 void KolaVideo::Parser(json_t *js)
 {
 	json_gets(js   , "name"         , name);
 	json_gets(js   , "pid"          , pid);
 	json_gets(js   , "vid"          , vid);
-	cid            = (int)json_geti(js   , "cid"            , 0);
-	order          = (int)json_geti(js   , "order"          , 0);
-	isHigh         = (int)json_geti(js   , "isHigh"         , 0);
+	cid            = (int)json_geti(js   , "cid"       , 0);
+	order          = (int)json_geti(js   , "order"     , 0);
+	isHigh         = (int)json_geti(js   , "isHigh"    , 0);
 
 	videoPlayCount = json_geti(js   , "videoPlayCount" , 0);
 	videoScore     = json_getreal(js, "videoScore"     , 0.0);
@@ -36,15 +28,14 @@ void KolaVideo::Parser(json_t *js)
 	json_gets(js   , "smallPicUrl"  , smallPicUrl);
 	json_gets(js   , "largePicUrl"  , largePicUrl);
 	json_gets(js   , "directPlayUrl", directPlayUrl);
-	width          = (int)json_geti(js, "width", 0);
-	height         = (int)json_geti(js, "height", 0);
+	width          = (int)json_geti(js, "width"     , 0);
+	height         = (int)json_geti(js, "height"    , 0);
 	totalBytes     = (int)json_geti(js, "totalBytes", 0);
-	fps            = (int)json_geti(js, "fps", 0);
+	fps            = (int)json_geti(js, "fps"       , 0);
 
 	json_get_variant(js, "info", &sc_info);
 	json_get_variant(js, "resolution", &Resolution);
 	Resolution.vid = vid;
-	//cout << resolution.ToString() << endl;
 }
 
 void KolaVideo::GetResolution(StringList& res)
@@ -202,4 +193,3 @@ void UrlCache::Update()
 	}
 	mutex.unlock();
 }
-

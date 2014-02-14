@@ -114,9 +114,9 @@ void KolaAlbum::Parser(json_t *js)
 	json_gets(js, "albumName"  , albumName);
 	json_gets(js, "albumDesc"  , albumDesc);
 	json_gets(js, "vid"        , vid);
-	cid            =  (int)json_geti(js, "cid"        , 0);
-	isHigh         =  (int)json_geti(js, "isHigh"     , 0);
-	publishYear    =  (int)json_geti(js, "publishYear", 0);
+	cid            = (int)json_geti(js, "cid"        , 0);
+	isHigh         = (int)json_geti(js, "isHigh"     , 0);
+	publishYear    = (int)json_geti(js, "publishYear", 0);
 	totalSet       = json_geti(js, "totalSet"   , 0);
 	updateSet      = json_geti(js, "updateSet"  , totalSet);
 

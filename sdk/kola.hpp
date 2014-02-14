@@ -363,7 +363,7 @@ public:
 	virtual void   FilterRemove(string key) = 0;
 	virtual string GetQuickFilter() = 0;
 	virtual bool   SetQuickFilter(string) = 0;
-	virtual void   SetSort(string v, string s) = 0;
+	virtual void   SetSort(string v, string s="1") = 0;
 
 	virtual AlbumPage &GetPage(int pageNo = -1) = 0;
 	virtual void   SetPageSize(int size) = 0;
@@ -377,9 +377,6 @@ public:
 
 class KolaVideo: public IVideo {
 public:
-	KolaVideo();
-	virtual ~KolaVideo();
-
 	virtual void Parser(json_t *js);
 
 	virtual void GetResolution(StringList& res);

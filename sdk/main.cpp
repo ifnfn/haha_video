@@ -234,11 +234,12 @@ void test_video(const char *menuName)
 	}
 	//m->FilterAdd("类型", "爱情片");
 	//m->FilterAdd("产地", "香港,台湾");
+	m->FilterAdd("年份", "2013");
 	//m->SetQuickFilter("推荐电影");
 	//m->SetQuickFilter("日韩电影");
 
-	//m->SetSort("周播放最多", 1);
-	//m->SetSort("评分最高", 1);
+	//m->SetSort("周播放最多");
+	//m->SetSort("评分最高");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
@@ -381,8 +382,8 @@ int main(int argc, char **argv)
 
 	//test_custommenu();
 	//return 0;
-	printf("Test LiveTV\n"); test_livetv();
-	return 0;
+	//printf("Test LiveTV\n"); test_livetv();
+	//return 0;
 
 	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

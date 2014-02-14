@@ -47,12 +47,12 @@ void KolaWeather::Run(void)
 				
 				json_t *v = json_geto(info, "day");
 				if (v) {
-					w->day.picture       = json_gets(v, "picture", "");
-					w->day.code          = json_gets(v, "code", "");
-					w->day.weather       = json_gets(v, "weather", "");
-					w->day.temp          = json_gets(v, "temp", ""); 
-					w->day.windDirection = json_gets(v, "windDirection", "");
-					w->day.windPower     = json_gets(v, "windPower", ""); 
+					w->day.picture         = json_gets(v, "picture", "");
+					w->day.code            = json_gets(v, "code", "");
+					w->day.weather         = json_gets(v, "weather", "");
+					w->day.temp            = json_gets(v, "temp", "");
+					w->day.windDirection   = json_gets(v, "windDirection", "");
+					w->day.windPower       = json_gets(v, "windPower", "");
 				}
 				v = json_geto(info, "night");
 				if (v) {

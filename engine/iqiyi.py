@@ -346,10 +346,11 @@ class ParserAlbumPage(KolaParser):
 
 # 节目列表
 class ParserAlbumList(KolaParser):
-    def __init__(self, cid=0, page=1):
+    def __init__(self, cid=0, url=None, page=0):
         super().__init__()
-        if cid and page:
-            self.cmd['source']  = 'http://list.iqiyi.com/www/%d/-6---------0--2-2-%d-1---.html' % (cid, page)
+        if cid and page and url:
+            self.cmd['baseurl'] = url
+            self.cmd['source']  = url % page
             self.cmd['regular'] = ['(<a  class="pic_list imgBg1"[\s\S]*?</a>)']
             #self.cmd['regular'] = ['class="imgBg1 pic_list" (href=".*")']
             #self.cmd['regular'] = ['(data-qidanadd-tvid=".*")']
@@ -383,7 +384,104 @@ class ParserAlbumList(KolaParser):
                 ParserAlbumPage(href, js['cid']).Execute()
 
         if len(playlist) > 0:
-                ParserAlbumList(js['cid'], js['page'] + 1).Execute()
+                ParserAlbumList(js['cid'], js['baseurl'], js['page'] + 1).Execute()
+
+# 综艺节目列表
+class ParserShowAlbumList(KolaParser):
+    def __init__(self, cid=0, url=None, page=0):
+        super().__init__()
+        if cid and page and url:
+            self.cmd['baseurl'] = url
+            self.cmd['source']  = url % page
+            #<a rseat="list_lm" href="http://www.iqiyi.com/zongyi/fsdby.html">风尚东北亚</a>
+            self.cmd['regular'] = ['(<a rseat="list_lm" href=([\s\S]*?)</a>)']
+            #self.cmd['regular'] = ['(<a  class="pic_list imgBg1"[\s\S]*?</a>)']
+            self.cmd['cid']     = cid
+            self.cmd['page']    = page
+
+    def CmdParser(self, js):
+        if not js['data']: return
+
+        soup = bs(js['data'])  # , from_encoding = 'GBK')
+        playlist = soup.findAll('a', { "rseat" : "list_lm" })
+        #playlist = js['data'].split()
+        for a in playlist:
+            href = a.attrs['href']
+            text = a.text
+
+
+        try:
+            db = QiyiDB()
+
+            text = re.findall('AlbumInfo=([\s\S]*)', js['data'])
+            if text:
+                text = text[0]
+            json = tornado.escape.json_decode(text)
+            if json['code'] != 'A00000':
+                return
+
+            json = json['data']
+            albumName = db.GetAlbumName(json['tvName'])
+            if not albumName:
+                return
+
+            album = QiyiAlbum()
+            album_js = DB().FindAlbumJson(albumName=albumName)
+            if album_js:
+                    album.LoadFromJson(album_js)
+
+            album.albumName = albumName
+            album.vid = utils.genAlbumId(album.albumName)
+            #album.cid = json['albumType']
+            album.cid = js['cid']
+
+            if album.cid == 3:
+                a = ComicAlias
+            else:
+                a = alias
+
+            album.area             = a.Get(js['ar'])                           # 地区
+            album.categories       = a.GetStrings(js['tg'], ' ')               # 类型
+            #album.categories       = [v+"片" for v in js['tg'].split(' ')]     # 类型
+
+            album.publishYear      = autoint(json['tvYear']) // 10000          # 年
+
+            album.albumPageUrl     = json['purl']                              # 'vu'
+            album.largePicUrl      = json['tvPictureUrl']                      # 大图 post20 最大的
+
+            if not album.largePicUrl:
+                print(album.largePicUrl)
+            if 'episodeCounts' in json:
+                album.totalSet = autoint(json['episodeCounts'])                # 总集数
+            #if 'currentMaxEpisode' in json:
+            #   album.updateSet = autoint(json['currentMaxEpisode'])           # 当前更新集
+
+            if 'tvDesc' in json:     album.albumDesc      = json['tvDesc']     # 简介
+            if 'mainActors' in json: album.mainActors     = json['mainActors'] # 主演
+            if 'actors' in json:     album.directors      = json['actors']     # 导演
+
+            album.totalPlayNum     = autoint(json['playCounts'])               # 总播放次数
+
+            album.qiyi.vid     = js['videoid']
+            album.qiyi.albumid = js['albumid']
+            album.qiyi.tvid    = js['tvid']
+
+
+            album.qiyi.videoListUrl = {
+                'script'     : 'qiyi',
+                'function'   : 'get_videolist',
+                'parameters' : [album.qiyi.albumid, album.qiyi.vid, album.qiyi.tvid, album.cid, album.albumName]
+            }
+
+            db.SaveAlbum(album)
+        except:
+            t, v, tb = sys.exc_info()
+            print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
+
+
+        #http://search.video.iqiyi.com/searchDateAlbum/?source=%E7%9C%9F%E7%9B%B8&sortKey=6&cur=1&limit=300&cb=1
+        if len(playlist) > 0:
+                ParserAlbumList(js['cid'], js['baseurl'], js['page'] + 1).Execute()
 
 class QiyiVideoMenu(kola.VideoMenuBase):
     def __init__(self, name):
@@ -392,7 +490,8 @@ class QiyiVideoMenu(kola.VideoMenuBase):
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
-        ParserAlbumList(self.cid, 1).Execute()
+        for url in self.HomeUrlList:
+            ParserAlbumList(self.cid, url, 1).Execute()
 
     def UpdateHotList(self):
         pass
@@ -405,8 +504,7 @@ class QiyiMovie(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 1
-        self.HomeUrlList = ['http://list.qiyi.com/api/chandata.json?c=1&ph=1&s=1&o=20&p=1',
-                            'http://list.qiyi.com/api/chandata.json?c=1&ph=1&s=2&o=20&p=1']
+        self.HomeUrlList = ['http://list.iqiyi.com/www/1/------------2-1-%d-1---.html']
 
     # 更新热门电影信息
     def UpdateHotInfo(self):
@@ -417,7 +515,7 @@ class QiyiTV(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 2
-        self.HomeUrlList = ['http://list.iqiyi.com/www/1/-6---------0--2-2-1-1---.html']
+        self.HomeUrlList = ['http://list.iqiyi.com/www/2/------------2-1-%d-1---.html']
 
     # 更新热门电影信息
     def UpdateHotInfo(self):
@@ -428,8 +526,8 @@ class QiyiComic(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 3
-        self.HomeUrlList = ['http://list.iqiyi.com/www/4/------------2-1-1-1---.html',
-                            'http://list.iqiyi.com/www/15/------------2-1-1-0---.html',
+        self.HomeUrlList = ['http://list.iqiyi.com/www/4/------------2-1-%d-1---.html',
+                            'http://list.iqiyi.com/www/15/------------2-1-%d-0---.html',
                             ]
 
     # 更新热门电影信息
@@ -440,8 +538,24 @@ class QiyiComic(QiyiVideoMenu):
 class QiyiDocumentary(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
-        self.cid = 3
-        self.HomeUrlList = ['http://list.iqiyi.com/www/3/----------0--2-1-1-1---.html']
+        self.cid = 4
+        self.HomeUrlList = ['http://list.iqiyi.com/www/3/----------0--2-1-%d-1---.html']
+
+    # 更新热门电影信息
+    def UpdateHotInfo(self):
+        pass
+
+# 综艺
+class QiyiShow(QiyiVideoMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        self.cid = 5
+        self.HomeUrlList = ['http://list.iqiyi.com/www/6/------------2-1-%d-1---.html']
+
+    # 更新该菜单下所有节目列表
+    def UpdateAlbumList(self):
+        for url in self.HomeUrlList:
+            ParserShowAlbumList(self.cid, url, 1).Execute()
 
     # 更新热门电影信息
     def UpdateHotInfo(self):
@@ -461,10 +575,12 @@ class QiyiEngine(VideoEngine):
             QiyiTV('电视剧'),
             QiyiComic('动漫'),
             QiyiDocumentary('记录片'),
+            #QiyiShow('综艺'),
         ]
 
         self.parserList = [
             ParserAlbumList(),
+            ParserShowAlbumList(),
             ParserAlbumPage(),
             ParserAlbumJson(),
             ParserAlbumJsonA(),

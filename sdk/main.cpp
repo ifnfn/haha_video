@@ -144,7 +144,7 @@ void test_livetv()
 //				player.AddVideo(video);
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
-#if 1
+#if 0
 				KolaEpg epg;
 
 				video->GetEPG(epg);
@@ -159,7 +159,6 @@ void test_livetv()
 #endif
 			}
 		}
-		break;
 #endif
 	}
 #endif
@@ -238,7 +237,7 @@ void test_video(const char *menuName)
 	//m->SetQuickFilter("推荐电影");
 	//m->SetQuickFilter("日韩电影");
 
-	m->SetSort("周播放最多", 1);
+	//m->SetSort("周播放最多", 1);
 	//m->SetSort("评分最高", 1);
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
@@ -382,10 +381,10 @@ int main(int argc, char **argv)
 
 	//test_custommenu();
 	//return 0;
-	//printf("Test LiveTV\n"); test_livetv();
-	//return 0;
+	printf("Test LiveTV\n"); test_livetv();
+	return 0;
 
-	//printf("Test Video\n"); test_video("综艺"); return 0;
+	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
 	printf("Test Video\n"); test_video("电影"); return 0;
 	printf("Test TV\n");    test_video("电视剧"); return 0;

@@ -454,10 +454,10 @@ class LetvEngine(VideoEngine):
 
         # 引擎主菜单
         self.menu = [
-            #LetvMovie('电影'),
-            #LetvTV('电视剧'),
-            #LetvComic('动漫'),
-            #LetvDocumentary('记录片'),
+            LetvMovie('电影'),
+            LetvTV('电视剧'),
+            LetvComic('动漫'),
+            LetvDocumentary('记录片'),
             LetvShow('综艺')
         ]
 

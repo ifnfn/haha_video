@@ -577,8 +577,8 @@ class DB:
             return None
 
         f = []
-        if pid        : f.append({'pid' : pid})
-        if vid        : f.append({'vid' : vid})
+        if pid: f.append({'pid' : pid})
+        if vid: f.append({'vid' : vid})
 
         return self.videos_table.find_one({"$or" : f})
 

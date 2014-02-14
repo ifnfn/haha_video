@@ -48,8 +48,8 @@ class ParserTVIELivetv(LivetvParser):
             })
 
             v.info = {
-                'script' : 'tvie',
-                'function' : 'get_channel',
+                'script'     : 'tvie',
+                'function'   : 'get_channel',
                 'parameters' : ['http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])]
             }
 

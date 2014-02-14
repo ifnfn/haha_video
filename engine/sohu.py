@@ -166,6 +166,7 @@ class ParserAlbumList(KolaParser):
 
     def CmdParser(self, js):
         if not js['data']: return
+        cid = js['cid']
 
         db = SohuDB()
         needNextPage = False
@@ -190,7 +191,7 @@ class ParserAlbumList(KolaParser):
             if (not needNextPage) and (not db.FindAlbumJson(playlistid=playlistid, vid=vid)):
                 needNextPage = True
             if playlistid and vid:
-                ParserAlbumFullInfo(playlistid, vid).AddCommand()
+                ParserAlbumFullInfo(playlistid, vid, cid).AddCommand()
 
         needNextPage = True
         if needNextPage:
@@ -206,16 +207,18 @@ class ParserAlbumList(KolaParser):
 # 更新节目的完整信息
 class ParserAlbumFullInfo(KolaParser):
     alias = SohuAlias()
-    def __init__(self, playlistid=None, vid=None):
+    def __init__(self, playlistid=None, vid=None, cid=None):
         super().__init__()
-        if playlistid and vid:
+        if playlistid and vid and cid:
             self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (playlistid, vid)
+            self.cmd['cid'] = cid
 
     # 解析节目的完全信息
     # http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&playlistid=5112241
     # sohu_album_fullinfo
     def CmdParser(self, js):
         db = SohuDB()
+        cid = js['cid']
 
         json = tornado.escape.json_decode(js['data'])
         playlistid = autostr(json['playlistid'])
@@ -236,7 +239,7 @@ class ParserAlbumFullInfo(KolaParser):
         album.vid             = utils.genAlbumId(album.albumName)
 
         if 'albumPageUrl' in json   : album.albumPageUrl    = json['albumPageUrl']
-        if 'cid' in json            : album.cid             = autoint(json['cid'])
+        if 'cid' in json            : album.cid             = cid
         if 'playlistid' in json     : album.sohu.playlistid = playlistid
         if 'pid' in json            : album.sohu.pid        = pid
         if 'vid' in json            : album.sohu.vid        = vid
@@ -469,6 +472,7 @@ class SohuShow(SohuVideoMenu):
     def __init__(self, name):
         self.number = 106
         super().__init__(name)
+        self.cid = 5
 
     # 更新热门电影信息
     def UpdateHotInfo(self):
@@ -530,7 +534,7 @@ class SohuEngine(VideoEngine):
             SohuDocumentary('纪录片'), # 纪录片
            #SohuEdu('教育'), # 教育
            #SohuTour('旅游'), # 旅游
-           #SohuShow('综艺'), # 综艺
+            SohuShow('综艺'), # 综艺
            #SohuNew('新闻') # 新闻
            #SohuYule('娱乐'), # 娱乐
         ]

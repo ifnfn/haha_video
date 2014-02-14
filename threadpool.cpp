@@ -38,8 +38,10 @@ Thread::Thread(IThreadSubscriber &func) :_func(&func), _state(false)
 
 Thread::~Thread()
 {
-	if (_state)
+	if (_state) {
 		this->cancel();
+		this->join();
+	}
 	delete _func;
 }
 

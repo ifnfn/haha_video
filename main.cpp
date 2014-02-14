@@ -119,7 +119,7 @@ void test_livetv()
 		foreach(i->second, j)
 			cout << "\t:" << *j << endl;
 	}
-	m->FilterAdd("类型", "本省台");
+	//m->FilterAdd("类型", "本省台");
 	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
@@ -163,7 +163,7 @@ void test_livetv()
 	}
 #endif
 
-#if 1
+#if 0
 	for (size_t i=0; i < count; i++) {
 		IAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
@@ -187,6 +187,7 @@ void test_livetv()
 	}
 #endif
 
+#if 0
 	m->FilterAdd("类型", "卫视台");
 	count = m->GetAlbumCount();
 	for (size_t i=0; i < count; i++) {
@@ -206,6 +207,7 @@ void test_livetv()
 		size_t video_count = album->GetVideoCount();
 		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 	}
+#endif
 
 	printf("%s End!!!\n", __func__);
 }
@@ -231,7 +233,8 @@ void test_video(const char *menuName)
 		cout << *s << endl;
 	}
 	//m->FilterAdd("类型", "爱情片");
-	m->FilterAdd("产地", "香港,台湾");
+	//m->FilterAdd("产地", "香港,台湾");
+	m->FilterAdd("年份", "2013");
 	//m->SetQuickFilter("推荐电影");
 
 	//m->SetSort("周播放最多");
@@ -378,14 +381,15 @@ int main(int argc, char **argv)
 
 	//test_custommenu();
 	//return 0;
-	printf("Test LiveTV\n"); test_livetv();
-	return 0;
+	//printf("Test LiveTV\n"); test_livetv();
+	//return 0;
 
+	printf("Test Video\n"); test_video("电影"); return 0;
 	printf("Test Video\n"); test_video("电影");
 	printf("Test TV\n");    test_video("电视剧");
-//	while (true) {
-//		sleep(1);
-//	}
+	while (true) {
+		sleep(1);
+	}
 
 	//printf("end\n");
 	//test_task(); return 0;

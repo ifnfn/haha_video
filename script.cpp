@@ -5,6 +5,13 @@
 #include <iostream>
 #include <lua.hpp>
 #include <signal.h>
+#define __USE_GNU
+#include <unistd.h>
+#ifdef LINUX
+#include <crypt.h>
+#endif
+
+//#include <openssl/aes.h>
 
 extern "C" {
 	LUALIB_API int luaopen_kola(lua_State *L);
@@ -191,6 +198,45 @@ string LuaScript::RunScript(vector<string> &args, const char *name, const char *
 	return ret;
 }
 
+bool des_decrypt(string encrypt_string, string& decrypt_string)
+{
+//	setkey("abcdef");
+//	encrypt();
+
+#if 0
+	AES_KEY aes;
+	unsigned char key[AES_BLOCK_SIZE];        // AES_BLOCK_SIZE = 16
+	unsigned char iv[AES_BLOCK_SIZE];        // init vector
+
+	// Generate AES 128-bit key
+	for (int i=0; i<16; ++i) {
+		key[i] = 32 + i;
+	}
+
+	// Set encryption key
+	for (int i=0; i<AES_BLOCK_SIZE; ++i) {
+		iv[i] = 0;
+	}
+
+	if (AES_set_decrypt_key(key, 128, &aes) < 0) {
+		fprintf(stderr, "Unable to set encryption key in AES\n");
+		exit(-1);
+	}
+
+	len = 0;
+	if ((strlen(argv[1]) + 1) % AES_BLOCK_SIZE == 0) {
+		len = strlen(argv[1]) + 1;
+	} else {
+		len = ((strlen(argv[1]) + 1) / AES_BLOCK_SIZE + 1) * AES_BLOCK_SIZE;
+	}
+
+	// decrypt
+	AES_cbc_encrypt(encrypt_string, decrypt_string, len, &aes, iv,
+			AES_DECRYPT);
+#endif
+	return true;
+}
+
 bool LuaScript::GetScript(const char *name, string &text)
 {
 	map<string ,Script>::iterator it = scripts.find(name);
@@ -208,10 +254,12 @@ bool LuaScript::GetScript(const char *name, string &text)
 	string url("/scripts/");
 
 	if (kola.UrlGet(url + name + ".lua", text) == true) {
+		//text = des_decrypt(text);
 		scripts.insert(pair<string, Script>(name, Script(text)));
 		return true;
 	}
 
+	printf("Not found script %s\n", name);
 	return false;
 }
 
@@ -264,7 +312,10 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 	// 直接值
 	json_t *tx = json_geto(js ,"text");
 	if (tx != NULL) {
-		text = json_string_value(tx);
+		if (json_is_string(tx))
+			text = json_string_value(tx);
+		else
+			json_dump_str(tx, text);
 
 		directText = true;
 		return true;

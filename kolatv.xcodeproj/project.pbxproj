@@ -61,8 +61,19 @@
 		4473FEF5186C5AF300136610 /* threadpool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE87186C5AF300136610 /* threadpool.cpp */; };
 		4473FEF6186C5AF300136610 /* video.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE89186C5AF300136610 /* video.cpp */; };
 		44E3229E188A5EBF00E9452E /* weather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44E3229D188A5EBF00E9452E /* weather.cpp */; };
+		44E920A1189264FC0076FB2A /* flv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44E9209F189264FC0076FB2A /* flv.cpp */; };
 		44F2E43B187A99E200B05FDB /* resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44F2E439187A99E200B05FDB /* resource.cpp */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		44896C731890EC56004628FC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4473FDC0186C5ACA00136610 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4473FDC7186C5ACA00136610;
+			remoteInfo = kolatv;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		4473FDC6186C5ACA00136610 /* CopyFiles */ = {
@@ -79,7 +90,7 @@
 /* Begin PBXFileReference section */
 		446A5EA8188D01600046E0E3 /* player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = player.cpp; sourceTree = "<group>"; };
 		446A5EAA188D024F0046E0E3 /* resolution.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = resolution.cpp; sourceTree = "<group>"; };
-		4473FDC8186C5ACA00136610 /* kolatv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = kolatv; sourceTree = BUILT_PRODUCTS_DIR; };
+		446EF32118AB705000559A53 /* kolatv Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kolatv Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4473FDD7186C5AF300136610 /* album.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = album.cpp; sourceTree = "<group>"; };
 		4473FDD8186C5AF300136610 /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = base64.cpp; sourceTree = "<group>"; };
 		4473FDD9186C5AF300136610 /* base64.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = base64.hpp; sourceTree = "<group>"; };
@@ -165,7 +176,10 @@
 		4473FE87186C5AF300136610 /* threadpool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = threadpool.cpp; sourceTree = "<group>"; };
 		4473FE88186C5AF300136610 /* threadpool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = threadpool.hpp; sourceTree = "<group>"; };
 		4473FE89186C5AF300136610 /* video.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video.cpp; sourceTree = "<group>"; };
+		44C557D418910E7300D3F5EC /* kolatv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = kolatv; sourceTree = BUILT_PRODUCTS_DIR; };
 		44E3229D188A5EBF00E9452E /* weather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = weather.cpp; sourceTree = "<group>"; };
+		44E9209F189264FC0076FB2A /* flv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = flv.cpp; sourceTree = "<group>"; };
+		44E920A0189264FC0076FB2A /* flv.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = flv.hpp; sourceTree = "<group>"; };
 		44F2E439187A99E200B05FDB /* resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = resource.cpp; sourceTree = "<group>"; };
 		44F2E43A187A99E200B05FDB /* resource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = resource.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -178,12 +192,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		44896C631890EC56004628FC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		4473FDBF186C5ACA00136610 = {
 			isa = PBXGroup;
 			children = (
+				44E9209F189264FC0076FB2A /* flv.cpp */,
+				44E920A0189264FC0076FB2A /* flv.hpp */,
 				4473FDD7186C5AF300136610 /* album.cpp */,
 				4473FDD8186C5AF300136610 /* base64.cpp */,
 				4473FDDD186C5AF300136610 /* export_kola.cpp */,
@@ -212,16 +235,9 @@
 				4473FE83186C5AF300136610 /* script.hpp */,
 				4473FE88186C5AF300136610 /* threadpool.hpp */,
 				4473FDE7186C5AF300136610 /* lua */,
-				4473FDC9186C5ACA00136610 /* Products */,
+				44C557D418910E7300D3F5EC /* kolatv */,
+				446EF32118AB705000559A53 /* kolatv Tests.xctest */,
 			);
-			sourceTree = "<group>";
-		};
-		4473FDC9186C5ACA00136610 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				4473FDC8186C5ACA00136610 /* kolatv */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		4473FDE7186C5AF300136610 /* lua */ = {
@@ -327,8 +343,26 @@
 			);
 			name = kolatv;
 			productName = kolatv;
-			productReference = 4473FDC8186C5ACA00136610 /* kolatv */;
+			productReference = 44C557D418910E7300D3F5EC /* kolatv */;
 			productType = "com.apple.product-type.tool";
+		};
+		44896C651890EC56004628FC /* kolatv Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 44896C751890EC56004628FC /* Build configuration list for PBXNativeTarget "kolatv Tests" */;
+			buildPhases = (
+				44896C621890EC56004628FC /* Sources */,
+				44896C631890EC56004628FC /* Frameworks */,
+				44896C641890EC56004628FC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				44896C741890EC56004628FC /* PBXTargetDependency */,
+			);
+			name = "kolatv Tests";
+			productName = "kolatv Tests";
+			productReference = 446EF32118AB705000559A53 /* kolatv Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -338,6 +372,11 @@
 			attributes = {
 				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = Silicon;
+				TargetAttributes = {
+					44896C651890EC56004628FC = {
+						TestTargetID = 4473FDC7186C5ACA00136610;
+					};
+				};
 			};
 			buildConfigurationList = 4473FDC3186C5ACA00136610 /* Build configuration list for PBXProject "kolatv" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -347,14 +386,25 @@
 				en,
 			);
 			mainGroup = 4473FDBF186C5ACA00136610;
-			productRefGroup = 4473FDC9186C5ACA00136610 /* Products */;
+			productRefGroup = 4473FDBF186C5ACA00136610;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				4473FDC7186C5ACA00136610 /* kolatv */,
+				44896C651890EC56004628FC /* kolatv Tests */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		44896C641890EC56004628FC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4473FDC4186C5ACA00136610 /* Sources */ = {
@@ -401,6 +451,7 @@
 				4473FEE9186C5AF300136610 /* lundump.c in Sources */,
 				4473FEEA186C5AF300136610 /* lvm.c in Sources */,
 				44F2E43B187A99E200B05FDB /* resource.cpp in Sources */,
+				44E920A1189264FC0076FB2A /* flv.cpp in Sources */,
 				4473FE8C186C5AF300136610 /* export_kola.cpp in Sources */,
 				4473FEDA186C5AF300136610 /* liolib.c in Sources */,
 				4473FE93186C5AF300136610 /* fpconv.c in Sources */,
@@ -419,7 +470,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		44896C621890EC56004628FC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		44896C741890EC56004628FC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4473FDC7186C5ACA00136610 /* kolatv */;
+			targetProxy = 44896C731890EC56004628FC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4473FDCF186C5ACA00136610 /* Debug */ = {
@@ -505,7 +571,7 @@
 					/usr/local/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=0",
+					"-DTEST=1",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
@@ -536,7 +602,7 @@
 					/usr/local/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=0",
+					"-DTEST=1",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
@@ -547,6 +613,40 @@
 					"-lcrypto",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		44896C761890EC56004628FC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "kolatv Tests/kolatv Tests-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = "kolatv Tests/kolatv Tests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Debug;
+		};
+		44896C771890EC56004628FC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "kolatv Tests/kolatv Tests-Prefix.pch";
+				INFOPLIST_FILE = "kolatv Tests/kolatv Tests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = xctest;
 			};
 			name = Release;
 		};
@@ -567,6 +667,15 @@
 			buildConfigurations = (
 				4473FDD2186C5ACA00136610 /* Debug */,
 				4473FDD3186C5ACA00136610 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		44896C751890EC56004628FC /* Build configuration list for PBXNativeTarget "kolatv Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				44896C761890EC56004628FC /* Debug */,
+				44896C771890EC56004628FC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

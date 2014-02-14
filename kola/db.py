@@ -658,7 +658,20 @@ class DB:
                 ret['area'] = {'$regex':f[key], '$options':'i'}
             elif key in self.fieldMapping:
                 newkey = self.fieldMapping[key]
-                ret[newkey] = { "$in" : f[key].split(',')}
+                if newkey.lower() == 'publishyear':
+                    value = f[key]
+                    if value in ['2013', '2012', '2011', '2010']:
+                        ret[newkey] = autoint(value)
+                    elif value == '00年代':
+                        ret[newkey] = {'$gte' : 2000, '$lte' : 2009}
+                    elif value == '90年代':
+                        ret[newkey] = {'$gte' : 1990, '$lte' : 1999}
+                    elif value == '80年代':
+                        ret[newkey] = {'$gte' : 1980, '$lte' : 1989}
+                    elif value == '更早':
+                        ret[newkey] = {'$lt' : 1980}
+                else:
+                    ret[newkey] = { "$in" : f[key].split(',')}
         return ret
 
     def _ConvertSortJson(self, v):

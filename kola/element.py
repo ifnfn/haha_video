@@ -103,9 +103,9 @@ class TVMenu(db.VideoMenuBase):
             {'title' : '最新更新' , 'sort' : '最新发布' },
             {'title' : '推荐'    , 'sort' : '评分最高'  },
             {'title' : '国内剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '内地' }      },
-            {'title' : '日韩剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '韩剧,日剧' } },
-            {'title' : '港台剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '港剧,台剧' } },
-            {'title' : '美剧'   , 'sort' : '日播放最多', 'filter': {'地区' : '美剧' }     },
+            {'title' : '日韩剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '日本,韩国' } },
+            {'title' : '港台剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '香港,台湾' } },
+            {'title' : '美剧'   , 'sort' : '日播放最多', 'filter': {'地区' : '美国' }     },
         ]
 
 # 动漫

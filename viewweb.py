@@ -14,9 +14,6 @@ import tornado.ioloop
 import tornado.web
 import tornado.options
 
-from hds import F4mToM3u8
-
-
 from kola import BaseHandler, log, utils, KolaCommand, element, DB
 
 
@@ -110,11 +107,6 @@ class KolatvServer:
 
 
 tv = KolatvServer()
-
-class CntvHandler(BaseHandler):
-    cntv = F4mToM3u8('')
-    def get(self):
-        self.finish(self.cntv.Update())
 
 class AlbumListHandler(BaseHandler):
     def argument(self):
@@ -611,7 +603,6 @@ class ViewApplication(tornado.web.Application):
         )
 
         handlers = [
-            (r'/video/cntv',       CntvHandler),
             (r'/video/list',       AlbumListHandler),
             (r'/video/getvideo',   GetVideoHandler),
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本

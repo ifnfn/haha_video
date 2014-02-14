@@ -27,7 +27,7 @@ class KolaEngine:
         self.UpdateAlbumFlag = False
 
         self.AddEngine(LetvEngine)
-        #self.AddEngine(SohuEngine)
+        self.AddEngine(SohuEngine)
         #self.AddEngine(QiyiEngine)
         #self.AddEngine(LiveEngine)
 

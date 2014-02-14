@@ -5,7 +5,7 @@ from engine.kolaclient import GetUrl
 import xml.etree.ElementTree as ET
 import json
 import sys, logging
-import base64, struct, os, time
+import struct, time
 
 log = logging.getLogger('svtplay_dl')
 
@@ -231,7 +231,7 @@ class F4mToM3u8:
         print(json.dumps(self.streams, indent=4, ensure_ascii=False))
         self.localTime = 0
     def Update(self):
-        offset = time.time() - self.localTime
+        #offset = time.time() - self.localTime
         #if (offset * 1000 < self.endUpdate - self.startUpdate):
         #    return self.m3u8String
 

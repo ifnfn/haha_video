@@ -9,7 +9,7 @@ import tornado.escape
 from kola import DB, autostr, autoint, Singleton, utils
 import kola
 
-from .engines import VideoEngine, KolaParser, KolaAlias, EngineCommands, EngineVideoMenu
+from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
 
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
@@ -106,10 +106,10 @@ class SohuDB(DB, Singleton):
 
     def GetMenuAlbumList(self, cid,All=False):
         fields = {'engineList' : True,
-                              'albumName': True,
-                              'private': True,
-                              'cid': True,
-                              'vid': True}
+                  'albumName': True,
+                  'private'  : True,
+                  'cid'      : True,
+                  'vid'      : True}
 
         data = self.album_table.find({'engineList' : {'$in' : ['SohuEngine']}, 'cid' : cid}, fields)
 
@@ -259,8 +259,6 @@ class ParserAlbumFullInfo(KolaParser):
         if 'smallPicUrl' in json    : album.smallPicUrl    = json['smallPicUrl']
 
         if 'albumDesc' in json      : album.albumDesc      = json['albumDesc']
-        #if 'totalSet' in json       : album.totalSet       = json['totalSet']
-        #if 'updateSet' in json      : album.updateSet      = json['updateSet']
 
         if 'mainActors' in json     : album.mainActors     = json['mainActors']
         if 'directors' in json      : album.directors      = json['directors']
@@ -313,6 +311,7 @@ class ParserAlbumMvInfo(KolaParser):
 
             db.SaveAlbum(album, upsert=False)
 
+# http://count.vrs.sohu.com/count/query.action?videoId=1268037
 # 搜狐节目指数
 class ParserAlbumScore(KolaParser):
     def __init__(self, album=None):
@@ -327,12 +326,12 @@ class ParserAlbumScore(KolaParser):
     def CmdParser(self, js):
         data = tornado.escape.json_decode(js['data'])
         if 'album' in data and 'index' in data:
-            js = data['album']
+            album_js = data['album']
             index = data['index']
-            if js and index:
+            if album_js and index:
                 playlistid = ''
-                if 'id' in js:
-                    playlistid = autostr(js['id'])
+                if 'id' in album_js:
+                    playlistid = autostr(album_js['id'])
                 if not playlistid:
                     return []
 
@@ -354,7 +353,6 @@ class ParserAlbumScore(KolaParser):
 
                 db.SaveAlbum(album, upsert=False)
 
-# http://count.vrs.sohu.com/count/query.action?videoId=1268037
 # 更新热门节目信息
 class ParserAlbumHotList(KolaParser):
     def __init__(self, url=None):

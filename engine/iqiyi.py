@@ -9,10 +9,10 @@ import traceback
 from bs4 import BeautifulSoup as bs
 import tornado.escape
 
-from kola import DB, autostr, autoint, Singleton, utils
+from kola import DB, autostr, autoint, autofloat, Singleton, utils
 import kola
 
-from .engines import VideoEngine, KolaParser, KolaAlias, EngineCommands, EngineVideoMenu
+from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
 
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
@@ -154,7 +154,7 @@ class QiyiAlbum(kola.AlbumBase):
     def UpdateScoreCommand(self):
         'http://cache.video.qiyi.com/p/200206401/'
         'http://score.video.qiyi.com/ud/200206401/'
-        if self.sohu.playlistid:
+        if self.qiyi.albumid:
             ParserAlbumPlayCount(self).Execute()
             ParserAlbumScore(self).Execute()
 
@@ -164,6 +164,22 @@ class QiyiDB(DB, Singleton):
         self.albumNameAlias = {}   # 别名
         self.blackAlbumName = {}   # 黑名单
 
+    def GetMenuAlbumList(self, cid,All=False):
+        fields = {'engineList' : True,
+                  'albumName': True,
+                  'private'  : True,
+                  'cid'      : True,
+                  'vid'      : True}
+
+        data = self.album_table.find({'engineList' : {'$in' : ['QiyiEngine']}, 'cid' : cid}, fields)
+
+        albumList = []
+        for p in data:
+            album = QiyiAlbum()
+            album.LoadFromJson(p)
+            albumList.append(album)
+
+        return albumList
 
     # 从数据库中找到 album
     def FindAlbumJson(self, tvid='', albumName=''):
@@ -205,7 +221,21 @@ class ParserAlbumPlayCount(KolaParser):
             self.cmd['source']  = 'http://cache.video.qiyi.com/p/%s/' % album.qiyi.albumid
 
     def CmdParser(self, js):
-        pass
+        db = QiyiDB()
+        album = db.GetAlbumFormDB(albumName=js['albumName'])
+        if album == None:
+            return
+
+        text = re.findall('var.*=({[\s\S]*})', js['data'])
+        if not text:
+            return
+
+        json = tornado.escape.json_decode(text[0])
+        if json['code'] == 'A00000' and 'data' in json:
+            playCount = autoint(json['data'])
+            if playCount == album.dailyPlayNum:
+                album.dailyPlayNum = playCount
+                db.SaveAlbum(album)
 
 class ParserAlbumScore(KolaParser):
     def __init__(self, album=None):
@@ -216,7 +246,20 @@ class ParserAlbumScore(KolaParser):
             self.cmd['source']  = 'http://score.video.qiyi.com/ud/%s/' % album.qiyi.albumid
 
     def CmdParser(self, js):
-        pass
+        db = QiyiDB()
+        album = db.GetAlbumFormDB(albumName=js['albumName'])
+        if album == None:
+            return
+
+        text = re.findall('var.*=({[\s\S]*})', js['data'])
+        if not text:
+            return
+
+        json = tornado.escape.json_decode(text[0])
+        if 'data' in json and 'score' in json['data']:
+            album.videoScore      = autofloat(json['data']['score']) * 10  # 推荐指数
+            album.dailyIndexScore = autofloat(json['data']['score']) * 10  # 每日指数
+            db.SaveAlbum(album)
 
 class ParserAlbumJsonAVList(KolaParser):
     def __init__(self, albumid=None, tvid=None, albumUrl=None, cid=None):
@@ -459,10 +502,10 @@ class ParserShowAlbumList(KolaParser):
             if album_js:
                     album.LoadFromJson(album_js)
 
-            album.albumName = albumName
-            album.vid = utils.genAlbumId(album.albumName)
-            #album.cid = json['albumType']
-            album.cid = js['cid']
+            album.albumName    = albumName
+            album.vid          = utils.genAlbumId(album.albumName)
+            album.cid          = js['cid']
+            album.albumPageUrl = href
 
             if album.cid == 3:
                 a = ComicAlias

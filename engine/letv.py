@@ -5,7 +5,7 @@ import re
 import time, sys, traceback
 import tornado.escape
 
-from .engines import VideoEngine, KolaParser, KolaAlias, EngineCommands, EngineVideoMenu
+from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
 from kola import DB, autostr, autoint, autofloat, Singleton, utils
 import kola
 
@@ -137,7 +137,7 @@ class LetvAlbum(kola.AlbumBase):
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):
-        if self.sohu.playlistid:
+        if self.letv.playlistid:
             ParserPlayCount(self).Execute()
 
 class LetvDB(DB, Singleton):
@@ -159,6 +159,23 @@ class LetvDB(DB, Singleton):
         #return self.album_table.find_one({'$or' : f})
         return self.album_table.find_one({'engineList' : {'$in' : ['LetvEngine']}, '$or' : f})
 
+    def GetMenuAlbumList(self, cid,All=False):
+        fields = {'engineList' : True,
+                  'albumName': True,
+                  'private'  : True,
+                  'cid'      : True,
+                  'vid'      : True}
+
+        data = self.album_table.find({'engineList' : {'$in' : ['LetvEngine']}, 'cid' : cid}, fields)
+
+        albumList = []
+        for p in data:
+            album = LetvAlbum()
+            album.LoadFromJson(p)
+            albumList.append(album)
+
+        return albumList
+
     # 从数据库中找到album
     def GetAlbumFormDB(self, playlistid='', albumName='', auto=False):
         album = None
@@ -168,8 +185,10 @@ class LetvDB(DB, Singleton):
             album.LoadFromJson(json)
         elif auto:
             album = LetvAlbum()
-            if playlistid   : album.letv.playlistid = playlistid
-            if albumName    : album.mName = albumName
+            if playlistid:
+                album.letv.playlistid = playlistid
+            if albumName:
+                album.mName = albumName
 
         return album
 
@@ -182,25 +201,25 @@ class ParserPlayCount(KolaParser):
         super().__init__()
         if album:
             self.cmd['name'] = album.albumName
-            self.cmd['source'] = 'http://stat.letv.com/vplay/queryMmsTotalPCount?pid=%d&vid=%d' % ( album.letv.playlistid, album.letv.vid)
+            self.cmd['source'] = 'http://stat.letv.com/vplay/queryMmsTotalPCount?pid=%s&vid=%s' % ( album.letv.playlistid, album.letv.vid)
 
     def CmdParser(self, js):
         if not js['data']: return
 
         db = LetvDB()
-        album = LetvAlbum()
-        album_js = DB().FindAlbumJson(albumName=js['name'])
-        if album_js:
-                album.LoadFromJson(album_js)
+        album = db.GetAlbumFormDB(albumName=js['name'])
+        if album == None:
+            return
 
         json = tornado.escape.json_decode(js['data'])
-        json['plist_play_count']
-        album.videoScore       = autofloat(json['plist_score']) * 10                  # 推荐指数
-        album.dailyIndexScore  = autofloat(json['plist_score']) * 10  # 每日指数
+        if 'plist_score' in json:
+            album.videoScore       = autofloat(json['plist_score']) * 10  # 推荐指数
+            album.dailyIndexScore  = autofloat(json['plist_score']) * 10  # 每日指数
         if 'plist_play_count' in json:
-            album.dailyPlayNum     = autoint(json['dayCount'])       # 每日播放次数
-
-        db.SaveAlbum(album)
+            play_count = autoint(json['plist_play_count'])                # 每日播放次数
+            if play_count > album.dailyPlayNum:
+                album.dailyPlayNum = play_count
+                db.SaveAlbum(album)
 
 # 节目列表
 class ParserAlbumList(KolaParser):

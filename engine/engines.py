@@ -141,7 +141,7 @@ class VideoEngine:
 
         except:
             t, v, tb = sys.exc_info()
-            print("SohuVideoMenu._CmdParserAlbumPlayInfo:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
+            print("VideoEngine.ParserHtml:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
         return False
 

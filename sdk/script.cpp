@@ -7,7 +7,6 @@
 #include <iostream>
 #include <lua.hpp>
 #include <signal.h>
-#define __USE_GNU
 #include <unistd.h>
 #ifdef LINUX
 #include <crypt.h>

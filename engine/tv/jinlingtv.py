@@ -28,11 +28,11 @@ class ParserJLntvLivetv(LivetvParser):
             album.categories = self.tvCate.GetCategories(n)
 
             v = album.NewVideo()
-            v.priority    = self.priority
-            v.name        = self.tvName
+            v.order  = self.order
+            v.name   = self.tvName
 
-            playUrl     = 'http://live.jlntv.cn/' + u
-            v.vid         = utils.getVidoId(playUrl)
+            playUrl  = 'http://live.jlntv.cn/' + u
+            v.vid    = utils.getVidoId(playUrl)
 #            v.largePicUrl = x[0][2]
 
             v.SetVideoUrl('default', {

@@ -88,7 +88,7 @@ class LivetvParser(KolaParser):
         self.Alias = {}
         self.ExcludeName = ()
         self.tvName = ''
-        self.priority = PRIOR_COMMON
+        self.order = PRIOR_COMMON
         self.area = ''
 
     def NewAlbum(self, name):

@@ -12,7 +12,7 @@ class ParserSohuLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '搜狐'
-        self.priority = PRIOR_SOHU
+        self.order = PRIOR_SOHU
 
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 
@@ -31,7 +31,7 @@ class ParserSohuLivetv(LivetvParser):
             album.area = city.GetCity(album.albumName)
 
             v = album.NewVideo()
-            v.priority = self.priority
+            v.order = self.order
             v.name     = self.tvName
 
             playUrl    = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid

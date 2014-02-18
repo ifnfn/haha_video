@@ -11,7 +11,7 @@ class ParserCntvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):
         super().__init__()
         self.tvName = '中央电视台'
-        self.priority = PRIOR_CNTV
+        self.order = PRIOR_CNTV
         self.area = ''
         self.cmd['source'] = 'http://tv.cntv.cn/live'
         self.cmd['regular'] = ['var chs = (.*);']
@@ -38,7 +38,7 @@ class ParserCntvLivetv(LivetvParser):
                 album.area = city.GetCity(ch[3])
 
                 v = album.NewVideo()
-                v.priority = self.priority
+                v.order = self.order
                 v.name     = self.tvName
 
                 v.vid      = utils.getVidoId('http://vcbox.cntv.chinacache.net/cache/%s.f4m' % ch[0])

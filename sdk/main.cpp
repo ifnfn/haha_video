@@ -382,8 +382,8 @@ int main(int argc, char **argv)
 
 	//test_custommenu();
 	//return 0;
-	//printf("Test LiveTV\n"); test_livetv();
-	//return 0;
+	printf("Test LiveTV\n"); test_livetv();
+	return 0;
 
 	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

@@ -33,7 +33,7 @@ class ParserTVIELivetv(LivetvParser):
             album.area       = self.area
 
             v = album.NewVideo()
-            v.priority = self.priority
+            v.order = self.order
             v.name = self.tvName
 
             playUrl = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']

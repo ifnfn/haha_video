@@ -12,7 +12,7 @@ class ParserLetvLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '乐视'
-        self.priority = PRIOR_LETV
+        self.order = PRIOR_LETV
 
         #self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
         self.cmd['source']  = 'http://www.leshizhibo.com/'
@@ -39,8 +39,8 @@ class ParserLetvLivetv(LivetvParser):
                 album.categories  = self.tvCate.GetCategories(name)
 
                 v = album.NewVideo()
-                v.priority = self.priority
-                v.name     = self.tvName
+                v.order = self.order
+                v.name  = self.tvName
 
                 vid = x[0][0]
                 playUrl     = 'http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1' % vid

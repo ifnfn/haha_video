@@ -44,7 +44,6 @@ class VideoBase:
         self.publishTime = ''
         self.videoDesc = ''
         self.isHigh = -1
-        self.priority = 100
 
         self.videoPlayCount = 0
         self.videoScore = 0.0
@@ -97,7 +96,6 @@ class VideoBase:
         if self.smallPicUrl     : ret['smallPicUrl']    = self.smallPicUrl
 
         if self.resolution      : ret['resolution']     = self.resolution
-        if self.priority        : ret['priority']       = self.priority
         if self.private         : ret['private']        = self.private
         if self.info            : ret['info']           = self.info
 
@@ -121,7 +119,6 @@ class VideoBase:
         if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
         if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
         if 'videos' in json         : self.videos         = json['videos']
-        if 'priority' in json       : self.priority       = json['priority']
         if 'private' in json        : self.private        = json['private']
         if 'info' in json           : self.info           = json['info']
 
@@ -607,14 +604,9 @@ class DB:
             if 'sort' in arg:
                 cursor = cursor.sort(arg['sort'])
             else:
-                cursor = cursor.sort([('priority', 1)])
+                cursor = cursor.sort([('order', 1)])
 
             count = cursor.count()
-
-            if 'sort' in arg:
-                cursor = cursor.sort(arg['sort'])
-            else:
-                cursor = cursor.sort([('order', 1)])
 
             allVideo = False
             if 'page' in arg and 'size' in arg:

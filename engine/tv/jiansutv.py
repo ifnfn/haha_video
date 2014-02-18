@@ -11,7 +11,7 @@ class ParserJiansuLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '江苏电视台'
-        self.priority = PRIOR_JSTV
+        self.order = PRIOR_JSTV
 
         self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_1.html'
         #self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_2.html'
@@ -32,10 +32,10 @@ class ParserJiansuLivetv(LivetvParser):
                     album.largePicUrl = 'http://newplayer.jstv.com' + ch['logo']
 
                     v = album.NewVideo()
-                    v.priority = self.priority
-                    v.name     = self.tvName
+                    v.order  = self.order
+                    v.name   = self.tvName
 
-                    v.vid      = utils.getVidoId('http://streamabr.jstv.com' + ch['name'])
+                    v.vid    = utils.getVidoId('http://streamabr.jstv.com' + ch['name'])
 
                     videoUrl = 'http://streamabr.jstv.com'
 

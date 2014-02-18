@@ -11,7 +11,7 @@ from .common import PRIOR_CUTV
 class ParserCutvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):
         super().__init__()
-        self.priority = PRIOR_CUTV
+        self.order = PRIOR_CUTV
         self.area = ''
         self.Alias = {
             "绍兴影视娱乐" : '绍兴-文化影视频道',
@@ -60,7 +60,7 @@ class ParserCutvLivetv(LivetvParser):
             album.largePicUrl = p.findtext('thumb')
 
             v = album.NewVideo()
-            v.priority = self.priority
+            v.order = self.order
             v.name     = js['station']
 
             v.SetVideoUrl('default', {

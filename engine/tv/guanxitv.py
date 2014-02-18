@@ -12,6 +12,7 @@ class ParserNNLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '南宁电视台'
+        self.order = 2
         self.cmd['source'] = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=104'
         self.area = '中国,广西,南宁'
 
@@ -34,10 +35,10 @@ class ParserNNLivetv(LivetvParser):
                 return
 
             v = album.NewVideo()
-            v.vid      = utils.getVidoId(url)
-            v.priority = 2
-            v.name     = "NNTV"
+            v.order = self.order
+            v.name  = self.tvName
 
+            v.vid  = utils.getVidoId(url)
             for p in root:
                 if p.tag == 'url':
                     print(p.text)

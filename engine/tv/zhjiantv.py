@@ -13,7 +13,7 @@ class ParserHangZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '杭州电视台'
-        self.priority = PRIOR_HZTV
+        self.order = PRIOR_HZTV
 
         #self.cmd['text'] = 'OK'
         self.Alias = {}
@@ -54,10 +54,10 @@ class ParserHangZhouLivetv(LivetvParser):
         album.area       = self.area
 
         v = album.NewVideo()
-        v.priority = self.priority
-        v.name     = self.tvName
+        v.order = self.order
+        v.name  = self.tvName
 
-        v.vid      = utils.getVidoId(url)
+        v.vid   = utils.getVidoId(url)
         v.SetVideoUrl('default', {
             'script' : 'hztv',
             'parameters' : [url]
@@ -77,7 +77,7 @@ class ParserZJLivetv(ParserTVIELivetv):
     def __init__(self):
         super().__init__('api.cztv.com')
         self.tvName = '浙江电视台'
-        self.priority = PRIOR_ZJTV
+        self.order = PRIOR_ZJTV
 
         self.Alias = {
             "频道101" : "浙江卫视",
@@ -159,7 +159,7 @@ class ParserWenZhouLivetv(LivetvParser):
 
             v = album.NewVideo()
             v.vid      = utils.getVidoId(js['source'] + '/' + source)
-            v.priority = 2
+            v.order = 2
             v.name     = "WZTV"
 
             v.SetVideoUrl('default', {

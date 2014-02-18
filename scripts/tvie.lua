@@ -64,7 +64,6 @@ function get_channel(vid)
 			ret[k].time = s
 			ret[k].duration = tonumber(v.end_time) - s
 			ret[k].title = v.name
-			--print(k, ret[k].time_string, ret[k].duration, ret[k].title)
 		end
 	end
 

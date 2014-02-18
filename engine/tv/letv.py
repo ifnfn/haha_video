@@ -3,14 +3,16 @@
 
 import re
 from urllib.parse import urljoin
-from engine.tv import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
+from engine.tv import LivetvParser, LivetvDB
+from .common import PRIOR_LETV
 
 # 乐视直播电视
 class ParserLetvLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '乐视'
+        self.priority = PRIOR_LETV
 
         #self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
         self.cmd['source']  = 'http://www.leshizhibo.com/'
@@ -37,12 +39,13 @@ class ParserLetvLivetv(LivetvParser):
                 album.categories  = self.tvCate.GetCategories(name)
 
                 v = album.NewVideo()
+                v.priority = self.priority
+                v.name     = self.tvName
+
                 vid = x[0][0]
                 playUrl     = 'http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1' % vid
                 v.vid         = utils.getVidoId(playUrl)
                 v.largePicUrl = x[0][2]
-                v.priority    = 1
-                v.name        = "乐视"
 
                 v.SetVideoUrl('default', {
                     'script' : 'letvlive',

@@ -1,10 +1,8 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re
 from xml.etree import ElementTree
-import tornado.escape
-from engine.tv import LivetvParser, LivetvDB, ParserTVIELivetv
+from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 from engine import GetUrl
 

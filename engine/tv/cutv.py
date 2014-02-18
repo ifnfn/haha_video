@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 
 from xml.etree import ElementTree
-from engine.tv import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 from engine import City
+from engine.tv import LivetvParser, LivetvDB
+from .common import PRIOR_CUTV
+
 
 class ParserCutvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):
         super().__init__()
+        self.priority = PRIOR_CUTV
         self.area = ''
         self.Alias = {
             "绍兴影视娱乐" : '绍兴-文化影视频道',
@@ -56,16 +59,16 @@ class ParserCutvLivetv(LivetvParser):
             album.channel_id  = channel_id
             album.largePicUrl = p.findtext('thumb')
 
-            url = p.findtext('mobile_url')
             v = album.NewVideo()
-            v.priority = 2
-            v.name     = "CUTV"
+            v.priority = self.priority
+            v.name     = js['station']
 
             v.SetVideoUrl('default', {
                 'script' : 'cutv',
                 'parameters' : [tv_id, channel_id]
             })
 
+            url = p.findtext('mobile_url')
             x = url.split('/')
             if len(x) > 4:
                 v.vid  = x[4]

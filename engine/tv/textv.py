@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-from engine.tv import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser, LivetvDB
 from kola import LivetvMenu, GetNameByUrl
 
 # 文本导入

@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import re
-from kola import VideoBase, AlbumBase, DB, utils
 from engine import KolaParser
+from kola import VideoBase, AlbumBase, DB, utils
+from .common import PRIOR_COMMON
 
 class TVCategory:
     def __init__(self):
@@ -87,6 +88,7 @@ class LivetvParser(KolaParser):
         self.Alias = {}
         self.ExcludeName = ()
         self.tvName = ''
+        self.priority = PRIOR_COMMON
         self.area = ''
 
     def NewAlbum(self, name):

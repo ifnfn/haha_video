@@ -3,73 +3,81 @@
 
 import re
 from xml.etree import ElementTree
-from engine.tv import LivetvParser, LivetvDB, ParserTVIELivetv
 from kola import utils, LivetvMenu
-from engine import GetUrl
+from .livetvdb import LivetvParser, LivetvDB
+from .tvielivetv import ParserTVIELivetv
+from .common import PRIOR_HZTV, PRIOR_ZJTV
 
 # 杭州电视台
 class ParserHangZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '杭州电视台'
+        self.priority = PRIOR_HZTV
 
-        self.cmd['text'] = 'OK'
+        #self.cmd['text'] = 'OK'
         self.Alias = {}
         self.ExcludeName = ('交通918', 'FM1054', 'FM89')
         self.area = '中国,浙江,杭州'
 
-    def CmdParser(self, js):
-        db = LivetvDB()
-
-        #for i in range(1, 60):
+    def Execute(self):
         for i in (1, 2, 3, 5, 13, 14, 15):
-            url = 'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i
-            text = GetUrl(url).decode()
-            root = ElementTree.fromstring(text)
+            self.cmd['source'] = 'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i
+            self.cmd['channel_id'] = i
+            self.command.AddCommand(self.cmd)
 
-            name = self.GetAliasName(root.attrib['name'])
-            if name == '':
-                continue
+        self.cmd = None
+        self.command.Execute()
 
-            ok = False
-            for p in root:
-                if p.tag == 'video':
-                    for item in p.getchildren():
-                        if 'url' in item.attrib:
-                            ok = True
-                            break
+    def CmdParser(self, js):
+        url = js['source']
+        text = js['data']
+        root = ElementTree.fromstring(text)
 
-            if ok == False:
-                continue
+        name = self.GetAliasName(root.attrib['name'])
+        if name == '':
+            return
 
-            album  = self.NewAlbum(name)
-            album.categories = self.tvCate.GetCategories(album.albumName)
-            album.area       = self.area
+        ok = False
+        for p in root:
+            if p.tag == 'video':
+                for item in p.getchildren():
+                    if 'url' in item.attrib:
+                        ok = True
+                        break
 
-            v = album.NewVideo()
-            v.vid      = utils.getVidoId(url)
-            v.priority = 2
-            v.name     = "HZTV"
+        if ok == False:
+            return
 
-            v.SetVideoUrl('default', {
-                'script' : 'hztv',
-                'parameters' : [url]
-            })
+        album  = self.NewAlbum(name)
+        album.categories = self.tvCate.GetCategories(album.albumName)
+        album.area       = self.area
 
-            v.info = {
-                'script' : 'hztv',
-                'function' : 'get_channel',
-                'parameters' : [utils.autostr(i)],
-            }
+        v = album.NewVideo()
+        v.priority = self.priority
+        v.name     = self.tvName
 
-            album.videos.append(v)
-            db.SaveAlbum(album)
+        v.vid      = utils.getVidoId(url)
+        v.SetVideoUrl('default', {
+            'script' : 'hztv',
+            'parameters' : [url]
+        })
+
+        v.info = {
+            'script' : 'hztv',
+            'function' : 'get_channel',
+            'parameters' : [utils.autostr(js['channel_id'])],
+        }
+
+        album.videos.append(v)
+        LivetvDB().SaveAlbum(album)
 
 # 浙江电视台
 class ParserZJLivetv(ParserTVIELivetv):
     def __init__(self):
         super().__init__('api.cztv.com')
         self.tvName = '浙江电视台'
+        self.priority = PRIOR_ZJTV
 
         self.Alias = {
             "频道101" : "浙江卫视",
@@ -135,7 +143,7 @@ class ParserWenZhouLivetv(LivetvParser):
         self.tvName = '温州电视台'
 
         self.cmd['source'] = 'http://tv.dhtv.cn'
-        self.cmd['regular'] = ['<li class="on">(.*)</li>']
+        self.cmd['regular'] = ['(<a href=.* data-source=.*</a>)']
         self.Alias = {}
         self.ExcludeName = ()
         self.area = '中国,浙江,温州'

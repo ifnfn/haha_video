@@ -120,7 +120,7 @@ void test_livetv()
 			cout << "\t:" << *j << endl;
 	}
 	//m->FilterAdd("类型", "本省台");
-	//m->FilterAdd("类型", "央视台");
+	m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
 	//m->FilterAdd("PinYin", "zjw");

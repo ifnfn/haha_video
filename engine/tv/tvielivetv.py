@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import tornado.escape
-from engine.tv import LivetvDB, LivetvParser
 from kola import utils
+from .livetvdb import LivetvParser, LivetvDB
 
 class ParserTVIELivetv(LivetvParser):
     def __init__(self, url):
@@ -33,14 +33,14 @@ class ParserTVIELivetv(LivetvParser):
             album.area       = self.area
 
             v = album.NewVideo()
+            v.priority = self.priority
+            v.name = self.tvName
+
             playUrl = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
             if self.base_url in ['api.cztv.com']:
                 playUrl += '?domain=' + self.base_url
 
             v.vid = utils.getVidoId(playUrl)
-
-            v.priority = 2
-            v.name = "TVIE"
 
             v.SetVideoUrl('default', {
                 'script' : 'tvie',

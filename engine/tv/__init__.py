@@ -32,12 +32,12 @@ class LiveEngine(VideoEngine):
         self.AddMenu(ZheJianLiveTV('浙江'))
         self.AddMenu(AnHuiLiveTV  ('安徽'))
         self.AddMenu(XinJianLiveTV('新疆'))
-        self.AddMenu(GuangXiLiveTV('广西'))
         self.AddMenu(JilingLiveTV ('吉林'))
         self.AddMenu(CuLiveTV     ('CuTV'))
         self.AddMenu(CntvLiveTV   ("CNTV"))
         self.AddMenu(SohuLiveTV   ('Sohu'))
         self.AddMenu(LetvLiveTV   ('Letv'))
+        #self.AddMenu(GuangXiLiveTV('广西'))
 
     def AddMenu(self, menu):
         self.menu.append(menu)

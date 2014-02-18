@@ -3,7 +3,7 @@
 
 import hashlib
 import json
-import sys
+import sys, os
 import traceback
 import uuid
 
@@ -395,15 +395,20 @@ class LoginHandler(BaseHandler):
 
     def check_user_id(self):
         self.user_id = self.get_argument('user_id')
-        status = 'YES'
-        con = Connection('localhost', 27017)
-        user_table = con.kola.users
+        serial = self.get_argument('serial')
+        status = 'NO'
 
-        json = user_table.find_one({'user_id' : self.user_id})
-        if json:
-            status = json['status']
-        else:
-            user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
+        if self.user_id not in ['000001', '000002', '000003', '000004']: # 默认的测试号
+            con = Connection('localhost', 27017)
+            user_table = con.kola.users
+
+            json = user_table.find_one({'user_id' : self.user_id})
+            if json:
+                if json['serial'] == serial:
+                    status = json['status']
+            else:
+                status = 'YES'
+                user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
 
         if status == 'NO' or self.user_id == None or self.user_id == '':
             raise tornado.web.HTTPError(401, 'Missing key %s' % self.user_id)
@@ -589,6 +594,38 @@ class IndexHandler(BaseHandler):
 
         self.render("index.html",newtv=newtv,toptv=toptv,topmovie=topmovie,newmovie=newmovie)
 
+class EncryptFileHandler(tornado.web.StaticFileHandler):
+    def initialize(self, path, default_filename=None):
+        #self.root = path
+        #self.default_filename = default_filename
+        super().initialize(path, default_filename)
+        self.crypt = True
+
+    def validate_absolute_path(self, root, absolute_path):
+        if absolute_path.find('.lua') > 0:
+            self.crypt = False
+        else:
+            self.crypt = True
+            absolute_path += '.lua'
+        return super().validate_absolute_path(root, absolute_path)
+
+    def write(self, chunk):
+        def Encrypt(data):
+            r = ''
+            for i in range(0, len(data) - 1):
+                x = data[i] ^ 0x4A
+                r += chr(x)
+
+            return r.encode()
+        if self._finished:
+            raise RuntimeError("Cannot write() after finish().  May be caused "
+                               "by using async operations without the "
+                               "@asynchronous decorator.")
+        if self.crypt:
+            chunk = Encrypt(chunk)
+
+        self._write_buffer.append(chunk)
+
 class ViewApplication(tornado.web.Application):
     def __init__(self):
         settings = dict(
@@ -616,8 +653,8 @@ class ViewApplication(tornado.web.Application):
             (r'/show',             ShowHandler),
             (r'/',                 IndexHandler),
 
-            (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),
-            (r"/scripts/(.*)",     tornado.web.StaticFileHandler, {"path": "scripts"}),
+            (r"/static/(.*)",      EncryptFileHandler, {"path": "static"}),
+            (r"/scripts/(.*)",     EncryptFileHandler, {"path": "scripts"}),
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

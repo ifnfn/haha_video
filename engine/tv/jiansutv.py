@@ -1,19 +1,17 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re
-from xml.etree import ElementTree
 import tornado.escape
-from engine.tv import LivetvParser, LivetvDB, ParserTVIELivetv
 from kola import utils, LivetvMenu
-from engine import GetUrl
-
+from engine.tv import LivetvParser, LivetvDB
+from .common import PRIOR_JSTV
 
 # 江苏电视台
 class ParserJiansuLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '江苏电视台'
+        self.priority = PRIOR_JSTV
 
         self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_1.html'
         #self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_2.html'
@@ -34,9 +32,10 @@ class ParserJiansuLivetv(LivetvParser):
                     album.largePicUrl = 'http://newplayer.jstv.com' + ch['logo']
 
                     v = album.NewVideo()
+                    v.priority = self.priority
+                    v.name     = self.tvName
+
                     v.vid      = utils.getVidoId('http://streamabr.jstv.com' + ch['name'])
-                    v.priority = 2
-                    v.name     = "JSTV"
 
                     videoUrl = 'http://streamabr.jstv.com'
 

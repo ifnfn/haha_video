@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import tornado.escape
-from engine.tv import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu, json_get
 from engine import City
+from .livetvdb import LivetvParser, LivetvDB
+from .common import PRIOR_SOHU
 
 # 搜狐直播电视
 class ParserSohuLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '搜狐'
+        self.priority = PRIOR_SOHU
 
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 
@@ -29,10 +31,11 @@ class ParserSohuLivetv(LivetvParser):
             album.area = city.GetCity(album.albumName)
 
             v = album.NewVideo()
+            v.priority = self.priority
+            v.name     = self.tvName
+
             playUrl    = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
             v.vid      = utils.getVidoId(playUrl)
-            v.priority = 2
-            v.name     = "搜狐"
 
             v.SetVideoUrl('default', {
                 'script' : 'sohulive',

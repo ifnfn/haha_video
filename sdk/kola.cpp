@@ -38,10 +38,16 @@ static string loginKey;
 static string loginKeyCookie;
 static string xsrf_cookie;
 
-static string chipKey(void)
+static string GetChipKey(void)
 {
 	return "000002";
 }
+
+static string GetSerial(void)
+{
+	return "aaaaaaaaaaaaaa";
+}
+
 
 string MD5STR(const char *data)
 {
@@ -205,13 +211,11 @@ string& KolaClient::GetServer() {
 	return base_url;
 }
 
-
 void KolaClient::Quit(void)
 {
 	running = false;
 	delete thread;
-	//pthread_cancel(thread);
-	//pthread_join(thread, NULL);
+
 	printf("KolaClient Quit: %p\n", this);
 }
 
@@ -356,7 +360,7 @@ bool KolaClient::LoginOne(bool quick)
 	string text;
 	string url("/login?user_id=");
 
-	url = url + chipKey();
+	url = url + GetChipKey() + "&serial=" + GetSerial();
 	if (quick == true)
 		url = url + "&cmd=0";
 	else

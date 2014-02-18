@@ -41,7 +41,7 @@ function get_videolist(cid, pid, vid, pageNo, pageSize)
 	end
 
 	local url = string.format('http://www.ahtv.cn/m2o/player/channel_xml.php?first=1&id=%s', vid)
-	print(url)
+	--print(url)
 	local text = kola.wget(url)
 	if text == nil then
 		return '{}'
@@ -103,7 +103,7 @@ end
 
 function get_channel(vid)
 	local url = string.format("http://www.ahtv.cn/m2o/player/program_xml.php?time=%d&channel_id=%s", kola.gettime(), vid)
-	print(url)
+	--print(url)
 
 	local ret = {}
 	text = kola.wget(url)

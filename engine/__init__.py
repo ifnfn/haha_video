@@ -8,5 +8,3 @@ from .iqiyi import QiyiEngine
 from .letv import LetvEngine
 from .tv import LiveEngine
 from .sohu import SohuEngine
-
-_all__ = ['engines', 'livetv', 'sohu', 'wolidou', 'iqiyi', 'city']

@@ -1,16 +1,17 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re
-from xml.etree import ElementTree
 import tornado.escape
 from engine.tv import LivetvParser, LivetvDB
+from .common import PRIOR_CNTV
 from kola import utils, LivetvMenu
-from engine import GetUrl, City
+from engine import City
 
 class ParserCntvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):
         super().__init__()
+        self.tvName = '中央电视台'
+        self.priority = PRIOR_CNTV
         self.area = ''
         self.cmd['source'] = 'http://tv.cntv.cn/live'
         self.cmd['regular'] = ['var chs = (.*);']
@@ -37,8 +38,9 @@ class ParserCntvLivetv(LivetvParser):
                 album.area = city.GetCity(ch[3])
 
                 v = album.NewVideo()
-                v.priority = 2
-                v.name     = "CNTV"
+                v.priority = self.priority
+                v.name     = self.tvName
+
                 v.vid      = utils.getVidoId('http://vcbox.cntv.chinacache.net/cache/%s.f4m' % ch[0])
                 v.SetVideoUrl('default', {'text' : ch[0]})
                 v.SetVideoUrl('default', {

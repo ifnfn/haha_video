@@ -2,12 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import re
-from urllib.parse import urljoin
-from xml.etree import ElementTree
-import tornado.escape
-from engine.tv import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
-from engine import GetUrl, City
 
 # 吉林电视台
 class ParserJLntvLivetv(LivetvParser):
@@ -32,11 +28,12 @@ class ParserJLntvLivetv(LivetvParser):
             album.categories = self.tvCate.GetCategories(n)
 
             v = album.NewVideo()
+            v.priority    = self.priority
+            v.name        = self.tvName
+
             playUrl     = 'http://live.jlntv.cn/' + u
             v.vid         = utils.getVidoId(playUrl)
 #            v.largePicUrl = x[0][2]
-            v.priority    = 1
-            v.name        = "JLNTV"
 
             v.SetVideoUrl('default', {
                 'script' : 'jlntv',

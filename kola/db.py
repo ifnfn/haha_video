@@ -353,7 +353,7 @@ class VideoMenuBase:
 class DB:
     video_cachedb = redis.Redis(host='127.0.0.1', port=6379, db=3)
     con = pymongo.Connection('localhost', 27017)
-    mongodb = con.kola
+    mongodb = con.kola2
     album_table  = mongodb.album
     videos_table = mongodb.videos
     map_table    = mongodb.urlmap

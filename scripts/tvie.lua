@@ -29,29 +29,15 @@ function kola_main(url)
 				return video_url
 			end
 		elseif type(data_obj.streams) == "table" then
-			--{
-			--	"id":"179",
-			--	"channel_name":"JiangSu-HD-Envivio",
-			--	"customer_name":"xjyx",
-			--	"streams":{
-			--		"JS_HD_Envivio":{
-			--			"videodatarate":"782",
-			--			"audiodatarate":"31",
-			--			"width":"720",
-			--			"height":"576",
-			--			"drm":"0",
-			--			"cdnlist":["tvie01.ucatv.com.cn"]
-			--		}
-			--	}
-			--}
-
 			local channel_name = data_obj['channel_name']
 			local customer_name = data_obj['customer_name']
 			local streams = data_obj['streams']
 			local video_url = ''
 			for k,v in pairs(streams) do
-				video_url = string.format('http://%s/channels/%s/%s/flv:%s/live?%d',
-					v.cdnlist[1], customer_name, channel_name, k, get_timestamp())
+				--video_url = string.format('http://%s/channels/%s/%s/flv:%s/live?%d',
+				--	v.cdnlist[1], customer_name, channel_name, k, get_timestamp())
+				video_url = string.format('http://%s/channels/%s/%s/flv:%s/live',
+					v.cdnlist[1], customer_name, channel_name, k)
 				break
 			end
 
@@ -78,7 +64,6 @@ function get_channel(vid)
 			ret[k].time = s
 			ret[k].duration = tonumber(v.end_time) - s
 			ret[k].title = v.name
-			--print(k, ret[k].time_string, ret[k].duration, ret[k].title)
 		end
 	end
 

@@ -29,12 +29,10 @@ class ParserCntvLivetv(LivetvParser):
             if x in [ "数字频道", "城市频道"]:
                 continue
             for ch in v:
-                name = self.GetAliasName(ch[1])
-                if ch[2] == '0' or name == '':
+                if ch[2] == '0' or ch[1] == '':
                     continue
 
-                album  = self.NewAlbum(name)
-                album.categories = self.tvCate.GetCategories(album.albumName)
+                album  = self.NewAlbum(ch[1])
                 album.area = city.GetCity(ch[3])
 
                 v = album.NewVideo()

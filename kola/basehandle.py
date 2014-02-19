@@ -16,7 +16,7 @@ class BaseHandler(tornado.web.RequestHandler):
         key = self.get_cookie('key')
         db = redis.Redis(host='127.0.0.1', port=6379, db=1)
         if not db.exists(key) or db.get(key).decode() != self.request.remote_ip:
-            raise tornado.web.HTTPError(401, "Missing key %s" % key)
+            raise tornado.web.HTTPError(401, "BaseHandler: Missing key %s" % key)
 
     def get_current_user(self):
         return self.get_secure_cookie('user_id', 0)

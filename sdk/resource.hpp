@@ -1,13 +1,5 @@
-//
-//  cref.hpp
-//  kolatv
-//
-//  Created by Silicon on 13-12-27.
-//  Copyright (c) 2013年 Silicon. All rights reserved.
-//
-
-#ifndef kolatv_cref_hpp
-#define kolatv_cref_hpp
+#ifndef RESOURCE_HPP
+#define RESOURCE_HPP
 
 #include <unistd.h>
 #include <assert.h>

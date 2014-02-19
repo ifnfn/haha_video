@@ -186,7 +186,6 @@ KolaClient::KolaClient(void)
 	resManager = new ResourceManager(1024 * 1024 * 2);
 
 	LoginOne(true);
-//	pthread_create(&thread, NULL, kola_login_thread, this);
 	thread = new Thread(this, &KolaClient::Login);
 	thread->start();
 }

@@ -26,7 +26,6 @@ class ParserSohuLivetv(LivetvParser):
 
             name = json_get(v, 'name', '')
             album  = self.NewAlbum(name)
-            album.categories  = self.tvCate.GetCategories(album.albumName)
             album.smallPicUrl = json_get(v, 'ico', '')
             album.area = city.GetCity(album.albumName)
 

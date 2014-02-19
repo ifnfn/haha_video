@@ -15,6 +15,8 @@ from .letv import LetvLiveTV
 from .cntv import CntvLiveTV
 from .jinlingtv import JilingLiveTV
 from .textv import TextLiveTV
+from .qqtv import QQLiveTV
+
 from engine import VideoEngine
 
 # LiveTV 搜索引擎
@@ -37,6 +39,7 @@ class LiveEngine(VideoEngine):
         self.AddMenu(CntvLiveTV   ("CNTV"))
         self.AddMenu(SohuLiveTV   ('Sohu'))
         self.AddMenu(LetvLiveTV   ('Letv'))
+        self.AddMenu(QQLiveTV     ('腾讯'))
         #self.AddMenu(GuangXiLiveTV('广西'))
 
     def AddMenu(self, menu):

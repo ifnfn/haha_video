@@ -3,7 +3,7 @@
 
 import hashlib
 import json
-import sys, os
+import sys
 import traceback
 import uuid
 
@@ -395,8 +395,8 @@ class LoginHandler(BaseHandler):
 
     def check_user_id(self):
         self.user_id = self.get_argument('user_id')
-        serial = self.get_argument('serial')
-        status = 'NO'
+        serial = self.get_argument('serial', '')
+        status = 'YES'
 
         if self.user_id not in ['000001', '000002', '000003', '000004']: # 默认的测试号
             con = Connection('localhost', 27017)
@@ -404,6 +404,7 @@ class LoginHandler(BaseHandler):
 
             json = user_table.find_one({'user_id' : self.user_id})
             if json:
+                status = 'NO'
                 if json['serial'] == serial:
                     status = json['status']
             else:
@@ -411,7 +412,7 @@ class LoginHandler(BaseHandler):
                 user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
 
         if status == 'NO' or self.user_id == None or self.user_id == '':
-            raise tornado.web.HTTPError(401, 'Missing key %s' % self.user_id)
+            raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.user_id)
 
         # 登录检查，生成随机 KEY
         redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
@@ -656,7 +657,7 @@ class ViewApplication(tornado.web.Application):
             (r'/show',             ShowHandler),
             (r'/',                 IndexHandler),
 
-            (r"/static/(.*)",      EncryptFileHandler, {"path": "static"}),
+            (r"/static/(.*)",      tornado.web.Application, {"path": "static"}),
             (r"/scripts/(.*)",     EncryptFileHandler, {"path": "scripts"}),
         ]
 

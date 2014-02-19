@@ -28,7 +28,6 @@ class ParserJiansuLivetv(LivetvParser):
             for stations in tvlist['paramz']['stations']:
                 for ch in stations['channels']:
                     album  = self.NewAlbum(ch['name'])
-                    album.categories = self.tvCate.GetCategories(album.albumName)
                     album.largePicUrl = 'http://newplayer.jstv.com' + ch['logo']
 
                     v = album.NewVideo()

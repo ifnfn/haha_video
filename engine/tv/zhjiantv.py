@@ -34,7 +34,7 @@ class ParserHangZhouLivetv(LivetvParser):
         text = js['data']
         root = ElementTree.fromstring(text)
 
-        name = self.GetAliasName(root.attrib['name'])
+        name = root.attrib['name']
         if name == '':
             return
 
@@ -50,8 +50,6 @@ class ParserHangZhouLivetv(LivetvParser):
             return
 
         album  = self.NewAlbum(name)
-        album.categories = self.tvCate.GetCategories(album.albumName)
-        album.area       = self.area
 
         v = album.NewVideo()
         v.order = self.order
@@ -155,12 +153,11 @@ class ParserWenZhouLivetv(LivetvParser):
         for source, name in ch_list:
             name = '温州-' + name
             album  = self.NewAlbum(name)
-            album.categories = self.tvCate.GetCategories(album.albumName)
 
             v = album.NewVideo()
             v.vid      = utils.getVidoId(js['source'] + '/' + source)
             v.order = 2
-            v.name     = "WZTV"
+            v.name     = self.tvName
 
             v.SetVideoUrl('default', {
                 'script' : 'wztv',

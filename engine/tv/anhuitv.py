@@ -32,8 +32,7 @@ class ParserAnhuiLivetv(LivetvParser):
         for k,v in ChannelMap.items():
             #url = 'http://www.ahtv.cn/m2o/player/channel_xml.php?first=1&id=%d' % v
             album  = self.NewAlbum(k)
-            album.categories = self.tvCate.GetCategories(album.albumName)
-            album.area       = self.area
+
             album.livetv.videoListUrl = {
                 'script': 'ahtv',
                 'function' : 'get_videolist',

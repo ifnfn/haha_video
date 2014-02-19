@@ -25,7 +25,6 @@ class ParserJLntvLivetv(LivetvParser):
 
         for _, u, n in ch_list:
             album  = self.NewAlbum(n)
-            album.categories = self.tvCate.GetCategories(n)
 
             v = album.NewVideo()
             v.order  = self.order

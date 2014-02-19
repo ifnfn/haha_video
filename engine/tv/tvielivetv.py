@@ -24,13 +24,7 @@ class ParserTVIELivetv(LivetvParser):
             if 'name' in x: name = x['name']
             if 'display_name' in x: name = x['display_name']
 
-            name = self.GetAliasName(name)
-            if name == '':
-                continue
-
             album = self.NewAlbum(name)
-            album.categories = self.GetCategories(album.albumName)
-            album.area       = self.area
 
             v = album.NewVideo()
             v.order = self.order

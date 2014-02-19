@@ -93,8 +93,9 @@ class LivetvParser(KolaParser):
 
     def NewAlbum(self, name):
         album  = LivetvAlbum()
-        album.albumName = name
+        album.albumName = self.GetAliasName(name)
         album.vid = utils.genAlbumId(album.albumName)
+        album.categories  = self.tvCate.GetCategories(album.albumName)
 
         album.enAlbumName = self.tvName
         album.area        = self.area

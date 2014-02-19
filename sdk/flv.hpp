@@ -1,5 +1,5 @@
-#ifndef _FLV_PARSER_H
-#define _FLV_PARSER_H
+#ifndef FLV_PARSER_H
+#define FLV_PARSER_H
 
 #include <iostream>
 #include <stdio.h>

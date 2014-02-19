@@ -52,9 +52,8 @@ class ParserCutvLivetv(LivetvParser):
         for p in root.findall('channel'):
             name = p.findtext('channel_name')
             channel_id = p.findtext('channel_id')
+
             album  = self.NewAlbum(name)
-            album.categories = self.tvCate.GetCategories(album.albumName)
-            album.area       = self.area
 
             album.channel_id  = channel_id
             album.largePicUrl = p.findtext('thumb')

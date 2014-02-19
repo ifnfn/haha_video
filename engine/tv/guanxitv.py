@@ -28,8 +28,6 @@ class ParserNNLivetv(LivetvParser):
             for p in root:
                 if p.tag == 'title':
                     album  = self.NewAlbum(p.text)
-                    album.categories = self.tvCate.GetCategories(album.albumName)
-                    album.area       = self.area
 
             if album == None:
                 return

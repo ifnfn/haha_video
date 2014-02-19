@@ -105,7 +105,6 @@ class KolatvServer:
         if self.UpdateAlbumFlag == True:
             self.UpdateAlbumFlag = False
 
-
 tv = KolatvServer()
 
 class AlbumListHandler(BaseHandler):
@@ -389,7 +388,33 @@ class RandomVideoUrlHandle(BaseHandler):
             self.db.expire(name, 60) # 1 分钟有效
             self.finish(name)
 
+class UserInfoHandler(BaseHandler):
+    con = Connection('localhost', 27017)
+    user_table = con.kola.users
+
+    def initialize(self):
+        pass
+
+    def get(self):
+        ret = []
+        cursor = self.user_table.find()
+        for x in cursor:
+            del x['_id']
+            ret.append(x)
+        self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+
+class SerialHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        pass
+
 class LoginHandler(BaseHandler):
+    con = Connection('localhost', 27017)
+    user_table = con.kola.users
+    redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
+
     def initialize(self):
         pass
 
@@ -399,33 +424,30 @@ class LoginHandler(BaseHandler):
         status = 'YES'
 
         if self.user_id not in ['000001', '000002', '000003', '000004']: # 默认的测试号
-            con = Connection('localhost', 27017)
-            user_table = con.kola.users
 
-            json = user_table.find_one({'user_id' : self.user_id})
+            json = self.user_table.find_one({'user_id' : self.user_id})
             if json:
                 status = 'NO'
                 if json['serial'] == serial:
                     status = json['status']
             else:
                 status = 'YES'
-                user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
+                self.user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
 
         if status == 'NO' or self.user_id == None or self.user_id == '':
             raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.user_id)
 
         # 登录检查，生成随机 KEY
-        redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
-        if not redis_db.exists(self.user_id):
+        if not self.redis_db.exists(self.user_id):
             key = (self.user_id + uuid.uuid4().__str__() + self.request.remote_ip).encode()
             key = hashlib.md5(key).hexdigest().upper()
-            redis_db.set(self.user_id, key)
-            redis_db.set(key, self.request.remote_ip)
+            self.redis_db.set(self.user_id, key)
+            self.redis_db.set(key, self.request.remote_ip)
         else:
-            key = redis_db.get(self.user_id).decode()
-            redis_db.set(key, self.request.remote_ip)
-        redis_db.expire(self.user_id, 60) # 一分钟过期
-        redis_db.expire(key, 60) # 一分钟过期
+            key = self.redis_db.get(self.user_id).decode()
+            self.redis_db.set(key, self.request.remote_ip)
+        self.redis_db.expire(self.user_id, 60) # 一分钟过期
+        self.redis_db.expire(key, 60) # 一分钟过期
 
         return key
 
@@ -471,7 +493,7 @@ class IndexHandler(BaseHandler):
         args = {}
         args['page'] = 0
         args['size'] = 20
-        args['sort'] = '周播放最多'
+        args['sort'] = '日播放最多'
 
         _items, _ = tv.GetMenuAlbumListByName('电视剧', args)
         newtv = []
@@ -533,7 +555,7 @@ class IndexHandler(BaseHandler):
 
         args['page'] = 0
         args['size'] = 20
-        args['sort'] = '周播放最多'
+        args['sort'] = '日播放最多'
         _items, _ = tv.GetMenuAlbumListByName('电影', args)
         newmovie = []
         for i in _items:
@@ -597,8 +619,6 @@ class IndexHandler(BaseHandler):
 
 class EncryptFileHandler(tornado.web.StaticFileHandler):
     def initialize(self, path, default_filename=None):
-        #self.root = path
-        #self.default_filename = default_filename
         super().initialize(path, default_filename)
         self.crypt = True
 
@@ -628,6 +648,7 @@ class EncryptFileHandler(tornado.web.StaticFileHandler):
                                "@asynchronous decorator.")
         if self.crypt:
             chunk = self.Encrypt(chunk)
+
         self._write_buffer.append(chunk)
 
 class ViewApplication(tornado.web.Application):
@@ -644,6 +665,7 @@ class ViewApplication(tornado.web.Application):
         )
 
         handlers = [
+            (r'/',                 IndexHandler),
             (r'/video/list',       AlbumListHandler),
             (r'/video/getvideo',   GetVideoHandler),
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
@@ -655,9 +677,11 @@ class ViewApplication(tornado.web.Application):
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
             (r'/show',             ShowHandler),
-            (r'/',                 IndexHandler),
 
-            (r"/static/(.*)",      tornado.web.Application, {"path": "static"}),
+            (r'/admin/userinfo',   UserInfoHandler),        # 用户信息
+            (r'/admin/serial',     SerialHandler),          # 生成序列号
+
+            (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),
             (r"/scripts/(.*)",     EncryptFileHandler, {"path": "scripts"}),
         ]
 

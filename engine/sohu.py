@@ -248,7 +248,7 @@ class ParserAlbumFullInfo(KolaParser):
         if 'area' in json           : album.area           = self.alias.Get(json['area'])
         if 'categories' in json     : album.categories     = ParserAlbumFullInfo.alias.GetList(json['categories'])
         if 'publishYear' in json    : album.publishYear    = json['publishYear']
-        if 'updateTime' in json     : album.updateTime     = json['updateTime']
+        if 'updateTime' in json     : album.updateTime     = int(json['updateTime'] / 1000)
 
         # 图片
         if 'largeHorPicUrl' in json : album.largeHorPicUrl = json['largeHorPicUrl']

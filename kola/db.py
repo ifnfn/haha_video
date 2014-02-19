@@ -518,10 +518,10 @@ class DB:
                 size = autoint(arg['size'])
 
             cursor = self.album_table.find(_filter, fields = fields)
-            count = cursor.count()
-
             if 'sort' in arg:
                 cursor = cursor.sort(arg['sort'])
+
+            count = cursor.count()
 
             if size:
                 cursor = cursor.skip(page * size).limit(size)
@@ -638,6 +638,8 @@ class DB:
             arg['filter'] = self._ConvertFilterJson(arg['filter'])
         if 'sort' in arg:
             arg['sort'] = self._ConvertSortJson(arg['sort'])
+        else:
+            arg['sort'] = [('dailyPlayNum', pymongo.DESCENDING)]
 
         return arg
 

@@ -304,7 +304,8 @@ class ParserAlbumJsonA(KolaParser):
             self.cmd['cid']     = cid
 
     def CmdParser(self, js):
-        def TimeStr(t):
+        def Time(t):
+            return int(autoint(t) / 1000)
             return time.strftime('%Y-%m-%d', time.gmtime(autoint(t) / 1000))
 
         try:
@@ -358,7 +359,7 @@ class ParserAlbumJsonA(KolaParser):
             if 'actors' in json:     album.directors      = json['actors']     # 导演
 
             album.totalPlayNum     = autoint(json['playCounts'])               # 总播放次数
-            album.updateTime       = TimeStr(json['pubTime'])                  # 更新时间
+            album.updateTime       = Time(json['pubTime'])                  # 更新时间
 
             album.qiyi.vid     = js['videoid']
             album.qiyi.albumid = js['albumid']

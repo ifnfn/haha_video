@@ -137,11 +137,9 @@ void KolaAlbum::Parser(json_t *js)
 	cout << "smallVerPicUrl: " << smallVerPicUrl << endl;
 #endif
 
-	dailyPlayNum    = (int)json_geti   (js , "dailyPlayNum"    , 0);   // 每日播放次数
-	weeklyPlayNum   = (int)json_geti   (js , "weeklyPlayNum"   , 0);   // 每周播放次数
-	monthlyPlayNum  = (int)json_geti   (js , "monthlyPlayNum"  , 0);   // 每月播放次数
-	totalPlayNum    = (int)json_geti   (js , "totalPlayNum"    , 0);   // 总播放资料
-	dailyIndexScore = (int)json_getreal(js , "dailyIndexScore" , 0.0); // 每日指数
+	dailyPlayNum = (int)json_geti(js , "dailyPlayNum"    , 0);   // 日播放次数
+	totalPlayNum = (int)json_geti(js , "totalPlayNum"    , 0);   // 总播放次数
+	Score        = json_getreal  (js , "dailyIndexScore" , 0.0); // 得分
 
 	json_get_stringlist(js, "mainActors", &mainActors);
 	json_get_stringlist(js, "directors", &directors);

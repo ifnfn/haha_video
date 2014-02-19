@@ -231,7 +231,8 @@ class ParserAlbumList(KolaParser):
             self.cmd['cid']     = cid
 
     def CmdParser(self, js):
-        def TimeStr(t):
+        def Time(t):
+            return int(autoint(t) / 1000)
             return time.strftime('%Y-%m-%d', time.gmtime(autoint(t) / 1000))
 
         if not js['data']: return
@@ -278,7 +279,7 @@ class ParserAlbumList(KolaParser):
                 if 'poster20' in a:    album.largeVerPicUrl   = a['poster20']                # 竖大图
                 if 'postS2' in a:      album.smallVerPicUrl   = a['postS2']                  # 竖小图
                 if 'duration' in a:    album.playLength       = autoint(a['duration']) * 60  # 时长
-                if 'mtime' in a:       album.updateTime       = TimeStr(a['mtime'])          # 更新时间
+                if 'mtime' in a:       album.updateTime       = Time(a['mtime'])             # 更新时间
                 if 'description' in a: album.albumDesc        = a['description']             # 简介
 
                 if 'rating' in a:
@@ -328,7 +329,8 @@ class ParserShowList(KolaParser):
             self.cmd['cid']     = cid
 
     def CmdParser(self, js):
-        def TimeStr(t):
+        def Time(t):
+            return int(autoint(t) / 1000)
             return time.strftime('%Y-%m-%d', time.gmtime(autoint(t) / 1000))
 
         if not js['data']: return
@@ -382,7 +384,7 @@ class ParserShowList(KolaParser):
                 if 'areaName' in a:        album.area           = self.alias.Get(a['areaName'])                      # 地区
                 if 'subCategoryName' in a: album.categories     = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
                 if 'releaseDate' in a:     album.publishYear    = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
-                if 'mtime' in a:           album.updateTime     = TimeStr(a['mtime'])      # 更新时间
+                if 'mtime' in a:           album.updateTime     = Time(a['mtime'])      # 更新时间
                 if 'description' in a:     album.albumDesc      = a['description']         # 简介
                 if 'dayCount' in a:        album.dailyPlayNum   = autoint(a['dayCount'])   # 每日播放次数
                 if 'weekCount' in a:       album.weeklyPlayNum  = autoint(a['weekCount'])  # 每周播放次数

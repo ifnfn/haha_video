@@ -179,8 +179,8 @@ Resource* ResourceManager::GetResource(const string &url)
 	Resource* pResource = dynamic_cast<Resource*>(FindResource(url));
 	if (pResource == NULL)
 		pResource = AddResource(url);
-	else
-		printf("Cached Found: %s ==> %s\n", url.c_str(), pResource->GetFileName().c_str());
+//	else
+//		printf("Cached Found: %s ==> %s\n", url.c_str(), pResource->GetFileName().c_str());
 
 	pResource->IncRefCount();
 

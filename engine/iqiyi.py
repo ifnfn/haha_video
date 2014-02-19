@@ -129,7 +129,6 @@ class QiyiAlbum(kola.AlbumBase):
     def __init__(self):
         self.engineName = 'QiyiEngine'
         super().__init__()
-        self.albumPageUrl = ''
 
         self.qiyi = QiyiPrivate()
 
@@ -257,8 +256,7 @@ class ParserAlbumScore(KolaParser):
 
         json = tornado.escape.json_decode(text[0])
         if 'data' in json and 'score' in json['data']:
-            album.videoScore      = autofloat(json['data']['score']) * 10  # 推荐指数
-            album.dailyIndexScore = autofloat(json['data']['score']) * 10  # 每日指数
+            album.Score      = autofloat(json['data']['score']) * 10  # 推荐指数
             db.SaveAlbum(album)
 
 class ParserAlbumJsonAVList(KolaParser):
@@ -344,7 +342,6 @@ class ParserAlbumJsonA(KolaParser):
 
             album.publishYear      = autoint(json['tvYear']) // 10000          # 年
 
-            album.albumPageUrl     = json['purl']                              # 'vu'
             album.largePicUrl      = json['tvPictureUrl']                      # 大图 post20 最大的
 
             if not album.largePicUrl:
@@ -478,9 +475,8 @@ class ParserShowAlbumList(KolaParser):
 
         soup = bs(js['data'])  # , from_encoding = 'GBK')
         playlist = soup.findAll('a', { "rseat" : "list_lm" })
-        #playlist = js['data'].split()
         for a in playlist:
-            href = a.attrs['href']
+            #href = a.attrs['href']
             text = a.text
 
         try:
@@ -506,7 +502,6 @@ class ParserShowAlbumList(KolaParser):
             album.albumName    = albumName
             album.vid          = utils.genAlbumId(album.albumName)
             album.cid          = js['cid']
-            album.albumPageUrl = href
 
             if album.cid == 3:
                 a = ComicAlias
@@ -519,7 +514,6 @@ class ParserShowAlbumList(KolaParser):
 
             album.publishYear      = autoint(json['tvYear']) // 10000          # 年
 
-            album.albumPageUrl     = json['purl']                              # 'vu'
             album.largePicUrl      = json['tvPictureUrl']                      # 大图 post20 最大的
 
             if not album.largePicUrl:

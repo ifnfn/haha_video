@@ -12,7 +12,7 @@ import os
 global headers
 
 MAX_TRY = 3
-socket_timeout = 20
+socket_timeout = 30
 
 headers = {
     'User-Agent'     : 'Kolatv',

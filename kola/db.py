@@ -41,12 +41,11 @@ class VideoBase:
         self.order = -1
         self.playLength = 0.0
         self.showName = ''
-        self.publishTime = ''
         self.videoDesc = ''
         self.isHigh = -1
 
-        self.videoPlayCount = 0
-        self.videoScore = 0.0
+        self.PlayCount = 0
+        self.Score = 0.0
 
         self.smallPicUrl = ''
         self.largePicUrl = ''
@@ -87,11 +86,10 @@ class VideoBase:
         if self.order != -1     : ret['order']          = self.order
         if self.playLength      : ret['playLength']     = self.playLength
         if self.showName        : ret['showName']       = self.showName
-        if self.publishTime     : ret['publishTime']    = self.publishTime
         if self.videoDesc       : ret['videoDesc']      = self.videoDesc
         if self.isHigh != -1    : ret['isHigh']         = self.isHigh
-        if self.videoPlayCount  : ret['videoPlayCount'] = self.videoPlayCount
-        if self.videoScore      : ret['videoScore']     = self.videoScore
+        if self.PlayCount       : ret['PlayCount']      = self.PlayCount
+        if self.Score           : ret['Score']          = self.Score
         if self.largePicUrl     : ret['largePicUrl']    = self.largePicUrl
         if self.smallPicUrl     : ret['smallPicUrl']    = self.smallPicUrl
 
@@ -111,11 +109,10 @@ class VideoBase:
         if 'videoName' in json      : self.name           = json['videoName']
         if 'playLength' in json     : self.playLength     = json['playLength']
         if 'showName' in json       : self.showName       = json['showName']
-        if 'publishTime' in json    : self.publishTime    = json['publishTime']
         if 'videoDesc' in json      : self.videoDesc      = json['videoDesc']
         if 'isHigh' in json         : self.isHigh         = autoint(json['isHigh'])
-        if 'videoPlayCount' in json : self.videoPlayCount = json['videoPlayCount']
-        if 'videoScore' in json     : self.videoScore     = json['videoScore']
+        if 'PlayCount' in json      : self.PlayCount      = json['PlayCount']
+        if 'Score' in json          : self.Score          = json['Score']
         if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
         if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
         if 'videos' in json         : self.videos         = json['videos']
@@ -127,7 +124,6 @@ class AlbumBase:
         self.VideoClass = VideoBase
         self.cid = 0
 
-        self.sources         = {}  # 直接节目    [*]
         self.albumName       = ''  # 名称        [*]
         self.enAlbumName     = ''  # 英文名称    [*]
         self.vid             = ''  # [*]
@@ -135,7 +131,6 @@ class AlbumBase:
         self.categories      = []  # 类型        [*]
         self.publishYear     = ''  # 发布年份    [*]
         self.isHigh          = 0   # 是否是高清  [*]
-        self.albumPageUrl    = ''  # 节目主页
 
         self.largePicUrl     = ''  # 大图片网址  [*]
         self.smallPicUrl     = ''  # 小图片网址  [*]
@@ -145,11 +140,9 @@ class AlbumBase:
         self.smallVerPicUrl  = ''  # [*]
 
         self.playLength      = 0.0 # [*]
-        self.publishTime     = ''  # [*]
         self.updateTime      = 0   # [*]
 
         self.albumDesc       = ''  # [*]
-        self.videoScore      = ''  # [*]
 
         self.totalSet        = 0   # 总集数       [*]
         self.updateSet       = 0   # 当前更新集   [*]
@@ -157,16 +150,17 @@ class AlbumBase:
         self.weeklyPlayNum   = 0   # 每周播放次数 [*]
         self.monthlyPlayNum  = 0   # 每月播放次数 [*]
         self.totalPlayNum    = 0   # 总播放次数   [*]
-        self.dailyIndexScore = 0   # 每日指数     [*]
+        self.Score           = 0.0 # 得分         [*]
 
         self.mainActors      = []  # [*]
         self.directors       = []  # [*]
 
-        self.videoListUrl = ''
+        self.videoListUrl    = ''
 
+        self.sources         = {}  # 直接节目    [*]
         self.videos          = []
         self.private         = {}
-        self.engineList = []
+        self.engineList      = []
 
         if self.engineName:
             self.engineList.append(self.engineName)
@@ -200,11 +194,9 @@ class AlbumBase:
         if self.publishYear     : ret['publishYear']     = self.publishYear
 
         if self.albumDesc       : ret['albumDesc']       = self.albumDesc
-        if self.videoScore      : ret['videoScore']      = self.videoScore
         if self.totalSet        : ret['totalSet']        = self.totalSet
         if self.updateSet       : ret['updateSet']       = self.updateSet
 
-        if self.albumPageUrl    : ret['albumPageUrl']    = self.albumPageUrl
         # 图片
         if self.largeHorPicUrl  : ret['largeHorPicUrl']  = self.largeHorPicUrl
         if self.smallHorPicUrl  : ret['smallHorPicUrl']  = self.smallHorPicUrl
@@ -217,14 +209,14 @@ class AlbumBase:
         if self.directors       : ret['directors']       = self.directors
 
         if self.playLength      : ret['playLength']      = self.playLength
-        if self.publishTime     : ret['publishTime']     = self.publishTime
-        if self.updateTime      : ret['updateTime']      = self.updateTime
 
+        if self.updateTime      : ret['updateTime']      = self.updateTime
         if self.dailyPlayNum    : ret['dailyPlayNum']    = self.dailyPlayNum     # 每日播放次数
         if self.weeklyPlayNum   : ret['weeklyPlayNum']   = self.weeklyPlayNum    # 每周播放次数
         if self.monthlyPlayNum  : ret['monthlyPlayNum']  = self.monthlyPlayNum   # 每月播放次数
         if self.totalPlayNum    : ret['totalPlayNum']    = self.totalPlayNum     # 总播放资料
-        if self.dailyIndexScore : ret['dailyIndexScore'] = self.dailyIndexScore  # 每日指数
+        if self.Score           : ret['Score']           = self.Score
+
         if self.sources         : ret['sources']         = self.sources
 
         #if self.videoListUrl: ret['videoListUrl']    = self.videoListUrl  # 每日指数
@@ -251,9 +243,6 @@ class AlbumBase:
         if 'publishYear' in json    : self.publishYear     = json['publishYear']
 
         if 'playLength' in json     : self.playLength      = json['playLength']
-        if 'publishTime' in json    : self.publishTime     = json['publishTime']
-        if 'updateTime' in json     : self.updateTime      = json['updateTime']
-        if 'albumPageUrl' in json   : self.albumPageUrl    = json['albumPageUrl']
 
         # 图片
         if 'largeHorPicUrl' in json : self.largeHorPicUrl  = json['largeHorPicUrl']
@@ -264,7 +253,6 @@ class AlbumBase:
         if 'smallPicUrl' in json    : self.smallPicUrl     = json['smallPicUrl']
 
         if 'albumDesc' in json      : self.albumDesc       = json['albumDesc']
-        if 'videoScore' in json     : self.videoScore      = json['videoScore']
         if 'totalSet' in json       : self.totalSet        = json['totalSet']
         if 'updateSet' in json      : self.updateSet       = json['updateSet']
 
@@ -275,9 +263,9 @@ class AlbumBase:
         if 'weeklyPlayNum' in json  : self.weeklyPlayNum   = json['weeklyPlayNum']   # 每周播放次数
         if 'monthlyPlayNum' in json : self.monthlyPlayNum  = json['monthlyPlayNum']  # 每月播放次数
         if 'totalPlayNum' in json   : self.totalPlayNum    = json['totalPlayNum']    # 总播放资料
-        if 'dailyIndexScore' in json: self.dailyIndexScore = json['dailyIndexScore'] # 每日指数
+        if 'Score' in json          : self.Score           = json['Score']
+        if 'updateTime' in json     : self.updateTime      = json['updateTime']
 
-        #if 'videoListUrl' in json   : self.videoListUrl    = json['videoListUrl']
         if 'sources' in json        : self.sources         = json['sources']
         if 'private' in json        : self.private         = json['private']
 
@@ -363,7 +351,6 @@ class DB:
     album_table.drop_indexes()
     album_table.create_index([('engineList'  , pymongo.ASCENDING)])
     album_table.create_index([('albumName'   , pymongo.ASCENDING)])
-    album_table.create_index([('albumPageUrl', pymongo.ASCENDING)])
     album_table.create_index([('vid'         , pymongo.ASCENDING)])
     album_table.create_index([('cid'         , pymongo.ASCENDING)])
 
@@ -382,7 +369,7 @@ class DB:
             '日播放最多' : 'dailyPlayNum',
             '总播放最多' : 'totalPlayNum',
             '最新发布'   : 'publishTime',
-            '评分最高'   : 'videoScore',
+            '评分最高'   : 'Score',
             '名称'       : 'NamePy',
             'Name'      : 'NamePy',
             'vids'      : 'vid'
@@ -423,14 +410,12 @@ class DB:
         album.vid        = autostr(album.vid)
         key = ''
         js = {}
-        if album.albumName or album.albumPageUrl or album.vid:
+        if album.albumName or album.vid:
             js = album.SaveToJson()
 
             if not key:
                 if album.vid:
                     key = {'vid' : album.vid}
-                elif album.albumPageUrl:
-                    key = {'albumPageUrl': album.albumPageUrl}
                 elif album.albumName:
                     key = {'albumName': album.albumName}
 

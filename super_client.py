@@ -79,7 +79,7 @@ if __name__ == "__main__":
     #x = haha.RegularMatch(regular, text)
     #print(x)
 
-    #main_thread()
+    main_thread()
     #main_one()
-    main()
+    #main()
     #main_loop()

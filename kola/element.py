@@ -162,6 +162,14 @@ class ShowMenu(db.VideoMenuBase):
             '产地' : ['内地', '港台', '欧美', '日韩', '其他'],
             'PinYin' : []
         }
+        self.quickFilter = [
+            {'title' : '热播'     , 'sort' : '日播放最多'},
+            {'title' : '最新更新' , 'sort' : '最新发布' },
+            {'title' : '推荐'    , 'sort' : '评分最高'  },
+            {'title' : '中国综艺'  , 'sort' : '日播放最多', 'filter': {'产地' : '内地,香港,台湾,港台' }      },
+            {'title' : '日韩综艺'  , 'sort' : '日播放最多', 'filter': {'产地' : '日本,韩国,日韩' } },
+            {'title' : '欧美综艺'   , 'sort' : '日播放最多', 'filter': {'地区' : '美国,欧洲,英国,加拿大,俄罗斯' }     },
+        ]
 
 # 教育
 class EduMenu(db.VideoMenuBase):

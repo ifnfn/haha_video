@@ -114,7 +114,6 @@ class LetvAlbum(kola.AlbumBase):
     def __init__(self):
         self.engineName = 'LetvEngine'
         super().__init__()
-        self.albumPageUrl = ''
 
         self.letv = LetvPrivate()
 
@@ -213,10 +212,9 @@ class ParserPlayCount(KolaParser):
 
         json = tornado.escape.json_decode(js['data'])
         if 'plist_score' in json:
-            album.videoScore       = autofloat(json['plist_score']) * 10  # 推荐指数
-            album.dailyIndexScore  = autofloat(json['plist_score']) * 10  # 每日指数
+            album.Score       = autofloat(json['plist_score']) * 10  # 推荐指数
         if 'plist_play_count' in json:
-            play_count = autoint(json['plist_play_count'])                # 每日播放次数
+            play_count = autoint(json['plist_play_count'])           # 每日播放次数
             if play_count > album.dailyPlayNum:
                 album.dailyPlayNum = play_count
                 db.SaveAlbum(album)
@@ -267,10 +265,9 @@ class ParserAlbumList(KolaParser):
                         if not vids[0]:
                             pass
                         album.letv.vid = vids[0]
-                        album.albumPageUrl = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(vids[0])
                 elif 'vid' in a:
                     album.letv.vid = a['vid']
-                    album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
+                    #album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
 
                 if 'poster20' in a:    album.largePicUrl      = a['poster20']                # 大图 post20 最大的
                 if 'postS3' in a:      album.smallPicUrl      = a['postS3']                  # 小图 // postS1 小中大的，postS3 小中最小的
@@ -283,8 +280,7 @@ class ParserAlbumList(KolaParser):
                 if 'description' in a: album.albumDesc        = a['description']             # 简介
 
                 if 'rating' in a:
-                    album.videoScore       = autofloat(a['rating']) * 10                  # 推荐指数
-                    album.dailyIndexScore  = autofloat(a['rating']) * 10  # 每日指数
+                    album.Score       = autofloat(a['rating']) * 10                          # 推荐指数
 
                 if 'episodes' in a:                     album.totalSet         = autoint(a['episodes'])       # 总集数
                 if 'nowEpisodes' in a:                  album.updateSet        = autoint(a['nowEpisodes'])    # 当前更新集
@@ -391,8 +387,7 @@ class ParserShowList(KolaParser):
                 if 'monthCount' in a:      album.monthlyPlayNum = autoint(a['monthCount']) # 每月播放次数
                 if 'playCount' in a:       album.totalPlayNum   = autoint(a['playCount'])  # 总播放次数
                 if 'rating' in a:
-                    album.videoScore       = autofloat(a['rating']) * 10                  # 推荐指数
-                    album.dailyIndexScore  = autofloat(a['rating']) * 10  # 每日指数
+                    album.Score       = autofloat(a['rating']) * 10                        # 推荐指数
 
                 if 'vids' in a:
                     vids = a['vids']
@@ -401,10 +396,9 @@ class ParserShowList(KolaParser):
                         if not vids[0]:
                             pass
                         album.letv.vid = vids[0]
-                        album.albumPageUrl = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(vids[0])
                 elif 'vid' in a:
                     album.letv.vid = a['vid']
-                    album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
+                    #album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
 
                 if 'aid' in a:
                     album.letv.playlistid = a['aid']

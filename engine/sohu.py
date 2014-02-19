@@ -70,7 +70,6 @@ class SohuAlbum(kola.AlbumBase):
     def __init__(self):
         self.engineName = 'SohuEngine'
         super().__init__()
-        self.albumPageUrl = ''
 
         self.sohu = SohuPrivate()
 
@@ -238,7 +237,6 @@ class ParserAlbumFullInfo(KolaParser):
         album.albumName       = albumName
         album.vid             = utils.genAlbumId(album.albumName)
 
-        if 'albumPageUrl' in json   : album.albumPageUrl    = json['albumPageUrl']
         if 'cid' in json            : album.cid             = cid
         if 'playlistid' in json     : album.sohu.playlistid = playlistid
         if 'pid' in json            : album.sohu.pid        = pid
@@ -307,7 +305,7 @@ class ParserAlbumMvInfo(KolaParser):
             video = json['videos'][0]
 
             if 'isHigh' in video          : album.isHigh = str(video['isHigh'])
-            if 'videoScore' in video      : album.videoScore = str(video['videoScore'])
+            if 'videoScore' in video      : album.Score  = str(video['videoScore'])
 
             db.SaveAlbum(album, upsert=False)
 
@@ -349,7 +347,7 @@ class ParserAlbumScore(KolaParser):
                 if 'totalPlayNum' in index:
                     album.totalPlayNum    = autoint(index['totalPlayNum'])    # 总播放资料
                 if 'dailyIndexScore' in index:
-                    album.dailyIndexScore = autoint(index['dailyIndexScore']) # 每日指数
+                    album.Score = autoint(index['dailyIndexScore']) # 每日指数
 
                 db.SaveAlbum(album, upsert=False)
 

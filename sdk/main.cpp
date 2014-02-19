@@ -120,7 +120,7 @@ void test_livetv()
 			cout << "\t:" << *j << endl;
 	}
 	//m->FilterAdd("类型", "本省台");
-	m->FilterAdd("类型", "央视台");
+	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
 	//m->FilterAdd("PinYin", "zjw");
@@ -234,7 +234,7 @@ void test_video(const char *menuName)
 	}
 	//m->FilterAdd("类型", "爱情片");
 	//m->FilterAdd("产地", "香港,台湾");
-	m->FilterAdd("年份", "2013");
+	//m->FilterAdd("年份", "2013");
 	//m->SetQuickFilter("推荐电影");
 	//m->SetQuickFilter("日韩电影");
 
@@ -289,14 +289,14 @@ void test_video(const char *menuName)
 			IVideo *video = album->GetVideo(j);
 			if (video) {
 				StringList res;
-//				player_url = video->GetVideoUrl();
+				player_url = video->GetVideoUrl();
 				printf("\t%s %s %s [%s] -> %s\n",
 						video->pid.c_str(), video->vid.c_str(),
 						video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				video->GetResolution(res);
 				printf("Resolution: %s\n", res.ToString().c_str());
 
-				player.AddVideo(video);
+//				player.AddVideo(video);
 			}
 			else
 				printf("video ============== NULL\n");
@@ -314,7 +314,8 @@ void test_video(const char *menuName)
 					picture.GetSize());
 		}
 	}
-#if 1
+
+#if 0
 	count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {

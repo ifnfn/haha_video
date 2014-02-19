@@ -32,7 +32,7 @@
 #define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE 8
+#define MAX_THREAD_POOL_SIZE 4
 
 static string loginKey;
 static string loginKeyCookie;

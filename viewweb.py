@@ -607,23 +607,26 @@ class EncryptFileHandler(tornado.web.StaticFileHandler):
         else:
             self.crypt = True
             absolute_path += '.lua'
+
         return super().validate_absolute_path(root, absolute_path)
 
-    def write(self, chunk):
-        def Encrypt(data):
-            r = ''
-            for i in range(0, len(data) - 1):
-                x = data[i] ^ 0x4A
-                r += chr(x)
+    def Encrypt(self, data):
+        if type(data) == str:
+            data = data.encode()
+        r = bytearray()
+        for i in range(0, len(data) - 1):
+            x = data[i] ^ 0x4A
+            r += bytes([x])
 
-            return r.encode()
+        return bytes(r)
+
+    def write(self, chunk):
         if self._finished:
             raise RuntimeError("Cannot write() after finish().  May be caused "
                                "by using async operations without the "
                                "@asynchronous decorator.")
         if self.crypt:
-            chunk = Encrypt(chunk)
-
+            chunk = self.Encrypt(chunk)
         self._write_buffer.append(chunk)
 
 class ViewApplication(tornado.web.Application):

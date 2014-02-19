@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <time.h>
 
 #include "resource.hpp"
 
@@ -40,6 +41,7 @@ void Resource::Run(void)
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		this->ExpiryTime = http.Headers.GetExpiryTime();
+		time(&this->updateTime);
 		if (miDataSize > 0 && manager) {
 			manager->GC(miDataSize);
 			manager->MemoryInc(miDataSize);
@@ -56,6 +58,9 @@ void Resource::Run(void)
 string Resource::ToString()
 {
 	string ret;
+
+	manager->Lock();
+	time(&this->updateTime);
 	FILE *fp = fopen(md5Name.c_str(), "r");
 	if (fp) {
 		char buffer[1024];
@@ -66,6 +71,7 @@ string Resource::ToString()
 		}
 		fclose(fp);
 	}
+	manager->Unlock();
 
 	return ret;
 }
@@ -222,10 +228,11 @@ void ResourceManager::RemoveResource(Resource* res)
 
 static bool compare_nocase(const Resource* first, const Resource* second)
 {
-	if (first->score == second->score)
-		return first->GetSize() > second->GetSize();
-	else
-		return first->score > second->score;
+	return first->updateTime < second->updateTime;
+	//if (first->score == second->score)
+	//	return first->GetSize() > second->GetSize();
+	//else
+	//	return first->score > second->score;
 }
 
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存

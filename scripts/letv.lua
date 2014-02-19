@@ -122,6 +122,10 @@ function get_resolution(vid)
 		return a1 .. a2
 	end
 
+	local function get_url(text)
+		return text
+	end
+
 	local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
 	local text = kola.wget(url)
 
@@ -138,14 +142,14 @@ function get_resolution(vid)
 	for k,v in ipairs(js) do
 		if v.dispatch ~= nil and type(v.dispatch) == "table" then
 			for a,b in pairs(v.dispatch) do
-				ret[a] = base64_to_url(b[1])
+				ret[a] = get_url(b[1])
 			end
 		end
 
 		if v.dispatchbak ~= nil and type(v.dispatchbak) == "table" then
 			for a,b in pairs(v.dispatchbak) do
 				if ret[a] == nil then
-					ret[a] = base64_to_url(b[1])
+					ret[a] = get_url(b[1])
 				end
 			end
 		end
@@ -153,7 +157,7 @@ function get_resolution(vid)
 		if v.dispatchbak1 ~= nil and type(v.dispatchbak1) == "table" then
 			for a,b in pairs(v.dispatchbak1) do
 				if ret[a] == nil then
-					ret[a] = base64_to_url(b[1])
+					ret[a] = get_url(b[1])
 				end
 			end
 		end
@@ -161,7 +165,7 @@ function get_resolution(vid)
 		if v.dispatchbak2 ~= nil and type(v.dispatchbak2) == "table" then
 			for a,b in pairs(v.dispatchbak2) do
 				if ret[a] == nil then
-					ret[a] = base64_to_url(b[1])
+					ret[a] = get_url(b[1])
 				end
 			end
 		end
@@ -169,7 +173,7 @@ function get_resolution(vid)
 		if v.dispatchspath ~= nil and type(v.dispatchspath) == "table" then
 			for a,b in pairs(v.dispatchspath) do
 				if ret[a] == nil then
-					ret[a] = base64_to_url(b[1])
+					ret[a] = get_url(b[1])
 				end
 			end
 		end

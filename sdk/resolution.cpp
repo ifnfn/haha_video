@@ -26,7 +26,8 @@ void VideoResolution::Calc()
 
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 	if (js == NULL) {
-		printf("Json error: line: %d, colun: %d, position: %d, text: %s\n",
+		printf("Json error: %s, line: %d, colun: %d, position: %d, error: %s\n",
+		       text.c_str(),
 		       error.line,
 		       error.column,
 		       error.position,

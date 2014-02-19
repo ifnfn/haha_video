@@ -56,6 +56,7 @@ public:
 		miDataSize = 0;
 		score = 0;
 		ExpiryTime = 0;
+		time(&updateTime);
 	}
 	virtual ~Resource();
 	static Resource* Create(ResourceManager *manage) {
@@ -75,6 +76,7 @@ public:
 
 	int score;
 	time_t ExpiryTime;
+	time_t updateTime;
 protected:
 	size_t miDataSize;
 	string resName;

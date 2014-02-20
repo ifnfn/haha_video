@@ -114,11 +114,11 @@ void KolaAlbum::Parser(json_t *js)
 	json_gets(js, "albumName"  , albumName);
 	json_gets(js, "albumDesc"  , albumDesc);
 	json_gets(js, "vid"        , vid);
-	cid            =  (int)json_geti(js, "cid"        , 0);
-	isHigh         =  (int)json_geti(js, "isHigh"     , 0);
-	publishYear    =  (int)json_geti(js, "publishYear", 0);
-	totalSet       = json_geti(js, "totalSet"   , 0);
-	updateSet      = json_geti(js, "updateSet"  , totalSet);
+	cid            = (int)json_geti(js, "cid"        , 0);
+	isHigh         = (int)json_geti(js, "isHigh"     , 0);
+	publishYear    = (int)json_geti(js, "publishYear", 0);
+	totalSet       =      json_geti(js, "totalSet"   , 0);
+	updateSet      =      json_geti(js, "updateSet"  , totalSet);
 
 	json_gets(js, "area"          , area);
 	json_gets(js, "videoPlayUrl"  , videoPlayUrl  );
@@ -137,11 +137,10 @@ void KolaAlbum::Parser(json_t *js)
 	cout << "smallVerPicUrl: " << smallVerPicUrl << endl;
 #endif
 
-	dailyPlayNum    = (int)json_geti   (js , "dailyPlayNum"    , 0);   // 每日播放次数
-	weeklyPlayNum   = (int)json_geti   (js , "weeklyPlayNum"   , 0);   // 每周播放次数
-	monthlyPlayNum  = (int)json_geti   (js , "monthlyPlayNum"  , 0);   // 每月播放次数
-	totalPlayNum    = (int)json_geti   (js , "totalPlayNum"    , 0);   // 总播放资料
-	dailyIndexScore = (int)json_getreal(js , "dailyIndexScore" , 0.0); // 每日指数
+	updateTime   = (time_t)json_geti(js, "updateTime", 0);
+	dailyPlayNum = (int)json_geti   (js, "dailyPlayNum", 0);   // 日播放次数
+	totalPlayNum = (int)json_geti   (js, "totalPlayNum", 0);   // 总播放次数
+	Score        = json_getreal     (js, "Score" , 0.0);       // 得分
 
 	json_get_stringlist(js, "mainActors", &mainActors);
 	json_get_stringlist(js, "directors", &directors);

@@ -1,11 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <map>
 #include <string>
 #include <iostream>
 #include <lua.hpp>
 #include <signal.h>
-#define __USE_GNU
 #include <unistd.h>
 #ifdef LINUX
 #include <crypt.h>
@@ -198,42 +199,12 @@ string LuaScript::RunScript(vector<string> &args, const char *name, const char *
 	return ret;
 }
 
-bool des_decrypt(string encrypt_string, string& decrypt_string)
+bool script_decrypt(string& text)
 {
-//	setkey("abcdef");
-//	encrypt();
-
-#if 0
-	AES_KEY aes;
-	unsigned char key[AES_BLOCK_SIZE];        // AES_BLOCK_SIZE = 16
-	unsigned char iv[AES_BLOCK_SIZE];        // init vector
-
-	// Generate AES 128-bit key
-	for (int i=0; i<16; ++i) {
-		key[i] = 32 + i;
+	for (int i=0; i < text.length(); i++) {
+		text[i] = text[i] ^ 0x4A;
 	}
 
-	// Set encryption key
-	for (int i=0; i<AES_BLOCK_SIZE; ++i) {
-		iv[i] = 0;
-	}
-
-	if (AES_set_decrypt_key(key, 128, &aes) < 0) {
-		fprintf(stderr, "Unable to set encryption key in AES\n");
-		exit(-1);
-	}
-
-	len = 0;
-	if ((strlen(argv[1]) + 1) % AES_BLOCK_SIZE == 0) {
-		len = strlen(argv[1]) + 1;
-	} else {
-		len = ((strlen(argv[1]) + 1) / AES_BLOCK_SIZE + 1) * AES_BLOCK_SIZE;
-	}
-
-	// decrypt
-	AES_cbc_encrypt(encrypt_string, decrypt_string, len, &aes, iv,
-			AES_DECRYPT);
-#endif
 	return true;
 }
 
@@ -253,8 +224,8 @@ bool LuaScript::GetScript(const char *name, string &text)
 
 	string url("/scripts/");
 
-	if (kola.UrlGet(url + name + ".lua", text) == true) {
-		//text = des_decrypt(text);
+	if (kola.UrlGet(url + name, text) == true) {
+		script_decrypt(text);
 		scripts.insert(pair<string, Script>(name, Script(text)));
 		return true;
 	}

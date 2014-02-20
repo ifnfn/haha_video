@@ -1,5 +1,5 @@
-#ifndef _PCRE_H_
-#define _PCRE_H_
+#ifndef PCRE_HPP
+#define PCRE_HPP
 
 #include <pcre.h>
 #include <string>

@@ -1,5 +1,5 @@
-#ifndef __JSON_H__
-#define __JSON_H__
+#ifndef JSON_HPP
+#define JSON_HPP
 
 #include <string>
 #include "jansson.h"

@@ -32,16 +32,26 @@
 #define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE 8
+#define MAX_THREAD_POOL_SIZE 4
 
 static string loginKey;
 static string loginKeyCookie;
 static string xsrf_cookie;
 
-static string chipKey(void)
+static string GetChipKey(void)
 {
 	return "000002";
 }
+
+static string GetSerial(void)
+{
+#ifdef LINUX
+	return "aaaaaaaaaaaaaa";
+#endif
+
+	return "aaaaaaaaaaaaaa";
+}
+
 
 string MD5STR(const char *data)
 {
@@ -180,7 +190,6 @@ KolaClient::KolaClient(void)
 	resManager = new ResourceManager(1024 * 1024 * 2);
 
 	LoginOne(true);
-//	pthread_create(&thread, NULL, kola_login_thread, this);
 	thread = new Thread(this, &KolaClient::Login);
 	thread->start();
 }
@@ -205,13 +214,11 @@ string& KolaClient::GetServer() {
 	return base_url;
 }
 
-
 void KolaClient::Quit(void)
 {
 	running = false;
 	delete thread;
-	//pthread_cancel(thread);
-	//pthread_join(thread, NULL);
+
 	printf("KolaClient Quit: %p\n", this);
 }
 
@@ -356,7 +363,7 @@ bool KolaClient::LoginOne(bool quick)
 	string text;
 	string url("/login?user_id=");
 
-	url = url + chipKey();
+	url = url + GetChipKey() + "&serial=" + GetSerial();
 	if (quick == true)
 		url = url + "&cmd=0";
 	else

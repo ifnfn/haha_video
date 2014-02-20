@@ -1,11 +1,3 @@
-//
-//  flv.cpp
-//  kolatv
-//
-//  Created by Silicon on 14-1-24.
-//  Copyright (c) 2014年 Silicon. All rights reserved.
-//
-
 #include "flv.hpp"
 
 #include <string.h>
@@ -358,12 +350,12 @@ FlvMetaData* FlvReader::readMeta() {
 			}
 		}
 	}
+
 	return NULL;
 }
 
 int main1(int argc, char **argv)
 {
-
 	FlvMetaData *flvMetaData;
 	FlvHeader   *flvHeader;
 	FlvReader   flvReader;
@@ -384,5 +376,6 @@ int main1(int argc, char **argv)
 	cout << "audiocodecid: " << flvMetaData->getAudioCodecId() << endl;
 
 	cout << "stereo: " << flvMetaData->getStereo() << endl;
+
 	return 0;
 }

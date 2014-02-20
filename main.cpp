@@ -234,44 +234,56 @@ void test_video(const char *menuName)
 	}
 	//m->FilterAdd("类型", "爱情片");
 	//m->FilterAdd("产地", "香港,台湾");
-	m->FilterAdd("年份", "2013");
+	//m->FilterAdd("年份", "2013");
 	//m->SetQuickFilter("推荐电影");
+	//m->SetQuickFilter("日韩电影");
 
-	//m->SetSort("周播放最多");
+	//m->SetSort("日播放最多");
+	//m->SetSort("总播放最多");
 	//m->SetSort("评分最高");
+	//m->SetSort("最新发布");
+	//m->SetSort("名称");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
 	size_t count = m->GetAlbumCount();
-#if 0
-	while (true) {
-		int c=0;
-		m->SetQuickFilter("最新电影");
-		while (1) {
-			AlbumPage &page = m->GetPage();
-			printf("[%d]: Video:Count %ld\n", page.pageId, page.Count());
-			size_t x = page.Count();
+#if 1
+	m->SetSort("日播放最多");
+	count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album)
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		if (i == 20)
+			break;
+	}
 
-			if (page.Count() == 0)
-				break;
-			for (int i=0; i < x; i++) {
-				KolaAlbum *album = page.GetAlbum(i);
-				if (album)
-					printf("[%d][%d] %s\n", c, i, album->albumName.c_str());
-			}
-			c++;
-			//            m->CleanPage();
-		}
-		m->SetQuickFilter("热门电影");
-		count = m->GetAlbumCount();
-		for (int i=0; i < count; i++) {
-			KolaAlbum *album = m->GetAlbum(i);
-			if (album)
-				printf("[%d] %s\n", i, album->albumName.c_str());
-			if (i == 100)
-				break;
-		}
-		break;
+	m->SetSort("总播放最多");
+	count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album)
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		if (i == 20)
+			break;
+	}
+	m->SetSort("评分最高");
+	count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album)
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		if (i == 20)
+			break;
+	}
+	m->SetSort("最新发布");
+	count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album)
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		if (i == 20)
+			break;
 	}
 #endif
 	AlbumPage &page = m->GetPage();
@@ -281,25 +293,28 @@ void test_video(const char *menuName)
 	for (int i = 0; i < page.Count(); i++) {
 		IAlbum *album = page.GetAlbum(i);
 		size_t video_count = album->GetVideoCount();
-		printf("[%d]: Video:Count %ld\n", i, video_count);
+		printf("[%d]: albumName: %s(%d) Video:Count %ld\n",
+		       i, album->albumName.c_str(), album->dailyPlayNum, video_count);
 
+#if 0
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 			IVideo *video = album->GetVideo(j);
 			if (video) {
 				StringList res;
-//				player_url = video->GetVideoUrl();
+				player_url = video->GetVideoUrl();
 				printf("\t%s %s %s [%s] -> %s\n",
 						video->pid.c_str(), video->vid.c_str(),
 						video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				video->GetResolution(res);
 				printf("Resolution: %s\n", res.ToString().c_str());
 
-				player.AddVideo(video);
+//				player.AddVideo(video);
 			}
 			else
 				printf("video ============== NULL\n");
 		}
+#endif
 	}
 #endif
 	PictureIterator x(&page, PIC_LARGE);
@@ -313,7 +328,8 @@ void test_video(const char *menuName)
 					picture.GetSize());
 		}
 	}
-#if 1
+
+#if 0
 	count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
@@ -381,12 +397,12 @@ int main(int argc, char **argv)
 
 	//test_custommenu();
 	//return 0;
-	//printf("Test LiveTV\n"); test_livetv();
-	//return 0;
+	//printf("Test LiveTV\n"); test_livetv(); return 0;
 
+	//printf("Test Video\n"); test_video("综艺"); return 0;
+	//printf("Test Video\n"); test_video("动漫"); return 0;
 	printf("Test Video\n"); test_video("电影"); return 0;
-	printf("Test Video\n"); test_video("电影");
-	printf("Test TV\n");    test_video("电视剧");
+	printf("Test TV\n");    test_video("电视剧"); return 0;
 	while (true) {
 		sleep(1);
 	}

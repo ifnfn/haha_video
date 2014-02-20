@@ -25,6 +25,16 @@ void VideoResolution::Calc()
 	string text = GetString();
 
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+	if (js == NULL) {
+		printf("Json error: %s, line: %d, colun: %d, position: %d, error: %s\n",
+		       text.c_str(),
+		       error.line,
+		       error.column,
+		       error.position,
+		       error.text);
+		return;
+	}
+
 	json_object_foreach(js, key, value) {
 		if (json_geti(value, "default", 0) == 1) {
 			defaultKey = key;

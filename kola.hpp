@@ -21,7 +21,7 @@ using namespace std;
 			for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 #define DEFAULT_PAGE_SIZE 20
-#define PAGE_CACHE 8
+#define PAGE_CACHE 5
 
 class IMenu;
 class IAlbum;
@@ -308,11 +308,10 @@ public:
 		menu = NULL;
 		publishYear = 0;
 		dailyPlayNum = 0;
-		weeklyPlayNum = 0;
-		monthlyPlayNum = 0;
 		totalPlayNum = 0;
-		dailyIndexScore = 0.0;
+		Score = 0.0;
 		order = 0;
+		updateTime = 0;
 	}
 
 	string vid;                  // Album ID
@@ -322,15 +321,15 @@ public:
 	string categories;           // 类型
 	string isHigh;               // 是否是高清
 	int publishYear;             // 发布年份
-	int dailyPlayNum;            // 每日播放次数
-	int weeklyPlayNum;           // 每周播放次数
-	int monthlyPlayNum;          // 每月播放次数
-	int totalPlayNum;            // 总播放资料
-	double dailyIndexScore;      // 每日指数
 	StringList mainActors;       // 主演
 	StringList directors;        // 导演
 	int order;                   // 编号
-	string videoScore;           // 指数
+
+	time_t updateTime;           // 更新时间
+	int dailyPlayNum;            // 日播放次数
+	int totalPlayNum;            // 总播放次数
+	double Score;                // 得分
+
 	IMenu *menu;
 
 	virtual size_t GetTotalSet() = 0;
@@ -377,9 +376,6 @@ public:
 
 class KolaVideo: public IVideo {
 public:
-	KolaVideo();
-	virtual ~KolaVideo();
-
 	virtual void Parser(json_t *js);
 
 	virtual void GetResolution(StringList& res);

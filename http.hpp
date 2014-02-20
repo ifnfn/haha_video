@@ -1,5 +1,5 @@
-#ifndef _HTTP_HPP_
-#define _HTTP_HPP_
+#ifndef HTTP_HPP
+#define HTTP_HPP
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -122,7 +122,7 @@ CURL *Curl::GetCurl(const char *url) {
 
 	if ( curl ) {
 		curl_easy_setopt(curl, CURLOPT_NOSIGNAL         , 1L);
-		curl_easy_setopt(curl, CURLOPT_TIMEOUT          , NETWORK_TIMEOUT);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT          , NETWORK_TIMEOUT * 2);
 		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT   , NETWORK_TIMEOUT);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "KolaClient");
 		curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);

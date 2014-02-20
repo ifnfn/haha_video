@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import re
-from .livetvdb import LivetvParser, LivetvDB
+
 from kola import utils, LivetvMenu
+
+from .livetvdb import LivetvParser, LivetvDB
+
 
 # 吉林电视台
 class ParserJLntvLivetv(LivetvParser):

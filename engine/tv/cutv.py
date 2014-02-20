@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from xml.etree import ElementTree
-from kola import utils, LivetvMenu
+
 from engine import City
-from engine.tv import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser, LivetvDB
+from kola import utils, LivetvMenu
+
 from .common import PRIOR_CUTV
 
 

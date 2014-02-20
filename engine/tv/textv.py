@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import re
-from .livetvdb import LivetvParser, LivetvDB
+
 from kola import LivetvMenu, GetNameByUrl
+
+from .livetvdb import LivetvParser, LivetvDB
+
 
 # 文本导入
 class ParserTextLivetv(LivetvParser):

@@ -2,12 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import re
-import time, sys, traceback
+import sys
+import time
+import traceback
+
 import tornado.escape
 
-from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
 from kola import DB, autostr, autoint, autofloat, Singleton, utils
 import kola
+
+from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
 
 
 #================================= 以下是搜狐视频的搜索引擎 =======================================
@@ -130,9 +134,6 @@ class LetvAlbum(kola.AlbumBase):
         super().LoadFromJson(json)
         if self.engineName in self.private:
             self.letv.Load(self.private[self.engineName])
-
-    def UpdateFullInfoCommand(self):
-        pass
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):
@@ -278,23 +279,21 @@ class ParserAlbumList(KolaParser):
                 if 'duration' in a:    album.playLength       = autoint(a['duration']) * 60  # 时长
                 if 'mtime' in a:       album.updateTime       = Time(a['mtime'])             # 更新时间
                 if 'description' in a: album.albumDesc        = a['description']             # 简介
+                if 'rating' in a:      album.Score            = autofloat(a['rating'])       # 推荐指数
+                if 'episodes' in a:    album.totalSet         = autoint(a['episodes'])       # 总集数
+                if 'nowEpisodes' in a: album.updateSet        = autoint(a['nowEpisodes'])    # 当前更新集
+                if 'dayCount' in a:    album.dailyPlayNum     = autoint(a['dayCount'])       # 每日播放次数
+                if 'weekCount' in a:   album.weeklyPlayNum    = autoint(a['weekCount'])      # 每周播放次数
+                if 'monthCount' in a:  album.monthlyPlayNum   = autoint(a['monthCount'])     # 每月播放次数
+                if 'playCount' in a:   album.totalPlayNum     = autoint(a['playCount'])      # 总播放次数
+                if 'aid' in a:         album.letv.playlistid  = a['aid']
+                if 'directory' in a and a['directory']: album.directors        = a['directory'].split(',')    # 导演
 
-                if 'rating' in a:
-                    album.Score       = autofloat(a['rating'])                               # 推荐指数
-
-                if 'episodes' in a:                     album.totalSet         = autoint(a['episodes'])       # 总集数
-                if 'nowEpisodes' in a:                  album.updateSet        = autoint(a['nowEpisodes'])    # 当前更新集
-                if 'dayCount' in a:                     album.dailyPlayNum     = autoint(a['dayCount'])       # 每日播放次数
-                if 'weekCount' in a:                    album.weeklyPlayNum    = autoint(a['weekCount'])      # 每周播放次数
-                if 'monthCount' in a:                   album.monthlyPlayNum   = autoint(a['monthCount'])     # 每月播放次数
-                if 'playCount' in a:                    album.totalPlayNum     = autoint(a['playCount'])      # 总播放次数
                 if 'starring' in a and a['starring']:
                     if type(a['starring']) == dict:
                         album.mainActors       = [x for _, x in a['starring'].items()]
                     elif type(a['starring']) == str:
                         album.mainActors       = a['starring'].split(',')     # 主演
-                if 'directory' in a and a['directory']: album.directors        = a['directory'].split(',')    # 导演
-                if 'aid' in a:                          album.letv.playlistid  = a['aid']
 
                 album.letv.videoListUrl = {
                     'script'     : 'letv',
@@ -380,14 +379,13 @@ class ParserShowList(KolaParser):
                 if 'areaName' in a:        album.area           = self.alias.Get(a['areaName'])                      # 地区
                 if 'subCategoryName' in a: album.categories     = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
                 if 'releaseDate' in a:     album.publishYear    = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
-                if 'mtime' in a:           album.updateTime     = Time(a['mtime'])      # 更新时间
+                if 'mtime' in a:           album.updateTime     = Time(a['mtime'])         # 更新时间
                 if 'description' in a:     album.albumDesc      = a['description']         # 简介
                 if 'dayCount' in a:        album.dailyPlayNum   = autoint(a['dayCount'])   # 每日播放次数
                 if 'weekCount' in a:       album.weeklyPlayNum  = autoint(a['weekCount'])  # 每周播放次数
                 if 'monthCount' in a:      album.monthlyPlayNum = autoint(a['monthCount']) # 每月播放次数
                 if 'playCount' in a:       album.totalPlayNum   = autoint(a['playCount'])  # 总播放次数
-                if 'rating' in a:
-                    album.Score       = autofloat(a['rating'])                             # 推荐指数
+                if 'rating' in a:          album.Score          = autofloat(a['rating'])   # 推荐指数
 
                 if 'vids' in a:
                     vids = a['vids']
@@ -398,7 +396,6 @@ class ParserShowList(KolaParser):
                         album.letv.vid = vids[0]
                 elif 'vid' in a:
                     album.letv.vid = a['vid']
-                    #album.albumPageUrl     = 'http://www.letv.com/ptv/vplay/%s.html' % autostr(a['vid'])
 
                 if 'aid' in a:
                     album.letv.playlistid = a['aid']
@@ -459,6 +456,11 @@ class LetvComic(LetvVideoMenu):
         super().__init__(name)
         self.cid = 3
         self.HomeUrlList = ['http://list.letv.com/apin/chandata.json?c=5&d=1&md=&o=20&p=1&s=1']
+
+    # 更新该菜单下所有节目列表
+    def UpdateAlbumList(self):
+        for url in self.HomeUrlList:
+            ParserShowList(url, self.cid).Execute()
 
 # 记录片
 class LetvDocumentary(LetvVideoMenu):

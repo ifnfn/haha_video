@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from kola import LivetvMenu
-from .livetvdb import LivetvParser, LivetvDB
+
 from .common import PRIOR_AHTV
+from .livetvdb import LivetvParser, LivetvDB
+
 
 # 安徽电视台
 class ParserAnhuiLivetv(LivetvParser):

@@ -11,8 +11,8 @@ from pymongo import Connection
 import redis
 import tornado.escape
 import tornado.ioloop
-import tornado.web
 import tornado.options
+import tornado.web
 
 from kola import BaseHandler, log, utils, KolaCommand, element, DB
 

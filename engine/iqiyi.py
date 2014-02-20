@@ -15,7 +15,6 @@ import kola
 from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
 
 
-#================================= 以下是搜狐视频的搜索引擎 =======================================
 global Debug
 Debug = True
 
@@ -145,9 +144,6 @@ class QiyiAlbum(kola.AlbumBase):
         super().LoadFromJson(json)
         if self.engineName in self.private:
             self.qiyi.Load(self.private[self.engineName])
-
-    def UpdateFullInfoCommand(self):
-        pass
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):

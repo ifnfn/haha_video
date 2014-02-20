@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from kola import LivetvMenu
+
+from .common import PRIOR_UCTV
 from .livetvdb import TVCategory
 from .tvielivetv import ParserTVIELivetv
-from .common import PRIOR_UCTV
+
 
 # 新疆电视台
 class ParserUCLivetv(ParserTVIELivetv):

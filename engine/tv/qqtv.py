@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import re
-from kola import utils, LivetvMenu
+
 from engine import City
-from .livetvdb import LivetvParser, LivetvDB
+from kola import utils, LivetvMenu
+
 from .common import PRIOR_QQ
+from .livetvdb import LivetvParser, LivetvDB
+
 
 # 腾讯直播电视
 class ParserQQLivetv(LivetvParser):

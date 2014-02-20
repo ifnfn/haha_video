@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import tornado.escape
+
 from kola import utils
+
 from .livetvdb import LivetvParser, LivetvDB
+
 
 class ParserTVIELivetv(LivetvParser):
     def __init__(self, url):

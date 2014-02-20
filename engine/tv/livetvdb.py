@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import re
+
 from engine import KolaParser
 from kola import VideoBase, AlbumBase, DB, utils
+
 from .common import PRIOR_COMMON
+
 
 class TVCategory:
     def __init__(self):
@@ -72,10 +75,6 @@ class LivetvAlbum(AlbumBase):
         super().LoadFromJson(json)
         if self.engineName in self.private:
             self.livetv.Load(self.private[self.engineName])
-
-    # 更新节目完整信息
-    def UpdateFullInfoCommand(self):
-        pass
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):

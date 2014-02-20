@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import tornado.escape
+
+from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
-from engine.tv import LivetvParser, LivetvDB
+
 from .common import PRIOR_JSTV
+
 
 # 江苏电视台
 class ParserJiansuLivetv(LivetvParser):

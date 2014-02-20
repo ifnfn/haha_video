@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from xml.etree import ElementTree
-from .livetvdb import LivetvParser, LivetvDB
-from kola import utils, LivetvMenu
+
 from engine import GetUrl
+from kola import utils, LivetvMenu
+
+from .livetvdb import LivetvParser, LivetvDB
 
 
 # 南宁电视台

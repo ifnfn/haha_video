@@ -3,9 +3,12 @@
 
 import re
 from urllib.parse import urljoin
+
+from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
-from engine.tv import LivetvParser, LivetvDB
+
 from .common import PRIOR_LETV
+
 
 # 乐视直播电视
 class ParserLetvLivetv(LivetvParser):

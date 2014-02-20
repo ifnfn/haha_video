@@ -88,7 +88,7 @@ class SohuAlbum(kola.AlbumBase):
             self.sohu.Load(self.private[self.engineName])
 
     # 更新节目完整信息
-    def UpdateFullInfoCommand(self):
+    def UpdateFullInfo(self):
         if self.sohu.playlistid:
             ParserAlbumFullInfo(self.sohu.playlistid, self.sohu.vid).AddCommand()
         #if self.sohu.vid:
@@ -373,7 +373,7 @@ class ParserAlbumHotList(KolaParser):
                 if 'aid' in p:
                     album = db.GetAlbumFormDB(playlistid=p['aid'])
                     if album:
-                        album.UpdateFullInfoCommand()
+                        album.UpdateFullInfo()
                         album.UpdateScoreCommand()
 
 class SohuVideoMenu(EngineVideoMenu):
@@ -523,13 +523,13 @@ class SohuEngine(VideoEngine):
 
         # 引擎主菜单
         self.menu = [
-            SohuMovie('电影'), # 电影
-            SohuTV('电视剧'), # 电视剧
-            SohuComic('动漫'), # 动漫
-            SohuDocumentary('纪录片'), # 纪录片
+           SohuMovie('电影'), # 电影
+           SohuTV('电视剧'), # 电视剧
+           SohuComic('动漫'), # 动漫
+           SohuDocumentary('纪录片'), # 纪录片
            #SohuEdu('教育'), # 教育
            #SohuTour('旅游'), # 旅游
-            SohuShow('综艺'), # 综艺
+           SohuShow('综艺'), # 综艺
            #SohuNew('新闻') # 新闻
            #SohuYule('娱乐'), # 娱乐
         ]

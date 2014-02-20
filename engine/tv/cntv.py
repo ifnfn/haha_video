@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import tornado.escape
-from engine.tv import LivetvParser, LivetvDB
-from .common import PRIOR_CNTV
-from kola import utils, LivetvMenu
+
 from engine import City
+from .livetvdb import LivetvParser, LivetvDB
+from kola import utils, LivetvMenu
+
+from .common import PRIOR_CNTV
+
 
 class ParserCntvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):

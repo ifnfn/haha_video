@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import re
+
 import pymongo
 import tornado.escape
 
 import engine
-#from engine.fetchTools import GetCacheUrl
+
 
 class City():
     con = pymongo.Connection('localhost', 27017)

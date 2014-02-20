@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import tornado.escape
-from kola import utils, LivetvMenu, json_get
+
 from engine import City
-from .livetvdb import LivetvParser, LivetvDB
+from kola import utils, LivetvMenu, json_get
+
 from .common import PRIOR_SOHU
+from .livetvdb import LivetvParser, LivetvDB
+
 
 # 搜狐直播电视
 class ParserSohuLivetv(LivetvParser):

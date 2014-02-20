@@ -1,23 +1,24 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from .livetvdb import TVCategory, LivetvDB, LivetvVideo, LivetvAlbum, LivetvParser
-from .tvielivetv import ParserTVIELivetv
+from engine import VideoEngine
 
 from .anhuitv import AnHuiLiveTV
-from .zhjiantv import ZheJianLiveTV
-from .jiansutv import JianSuLiveTV
-from .cutv import CuLiveTV
-from .xinjiangtv import XinJianLiveTV
-from .guanxitv import GuangXiLiveTV
-from .sohutv import SohuLiveTV
-from .letv import LetvLiveTV
 from .cntv import CntvLiveTV
+from .cutv import CuLiveTV
+from .guanxitv import GuangXiLiveTV
+from .jiansutv import JianSuLiveTV
 from .jinlingtv import JilingLiveTV
-from .textv import TextLiveTV
+from .letv import LetvLiveTV
+from .livetvdb import TVCategory, LivetvDB, LivetvVideo, LivetvAlbum, \
+    LivetvParser
 from .qqtv import QQLiveTV
+from .sohutv import SohuLiveTV
+from .textv import TextLiveTV
+from .tvielivetv import ParserTVIELivetv
+from .xinjiangtv import XinJianLiveTV
+from .zhjiantv import ZheJianLiveTV
 
-from engine import VideoEngine
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):

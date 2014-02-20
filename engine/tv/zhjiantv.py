@@ -3,10 +3,13 @@
 
 import re
 from xml.etree import ElementTree
+
 from kola import utils, LivetvMenu
+
+from .common import PRIOR_HZTV, PRIOR_ZJTV
 from .livetvdb import LivetvParser, LivetvDB
 from .tvielivetv import ParserTVIELivetv
-from .common import PRIOR_HZTV, PRIOR_ZJTV
+
 
 # 杭州电视台
 class ParserHangZhouLivetv(LivetvParser):

@@ -212,9 +212,9 @@ class ParserPlayCount(KolaParser):
 
         json = tornado.escape.json_decode(js['data'])
         if 'plist_score' in json:
-            album.Score       = autofloat(json['plist_score']) * 10  # 推荐指数
+            album.Score       = autofloat(json['plist_score'])  # 推荐指数
         if 'plist_play_count' in json:
-            play_count = autoint(json['plist_play_count'])           # 每日播放次数
+            play_count = autoint(json['plist_play_count'])      # 每日播放次数
             if play_count > album.dailyPlayNum:
                 album.dailyPlayNum = play_count
                 db.SaveAlbum(album)
@@ -280,7 +280,7 @@ class ParserAlbumList(KolaParser):
                 if 'description' in a: album.albumDesc        = a['description']             # 简介
 
                 if 'rating' in a:
-                    album.Score       = autofloat(a['rating']) * 10                          # 推荐指数
+                    album.Score       = autofloat(a['rating'])                               # 推荐指数
 
                 if 'episodes' in a:                     album.totalSet         = autoint(a['episodes'])       # 总集数
                 if 'nowEpisodes' in a:                  album.updateSet        = autoint(a['nowEpisodes'])    # 当前更新集

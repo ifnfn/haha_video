@@ -293,8 +293,6 @@ void MultiHttp::Remove(Http *http)
 
 void MultiHttp::Exec()
 {
-	CURLMsg *msg;  /*  for picking up messages with the transfer status */
-	int msgs_left; /*  how many messages are left */
 	fd_set fdread;
 	fd_set fdwrite;
 	fd_set fdexcep;
@@ -329,32 +327,42 @@ void MultiHttp::Exec()
 			continue;
 		}
 
-		while( curl_multi_perform( multi_handle, &still_running ) == CURLM_CALL_MULTI_PERFORM ) {
-			// DEBUG( "TransferThread::Run(): %i transfers still running.\n", nRunning );
-		}
+		int still_running = this->work();
+
+		mutex.unlock();
 
 		if (still_running == 0)
 			break;
-
-		/*  See how the transfers went */
-		while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
-			if (msg->msg == CURLMSG_DONE) {
-				Http* http = NULL;
-				long ncode;
-
-				curl_easy_getinfo( msg->easy_handle, CURLINFO_PRIVATE, (char**)&http );
-				curl_easy_getinfo( msg->easy_handle, CURLINFO_RESPONSE_CODE, &ncode );
-
-				if (http) {
-					http->status = ncode;
-					http->msg = msg->msg;
-				}
-
-				curl_multi_remove_handle( multi_handle, msg->easy_handle);
-			}
-			else
-				printf("TransferThread: Got unknown message code %i from curl_multi_info_read()!\n", msg->msg);
-		}
-		mutex.unlock();
 	}
+}
+
+int MultiHttp::work()
+{
+	int msgs_left;
+	CURLMsg *msg;
+	int still_running;
+
+	while( curl_multi_perform( multi_handle, &still_running ) == CURLM_CALL_MULTI_PERFORM ) {
+		// DEBUG( "TransferThread::Run(): %i transfers still running.\n", nRunning );
+	}
+	while((msg = curl_multi_info_read(multi_handle, &msgs_left))){
+		if (msg->msg == CURLMSG_DONE) {
+			Http* http = NULL;
+			long ncode;
+
+			curl_easy_getinfo( msg->easy_handle, CURLINFO_PRIVATE, (char**)&http );
+			curl_easy_getinfo( msg->easy_handle, CURLINFO_RESPONSE_CODE, &ncode );
+
+			if (http) {
+				http->status = ncode;
+				http->msg = msg->msg;
+			}
+
+			curl_multi_remove_handle( multi_handle, msg->easy_handle);
+		}
+		else
+			printf("TransferThread: Got unknown message code %i from curl_multi_info_read()!\n", msg->msg);
+	}
+
+	return still_running;
 }

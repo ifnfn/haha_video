@@ -340,7 +340,7 @@ class ParserShowList(KolaParser):
             album = LetvAlbum()
             album_js = DB().FindAlbumJson(albumName=albumName)
             if album_js:
-                    continue
+                    album.LoadFromJson(album_js)
             try:
                 album.albumName = albumName
                 album.vid = utils.genAlbumId(album.albumName)

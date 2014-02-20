@@ -354,9 +354,7 @@ class DB:
     album_table.create_index([('vid'         , pymongo.ASCENDING)])
     album_table.create_index([('cid'         , pymongo.ASCENDING)])
 
-
-    def __init__(self):
-        self.fieldMapping = {
+    fieldMapping = {
             '类型' : 'categories',
             '产地' : 'area',
             '地区' : 'area', # Music
@@ -373,7 +371,9 @@ class DB:
             '名称'       : 'NamePy',
             'Name'      : 'NamePy',
             'vids'      : 'vid'
-        }
+    }
+
+    def __init__(self):
         self.albumNameAlias = {}   # 别名
         self.blackAlbumName = []   # 黑名单
 

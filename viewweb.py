@@ -404,15 +404,22 @@ class UserInfoHandler(BaseHandler):
         self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
 class SerialHandler(BaseHandler):
+    user_table = DB().con.users
     def initialize(self):
         pass
 
     def get(self):
-        pass
+        client_id = utils.autoint(self.get_argument('client_id', 0))
+        number = utils.autoint(self.get_argument('number', 0))
+
+        ret = ''
+        for i in range(0, number):
+            ret += '%d%d\n' % (client_id, i)
+
+        self.finish(ret)
 
 class LoginHandler(BaseHandler):
-    con = Connection('localhost', 27017)
-    user_table = con.kola.users
+    user_table = DB().con.users
     redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
     def initialize(self):

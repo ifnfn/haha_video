@@ -1,5 +1,6 @@
 -- 获取播放地址
 function get_video_url(vid, cid)
+	--vid = '1623625'
 	local url = vid
 	if string.find(vid, "http://") == nil then
 		url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=' .. vid
@@ -29,9 +30,9 @@ function get_video_url(vid, cid)
 		urls[i] = string.format('http://%s/?prot=%s&file=%s&new=%s', host, prot, tfile, x.new)
 	end
 
-	x = kola.mwget(urls)
+	local x = kola.mwget(urls)
 	if x ~= nil then
-		for i, url in pairs(x) do
+		for i, url in ipairs(x) do
 			ret.sets[i].url = url
 		end
 	end

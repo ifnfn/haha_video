@@ -355,7 +355,7 @@ class ShowHandler(BaseHandler):
         if 'playLength'   not in album: album['playLength'] = 0
         if 'albumDesc'    not in album: album['albumDesc'] = ''
         if 'totalPlayNum' not in album: album['totalPlayNum'] = ''
-        if 'videoScore'   not in album: album['videoScore'] = 0
+        if 'Score'        not in album: album['Score'] = 0
 
         totalPlayNum = utils.autoint(album['totalPlayNum'])
         if totalPlayNum > 100000000:
@@ -536,8 +536,8 @@ class IndexHandler(BaseHandler):
             x += 1
             _item['id'] = i['vid']
             _item['title'] = i['albumName']
-            if 'videoScore' in i:
-                _item['score'] = '%.2f' % (float(i['videoScore']))
+            if 'Score' in i:
+                _item['score'] = '%.2f' % (float(i['Score']))
             else:
                 _item['score'] = ''
 
@@ -598,8 +598,8 @@ class IndexHandler(BaseHandler):
             _item['id'] = i['vid']
             _item['title'] = i['albumName']
 
-            if 'videoScore' in i:
-                _item['score'] = '%.2f' % (float(i['videoScore']))
+            if 'Score' in i:
+                _item['score'] = '%.2f' % (float(i['Score']))
             else:
                 _item['score'] = ''
 

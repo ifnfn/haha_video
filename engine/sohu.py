@@ -346,8 +346,12 @@ class ParserAlbumScore(KolaParser):
                     album.monthlyPlayNum  = autoint(index['monthlyPlayNum'])  # 每月播放次数
                 if 'totalPlayNum' in index:
                     album.totalPlayNum    = autoint(index['totalPlayNum'])    # 总播放资料
-                if 'dailyIndexScore' in index:
-                    album.Score = autoint(index['dailyIndexScore']) # 每日指数
+                if 'monthlyIndexAveScore' in index:
+                    album.Score = index['monthlyIndexAveScore'] / 10.0        # 每日指数
+                elif 'weeklyIndexAveScore' in index:
+                    album.Score = index['weeklyIndexAveScore'] / 10.0         # 每日指数
+                elif 'dailyIndexScore' in index:
+                    album.Score = index['dailyIndexScore'] / 10.0             # 每日指数
 
                 db.SaveAlbum(album, upsert=False)
 

@@ -387,7 +387,7 @@ class ParserShowList(KolaParser):
                 if 'monthCount' in a:      album.monthlyPlayNum = autoint(a['monthCount']) # 每月播放次数
                 if 'playCount' in a:       album.totalPlayNum   = autoint(a['playCount'])  # 总播放次数
                 if 'rating' in a:
-                    album.Score       = autofloat(a['rating']) * 10                        # 推荐指数
+                    album.Score       = autofloat(a['rating'])                             # 推荐指数
 
                 if 'vids' in a:
                     vids = a['vids']

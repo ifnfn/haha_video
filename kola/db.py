@@ -542,8 +542,6 @@ class DB:
                             del x['engineList']
                         if 'NamePy' in x:
                             del x['NamePy']
-                        if 'albumPageUrl' in x:
-                            del x['albumPageUrl']
 
                     ret.append(x)
         except:

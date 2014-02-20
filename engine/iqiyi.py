@@ -232,8 +232,8 @@ class ParserAlbumPlayCount(KolaParser):
         json = tornado.escape.json_decode(text[0])
         if json['code'] == 'A00000' and 'data' in json:
             playCount = autoint(json['data'])
-            if playCount == album.dailyPlayNum:
-                album.dailyPlayNum = playCount
+            if playCount > album.totalPlayNum:
+                album.totalPlayNum = playCount
                 db.SaveAlbum(album)
 
 class ParserAlbumScore(KolaParser):
@@ -256,8 +256,9 @@ class ParserAlbumScore(KolaParser):
 
         json = tornado.escape.json_decode(text[0])
         if 'data' in json and 'score' in json['data']:
-            album.Score      = autofloat(json['data']['score']) * 10  # 推荐指数
-            db.SaveAlbum(album)
+            score = autofloat(json['data']['score'])  # 推荐指数
+            if score != album.Score:
+                db.SaveAlbum(album)
 
 class ParserAlbumJsonAVList(KolaParser):
     def __init__(self, albumid=None, tvid=None, albumUrl=None, cid=None):
@@ -499,22 +500,20 @@ class ParserShowAlbumList(KolaParser):
             if album_js:
                     album.LoadFromJson(album_js)
 
-            album.albumName    = albumName
-            album.vid          = utils.genAlbumId(album.albumName)
-            album.cid          = js['cid']
+            album.albumName = albumName
+            album.vid       = utils.genAlbumId(album.albumName)
+            album.cid       = js['cid']
 
             if album.cid == 3:
                 a = ComicAlias
             else:
                 a = alias
 
-            album.area             = a.Get(js['ar'])                           # 地区
-            album.categories       = a.GetStrings(js['tg'], ' ')               # 类型
-            #album.categories       = [v+"片" for v in js['tg'].split(' ')]     # 类型
+            album.area        = a.Get(js['ar'])                           # 地区
+            album.categories  = a.GetStrings(js['tg'], ' ')               # 类型
+            album.publishYear = autoint(json['tvYear']) // 10000          # 年
 
-            album.publishYear      = autoint(json['tvYear']) // 10000          # 年
-
-            album.largePicUrl      = json['tvPictureUrl']                      # 大图 post20 最大的
+            album.largePicUrl = json['tvPictureUrl']                      # 大图 post20 最大的
 
             if not album.largePicUrl:
                 print(album.largePicUrl)
@@ -533,7 +532,6 @@ class ParserShowAlbumList(KolaParser):
             album.qiyi.albumid = js['albumid']
             album.qiyi.tvid    = js['tvid']
 
-
             album.qiyi.videoListUrl = {
                 'script'     : 'qiyi',
                 'function'   : 'get_videolist',
@@ -544,7 +542,6 @@ class ParserShowAlbumList(KolaParser):
         except:
             t, v, tb = sys.exc_info()
             print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
-
 
         #http://search.video.iqiyi.com/searchDateAlbum/?source=%E7%9C%9F%E7%9B%B8&sortKey=6&cur=1&limit=300&cb=1
         if len(playlist) > 0:

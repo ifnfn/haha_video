@@ -540,6 +540,9 @@ class LoginHandler(BaseHandler):
             'key'    : self.check_user_id(),
             'server' : self.request.protocol + '://' + self.request.host,
             'next'   : 60,   # 下次登录时间
+            'image'  : {
+                'wallpaper' : '',
+            }
         }
 
 #===============================================================================

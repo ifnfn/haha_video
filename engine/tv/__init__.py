@@ -18,6 +18,7 @@ from .textv import TextLiveTV
 from .tvielivetv import ParserTVIELivetv
 from .xinjiangtv import XinJianLiveTV
 from .zhjiantv import ZheJianLiveTV
+from .smgbb import SmgbbLivetv
 
 
 # LiveTV 搜索引擎
@@ -41,6 +42,7 @@ class LiveEngine(VideoEngine):
         self.AddMenu(SohuLiveTV   ('Sohu'))
         self.AddMenu(LetvLiveTV   ('Letv'))
         self.AddMenu(QQLiveTV     ('腾讯'))
+        self.AddMenu(SmgbbLivetv  ('东方卫视'))
         #self.AddMenu(GuangXiLiveTV('广西'))
 
     def AddMenu(self, menu):

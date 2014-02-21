@@ -401,7 +401,21 @@ class UserInfoHandler(BaseHandler):
 
     def get(self):
         ret = []
-        cursor = self.user_table.find()
+        _filter = {}
+
+        value = self.get_argument('serial', '')
+        if value:
+            _filter['serial'] = value
+
+        value = self.get_argument('client_id', '')
+        if value:
+            _filter['client_id'] = utils.autoint(value)
+
+        value = self.get_argument('number', '')
+        if value:
+            _filter['number'] = utils.autoint(value)
+
+        cursor = self.user_table.find(_filter)
         for x in cursor:
             del x['_id']
             ret.append(x)
@@ -431,23 +445,23 @@ class SerialHandler(BaseHandler):
 
         return 0
 
-    def Serial(self, client_id, number, skip=True):
+    def Serial(self, client_id, sid, skip=True):
         while True:
-            key = str(number) + '-' + str(client_id)
-            key = hashlib.md5(key.encode()).hexdigest().upper()
+            key = str(sid) + '-' + str(client_id)
+            key = hashlib.sha1(key.encode()).hexdigest().upper()
             key = hashlib.md5(key.encode()).hexdigest().upper()[:16]
 
-            if skip:
-                # 系统中不存在该序列号
-                json = self.user_table.find_one({'serial' : key})
-                if json == None: # 序列号不存在，则生成序号加入数据库中
-                    self.user_table.insert({'serial': key, 'client_id' : client_id, 'number' : number, 'chipid': ''})
-                    break
-
-                print("Found seiral client: %d, number: %d,  serial: %s", client_id, number, key)
-                number += 1
-            else:
+            # 系统中不存在该序列号
+            json = self.user_table.find_one({'serial' : key})
+            if json == None: # 序列号不存在，则生成序号加入数据库中
+                self.user_table.insert({'serial': key, 'client_id' : client_id, 'number' : sid, 'chipid': ''})
                 break
+            else:
+                if skip:
+                    print("Found seiral client: %d, number: %d,  serial: %s", client_id, sid, key)
+                    sid += 1
+                else:
+                    break
 
         return key
 

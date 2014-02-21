@@ -32,15 +32,54 @@
 #define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE 4
+#define MAX_THREAD_POOL_SIZE 8
 
 static string loginKey;
 static string loginKeyCookie;
 static string xsrf_cookie;
 static string Serial("000002");
 
+/**
+ * 功能:获取芯片的CPUID。
+ * 参数:
+ *    pbyCPUID:       芯片提供的CPUID，最多128个字节
+ *    pLen:           输出CPUID的实际长度
+ * 返回值:
+ *    0:              获取CPUID成功
+ *    其他值: 获取CPUID失败
+ */
+static bool GetCPUID(string &CPUID, ssize_t len)
+{
+#define ADDR  "0x338@8"
+	int fd;
+	char buffer[8];
+	uint8_t *data;
+
+	fd = open("/proc/gx_otp", 4);
+	if (fd < 0){
+		printf("open otp err!!!\n");
+		return false;
+	}
+	data =(uint8_t*)malloc(len);
+	memset(data, 0 ,len);
+	len = read(fd, data, len);
+	close(fd);
+
+	for (int i = 0; i < len; i++) {
+		sprintf(buffer, "%02X", data[i]);
+		CPUID += buffer;
+	}
+	free(data);
+
+	return true;
+}
+
 static string GetChipKey(void)
 {
+	string CPUID;
+	if (GetCPUID(CPUID, 8))
+		return CPUID;
+
 	return "000002";
 }
 

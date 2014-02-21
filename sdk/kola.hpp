@@ -572,17 +572,20 @@ public:
 	}
 };
 
+class WeatherData {
+public:
+	string picture;
+	string code;
+	string weather;
+	string temp;
+	string windDirection;
+	string windPower;
+};
+
 class Weather {
 public:
 	string date;
-	struct {
-		string picture;
-		string code;
-		string weather;
-		string temp;
-		string windDirection;
-		string windPower;
-	} day, night;
+	WeatherData day, night;
 };
 
 class KolaWeather: public Task {
@@ -598,6 +601,8 @@ public:
 	vector<Weather*> weatherList;
 	string PM25;
 	virtual void Run(void);
+protected:
+	virtual bool ParserWeatherData(WeatherData& data, json_t *js);
 private:
 	Mutex mutex;
 	void Clear();

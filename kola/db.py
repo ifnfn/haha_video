@@ -338,11 +338,12 @@ class VideoMenuBase:
 class DB:
     video_cachedb = redis.Redis(host='127.0.0.1', port=6379, db=3)
     con = pymongo.Connection('localhost', 27017)
-    mongodb = con.kola
-    album_table  = mongodb.album
-    videos_table = mongodb.videos
-    map_table    = mongodb.urlmap
-    menu_table   = mongodb.menu
+    kola = con.kola
+    album_table  = kola.album
+    videos_table = kola.videos
+    map_table    = kola.urlmap
+    menu_table   = kola.menu
+    user_table   = kola.users
     videos_table.drop_indexes()
     videos_table.create_index([('pid', pymongo.ASCENDING)])
     videos_table.create_index([('vid', pymongo.ASCENDING)])
@@ -353,6 +354,10 @@ class DB:
     album_table.create_index([('albumName'   , pymongo.ASCENDING)])
     album_table.create_index([('vid'         , pymongo.ASCENDING)])
     album_table.create_index([('cid'         , pymongo.ASCENDING)])
+
+    user_table.drop_indexes()
+    user_table.create_index([('serial'       , pymongo.ASCENDING)])
+    user_table.create_index([('client_id'    , pymongo.ASCENDING)])
 
     fieldMapping = {
             '类型' : 'categories',

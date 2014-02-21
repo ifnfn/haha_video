@@ -47,11 +47,6 @@ static string GetChipKey(void)
 static string GetSerial(void)
 {
 	return Serial;
-#ifdef LINUX
-	return "aaaaaaaaaaaaaa";
-#endif
-
-	return "aaaaaaaaaaaaaa";
 }
 
 

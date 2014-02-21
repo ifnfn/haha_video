@@ -352,9 +352,9 @@ class ParserShowList(KolaParser):
                     images = a['images']
 
                     # 横大图
-                    if   '970*300' in images: album.largeHorPicUrl = images['970*300']
-                    elif '400*300' in images: album.largeHorPicUrl = images['400*300']
+                    if   '400*300' in images: album.largeHorPicUrl = images['400*300']
                     elif '220*145' in images: album.largeHorPicUrl = images['220*145']
+                    elif '970*300' in images: album.largeHorPicUrl = images['970*300'] # 不要太大啦！
 
                     # 横小图
                     if   '160*120' in images: album.smallHorPicUrl = images['160*120']
@@ -369,8 +369,9 @@ class ParserShowList(KolaParser):
                     elif '90*120'  in images: album.smallVerPicUrl = images['90*120']
 
                     # 竖大图
-                    if   '600*800' in images: album.largeVerPicUrl = images['600*800']
-                    elif '300*400' in images: album.largeVerPicUrl = images['300*400']
+                    if   '300*400' in images: album.largeVerPicUrl = images['300*400']
+                    elif '600*800' in images: album.largeVerPicUrl = images['600*800'] # 不要太大啦！
+                    elif '150*200' in images: album.smallVerPicUrl = images['150*200']
 
                     album.largePicUrl      = album.largeVerPicUrl
                     album.smallPicUrl      = album.smallVerPicUrl

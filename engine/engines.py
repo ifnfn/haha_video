@@ -111,10 +111,6 @@ class EngineVideoMenu(VideoMenuBase):
 
         EngineCommands().Execute()
 
-    # 更新热门节目列表
-    def UpdateHotList(self):
-        pass
-
 class VideoEngine:
     def __init__(self):
         self.engine_name = 'EngineBase'

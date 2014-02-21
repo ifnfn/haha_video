@@ -439,10 +439,6 @@ class LetvMovie(LetvVideoMenu):
         self.HomeUrlList = ['http://list.letv.com/api/chandata.json?c=1&ph=1&s=1&o=20&p=1',
                             'http://list.letv.com/api/chandata.json?c=1&ph=1&s=2&o=20&p=1']
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 电视
 class LetvTV(LetvVideoMenu):
     def __init__(self, name):

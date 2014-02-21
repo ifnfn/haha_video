@@ -6,7 +6,7 @@ import re
 from bs4 import BeautifulSoup as bs
 import tornado.escape
 
-from kola import DB, autostr, autoint, Singleton, utils
+from kola import DB, Singleton, utils
 import kola
 
 from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
@@ -122,8 +122,8 @@ class SohuDB(DB, Singleton):
 
     # 从数据库中找到 album
     def FindAlbumJson(self, playlistid='', albumName='', vid=''):
-        playlistid = autostr(playlistid)
-        vid = autostr(vid)
+        playlistid = utils.autostr(playlistid)
+        vid = utils.autostr(vid)
         if playlistid == '' and albumName == '' and vid == '':
             return None
 
@@ -183,9 +183,9 @@ class ParserAlbumList(KolaParser):
             urls = re.findall('(_s_v|_s_a)="([\s\S]*?)"', text)
             for u in urls:
                 if u[0] == '_s_v':
-                    vid = autostr(u[1])
+                    vid = utils.autostr(u[1])
                 elif u[0] == '_s_a':
-                    playlistid = autostr(u[1])
+                    playlistid = utils.autostr(u[1])
 
             if (not needNextPage) and (not db.FindAlbumJson(playlistid=playlistid, vid=vid)):
                 needNextPage = True
@@ -220,9 +220,9 @@ class ParserAlbumFullInfo(KolaParser):
         cid = js['cid']
 
         json = tornado.escape.json_decode(js['data'])
-        playlistid = autostr(json['playlistid'])
-        vid = autostr(json['vid'])
-        pid = autostr(json['pid'])
+        playlistid = utils.autostr(json['playlistid'])
+        vid = utils.autostr(json['vid'])
+        pid = utils.autostr(json['pid'])
         albumName = db.GetAlbumName(json['albumName'])
         if not albumName:
             return
@@ -284,10 +284,7 @@ class ParserAlbumMvInfo(KolaParser):
     # sohu_album_mvinfo
     # sohu_sohu_album_mvinfo_mini
     def CmdParser(self, js):
-        db = SohuDB()
-
-        text = tornado.escape.to_basestring(js['data'])
-        json = tornado.escape.json_decode(text)
+        json = tornado.escape.json_decode(js['data'])
 
         albumName = ''
         playlistid = ''
@@ -295,8 +292,9 @@ class ParserAlbumMvInfo(KolaParser):
             albumName = js['albumName']
 
         if 'playlistId' in json :
-            playlistid = autostr(json['playlistId'])
+            playlistid = utils.autostr(json['playlistId'])
 
+        db = SohuDB()
         album = db.GetAlbumFormDB(playlistid=playlistid, albumName=albumName) #, vid=vid)
         if album == None:
             return
@@ -304,8 +302,9 @@ class ParserAlbumMvInfo(KolaParser):
         if 'videos' in json and json['videos']:
             video = json['videos'][0]
 
-            if 'isHigh' in video          : album.isHigh = str(video['isHigh'])
-            if 'videoScore' in video      : album.Score  = str(video['videoScore'])
+            if 'isHigh' in video              : album.isHigh        = str(video['isHigh'])
+            if 'videoScore' in video          : album.Score         = utils.autofloat(video['videoScore'])
+            if 'videoAlbumPlayCount' in video : album.totalPlayNum  = utils.autoint(video['videoAlbumPlayCount'])
 
             db.SaveAlbum(album, upsert=False)
 
@@ -329,7 +328,7 @@ class ParserAlbumScore(KolaParser):
             if album_js and index:
                 playlistid = ''
                 if 'id' in album_js:
-                    playlistid = autostr(album_js['id'])
+                    playlistid = utils.autostr(album_js['id'])
                 if not playlistid:
                     return []
 
@@ -339,42 +338,21 @@ class ParserAlbumScore(KolaParser):
                     return []
 
                 if 'dailyPlayNum' in index:
-                    album.dailyPlayNum    = autoint(index['dailyPlayNum'])    # 每日播放次数
+                    album.dailyPlayNum    = utils.autoint(index['dailyPlayNum'])   # 每日播放次数
                 if 'weeklyPlayNum' in index:
-                    album.weeklyPlayNum   = autoint(index['weeklyPlayNum'])   # 每周播放次数
+                    album.weeklyPlayNum   = utils.autoint(index['weeklyPlayNum'])  # 每周播放次数
                 if 'monthlyPlayNum' in index:
-                    album.monthlyPlayNum  = autoint(index['monthlyPlayNum'])  # 每月播放次数
+                    album.monthlyPlayNum  = utils.autoint(index['monthlyPlayNum']) # 每月播放次数
                 if 'totalPlayNum' in index:
-                    album.totalPlayNum    = autoint(index['totalPlayNum'])    # 总播放资料
+                    album.totalPlayNum    = utils.autoint(index['totalPlayNum'])   # 总播放资料
                 if 'monthlyIndexAveScore' in index:
-                    album.Score = index['monthlyIndexAveScore'] / 10.0        # 每日指数
+                    album.Score = index['monthlyIndexAveScore'] / 10.0             # 每日指数
                 elif 'weeklyIndexAveScore' in index:
-                    album.Score = index['weeklyIndexAveScore'] / 10.0         # 每日指数
+                    album.Score = index['weeklyIndexAveScore'] / 10.0              # 每日指数
                 elif 'dailyIndexScore' in index:
-                    album.Score = index['dailyIndexScore'] / 10.0             # 每日指数
+                    album.Score = index['dailyIndexScore'] / 10.0                  # 每日指数
 
                 db.SaveAlbum(album, upsert=False)
-
-# 更新热门节目信息
-class ParserAlbumHotList(KolaParser):
-    def __init__(self, url=None):
-        super().__init__()
-        if url:
-            self.cmd['source'] = url
-
-    def CmdParser(self, js):
-        db = SohuDB()
-
-        js = tornado.escape.json_decode(js['data'])
-
-        album = None
-        if 'r' in js:
-            for p in js['r']:
-                if 'aid' in p:
-                    album = db.GetAlbumFormDB(playlistid=p['aid'])
-                    if album:
-                        album.UpdateFullInfo()
-                        album.UpdateScoreCommand()
 
 class SohuVideoMenu(EngineVideoMenu):
     def __init__(self, name):
@@ -393,41 +371,12 @@ class SohuVideoMenu(EngineVideoMenu):
         for url in self.HomeUrlList:
             ParserAlbumList(url, self.cid).Execute()
 
-    def UpdateHotList(self):
-        # http://so.tv.sohu.com/iapi?v=4&c=115&t=1&sc=115101_115104&o=3&encode=GBK
-        fmt = 'http://so.tv.sohu.com/iapi?v=%d&c=%d&sc=%s&o=3'
-        v = 4
-        if self.number == 100:
-            v = 2
-        sc = ''
-        if '类型' in self.filter:
-            for (_, v) in list(self.filter['类型'].items()):
-                sc = sc + v + '_'
-        url = fmt % (v, self.number, sc)
-
-        ParserAlbumHotList(url).Execute()
-
-    def UpdateHotList2(self):
-        # http://so.tv.sohu.com/jsl?c=100&area=5&cate=100102_100122&o=1&encode=GBK
-        fmt = 'http://so.tv.sohu.com/jsl?c=%d&cate=%s&o=1'
-        sc = ''
-        if '类型' in self.filter:
-            for (_, v) in list(self.filter['类型'].items()):
-                sc += v + '_'
-        url = fmt % (v, self.number, sc)
-
-        ParserAlbumHotList(url).Execute()
-
 # 电影
 class SohuMovie(SohuVideoMenu):
     def __init__(self, name):
         self.number = 100
         super().__init__(name)
         self.cid = 1
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
 
 # 电视
 class SohuTV(SohuVideoMenu):
@@ -436,20 +385,12 @@ class SohuTV(SohuVideoMenu):
         super().__init__(name)
         self.cid = 2
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 动漫
 class SohuComic(SohuVideoMenu):
     def __init__(self, name):
         self.number = 115
         super().__init__(name)
         self.cid = 3
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
 
 # 记录片
 class SohuDocumentary(SohuVideoMenu):
@@ -458,10 +399,6 @@ class SohuDocumentary(SohuVideoMenu):
         super().__init__(name)
         self.cid = 4
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 综艺
 class SohuShow(SohuVideoMenu):
     def __init__(self, name):
@@ -469,19 +406,11 @@ class SohuShow(SohuVideoMenu):
         super().__init__(name)
         self.cid = 5
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 教育
 class SohuEdu(SohuVideoMenu):
     def __init__(self, name):
         self.number = 119
         super().__init__(name)
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
 
 # 新闻
 class SohuNew(SohuVideoMenu):
@@ -489,29 +418,17 @@ class SohuNew(SohuVideoMenu):
         self.number = 122
         super().__init__(name)
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 娱乐
 class SohuYule(SohuVideoMenu):
     def __init__(self, name):
         self.number = 112
         super().__init__(name)
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 旅游
 class SohuTour(SohuVideoMenu):
     def __init__(self, name):
         self.number = 131
         super().__init__(name)
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
 
 # Sohu 搜索引擎
 class SohuEngine(VideoEngine):
@@ -539,5 +456,4 @@ class SohuEngine(VideoEngine):
             ParserAlbumFullInfo(),
             ParserAlbumMvInfo(),
             ParserAlbumScore(),
-            ParserAlbumHotList(),
         ]

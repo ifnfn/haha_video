@@ -561,20 +561,12 @@ class QiyiMovie(QiyiVideoMenu):
         self.cid = 1
         self.HomeUrlList = ['http://list.iqiyi.com/www/1/------------2-1-%d-1---.html']
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 电视
 class QiyiTV(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 2
         self.HomeUrlList = ['http://list.iqiyi.com/www/2/------------2-1-%d-1---.html']
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
 
 # 动漫
 class QiyiComic(QiyiVideoMenu):
@@ -585,20 +577,12 @@ class QiyiComic(QiyiVideoMenu):
                             'http://list.iqiyi.com/www/15/------------2-1-%d-0---.html',
                             ]
 
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
-
 # 记录片
 class QiyiDocumentary(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 4
         self.HomeUrlList = ['http://list.iqiyi.com/www/3/----------0--2-1-%d-1---.html']
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
 
 # 综艺
 class QiyiShow(QiyiVideoMenu):
@@ -611,10 +595,6 @@ class QiyiShow(QiyiVideoMenu):
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:
             ParserShowAlbumList(self.cid, url, 1).Execute()
-
-    # 更新热门电影信息
-    def UpdateHotInfo(self):
-        pass
 
 # Qiyi 搜索引擎
 class QiyiEngine(VideoEngine):

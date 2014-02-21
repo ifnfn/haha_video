@@ -7,7 +7,6 @@ import sys, os, time
 import traceback
 import uuid
 
-import pymongo
 import redis
 import tornado.escape
 import tornado.ioloop
@@ -431,21 +430,23 @@ class SerialHandler(BaseHandler):
 
         return 0
 
-    def Serial(self, client_id, number):
+    def Serial(self, client_id, number, skip=True):
         while True:
             key = str(number) + '-' + str(client_id)
             key = hashlib.md5(key.encode()).hexdigest().upper()
             key = hashlib.md5(key.encode()).hexdigest().upper()[:16]
 
-            # 系统中不存在该序列号
-            json = self.user_table.find_one({'serial' : key})
-            if json == None:
+            if skip:
+                # 系统中不存在该序列号
+                json = self.user_table.find_one({'serial' : key})
+                if json == None: # 序列号不存在，则生成序号加入数据库中
+                    self.user_table.insert({'serial': key, 'client_id' : client_id, 'number' : number, 'chipid': ''})
+                    break
+
+                print("Found seiral client: %d, number: %d,  serial: %s", client_id, number, key)
+                number += 1
+            else:
                 break
-
-            print("Found seiral client: %d, number: %d,  serial: %s", client_id, number, key)
-            number += 1
-
-        self.user_table.insert({'serial': key, 'client_id' : client_id, 'number' : number, 'chipid': ''})
 
         return key
 
@@ -460,12 +461,16 @@ class SerialHandler(BaseHandler):
                 print('Error:', e)
 
         client_id = utils.autoint(self.get_argument('client_id', 0))
-        number = utils.autoint(self.get_argument('number', 0))
+        number    = utils.autoint(self.get_argument('number', 0))
+        start     = utils.autoint(self.get_argument('start', 0))
 
         codes = []
-        start = self.GetClientMaxNumber(client_id) + 1
+        skip = False
+        if start == 0:
+            start = self.GetClientMaxNumber(client_id) + 1
+            skip = True
         for i in range(start, start + number):
-            s = self.Serial(client_id, i)
+            s = self.Serial(client_id, i, skip)
             codes.append(s)
 
         ret  = self.GenBarcode(path, codes)

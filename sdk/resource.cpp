@@ -169,7 +169,7 @@ Resource* ResourceManager::AddResource(const string &url)
 	Lock();
 	mResources.insert(mResources.end(), pResource);
 	Unlock();
-	pResource->Start();
+	pResource->Start(true);
 
 	return pResource;
 }

@@ -78,7 +78,7 @@ public:
 	virtual void operator()();
 	int  GetStatus() {return status; }
 
-	void Start(bool priority=false);
+	void Start(bool priority=true);
 	void Wait();
 	void Reset();
 	void Wakeup();

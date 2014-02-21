@@ -290,7 +290,7 @@ AlbumPage* KolaMenu::updateCache(int pos)
 		if (pageCache[x].pageId != i) {
 			pageCache[x].Clear();
 			pageCache[x].pageId = i;
-			pageCache[x].Start(true);
+			pageCache[x].Start(false);
 		}
 	}
 

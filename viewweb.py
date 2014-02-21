@@ -416,7 +416,8 @@ class SerialHandler(BaseHandler):
         ret = []
         for code in codes:
             bcode = get_barcode('code39', code)
-            filename = bcode.save(os.path.join(path, code))
+            fn = os.path.join(path, code)
+            filename = bcode.save(fn)
             fn = os.path.join('../images', os.path.basename(filename))
             ret.append((code, fn))
 
@@ -463,6 +464,7 @@ class SerialHandler(BaseHandler):
         client_id = utils.autoint(self.get_argument('client_id', 0))
         number    = utils.autoint(self.get_argument('number', 0))
         start     = utils.autoint(self.get_argument('start', 0))
+        image     = self.get_argument('image', '0')
 
         codes = []
         skip = False
@@ -473,8 +475,14 @@ class SerialHandler(BaseHandler):
             s = self.Serial(client_id, i, skip)
             codes.append(s)
 
-        ret  = self.GenBarcode(path, codes)
-        self.render("barcode.html", barcodes=ret)
+        enableImage = image=='1'
+        if enableImage:
+            ret  = self.GenBarcode(path, codes)
+        else:
+            ret = []
+            for v in codes:
+                ret.append((v, ''))
+        self.render("barcode.html", barcodes=ret, image=enableImage)
 
 class LoginHandler(BaseHandler):
     user_table = DB().user_table

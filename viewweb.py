@@ -483,7 +483,9 @@ class LoginHandler(BaseHandler):
         serial = self.get_argument('serial', '')
         status = 'NO'
 
-        if self.chipid and self.chipid not in ['000001', '000099', '000003', '000004'] and serial: # 默认的测试号
+        if serial in ['000001', '000002', '000003', '000004']:
+            status = 'YES'
+        elif self.chipid and serial: # 默认的测试号
             json = self.user_table.find_one({'serial' : serial})
             if json and (json['chipid'] == '' or json['chipid'] == self.chipid):
                 status = 'YES'

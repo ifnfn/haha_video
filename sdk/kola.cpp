@@ -37,7 +37,7 @@
 static string loginKey;
 static string loginKeyCookie;
 static string xsrf_cookie;
-static string Serial;
+static string Serial("000002");
 
 static string GetChipKey(void)
 {

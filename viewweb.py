@@ -3,16 +3,22 @@
 
 import hashlib
 import json
-import sys
+import sys, os, time
 import traceback
 import uuid
 
-from pymongo import Connection
+import pymongo
 import redis
 import tornado.escape
 import tornado.ioloop
 import tornado.options
 import tornado.web
+from barcode import get_barcode
+
+try:
+    from barcode.writer import ImageWriter
+except ImportError:
+    ImageWriter = None
 
 from kola import BaseHandler, log, utils, KolaCommand, element, DB
 
@@ -389,8 +395,7 @@ class RandomVideoUrlHandle(BaseHandler):
             self.finish(name)
 
 class UserInfoHandler(BaseHandler):
-    con = Connection('localhost', 27017)
-    user_table = con.kola.users
+    user_table = DB().user_table
 
     def initialize(self):
         pass
@@ -404,56 +409,99 @@ class UserInfoHandler(BaseHandler):
         self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
 class SerialHandler(BaseHandler):
-    user_table = DB().con.users
+    user_table = DB().user_table
     def initialize(self):
         pass
 
+    def GenBarcode(self, path, codes):
+        ret = []
+        for code in codes:
+            bcode = get_barcode('code39', code)
+            filename = bcode.save(os.path.join(path, code))
+            fn = os.path.join('../images', os.path.basename(filename))
+            ret.append((code, fn))
+
+        return ret
+
+    def GetClientMaxNumber(self, client_id):
+        cursor = self.user_table.find({'client_id' : client_id})
+        if cursor.count() > 0:
+            cursor.sort([('number',  -1)])
+            return cursor[0]['number']
+
+        return 0
+
+    def Serial(self, client_id, number):
+        while True:
+            key = str(number) + '-' + str(client_id)
+            key = hashlib.md5(key.encode()).hexdigest().upper()
+            key = hashlib.md5(key.encode()).hexdigest().upper()[:16]
+
+            # 系统中不存在该序列号
+            json = self.user_table.find_one({'serial' : key})
+            if json == None:
+                break
+
+            print("Found seiral client: %d, number: %d,  serial: %s", client_id, number, key)
+            number += 1
+
+        self.user_table.insert({'serial': key, 'client_id' : client_id, 'number' : number, 'chipid': ''})
+
+        return key
+
     def get(self):
+        path = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(path, 'images')
+
+        if not os.path.isdir(path):
+            try:
+                os.mkdir(path)
+            except OSError as e:
+                print('Error:', e)
+
         client_id = utils.autoint(self.get_argument('client_id', 0))
         number = utils.autoint(self.get_argument('number', 0))
 
-        ret = ''
-        for i in range(0, number):
-            ret += '%d%d\n' % (client_id, i)
+        codes = []
+        start = self.GetClientMaxNumber(client_id) + 1
+        for i in range(start, start + number):
+            s = self.Serial(client_id, i)
+            codes.append(s)
 
-        self.finish(ret)
+        ret  = self.GenBarcode(path, codes)
+        self.render("barcode.html", barcodes=ret)
 
 class LoginHandler(BaseHandler):
-    user_table = DB().con.users
+    user_table = DB().user_table
     redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
     def initialize(self):
         pass
 
     def check_user_id(self):
-        self.user_id = self.get_argument('user_id')
+        self.chipid = self.get_argument('chipid')
         serial = self.get_argument('serial', '')
-        status = 'YES'
+        status = 'NO'
 
-        if self.user_id not in ['000001', '000002', '000003', '000004']: # 默认的测试号
-
-            json = self.user_table.find_one({'user_id' : self.user_id})
-            if json:
-                status = 'NO'
-                if json['serial'] == serial:
-                    status = json['status']
-            else:
+        if self.chipid not in ['000001', '000099', '000003', '000004']: # 默认的测试号
+            json = self.user_table.find_one({'serial' : serial})
+            if json and (json['chipid'] == '' or json['chipid'] == self.chipid):
                 status = 'YES'
-                self.user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
+                self.user_table.update({'serial' : serial}, {'$set' : {'chipid': self.chipid, 'updateTime' : time.time()}})
 
-        if status == 'NO' or self.user_id == None or self.user_id == '':
-            raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.user_id)
+        if status == 'NO':
+            raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.chipid)
 
         # 登录检查，生成随机 KEY
-        if not self.redis_db.exists(self.user_id):
-            key = (self.user_id + uuid.uuid4().__str__() + self.request.remote_ip).encode()
+        if not self.redis_db.exists(self.chipid):
+            key = (self.chipid + uuid.uuid4().__str__() + self.request.remote_ip).encode()
             key = hashlib.md5(key).hexdigest().upper()
-            self.redis_db.set(self.user_id, key)
+            self.redis_db.set(self.chipid, key)
             self.redis_db.set(key, self.request.remote_ip)
         else:
-            key = self.redis_db.get(self.user_id).decode()
+            key = self.redis_db.get(self.chipid).decode()
             self.redis_db.set(key, self.request.remote_ip)
-        self.redis_db.expire(self.user_id, 60) # 一分钟过期
+        self.redis_db.expire(self.chipid, 60) # 一分钟过期
         self.redis_db.expire(key, 60) # 一分钟过期
 
         return key
@@ -689,6 +737,7 @@ class ViewApplication(tornado.web.Application):
             (r'/admin/serial',     SerialHandler),          # 生成序列号
 
             (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),
+            (r"/images/(.*)",      tornado.web.StaticFileHandler, {"path": "images"}),
             (r"/scripts/(.*)",     EncryptFileHandler, {"path": "scripts"}),
         ]
 

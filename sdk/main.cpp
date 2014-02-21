@@ -246,7 +246,6 @@ void test_video(const char *menuName)
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
-	size_t count = m->GetAlbumCount();
 #if 0
 	m->SetSort("日播放最多");
 	count = m->GetAlbumCount();
@@ -350,63 +349,74 @@ void test_video(const char *menuName)
 	printf("%s End!!!\n", __func__);
 }
 
-int main(int argc, char **argv)
+static void test_info(KolaClient &kola)
 {
-	KolaClient &kola = KolaClient::Instance();
-
 	KolaInfo info;
 	if (kola.GetInfo(info)) {
 		cout << info.Resolution.ToString() << endl;
 		cout << info.VideoSource.ToString() << endl;
 	}
 
-	//while (true)
-	{
-		cout << kola.GetArea() << endl;
-		cout << kola.GetTime() << endl;
+}
 
-		KolaArea area;
-		if (kola.GetArea(area)) {
-			printf("IP: %s\n", area.ip.c_str());
-			printf("ISP: %s\n", area.isp.c_str());
-			printf("AREA: %s -> %s -> %s\n",
-					area.country.c_str(),
-					area.province.c_str(),
-					area.city.c_str());
-		}
+static void test_area(KolaClient &kola)
+{
+	cout << kola.GetArea() << endl;
+	cout << kola.GetTime() << endl;
 
-		kola.weather.Update();
-		kola.weather.Wait();
+	KolaArea area;
+	if (kola.GetArea(area)) {
+		printf("IP: %s\n", area.ip.c_str());
+		printf("ISP: %s\n", area.isp.c_str());
+		printf("AREA: %s -> %s -> %s\n",
+		       area.country.c_str(),
+		       area.province.c_str(),
+		       area.city.c_str());
+	}
+}
 
-		while (not kola.weather.UpdateFinish()) {
-			Weather *w = kola.weather.Today();
-			if (w) {
-				printf("%s: %s %s %s %s %s,%s\n",
-					w->date.c_str(),
-					w->day.temp.c_str(),
-				        w->day.code.c_str(),
-					w->day.weather.c_str(),
-					w->day.windDirection.c_str(),
-					w->day.windPower.c_str(),
-				        w->day.picture.c_str()
-				);
-				break;
-			}
+static void test_weather(KolaClient &kola)
+{
+	kola.weather.Update();
+	kola.weather.Wait();
+
+	while (kola.weather.UpdateFinish()) {
+		Weather *w = kola.weather.Today();
+		if (w) {
+			printf("%s: %s %s %s %s %s,%s\n",
+			       w->date.c_str(),
+			       w->day.temp.c_str(),
+			       w->day.code.c_str(),
+			       w->day.weather.c_str(),
+			       w->day.windDirection.c_str(),
+			       w->day.windPower.c_str(),
+			       w->day.picture.c_str()
+			       );
+			break;
 		}
 	}
+}
+
+int main(int argc, char **argv)
+{
+	KolaClient &kola = KolaClient::Instance("DD2F22A196EC46CC");
+
+#if 1
+	test_info(kola);
+	test_area(kola);
+	test_weather(kola);
+#endif
 
 	//test_custommenu();
-	//return 0;
 	//printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
 	printf("Test Video\n"); test_video("电影"); return 0;
 	printf("Test TV\n");    test_video("电视剧"); return 0;
-	while (true) {
-		sleep(1);
-	}
 
-	//printf("end\n");
-	//test_task(); return 0;
+	printf("end\n");
+	//test_task();
+
+	return 0;
 }

@@ -18,6 +18,18 @@ void KolaWeather::Clear()
 	weatherList.clear();
 }
 
+bool KolaWeather::ParserWeatherData(WeatherData& data, json_t *js)
+{
+	data.picture       = json_gets(js, "picture",       "");
+	data.code          = json_gets(js, "code",          "");
+	data.weather       = json_gets(js, "weather",       "");
+	data.temp          = json_gets(js, "temp",          "");
+	data.windDirection = json_gets(js, "windDirection", "");
+	data.windPower     = json_gets(js, "windPower",     "");
+
+	return true;
+}
+
 void KolaWeather::Run(void)
 {
 	LuaScript &lua = LuaScript::Instance();
@@ -46,23 +58,11 @@ void KolaWeather::Run(void)
 				w->date = json_gets(info, "date", "");
 				
 				json_t *v = json_geto(info, "day");
-				if (v) {
-					w->day.picture         = json_gets(v, "picture", "");
-					w->day.code            = json_gets(v, "code", "");
-					w->day.weather         = json_gets(v, "weather", "");
-					w->day.temp            = json_gets(v, "temp", "");
-					w->day.windDirection   = json_gets(v, "windDirection", "");
-					w->day.windPower       = json_gets(v, "windPower", "");
-				}
+				if (v)
+					ParserWeatherData(w->day, v);
 				v = json_geto(info, "night");
-				if (v) {
-					w->night.picture       = json_gets(v, "picture", "");
-					w->night.code          = json_gets(v, "code", "");
-					w->night.weather       = json_gets(v, "weather", "");
-					w->night.temp          = json_gets(v, "temp", "");
-					w->night.windDirection = json_gets(v, "windDirection", "");
-					w->night.windPower     = json_gets(v, "windPower", "");
-				}
+				if (v)
+					ParserWeatherData(w->night, v);
 
 				this->weatherList.push_back(w);
 			}

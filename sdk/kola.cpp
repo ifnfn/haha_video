@@ -37,6 +37,7 @@
 static string loginKey;
 static string loginKeyCookie;
 static string xsrf_cookie;
+static string Serial;
 
 static string GetChipKey(void)
 {
@@ -45,6 +46,7 @@ static string GetChipKey(void)
 
 static string GetSerial(void)
 {
+	return Serial;
 #ifdef LINUX
 	return "aaaaaaaaaaaaaa";
 #endif
@@ -361,7 +363,7 @@ bool KolaClient::LoginOne(bool quick)
 {
 	json_error_t error;
 	string text;
-	string url("/login?user_id=");
+	string url("/login?chipid=");
 
 	url = url + GetChipKey() + "&serial=" + GetSerial();
 	if (quick == true)
@@ -517,6 +519,8 @@ void KolaClient::Login()
 
 KolaClient& KolaClient::Instance(const char *user_id)
 {
+	if (user_id)
+		Serial = user_id;
 	static KolaClient m_kola;
 
 	return m_kola;

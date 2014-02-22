@@ -46,18 +46,8 @@ class ParserSmgbbLivetv(LivetvParser):
             playUrl    = 'http://l.smgbb.cn/channelurl.ashx?starttime=0&endtime=0&channelcode=%s' % pid
             v.vid      = utils.getVidoId(playUrl)
 
-            v.SetVideoUrl('default', {
-                'script' : 'smgbbtv',
-                'parameters' : [pid]
-            })
-
-            v.info = {
-                'script' : 'smgbbtv',
-                'function' : 'get_channel',
-                'parameters' : [pid],
-            }
-            print(pid)
-            print(v.info)
+            v.SetVideoUrlScript('default', 'smgbbtv', [pid])
+            v.info = utils.GetScript('smgbbtv', 'get_channel',[pid])
 
             album.videos.append(v)
             db.SaveAlbum(album)

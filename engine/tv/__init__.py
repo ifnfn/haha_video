@@ -14,12 +14,11 @@ from .livetvdb import TVCategory, LivetvDB, LivetvVideo, LivetvAlbum, \
     LivetvParser
 from .qqtv import QQLiveTV
 from .sohutv import SohuLiveTV
-from .textv import TextLiveTV
 from .tvielivetv import ParserTVIELivetv
 from .xinjiangtv import XinJianLiveTV
 from .zhjiantv import ZheJianLiveTV
 from .smgbb import SmgbbLivetv
-
+from .btv import BtvLivetv
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
@@ -43,6 +42,7 @@ class LiveEngine(VideoEngine):
         self.AddMenu(LetvLiveTV   ('Letv'))
         self.AddMenu(QQLiveTV     ('腾讯'))
         self.AddMenu(SmgbbLivetv  ('东方卫视'))
+        self.AddMenu(BtvLivetv    ('北京'))
         #self.AddMenu(GuangXiLiveTV('广西'))
 
     def AddMenu(self, menu):

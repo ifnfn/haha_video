@@ -37,15 +37,8 @@ class ParserJLntvLivetv(LivetvParser):
             v.vid    = utils.getVidoId(playUrl)
 #            v.largePicUrl = x[0][2]
 
-            v.SetVideoUrl('default', {
-                'script' : 'jlntv',
-                'parameters' : [playUrl]
-            })
-
-            v.info = {
-                      'script' : 'jlntv',
-                      'function' : 'get_channel',
-                      'parameters' : []}
+            v.SetVideoUrlScript('default', 'jlntv', [playUrl])
+            v.info = utils.GetScript('jlntv', 'get_channel',[])
 
             album.videos.append(v)
             db.SaveAlbum(album)

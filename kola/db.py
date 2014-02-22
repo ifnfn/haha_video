@@ -7,7 +7,7 @@ import traceback
 import pymongo
 import redis
 
-from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin
+from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin, GetScript
 
 
 # 每个 Video 表示一个可以播放视频
@@ -58,6 +58,9 @@ class VideoBase:
         if js:
             self.LoadFromJson(js)
 
+    def SetVideoUrlScript(self, name, script, param):
+        url = GetScript(script, 'kola_main', param)
+        self.SetVideoUrl(name, url)
 
     def SetVideoUrl(self, name, url):
         nameList = {

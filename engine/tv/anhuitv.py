@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from kola import LivetvMenu
+from kola import LivetvMenu, utils
 
 from .common import PRIOR_AHTV
 from .livetvdb import LivetvParser, LivetvDB
@@ -32,14 +32,9 @@ class ParserAnhuiLivetv(LivetvParser):
 
         db = LivetvDB()
         for k,v in ChannelMap.items():
-            #url = 'http://www.ahtv.cn/m2o/player/channel_xml.php?first=1&id=%d' % v
-            album  = self.NewAlbum(k)
+            album = self.NewAlbum(k)
+            album.livetv.videoListUrl = utils.GetScript('ahtv', 'get_videolist', [album.cid, album.vid, v])
 
-            album.livetv.videoListUrl = {
-                'script': 'ahtv',
-                'function' : 'get_videolist',
-                'parameters' : [album.cid, album.vid, v]
-            }
             db.SaveAlbum(album)
 
 class AnHuiLiveTV(LivetvMenu):

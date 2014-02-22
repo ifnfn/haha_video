@@ -53,11 +53,7 @@ class ParserNNLivetv(LivetvParser):
             if count == 0:
                 return
 
-            v.info = {
-                'script' : 'nntv',
-                'function' : 'get_channel',
-                'parameters' : [i],
-            }
+            v.info = utils.GetScript('nntv', 'get_channel', [i])
 
             album.videos.append(v)
             db.SaveAlbum(album)

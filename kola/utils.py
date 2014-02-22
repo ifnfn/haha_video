@@ -51,6 +51,12 @@ def getVidoId(name):
 
     return hashlib.md5(name).hexdigest()[24:]
 
+def GetScript(script, function, param):
+    return {
+        'script' : script,
+        'function' : function,
+        'parameters' : param
+    }
 
 base = [str(x) for x in range(10)] + [ chr(x) for x in range(ord('A'),ord('A')+6)]
 def dec2hex(string_num):

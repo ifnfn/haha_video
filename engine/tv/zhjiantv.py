@@ -59,16 +59,10 @@ class ParserHangZhouLivetv(LivetvParser):
         v.name  = self.tvName
 
         v.vid   = utils.getVidoId(url)
-        v.SetVideoUrl('default', {
-            'script' : 'hztv',
-            'parameters' : [url]
-        })
+        v.SetVideoUrlScript('default', 'hztv', [url])
 
-        v.info = {
-            'script' : 'hztv',
-            'function' : 'get_channel',
-            'parameters' : [utils.autostr(js['channel_id'])],
-        }
+        chid = utils.autostr(js['channel_id'])
+        v.info = utils.GetScript('hztv', 'get_channel',[chid])
 
         album.videos.append(v)
         LivetvDB().SaveAlbum(album)
@@ -162,16 +156,9 @@ class ParserWenZhouLivetv(LivetvParser):
             v.order = 2
             v.name     = self.tvName
 
-            v.SetVideoUrl('default', {
-                'script' : 'wztv',
-                'parameters' : ['http://www.dhtv.cn/static/js/tv.js?acm', source]
-            })
+            v.SetVideoUrlScript('default', 'wztv', ['http://www.dhtv.cn/static/js/tv.js?acm', source])
+            v.info = utils.GetScript('wztv', 'get_channel',[source])
 
-            v.info = {
-                'script'     : 'wztv',
-                'function'   : 'get_channel',
-                'parameters' : [source],
-            }
             album.videos.append(v)
             db.SaveAlbum(album)
 

@@ -51,11 +51,8 @@ class ParserJiansuLivetv(LivetvParser):
                     if ch['fluent']:
                         v.SetVideoUrl('normal', {'text' : videoUrl + ch['fluent']})
 
-                    v.info = {
-                        'script'     : 'jstv',
-                        'function'   : 'get_channel',
-                        'parameters' : [ch['id']],
-                    }
+                    v.info = utils.GetScript('jstv', 'get_channel', [ch['id']])
+
                     album.videos.append(v)
                     db.SaveAlbum(album)
 

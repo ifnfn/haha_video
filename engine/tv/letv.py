@@ -48,15 +48,8 @@ class ParserLetvLivetv(LivetvParser):
                 v.vid         = utils.getVidoId(playUrl)
                 v.largePicUrl = x[0][2]
 
-                v.SetVideoUrl('default', {
-                    'script' : 'letvlive',
-                    'parameters' : [playUrl]
-                })
-
-                v.info = {
-                          'script' : 'letvlive',
-                          'function' : 'get_channel',
-                          'parameters' : [vid]}
+                v.SetVideoUrlScript('default', 'letvlive', [playUrl])
+                v.info = utils.GetScript('letvlive', 'get_channel', [vid])
 
                 album.videos.append(v)
                 db.SaveAlbum(album)

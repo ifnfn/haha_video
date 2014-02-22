@@ -335,14 +335,11 @@ class ParserAlbumJsonA(KolaParser):
 
             album.area             = a.Get(js['ar'])                           # 地区
             album.categories       = a.GetStrings(js['tg'], ' ')               # 类型
-            #album.categories       = [v+"片" for v in js['tg'].split(' ')]     # 类型
 
             album.publishYear      = autoint(json['tvYear']) // 10000          # 年
 
             album.largePicUrl      = json['tvPictureUrl']                      # 大图 post20 最大的
 
-            if not album.largePicUrl:
-                print(album.largePicUrl)
             if 'episodeCounts' in json:
                 album.totalSet = autoint(json['episodeCounts'])                # 总集数
             #if 'currentMaxEpisode' in json:
@@ -353,18 +350,14 @@ class ParserAlbumJsonA(KolaParser):
             if 'actors' in json:     album.directors      = json['actors']     # 导演
 
             album.totalPlayNum     = autoint(json['playCounts'])               # 总播放次数
-            album.updateTime       = Time(json['pubTime'])                  # 更新时间
+            album.updateTime       = Time(json['pubTime'])                     # 更新时间
 
             album.qiyi.vid     = js['videoid']
             album.qiyi.albumid = js['albumid']
             album.qiyi.tvid    = js['tvid']
 
-
-            album.qiyi.videoListUrl = {
-                'script'     : 'qiyi',
-                'function'   : 'get_videolist',
-                'parameters' : [album.qiyi.albumid, album.qiyi.vid, album.qiyi.tvid, album.cid, album.albumName]
-            }
+            album.qiyi.videoListUrl = utils.GetScript('qiyi', 'get_videolist',
+                        [album.qiyi.albumid, album.qiyi.vid, album.qiyi.tvid, album.cid, album.albumName])
 
             db.SaveAlbum(album)
         except:
@@ -528,11 +521,10 @@ class ParserShowAlbumList(KolaParser):
             album.qiyi.albumid = js['albumid']
             album.qiyi.tvid    = js['tvid']
 
-            album.qiyi.videoListUrl = {
-                'script'     : 'qiyi',
-                'function'   : 'get_videolist',
-                'parameters' : [album.qiyi.albumid, album.qiyi.vid, album.qiyi.tvid, album.cid, album.albumName]
-            }
+            album.qiyi.videoListUrl = utils.GetScript(
+                                                      'qiyi',
+                                                      'get_videolist',
+                                                      [album.qiyi.albumid, album.qiyi.vid, album.qiyi.tvid, album.cid, album.albumName])
 
             db.SaveAlbum(album)
         except:

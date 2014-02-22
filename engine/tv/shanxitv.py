@@ -36,18 +36,8 @@ class ParserShanXiLivetv(LivetvParser):
             v.order = self.order
             v.name     = self.tvName
 
-            v.SetVideoUrl('default', {
-                'script' : 'sxtv',
-                'parameters' : [pid]
-            })
-
-            v.info = {
-                'script' : 'sxtv',
-                'function' : 'get_channel',
-                'parameters' : [pid],
-            }
-            print(pid)
-            print(v.info)
+            v.SetVideoUrlScript('default', 'sxtv', [pid])
+            v.info = utils.GetScript('sxtv', 'get_channel',[pid])
 
             album.videos.append(v)
             db.SaveAlbum(album)

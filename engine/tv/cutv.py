@@ -64,20 +64,13 @@ class ParserCutvLivetv(LivetvParser):
             v.order = self.order
             v.name     = js['station']
 
-            v.SetVideoUrl('default', {
-                'script' : 'cutv',
-                'parameters' : [tv_id, channel_id]
-            })
+            v.SetVideoUrlScript('default', 'cutv', [tv_id, channel_id])
 
             url = p.findtext('mobile_url')
             x = url.split('/')
             if len(x) > 4:
                 v.vid  = x[4]
-                v.info = {
-                    'script' : 'cutv',
-                    'function' : 'get_channel',
-                    'parameters' : [v.vid],
-                }
+                v.info = utils.GetScript('cutv', 'get_channel',[v.vid])
 
             album.videos.append(v)
             db.SaveAlbum(album)

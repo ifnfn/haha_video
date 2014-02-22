@@ -44,16 +44,9 @@ class ParserCntvLivetv(LivetvParser):
 
                 v.vid      = utils.getVidoId('http://vcbox.cntv.chinacache.net/cache/%s.f4m' % ch[0])
                 v.SetVideoUrl('default', {'text' : ch[0]})
-                v.SetVideoUrl('default', {
-                    'script' : 'cntv',
-                    'parameters' : [ch[0], ch[5]]
-                })
+                v.SetVideoUrlScript('default', 'cntv', [ch[0], ch[5]])
 
-                v.info = {
-                    'script' : 'cntv',
-                    'function' : 'get_channel',
-                    'parameters' : [v.vid],
-                }
+                v.info = utils.GetScript('cntv', 'get_channel', [v.vid])
 
                 album.videos.append(v)
                 db.SaveAlbum(album)

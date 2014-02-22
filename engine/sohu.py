@@ -261,11 +261,7 @@ class ParserAlbumFullInfo(KolaParser):
         if 'mainActors' in json     : album.mainActors     = json['mainActors']
         if 'directors' in json      : album.directors      = json['directors']
 
-        album.sohu.videoListUrl = {
-            'script': 'sohu',
-            'function' : 'get_videolist',
-            'parameters' : [album.vid, album.sohu.playlistid, album.sohu.vid]
-        }
+        album.sohu.videoListUrl = utils.GetScript('sohu', 'get_videolist', [album.vid, album.sohu.playlistid, album.sohu.vid])
 
         db.SaveAlbum(album)
 

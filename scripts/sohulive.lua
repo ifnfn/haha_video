@@ -2,7 +2,7 @@ function kola_main(url, cid)
 	local text = kola.wget(url)
 
 	if text == nil then
-		return ""
+		return ''
 	end
 	local ret = {}
 	local js = cjson.decode(text)
@@ -12,12 +12,12 @@ function kola_main(url, cid)
 	if text ~= nil then
 		js = cjson.decode(text)
 
-		if js.msg == "OK" then
+		if js.msg == 'OK' then
 			return js.url
 		end
 	end
 
-	return ""
+	return ''
 end
 
 function get_channel(vid)
@@ -25,7 +25,7 @@ function get_channel(vid)
 
 	--print(url)
 	local ret = {}
-	text = kola.wget(url)
+	local text = kola.wget(url)
 	if text ~= nil then
 		local d = os.date("*t", kola.gettime())
 		local js = cjson.decode(text)

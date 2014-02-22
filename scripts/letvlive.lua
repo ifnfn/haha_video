@@ -8,7 +8,7 @@ function kola_main(url)
 		end
 	end
 
-	return ""
+	return ''
 end
 
 function get_channel(vid)

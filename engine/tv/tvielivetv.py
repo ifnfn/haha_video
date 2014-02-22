@@ -33,22 +33,16 @@ class ParserTVIELivetv(LivetvParser):
             v.order = self.order
             v.name = self.tvName
 
-            playUrl = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
+            url = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
             if self.base_url in ['api.cztv.com']:
-                playUrl += '?domain=' + self.base_url
+                url += '?domain=' + self.base_url
 
-            v.vid = utils.getVidoId(playUrl)
+            v.vid = utils.getVidoId(url)
 
-            v.SetVideoUrl('default', {
-                'script' : 'tvie',
-                'parameters' : [playUrl]
-            })
+            v.SetVideoUrlScript('default', 'tvie', [url])
 
-            v.info = {
-                'script'     : 'tvie',
-                'function'   : 'get_channel',
-                'parameters' : ['http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])]
-            }
+            url = 'http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])
+            v.info = utils.GetScript('tvie', 'get_channel',[url])
 
             album.videos.append(v)
             db.SaveAlbum(album)

@@ -295,11 +295,7 @@ class ParserAlbumList(KolaParser):
                     elif type(a['starring']) == str:
                         album.mainActors       = a['starring'].split(',')     # 主演
 
-                album.letv.videoListUrl = {
-                    'script'     : 'letv',
-                    'function'   : 'get_videolist',
-                    'parameters' : [album.letv.playlistid, album.letv.vid]
-                }
+                album.letv.videoListUrl = utils.GetScript('letv', 'get_videolist', [album.letv.playlistid, album.letv.vid])
 
                 db.SaveAlbum(album)
             except:
@@ -401,11 +397,7 @@ class ParserShowList(KolaParser):
                 if 'aid' in a:
                     album.letv.playlistid = a['aid']
 
-                album.letv.videoListUrl = {
-                    'script'     : 'letv',
-                    'function'   : 'get_videolist',
-                    'parameters' : [album.letv.playlistid, album.letv.vid]
-                }
+                album.letv.videoListUrl = utils.GetScript('letv', 'get_videolist', [album.letv.playlistid, album.letv.vid])
 
                 db.SaveAlbum(album)
             except:

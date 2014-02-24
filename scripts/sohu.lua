@@ -6,7 +6,7 @@ function get_video_url(vid, cid)
 		url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=' .. vid
 	end
 
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	if text == nil then
 		return ""
 	end
@@ -30,7 +30,7 @@ function get_video_url(vid, cid)
 		urls[i] = string.format('http://%s/?prot=%s&file=%s&new=%s', host, prot, tfile, x.new)
 	end
 
-	local x = kola.mwget(urls)
+	local x = kola.mwget(urls, false)
 	if x ~= nil then
 		for i, url in ipairs(x) do
 			ret.sets[i].url = url
@@ -75,7 +75,7 @@ function get_resolution(vid, cid)
 		url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=' .. vid
 	end
 
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	if text == nil then
 		return '{}'
 	end

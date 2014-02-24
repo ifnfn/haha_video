@@ -196,7 +196,7 @@ class AlbumBase:
         if self.area            : ret['area']            = self.area
         if self.categories      : ret['categories']      = self.categories
         if self.publishYear     : ret['publishYear']     = self.publishYear
-        if self.publishTime     : ret['publishYear']     = self.publishTime
+        if self.publishTime     : ret['publishTime']     = self.publishTime
 
         if self.albumDesc       : ret['albumDesc']       = self.albumDesc
         if self.totalSet        : ret['totalSet']        = self.totalSet

@@ -258,7 +258,6 @@ class ParserAlbumList(KolaParser):
                 if 'subname' in a:         album.subName     = a['subname']
                 if 'areaName' in a:        album.area        = self.alias.Get(a['areaName'])                      # 地区
                 if 'subCategoryName' in a: album.categories  = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
-                if 'releaseDate' in a:     album.publishYear = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
 
                 if 'vids' in a:
                     vids = a['vids']
@@ -279,6 +278,8 @@ class ParserAlbumList(KolaParser):
                 if 'postS2' in a:      album.smallVerPicUrl   = a['postS2']                  # 竖小图
                 if 'duration' in a:    album.playLength       = autoint(a['duration']) * 60  # 时长
                 if 'mtime' in a:       album.updateTime       = Time(a['mtime'])             # 更新时间
+                if 'releaseDate' in a: album.publishYear      = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
+                if 'ctime' in a:       album.publishTime      = Time(a['ctime'])         # 更新时间
                 if 'description' in a: album.albumDesc        = a['description']             # 简介
                 if 'rating' in a:      album.Score            = autofloat(a['rating'])       # 推荐指数
                 if 'episodes' in a:    album.totalSet         = autoint(a['episodes'])       # 总集数
@@ -381,7 +382,7 @@ class ParserShowList(KolaParser):
                 #print(tm)
                 if 'releaseDate' in a:     album.publishYear    = time.gmtime(Time(a['releaseDate'])).tm_year
                 if 'mtime' in a:           album.updateTime     = Time(a['mtime'])         # 更新时间
-                if 'ctime' in a:           album.publishTime    = Time(a['mtime'])         # 更新时间
+                if 'ctime' in a:           album.publishTime    = Time(a['ctime'])         # 更新时间
                 if not album.publishTime:
                     album.publishTime = Time(a['releaseDate'])
 

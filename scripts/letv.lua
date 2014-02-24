@@ -20,7 +20,7 @@ function get_videolist(pid, vid, pageNo, pageSize)
 	end
 	local function get_album_set(vid)
 		local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
-		local text = kola.wget(url)
+		local text = kola.wget(url, false)
 		--print(url)
 		if text == nil then
 			return '{}'
@@ -127,7 +127,7 @@ function get_resolution(vid)
 	end
 
 	local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	text = kola.pcre("<playurl>(.*)</playurl>", text)
 	text = kola.pcre("<!\\[CDATA(.*)\\]>", text)

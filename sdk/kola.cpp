@@ -223,7 +223,7 @@ KolaClient::KolaClient(void)
 	debug = 0;
 
 	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
-	resManager = new ResourceManager(1024 * 1024 * 2);
+	resManager = new ResourceManager(1024 * 1024 * 3);
 
 	LoginOne(true);
 	thread = new Thread(this, &KolaClient::Login);
@@ -638,3 +638,9 @@ string KolaClient::GetFullUrl(string url)
 	else
 		return GetServer() + url;
 }
+
+void KolaClient::CleanResource()
+{
+	resManager->Clear();
+}
+

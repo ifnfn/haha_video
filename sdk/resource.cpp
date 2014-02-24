@@ -235,6 +235,17 @@ static bool compare_nocase(const Resource* first, const Resource* second)
 	//	return first->score > second->score;
 }
 
+void ResourceManager::Clear()
+{
+	list<Resource*>::iterator it;
+	for (it = mResources.begin(); it != mResources.end();) {
+		Resource* pRet = (*it);
+
+		pRet->DecRefCount();
+		mResources.erase(it++);
+	}
+}
+
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	Resource* pRet = NULL;

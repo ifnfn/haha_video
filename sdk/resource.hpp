@@ -87,6 +87,7 @@ public:
 	Resource* FindResource(const string &url);
 	void RemoveResource(Resource* res);
 
+	void Clear();
 	bool GC(size_t mem); // 收回指定大小的内存
 	void MemoryInc(size_t size);
 	void MemoryDec(size_t size);

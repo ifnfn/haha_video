@@ -618,7 +618,7 @@ protected:
 
 class KolaClient: public IClient {
 public:
-	static KolaClient& Instance(const char *user_id = NULL);
+	static KolaClient& Instance(const char *serial = NULL);
 	virtual ~KolaClient(void);
 
 	void Quit(void);
@@ -641,6 +641,7 @@ public:
 	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
 	bool InternetReady();
+	void CleanResource();
 	int debug;
 	ResourceManager *resManager;
 	ThreadPool *threadPool;

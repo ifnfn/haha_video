@@ -325,7 +325,6 @@ class ParserAlbumJsonA(KolaParser):
 
             album.albumName = albumName
             album.vid = utils.genAlbumId(album.albumName)
-            #album.cid = json['albumType']
             album.cid = js['cid']
 
             if album.cid == 3:
@@ -336,7 +335,8 @@ class ParserAlbumJsonA(KolaParser):
             album.area             = a.Get(js['ar'])                           # 地区
             album.categories       = a.GetStrings(js['tg'], ' ')               # 类型
 
-            album.publishYear      = autoint(json['tvYear']) // 10000          # 年
+            album.publishYear      = json['issueTime'] // 10000          # 年
+            album.publishTime      = json['issueTime']
 
             album.largePicUrl      = json['tvPictureUrl']                      # 大图 post20 最大的
 

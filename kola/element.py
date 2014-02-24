@@ -5,14 +5,14 @@ from . import db
 
 
 filter_year = [ '2013', '2012', '2011', '2010', '00年代', '90年代', '80年代', '更早' ]
-filter_sort = ['日播放最多', '总播放最多', '最新发布', '评分最高']
+filter_sort = ['昨日热播', '历史热播', '最新发布', '最新更新', '评分最高']
 
 # 直播
 class LivetvMenu(db.VideoMenuBase):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 200
-        self.sort = ['Name', '日播放最多']
+        self.sort = ['Name', '昨日热播']
 
         self.filter = {
             '类型':
@@ -70,13 +70,13 @@ class MovieMenu(db.VideoMenuBase):
             'PinYin' : []
         }
         self.quickFilter = [
-            {'title' : '热门电影', 'sort' : '日播放最多' },
-            {'title' : '最新电影', 'sort' : '最新发布' },
+            {'title' : '热门电影', 'sort' : '昨日热播' },
+            {'title' : '最新电影', 'sort' : '最新发布'   },
             {'title' : '推荐电影', 'sort' : '评分最高'   },
-            {'title' : '国产电影', 'sort' : '日播放最多', 'filter': {'产地' : '内地' }},
-            {'title' : '欧美大片', 'sort' : '日播放最多', 'filter': {'产地' : '美国,英国,法国,德国,意大利,西班牙,俄罗斯' }},
-            {'title' : '港台电影', 'sort' : '日播放最多', 'filter': {'产地' : '香港,台湾,港台' }},
-            {'title' : '日韩电影', 'sort' : '日播放最多', 'filter': {'产地' : '日本,韩国,日韩' }},
+            {'title' : '国产电影', 'sort' : '昨日热播', 'filter': {'产地' : '内地' }},
+            {'title' : '欧美大片', 'sort' : '昨日热播', 'filter': {'产地' : '美国,英国,法国,德国,意大利,西班牙,俄罗斯' }},
+            {'title' : '港台电影', 'sort' : '昨日热播', 'filter': {'产地' : '香港,台湾,港台' }},
+            {'title' : '日韩电影', 'sort' : '昨日热播', 'filter': {'产地' : '日本,韩国,日韩' }},
         ]
 
 # 电视剧
@@ -99,13 +99,13 @@ class TVMenu(db.VideoMenuBase):
         }
 
         self.quickFilter = [
-            {'title' : '热播剧'  , 'sort' : '日播放最多'},
+            {'title' : '热播剧'  , 'sort' : '昨日热播'},
             {'title' : '最新更新' , 'sort' : '最新发布' },
             {'title' : '推荐'    , 'sort' : '评分最高'  },
-            {'title' : '国内剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '内地' }      },
-            {'title' : '日韩剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '日本,韩国,日韩' } },
-            {'title' : '港台剧'  , 'sort' : '日播放最多', 'filter': {'产地' : '香港,台湾,港台' } },
-            {'title' : '美剧'   , 'sort' : '日播放最多', 'filter': {'地区' : '美国' }     },
+            {'title' : '国内剧'  , 'sort' : '昨日热播', 'filter': {'产地' : '内地' }      },
+            {'title' : '日韩剧'  , 'sort' : '昨日热播', 'filter': {'产地' : '日本,韩国,日韩' } },
+            {'title' : '港台剧'  , 'sort' : '昨日热播', 'filter': {'产地' : '香港,台湾,港台' } },
+            {'title' : '美剧'   , 'sort' : '昨日热播', 'filter': {'地区' : '美国' }     },
         ]
 
 # 动漫
@@ -128,12 +128,12 @@ class ComicMenu(db.VideoMenuBase):
         }
 
         self.quickFilter = [
-            {'title' : '热播剧'  , 'sort' : '日播放最多'},
+            {'title' : '热播剧'  , 'sort' : '昨日热播'},
             {'title' : '最新更新' , 'sort' : '最新发布' },
             {'title' : '推荐'    , 'sort' : '评分最高'  },
-            {'title' : '中国动漫'  , 'sort' : '日播放最多', 'filter': {'产地' : '内地,香港,台湾,港台' }      },
-            {'title' : '日韩动漫'  , 'sort' : '日播放最多', 'filter': {'产地' : '日本,韩国,日韩' } },
-            {'title' : '欧美动漫'   , 'sort' : '日播放最多', 'filter': {'地区' : '美国,欧洲,英国,加拿大,俄罗斯' }     },
+            {'title' : '中国动漫'  , 'sort' : '昨日热播', 'filter': {'产地' : '内地,香港,台湾,港台' }      },
+            {'title' : '日韩动漫'  , 'sort' : '昨日热播', 'filter': {'产地' : '日本,韩国,日韩' } },
+            {'title' : '欧美动漫'   , 'sort' : '昨日热播', 'filter': {'地区' : '美国,欧洲,英国,加拿大,俄罗斯' }     },
         ]
 
 # 记录片
@@ -163,12 +163,12 @@ class ShowMenu(db.VideoMenuBase):
             'PinYin' : []
         }
         self.quickFilter = [
-            {'title' : '热播'     , 'sort' : '日播放最多'},
+            {'title' : '热播'     , 'sort' : '昨日热播'},
             {'title' : '最新更新' , 'sort' : '最新发布' },
             {'title' : '推荐'    , 'sort' : '评分最高'  },
-            {'title' : '中国综艺'  , 'sort' : '日播放最多', 'filter': {'产地' : '内地,香港,台湾,港台' }      },
-            {'title' : '日韩综艺'  , 'sort' : '日播放最多', 'filter': {'产地' : '日本,韩国,日韩' } },
-            {'title' : '欧美综艺'   , 'sort' : '日播放最多', 'filter': {'地区' : '美国,欧洲,英国,加拿大,俄罗斯' }     },
+            {'title' : '中国综艺'  , 'sort' : '昨日热播', 'filter': {'产地' : '内地,香港,台湾,港台' }      },
+            {'title' : '日韩综艺'  , 'sort' : '昨日热播', 'filter': {'产地' : '日本,韩国,日韩' } },
+            {'title' : '欧美综艺'   , 'sort' : '昨日热播', 'filter': {'地区' : '美国,欧洲,英国,加拿大,俄罗斯' }     },
         ]
 
 # 教育

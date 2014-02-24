@@ -325,6 +325,28 @@ class UploadHandler(BaseHandler):
         except:
             pass
 
+class ADHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def GetUrl(self, ret):
+        return '/'
+
+    def get(self):
+        ret = {}
+        _type = self.get_argument('type', '')
+        video_name = self.get_argument('video', '')
+
+        if _type == 'image':
+            pass
+        elif _type == 'video':
+            pass
+
+        ret[_type] = _type
+        ret['video'] = video_name
+
+        self.redirect(self.GetUrl(ret))
+
 class ShowHandler(BaseHandler):
     def initialize(self):
         pass
@@ -445,7 +467,7 @@ class SerialHandler(BaseHandler):
 
         return 0
 
-    def Serial(self, client_id, sid, skip=True):
+    def Serial(self, client_id, sid, skip=True, create=True):
         while True:
             key = str(sid) + '-' + str(client_id)
             key = hashlib.sha1(key.encode()).hexdigest().upper()
@@ -454,7 +476,8 @@ class SerialHandler(BaseHandler):
             # 系统中不存在该序列号
             json = self.user_table.find_one({'serial' : key})
             if json == None: # 序列号不存在，则生成序号加入数据库中
-                self.user_table.insert({'serial': key, 'client_id' : client_id, 'number' : sid, 'chipid': ''})
+                if create:
+                    self.user_table.insert({'serial': key, 'client_id' : client_id, 'number' : sid, 'chipid': ''})
                 break
             else:
                 if skip:
@@ -486,7 +509,7 @@ class SerialHandler(BaseHandler):
             start = self.GetClientMaxNumber(client_id) + 1
             skip = True
         for i in range(start, start + number):
-            s = self.Serial(client_id, i, skip)
+            s = self.Serial(client_id, i, skip, image=='0')
             codes.append(s)
 
         enableImage = image=='1'
@@ -764,6 +787,7 @@ class ViewApplication(tornado.web.Application):
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
             (r'/show',             ShowHandler),
+            (r'/ad',               ADHandler),              # 广告
 
             (r'/admin/userinfo',   UserInfoHandler),        # 用户信息
             (r'/admin/serial',     SerialHandler),          # 生成序列号

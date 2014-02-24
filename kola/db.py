@@ -133,6 +133,7 @@ class AlbumBase:
         self.area            = ''  # 地区        [*]
         self.categories      = []  # 类型        [*]
         self.publishYear     = ''  # 发布年份    [*]
+        self.publishTime     = 0   # 网站上线时间
         self.isHigh          = 0   # 是否是高清  [*]
 
         self.largePicUrl     = ''  # 大图片网址  [*]
@@ -195,6 +196,7 @@ class AlbumBase:
         if self.area            : ret['area']            = self.area
         if self.categories      : ret['categories']      = self.categories
         if self.publishYear     : ret['publishYear']     = self.publishYear
+        if self.publishTime     : ret['publishYear']     = self.publishTime
 
         if self.albumDesc       : ret['albumDesc']       = self.albumDesc
         if self.totalSet        : ret['totalSet']        = self.totalSet
@@ -244,6 +246,7 @@ class AlbumBase:
         if 'area' in json           : self.area            = json['area']
         if 'categories' in json     : self.categories      = json['categories']
         if 'publishYear' in json    : self.publishYear     = json['publishYear']
+        if 'publishTime' in json    : self.publishTime     = json['publishTime']
 
         if 'playLength' in json     : self.playLength      = json['playLength']
 
@@ -371,14 +374,15 @@ class DB:
             '年龄' : '',
             '范围' : '',
             '语言' : '',
-            '周播放最多' : 'weeklyPlayNum',
-            '日播放最多' : 'dailyPlayNum',
-            '总播放最多' : 'totalPlayNum',
-            '最新发布'   : 'publishTime',
-            '评分最高'   : 'Score',
-            '名称'       : 'NamePy',
-            'Name'      : 'NamePy',
-            'vids'      : 'vid'
+            '周热播'   : 'weeklyPlayNum',
+            '昨日热播' : 'dailyPlayNum',
+            '历史热播' : 'totalPlayNum',
+            '最新发布' : 'publishTime',
+            '最新更新' : 'updateTime',
+            '评分最高' : 'Score',
+            '名称'    : 'NamePy',
+            'Name'   : 'NamePy',
+            'vids'   : 'vid'
     }
 
     def __init__(self):
@@ -632,6 +636,7 @@ class DB:
         else:
             arg['sort'] = [('dailyPlayNum', pymongo.DESCENDING)]
 
+        print(arg['sort'])
         return arg
 
     def _ConvertFilterJson(self, f):

@@ -137,8 +137,9 @@ class LetvAlbum(kola.AlbumBase):
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):
-        if self.letv.playlistid:
-            ParserPlayCount(self).Execute()
+        pass
+        #if self.letv.playlistid:
+        #    ParserPlayCount(self).Execute()
 
 class LetvDB(DB, Singleton):
     def __init__(self):
@@ -217,7 +218,7 @@ class ParserPlayCount(KolaParser):
         if 'plist_play_count' in json:
             play_count = autoint(json['plist_play_count'])      # 每日播放次数
             if play_count > album.dailyPlayNum:
-                album.dailyPlayNum = play_count
+                album.totalPlayNum = play_count
                 db.SaveAlbum(album)
 
 # 节目列表
@@ -375,8 +376,15 @@ class ParserShowList(KolaParser):
                 if 'subname' in a:         album.subName        = a['subname']
                 if 'areaName' in a:        album.area           = self.alias.Get(a['areaName'])                      # 地区
                 if 'subCategoryName' in a: album.categories     = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
-                if 'releaseDate' in a:     album.publishYear    = time.gmtime(autoint(a['releaseDate']) / 1000).tm_year
+
+                #tm = time.gmtime(autoint(a['releaseDate']) / 1000)
+                #print(tm)
+                if 'releaseDate' in a:     album.publishYear    = time.gmtime(Time(a['releaseDate'])).tm_year
                 if 'mtime' in a:           album.updateTime     = Time(a['mtime'])         # 更新时间
+                if 'ctime' in a:           album.publishTime    = Time(a['mtime'])         # 更新时间
+                if not album.publishTime:
+                    album.publishTime = Time(a['releaseDate'])
+
                 if 'description' in a:     album.albumDesc      = a['description']         # 简介
                 if 'dayCount' in a:        album.dailyPlayNum   = autoint(a['dayCount'])   # 每日播放次数
                 if 'weekCount' in a:       album.weeklyPlayNum  = autoint(a['weekCount'])  # 每周播放次数

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-
+import time
 from bs4 import BeautifulSoup as bs
 import tornado.escape
 
@@ -91,8 +91,6 @@ class SohuAlbum(kola.AlbumBase):
     def UpdateFullInfo(self):
         if self.sohu.playlistid:
             ParserAlbumFullInfo(self.sohu.playlistid, self.sohu.vid).AddCommand()
-        #if self.sohu.vid:
-        #    ParserAlbumMvInfo(self, self.albumName).AddCommand()
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):
@@ -245,7 +243,7 @@ class ParserAlbumFullInfo(KolaParser):
         if 'isHigh' in json         : album.isHigh         = json['isHigh']
         if 'area' in json           : album.area           = self.alias.Get(json['area'])
         if 'categories' in json     : album.categories     = ParserAlbumFullInfo.alias.GetList(json['categories'])
-        if 'publishYear' in json    : album.publishYear    = json['publishYear']
+        if 'publishYear' in json    : album.publishYear    = utils.autoint(json['publishYear'])
         if 'updateTime' in json     : album.updateTime     = int(json['updateTime'] / 1000)
 
         # 图片
@@ -261,48 +259,19 @@ class ParserAlbumFullInfo(KolaParser):
         if 'mainActors' in json     : album.mainActors     = json['mainActors']
         if 'directors' in json      : album.directors      = json['directors']
 
+        if 'videos' in json and json['videos']:
+            video = json['videos'][0]
+            if 'publishTime' in video:
+                t = time.mktime(time.strptime(video['publishTime'],"%Y-%m-%d"))
+                album.publishTime = t
+        elif album.publishYear:
+            Y = '%d-01-01' % (album.publishYear)
+            t = time.mktime(time.strptime(Y,"%Y-%m-%d"))
+            album.publishTime = t
+
         album.sohu.videoListUrl = utils.GetScript('sohu', 'get_videolist', [album.vid, album.sohu.playlistid, album.sohu.vid])
 
         db.SaveAlbum(album)
-
-# 更新节目的完整信息
-class ParserAlbumMvInfo(KolaParser):
-    def __init__(self, album=None, albumName=None):
-        super().__init__()
-
-        if album and albumName:
-            self.cmd['regular']   = ['var video_album_videos_result=(\{.*.\})']
-            self.cmd['source']    = 'http://search.vrs.sohu.com/mv_i%s.json' % album.sohu.vid
-            self.cmd['albumName'] = albumName
-
-    # 通过 vid 获得节目更多的信息
-    # http://search.vrs.sohu.com/mv_i1268037.json
-    # sohu_album_mvinfo
-    # sohu_sohu_album_mvinfo_mini
-    def CmdParser(self, js):
-        json = tornado.escape.json_decode(js['data'])
-
-        albumName = ''
-        playlistid = ''
-        if 'albumName' in js:
-            albumName = js['albumName']
-
-        if 'playlistId' in json :
-            playlistid = utils.autostr(json['playlistId'])
-
-        db = SohuDB()
-        album = db.GetAlbumFormDB(playlistid=playlistid, albumName=albumName) #, vid=vid)
-        if album == None:
-            return
-
-        if 'videos' in json and json['videos']:
-            video = json['videos'][0]
-
-            if 'isHigh' in video              : album.isHigh        = str(video['isHigh'])
-            if 'videoScore' in video          : album.Score         = utils.autofloat(video['videoScore'])
-            if 'videoAlbumPlayCount' in video : album.totalPlayNum  = utils.autoint(video['videoAlbumPlayCount'])
-
-            db.SaveAlbum(album, upsert=False)
 
 # http://count.vrs.sohu.com/count/query.action?videoId=1268037
 # 搜狐节目指数
@@ -450,6 +419,5 @@ class SohuEngine(VideoEngine):
         self.parserList = [
             ParserAlbumList(),
             ParserAlbumFullInfo(),
-            ParserAlbumMvInfo(),
             ParserAlbumScore(),
         ]

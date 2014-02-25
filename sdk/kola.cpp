@@ -76,9 +76,12 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 
 static string GetChipKey(void)
 {
-	string CPUID;
-	if (GetCPUID(CPUID, 8))
-		return CPUID;
+	static string CPUID;
+
+	if (CPUID.empty()) {
+		if (GetCPUID(CPUID, 8))
+			return CPUID;
+	}
 
 	return "000002";
 }

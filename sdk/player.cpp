@@ -40,7 +40,15 @@ void KolaPlayer::Run()
 			videoList.clear();
 			_condvar->unlock();
 
-			string url = resolution.GetVideoUrl();
+			string url;
+
+			KolaClient &kola = KolaClient::Instance();
+			url = kola.GetFullUrl("/ad?vid=" + resolution.vid + "&chipid=");
+			if (not url.empty())
+				DoPlay(resolution.defaultKey, url);
+
+			url = resolution.GetVideoUrl();
+
 			DoPlay(resolution.defaultKey, url);
 		}
 	}

@@ -243,6 +243,7 @@ void test_video(const char *menuName)
 	//m->SetSort("评分最高");
 	//m->SetSort("最新发布");
 	//m->SetSort("名称");
+	m->FilterAdd("PinYin", "fhjr");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
@@ -251,8 +252,12 @@ void test_video(const char *menuName)
 	count = m->GetAlbumCount();
 	for (int i=0; i < count; i++) {
 		IAlbum *album = m->GetAlbum(i);
-		if (album)
+		if (album) {
+			StringList sources;
 			printf("[%d] %s\n", i, album->albumName.c_str());
+			album->GetSource(StringList sources); // 获取节目的节目来源列表
+			cout << sources.ToString() << endl;
+
 		if (i == 20)
 			break;
 	}
@@ -291,6 +296,12 @@ void test_video(const char *menuName)
 
 	for (int i = 0; i < page.Count(); i++) {
 		IAlbum *album = page.GetAlbum(i);
+
+		StringList sources;
+		album->GetSource(sources); // 获取节目的节目来源列表
+		cout << sources.ToString() << endl;
+		album->SetSource("爱奇艺");
+
 		size_t video_count = album->GetVideoCount();
 		printf("[%d]: albumName: %s(%d) Video:Count %ld\n",
 		       i, album->albumName.c_str(), album->dailyPlayNum, video_count);
@@ -399,7 +410,7 @@ static void test_weather(KolaClient &kola)
 
 int main(int argc, char **argv)
 {
-	KolaClient &kola = KolaClient::Instance("DD2F22A196EC46CC");
+	KolaClient &kola = KolaClient::Instance();
 
 #if 1
 	test_info(kola);
@@ -408,11 +419,11 @@ int main(int argc, char **argv)
 #endif
 
 	//test_custommenu();
-	printf("Test LiveTV\n"); test_livetv(); return 0;
+	//printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
-	printf("Test Video\n"); test_video("电影"); return 0;
+	//printf("Test Video\n"); test_video("电影"); return 0;
 	printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");

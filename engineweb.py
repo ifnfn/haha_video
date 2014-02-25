@@ -11,7 +11,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 
-from engine import QiyiEngine, LetvEngine, SohuEngine, LiveEngine, \
+from engine import QiyiEngine, LetvEngine, SohuEngine, LiveEngine, QQEngine,\
     EngineCommands
 from kola import BaseHandler, DB, ThreadPool
 
@@ -26,10 +26,11 @@ class KolaEngine:
         self.engines = []
         self.UpdateAlbumFlag = False
 
-        self.AddEngine(LetvEngine)
-        self.AddEngine(SohuEngine)
-        self.AddEngine(QiyiEngine)
-        self.AddEngine(LiveEngine)
+        self.AddEngine(QQEngine)
+        #self.AddEngine(LetvEngine)
+        #self.AddEngine(SohuEngine)
+        #self.AddEngine(QiyiEngine)
+        #self.AddEngine(LiveEngine)
 
     def AddEngine(self, egClass):
         self.engines.append(egClass())

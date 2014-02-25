@@ -8,3 +8,4 @@ from .iqiyi import QiyiEngine
 from .letv import LetvEngine
 from .sohu import SohuEngine
 from .tv import LiveEngine
+from .qq import QQEngine

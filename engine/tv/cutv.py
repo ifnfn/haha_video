@@ -3,7 +3,6 @@
 
 from xml.etree import ElementTree
 
-from engine import City
 from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
@@ -48,14 +47,16 @@ class ParserCutvLivetv(LivetvParser):
         db = LivetvDB()
         text = js['data']
         tv_id = js['id']
-        city = City()
-        self.area = city.GetCity(js['station'])
+
+        self.area = self.city.GetCity(js['station'])
         root = ElementTree.fromstring(text)
         for p in root.findall('channel'):
             name = p.findtext('channel_name')
             channel_id = p.findtext('channel_id')
 
             album  = self.NewAlbum(name)
+            if album == None:
+                continue
 
             album.channel_id  = channel_id
             album.largePicUrl = p.findtext('thumb')

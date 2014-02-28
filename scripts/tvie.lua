@@ -1,18 +1,16 @@
-function get_timestamp()
-	local ret = kola.wget('http://epgsrv01.ucatv.com.cn/api/getUnixTimestamp', false)
-	if ret ~= nil then
-		local time_js = cjson.decode(ret)
-		return  tonumber(time_js.time)
-	end
-
-	return 0
-end
+--function get_timestamp()
+--	return kola.gettime()
+--end
 
 function kola_main(url)
 	local text = kola.wget(url)
 
-	if text ~= nil then
+	if text ~= nil and text ~= "TVie Exception: No streams." then
+		local d = os.date("*t", kola.gettime())
 		local data_obj = cjson.decode(text)
+		if data_obj == nil then
+			return ''
+		end
 		if type(data_obj.result) == "table" then
 			if (data_obj ~= nil) and type(data_obj.result.datarates) == "table" then
 				local k = ''
@@ -53,7 +51,7 @@ function get_channel(vid)
 
 	local ret = {}
 	text = kola.wget(url)
-	if text ~= nil then
+	if text ~= nil and text ~= "TVie Exception: No streams." then
 		local d = os.date("*t", kola.gettime())
 		local prev_d = d
 		local js = cjson.decode(text)

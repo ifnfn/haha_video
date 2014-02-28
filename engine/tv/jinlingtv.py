@@ -28,6 +28,8 @@ class ParserJLntvLivetv(LivetvParser):
 
         for _, u, n in ch_list:
             album  = self.NewAlbum(n)
+            if album == None:
+                continue
 
             v = album.NewVideo()
             v.order  = self.order

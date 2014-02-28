@@ -33,10 +33,10 @@ class ParserLetvLivetv(LivetvParser):
             #print(t)
             x = re.findall('<a href=".*/channel/(.*)" target="_blank"><img src="(.*)" alt="(.*)" width', t)
             if x:
-                if x[0][2] == '':
+                album  = self.NewAlbum(x[0][2])
+                if album == None:
                     continue
 
-                album  = self.NewAlbum(x[0][2])
                 album.largePicUrl = urljoin(js['source'], x[0][1])
 
                 v = album.NewVideo()

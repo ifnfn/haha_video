@@ -1,9 +1,6 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re
-
-from engine import City
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_BTV
@@ -50,6 +47,8 @@ class BtvLivetv(LivetvMenu):
         parser = ParserBTV()
         for name, pid in self.tvList:
             album  = parser.NewAlbum(name)
+            if album == None:
+                continue
 
             v = album.NewVideo()
             v.order = PRIOR_BTV

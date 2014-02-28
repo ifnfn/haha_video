@@ -44,7 +44,9 @@ class ParserUCLivetv(ParserTVIELivetv):
             'CCTV-11' : 'CCTV-11 戏曲',
             'CCTV-12' : 'CCTV-12 社会与法',
             'CCTV-13' : 'CCTV-13 新闻',
-            'CCTV-少儿' : 'CCTV-14 少儿'
+            'CCTV-少儿' : 'CCTV-14 少儿',
+            '中央电视台五套' : 'CCTV-5 体育',
+            '中央电视台十三套' : 'CCTV-13 新闻',
         }
         
 class XinJianLiveTV(LivetvMenu):

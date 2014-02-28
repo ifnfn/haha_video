@@ -3,7 +3,6 @@
 
 import re
 
-from engine import City
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_QQ
@@ -22,7 +21,6 @@ class ParserQQLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        city = City()
 
         playlist = js['data'].split(">\n")
 
@@ -34,7 +32,8 @@ class ParserQQLivetv(LivetvParser):
                 ch[k] = v
 
             album  = self.NewAlbum(ch['data-cname'])
-            album.area = city.GetCity(album.albumName)
+            if album == None:
+                continue
 
             v = album.NewVideo()
             v.order = self.order

@@ -3,7 +3,6 @@
 
 import re
 
-from engine import City
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_SMGBB
@@ -32,12 +31,12 @@ class ParserSmgbbLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        city = City()
 
         channel = re.findall('<a href="\?channel=(.*?)" class="channel_name">(.*?)</a>', js['data'])
         for pid, name in channel:
             album  = self.NewAlbum(name)
-            album.area = city.GetCity(album.albumName)
+            if album == None:
+                continue
 
             v = album.NewVideo()
             v.order = self.order

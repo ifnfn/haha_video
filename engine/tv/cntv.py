@@ -3,7 +3,6 @@
 
 import tornado.escape
 
-from engine import City
 from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
@@ -25,7 +24,6 @@ class ParserCntvLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        city = City()
         tvlist = tornado.escape.json_decode(js['data'])
         for x, v in tvlist.items():
             print(x)
@@ -36,7 +34,9 @@ class ParserCntvLivetv(LivetvParser):
                     continue
 
                 album  = self.NewAlbum(ch[1])
-                album.area = city.GetCity(ch[3])
+                if album == None:
+                    continue
+                album.area = self.city.GetCity(ch[3])
 
                 v = album.NewVideo()
                 v.order = self.order

@@ -3,7 +3,6 @@
 
 import tornado.escape
 
-from engine import City
 from kola import utils, LivetvMenu, json_get
 
 from .common import PRIOR_SOHU
@@ -21,7 +20,6 @@ class ParserSohuLivetv(LivetvParser):
 
     def CmdParser(self, js):
         db = LivetvDB()
-        city = City()
 
         tvlist = tornado.escape.json_decode(js['data'])
         for v in tvlist['attachment']:
@@ -29,8 +27,10 @@ class ParserSohuLivetv(LivetvParser):
 
             name = json_get(v, 'name', '')
             album  = self.NewAlbum(name)
+            if album == None:
+                continue
+
             album.smallPicUrl = json_get(v, 'ico', '')
-            album.area = city.GetCity(album.albumName)
 
             v = album.NewVideo()
             v.order = self.order

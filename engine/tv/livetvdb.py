@@ -3,7 +3,7 @@
 
 import re
 
-from engine import KolaParser
+from engine import KolaParser, City
 from kola import VideoBase, AlbumBase, DB, utils
 
 from .common import PRIOR_COMMON
@@ -81,6 +81,7 @@ class LivetvAlbum(AlbumBase):
         pass
 
 class LivetvParser(KolaParser):
+    city = City()
     def __init__(self):
         super().__init__()
         self.tvCate = TVCategory()
@@ -91,22 +92,29 @@ class LivetvParser(KolaParser):
         self.area = ''
 
     def NewAlbum(self, name):
-        album  = LivetvAlbum()
-        album.albumName = self.GetAliasName(name)
-        album.vid = utils.genAlbumId(album.albumName)
-        album.categories  = self.tvCate.GetCategories(album.albumName)
+        album = None
+        albumName = self.GetAliasName(name)
+        if albumName:
+            album  = LivetvAlbum()
+            album.albumName = albumName
+            album.vid = utils.genAlbumId(album.albumName)
+            album.categories  = self.tvCate.GetCategories(album.albumName)
 
-        album.enAlbumName = self.tvName
-        album.area        = self.area
+            album.enAlbumName = self.tvName
+            if self.area:
+                album.area        = self.area
+            else:
+                album.area = self.city.GetCity(album.albumName)
+
         return album
 
     def GetAliasName(self, name):
         for p in list(self.ExcludeName):
             if re.findall(p, name):
-                return ""
+                return None
 
         if name in self.ExcludeName:
-            return ""
+            return None
 
         if name in self.Alias:
             return self.Alias[name]

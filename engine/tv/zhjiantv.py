@@ -146,8 +146,8 @@ class ParserWenZhouLivetv(LivetvParser):
     def CmdParser(self, js):
         db = LivetvDB()
 
-        ch_list = re.findall('data-source="(.*?)" .*?>(.*?)<i>', js['data'])
-        for source, name in ch_list:
+        ch_list = re.findall('data-source="(.*?)" data-id="(.*?)">(.*?)<i>', js['data'])
+        for source, data_id, name in ch_list:
             name = '温州-' + name
             album  = self.NewAlbum(name)
 
@@ -157,7 +157,7 @@ class ParserWenZhouLivetv(LivetvParser):
             v.name     = self.tvName
 
             v.SetVideoUrlScript('default', 'wztv', ['http://www.dhtv.cn/static/js/tv.js?acm', source])
-            v.info = utils.GetScript('wztv', 'get_channel',[source])
+            v.info = utils.GetScript('wztv', 'get_channel',[data_id])
 
             album.videos.append(v)
             db.SaveAlbum(album)

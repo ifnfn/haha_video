@@ -33,6 +33,8 @@ class ParserAnhuiLivetv(LivetvParser):
         db = LivetvDB()
         for k,v in ChannelMap.items():
             album = self.NewAlbum(k)
+            if album == None:
+                continue
             album.livetv.videoListUrl = utils.GetScript('ahtv', 'get_videolist', [album.cid, album.vid, v])
 
             db.SaveAlbum(album)

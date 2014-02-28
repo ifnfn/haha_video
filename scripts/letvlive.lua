@@ -1,7 +1,9 @@
 function kola_main(url)
 	--local url = string.format("http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1", url)
-	text = kola.wget(url)
-	if text ~= nil then
+	local text = kola.wget(url)
+	print(url)
+
+	if text ~= nil and string.find(text, "<html>") ~= nil then
 		local js = cjson.decode(text)
 		if js ~= nil then
 			return js.location

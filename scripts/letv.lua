@@ -20,7 +20,7 @@ function get_videolist(pid, vid, pageNo, pageSize)
 	end
 	local function get_album_set(vid)
 		local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
-		local text = kola.wget(url)
+		local text = kola.wget(url, false)
 		--print(url)
 		if text == nil then
 			return '{}'
@@ -52,7 +52,7 @@ function get_videolist(pid, vid, pageNo, pageSize)
 	end
 
 	local url = string.format('http://app.letv.com/ajax/getFocusVideo.php?p=1&top=%d&max=%d&pid=%s', pno * psize, psize, pid)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	if text == nil then
 		return '{}'
 	end
@@ -123,7 +123,7 @@ function get_resolution(vid)
 	end
 
 	local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	text = kola.pcre("<playurl>(.*)</playurl>", text)
 	text = kola.pcre("<!\\[CDATA(.*)\\]>", text)

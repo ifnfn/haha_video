@@ -27,7 +27,7 @@ end
 
 function kola_main(tv_id, channel_id)
 	local url = string.format('http://ugc.sun-cam.com/api/tv_live_api.php?action=channel_prg_list&tv_id=%s', tv_id)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text == nil then
 		return ''
@@ -60,7 +60,7 @@ end
 
 function get_channel(vid)
 	local url = string.format('http://cls.cutv.com/live/ajax/getprogrammelist2/id/%s/callback/callTslEpg', vid)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	local ret = {}
 
 	--print(url)

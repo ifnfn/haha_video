@@ -1,6 +1,6 @@
 function kola_main(pid)
 	local url = string.format('http://l.smgbb.cn/channelurl.ashx?starttime=0&endtime=0&channelcode=%s', pid)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text ~= nil then
 		text = kola.pcre('\\[CDATA\\[(.*)\\]\\]></channel>', text)
@@ -15,7 +15,7 @@ function get_channel(pid)
 	local ret = {}
 	local url = string.format('http://l.smgbb.cn/schedule.ashx?channel=%s', pid)
 	print(url)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text ~= nil then
 		local js = cjson.decode(text)

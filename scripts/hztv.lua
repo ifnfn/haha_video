@@ -43,7 +43,7 @@ end
 --</channel>
 
 function kola_main(url)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	local ret_url = ''
 
 	if text == nil then
@@ -66,7 +66,7 @@ function get_channel(vid)
 	local url = string.format("http://api1.hoolo.tv/player/live/program_xml.php?channel_id=%s&time=%d", vid, kola.gettime())
 
 	local ret = {}
-	text = kola.wget(url)
+	text = kola.wget(url, false)
 	if text == nil then
 		return '{}'
 	end

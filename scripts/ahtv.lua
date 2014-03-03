@@ -1,5 +1,5 @@
 function find(var, tag, key, value)
-	-- check input:
+	-- check input
 	if type(var)~="table" then return end
 	if type(tag)=="string" and #tag==0 then tag=nil end
 	if type(key)~="string" or #key==0 then key=nil end
@@ -42,7 +42,7 @@ function get_videolist(cid, pid, vid, pageNo, pageSize)
 
 	local url = string.format('http://www.ahtv.cn/m2o/player/channel_xml.php?first=1&id=%s', vid)
 	--print(url)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	if text == nil then
 		return '{}'
 	end
@@ -106,7 +106,7 @@ function get_channel(vid)
 	--print(url)
 
 	local ret = {}
-	text = kola.wget(url)
+	text = kola.wget(url, false)
 	if text == nil then
 		return '{}'
 	end

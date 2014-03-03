@@ -3,7 +3,7 @@
 --end
 
 function kola_main(url)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text ~= nil and text ~= "TVie Exception: No streams." then
 		local d = os.date("*t", kola.gettime())
@@ -50,7 +50,7 @@ function get_channel(vid)
 	local url = string.format("%s/0/%d", vid, kola.gettime())
 
 	local ret = {}
-	text = kola.wget(url)
+	text = kola.wget(url, false)
 	if text ~= nil and text ~= "TVie Exception: No streams." then
 		local d = os.date("*t", kola.gettime())
 		local prev_d = d

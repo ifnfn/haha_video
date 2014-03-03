@@ -10,7 +10,7 @@ function get_resolution(vid)
 	local ret = {}
 	local url = string.format('http://his.cdn.brtn.cn/approve/live?channel=%s&type=ios', vid)
 
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	
 	if text ~= nil then
 		ret['默认'] = get(vid, 'iptv')

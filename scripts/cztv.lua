@@ -1,6 +1,6 @@
 function kola_main(id)
 	local url = string.format("http://api.cztv.com/api/getCDNByChannelId/%s?domain=api.cztv.com", id)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text ~= nil then
 		local data_obj = cjson.decode(text)

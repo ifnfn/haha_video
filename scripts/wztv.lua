@@ -1,5 +1,5 @@
 function kola_main(url, id)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	if text ~= nil then
 		text = kola.pcre("file: '(.*)'", text)
 		return string.sub(text, 1, -2) .. id
@@ -11,7 +11,7 @@ end
 function get_channel(vid)
 	local ret = {}
 	local url = "http://www.dhtv.cn/api/programs/?ac=get&_channel=" .. vid 
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text == nil then
 		return '{}'

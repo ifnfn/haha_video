@@ -25,7 +25,7 @@ function get_channel(vid)
 	local url = 'http://newplayerapi.jstv.com/rest/getstation_8.html'
 	local ret = {}
 
-	text = kola.wget(url)
+	text = kola.wget(url, false)
 	if text ~= nil then
 		local js = cjson.decode(text)
 

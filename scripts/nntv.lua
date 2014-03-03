@@ -3,7 +3,7 @@ function get_channel(vid)
 	local url = 'http://www.nntv.cn/epg/zhtv_epg.json'
 	local ret = {}
 
-	text = kola.wget(url)
+	text = kola.wget(url, false)
 	if text ~= nil then
 		text = kola.pcre("jsonp_program\\((.*)\\)", text)
 		local js = cjson.decode(text)

@@ -1,5 +1,5 @@
 function kola_main(url, cid)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text == nil then
 		return ''
@@ -8,7 +8,7 @@ function kola_main(url, cid)
 	local js = cjson.decode(text)
 	local live = js.data.live
 
-	text = kola.wget(live)
+	text = kola.wget(live, false)
 	if text ~= nil then
 		js = cjson.decode(text)
 
@@ -25,7 +25,7 @@ function get_channel(vid)
 
 	--print(url)
 	local ret = {}
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	if text ~= nil then
 		local d = os.date("*t", kola.gettime())
 		local js = cjson.decode(text)

@@ -107,7 +107,7 @@ end
 local function get_album_set(playlistid)
 	local url = 'http://hot.vrs.sohu.com/pl/isover_playlist?playlistid=' .. playlistid
 
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text == nil then
 		return ""
@@ -136,7 +136,7 @@ function get_videolist(vid, playlistid, sohu_vid, pageNo, pageSize)
 			tonumber(pageNo) + 1, pageSize, playlistid)
 	end
 
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text == nil then
 		return ""

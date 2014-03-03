@@ -1,5 +1,5 @@
 function kola_main(url)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	if text ~= nil then
 		text = kola.pcre('location url="(.*?)"', text)

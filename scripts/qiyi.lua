@@ -1,6 +1,6 @@
 local function get_videolist_tv(tvid, vid, cid, name)
 	--local url = string.format('http://cache.video.qiyi.com/vi/%s/%s/', tvid, vid)
-	--local text = kola.wget(url)
+	--local text = kola.wget(url, false)
 	--local js = cjson.decode(text)
 	--print(js.vu)
 	local ret = {}
@@ -39,7 +39,7 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 	repeat
 		local url = string.format('http://cache.video.qiyi.com/avlist/%s/%d/', aid, page)
 		--print(url)
-		local text = kola.wget(url)
+		local text = kola.wget(url, false)
 
 		text = kola.pcre("var videoListC=([\\s\\S]*)", text)
 		if text == nil then
@@ -124,7 +124,7 @@ function get_resolution(tvid, vid)
 	end
 
 	local url = string.format('http://cache.video.qiyi.com/m/%s/%s/', tvid, vid)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 
 	text = kola.pcre("var ipadUrl=([\\s\\S]*)", text)
 	if text == nil then

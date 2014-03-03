@@ -1,6 +1,6 @@
 function kola_main(url)
 	--local url = string.format("http://live.gslb.letv.com/gslb?stream_id=%s&ext=m3u8&sign=live_tv&format=1", url)
-	local text = kola.wget(url)
+	local text = kola.wget(url, false)
 	print(url)
 
 	if text ~= nil and string.find(text, "<html>") ~= nil then
@@ -20,19 +20,19 @@ function get_channel(vid)
 	d = os.date("*t", time)
 
 	local ret = {}
-	text = kola.wget(url)
+	text = kola.wget(url, false)
 	if text ~= nil then
 		local js = cjson.decode(text)
 		for k,v in ipairs(js.content) do
 			--print(k,v.playtime, v.duration, v.title)
 			ret[k] = {}
 			t = v.playtime
-			d.hour=tonumber(string.sub(t, 1, string.find(t, ":") - 1))
-			d.min=tonumber(string.sub(t, string.find(t, ":") + 1))
+			d.hour             = tonumber(string.sub(t, 1, string.find(t, ":") - 1))
+			d.min              = tonumber(string.sub(t, string.find(t, ":") + 1))
 			ret[k].time_string = v.playtime
-			ret[k].time = os.time(d)
-			ret[k].duration = v.duration
-			ret[k].title = v.title
+			ret[k].time        = os.time(d)
+			ret[k].duration    = v.duration
+			ret[k].title       = v.title
 		end
 	end
 

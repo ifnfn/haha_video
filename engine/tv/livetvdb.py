@@ -4,7 +4,7 @@
 import re
 
 from engine import KolaParser, City
-from kola import VideoBase, AlbumBase, DB, utils
+from kola import VideoBase, AlbumBase, DB, utils, GetOrder
 
 from .common import PRIOR_COMMON
 
@@ -97,7 +97,10 @@ class LivetvParser(KolaParser):
         if albumName:
             album  = LivetvAlbum()
             album.albumName = albumName
-            album.vid = utils.genAlbumId(album.albumName)
+            vid   = utils.genAlbumId(album.albumName)
+            order = GetOrder(album.albumName)
+
+            album.vid = order + vid
             album.categories  = self.tvCate.GetCategories(album.albumName)
 
             album.enAlbumName = self.tvName

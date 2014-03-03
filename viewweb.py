@@ -115,9 +115,12 @@ tv = KolatvServer()
 class AlbumListHandler(BaseHandler):
     def argument(self):
         args = {}
+        cid = self.get_argument('cid', '')
         args['page']  = int(self.get_argument('page', 0))
         args['size']  = int(self.get_argument('size', 20))
         args['full']  = int(self.get_argument('full', 0))
+        if cid:
+            args['cid'] = cid
 
         engine = self.get_argument('engine', '')
         if engine:
@@ -130,7 +133,7 @@ class AlbumListHandler(BaseHandler):
         value = self.get_argument('value', '')
         if value: args['value'] = value
 
-        return args, self.get_argument('menu', ''), self.get_argument('cid', ''), self.get_argument('vid', '')
+        return args, self.get_argument('menu', ''), cid, self.get_argument('vid', '')
 
     def get(self):
         args, menu, cid, vid = self.argument()

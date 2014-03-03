@@ -28,6 +28,8 @@ class ParserTVIELivetv(LivetvParser):
             if 'display_name' in x: name = x['display_name']
 
             album = self.NewAlbum(name)
+            if album == None:
+                continue
 
             v = album.NewVideo()
             v.order = self.order

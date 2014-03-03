@@ -81,46 +81,46 @@ class VideoBase:
     def SaveToJson(self):
         ret = {}
 
-        if self.cid             : ret['cid'] = self.cid
-        if self.pid             : ret['pid'] = self.pid
-        if self.vid             : ret['vid'] = self.vid
-        if self.name            : ret['name'] = self.name
+        if self.cid             : ret['cid']          = self.cid
+        if self.pid             : ret['pid']          = self.pid
+        if self.vid             : ret['vid']          = self.vid
+        if self.name            : ret['name']         = self.name
 
-        if self.order != -1     : ret['order']          = self.order
-        if self.playLength      : ret['playLength']     = self.playLength
-        if self.showName        : ret['showName']       = self.showName
-        if self.videoDesc       : ret['videoDesc']      = self.videoDesc
-        if self.isHigh != -1    : ret['isHigh']         = self.isHigh
-        if self.PlayCount       : ret['PlayCount']      = self.PlayCount
-        if self.Score           : ret['Score']          = self.Score
-        if self.largePicUrl     : ret['largePicUrl']    = self.largePicUrl
-        if self.smallPicUrl     : ret['smallPicUrl']    = self.smallPicUrl
+        if self.order != -1     : ret['order']        = self.order
+        if self.playLength      : ret['playLength']   = self.playLength
+        if self.showName        : ret['showName']     = self.showName
+        if self.videoDesc       : ret['videoDesc']    = self.videoDesc
+        if self.isHigh != -1    : ret['isHigh']       = self.isHigh
+        if self.PlayCount       : ret['PlayCount']    = self.PlayCount
+        if self.Score           : ret['Score']        = self.Score
+        if self.largePicUrl     : ret['largePicUrl']  = self.largePicUrl
+        if self.smallPicUrl     : ret['smallPicUrl']  = self.smallPicUrl
 
-        if self.resolution      : ret['resolution']     = self.resolution
-        if self.private         : ret['private']        = self.private
-        if self.info            : ret['info']           = self.info
+        if self.resolution      : ret['resolution']   = self.resolution
+        if self.private         : ret['private']      = self.private
+        if self.info            : ret['info']         = self.info
 
         return ret
 
     def LoadFromJson(self, json):
-        if 'cid' in json            : self.cid            = autoint(json['cid'])
-        if 'pid' in json            : self.pid            = autostr(json['pid'])
-        if 'vid' in json            : self.vid            = autostr(json['vid'])
+        if 'cid' in json        : self.cid            = autoint(json['cid'])
+        if 'pid' in json        : self.pid            = autostr(json['pid'])
+        if 'vid' in json        : self.vid            = autostr(json['vid'])
 
-        if 'order' in json          : self.order          = autoint(json['order'])
-        if 'name' in json           : self.name           = json['name']
-        if 'videoName' in json      : self.name           = json['videoName']
-        if 'playLength' in json     : self.playLength     = json['playLength']
-        if 'showName' in json       : self.showName       = json['showName']
-        if 'videoDesc' in json      : self.videoDesc      = json['videoDesc']
-        if 'isHigh' in json         : self.isHigh         = autoint(json['isHigh'])
-        if 'PlayCount' in json      : self.PlayCount      = json['PlayCount']
-        if 'Score' in json          : self.Score          = json['Score']
-        if 'largePicUrl' in json    : self.largePicUrl    = json['largePicUrl']
-        if 'smallPicUrl' in json    : self.smallPicUrl    = json['smallPicUrl']
-        if 'videos' in json         : self.videos         = json['videos']
-        if 'private' in json        : self.private        = json['private']
-        if 'info' in json           : self.info           = json['info']
+        if 'order' in json      : self.order          = autoint(json['order'])
+        if 'name' in json       : self.name           = json['name']
+        if 'videoName' in json  : self.name           = json['videoName']
+        if 'playLength' in json : self.playLength     = json['playLength']
+        if 'showName' in json   : self.showName       = json['showName']
+        if 'videoDesc' in json  : self.videoDesc      = json['videoDesc']
+        if 'isHigh' in json     : self.isHigh         = autoint(json['isHigh'])
+        if 'PlayCount' in json  : self.PlayCount      = json['PlayCount']
+        if 'Score' in json      : self.Score          = json['Score']
+        if 'largePicUrl' in json: self.largePicUrl    = json['largePicUrl']
+        if 'smallPicUrl' in json: self.smallPicUrl    = json['smallPicUrl']
+        if 'videos' in json     : self.videos         = json['videos']
+        if 'private' in json    : self.private        = json['private']
+        if 'info' in json       : self.info           = json['info']
 
 class AlbumBase:
     def __init__(self):
@@ -633,6 +633,8 @@ class DB:
             arg['filter'] = self._ConvertFilterJson(arg['filter'])
         if 'sort' in arg:
             arg['sort'] = self._ConvertSortJson(arg['sort'])
+        elif 'cid' in arg and arg['cid'] == '200':
+            arg['sort'] = [('vid', pymongo.ASCENDING)]
         else:
             arg['sort'] = [('dailyPlayNum', pymongo.DESCENDING)]
 

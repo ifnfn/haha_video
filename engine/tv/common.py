@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
 
 PRIOR_LETV = 1
 PRIOR_SOHU = 2

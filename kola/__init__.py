@@ -8,3 +8,4 @@ from .db import VideoBase, AlbumBase, VideoMenuBase, DB
 from .singleton import Singleton
 from .utils import *
 from .element import LivetvMenu
+from .tvorder import GetOrder

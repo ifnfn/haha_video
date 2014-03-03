@@ -458,6 +458,19 @@ class DB:
 
         return self.album_table.find_one({"$or" : f})
 
+    def GetAlbumFailure(self, vids):
+        vids = vids.split(',')
+        _filter = {
+            'vid' : { "$in" : vids}
+        }
+        cursor = self.album_table.find(_filter, fields = {'vid'})
+        for x in cursor:
+            vid = x['vid']
+            if vid in vids:
+                vids.remove(vid)
+
+        return vids
+
     # 得到节目列表
     # arg参数：
     # {
@@ -532,16 +545,6 @@ class DB:
                     engine_list = {}
                     del x['_id']
                     if 'private'in x:
-                        #=======================================================
-                        # private = x['private']
-                        # if engine_name in private and 'videoListUrl' in private[engine_name]:
-                        #     x['videoListUrl'] = private[engine_name]['videoListUrl']
-                        # else:
-                        #     for _,v in list(private.items()):
-                        #         if 'videoListUrl' in v:
-                        #             x['videoListUrl'] = v['videoListUrl']
-                        #             break
-                        #=======================================================
                         for _, v in x['private'].items():
                             if 'videoListUrl' in v:
                                 engine_list[v['name']] = v['videoListUrl']

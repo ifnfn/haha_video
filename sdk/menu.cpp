@@ -314,12 +314,33 @@ void KolaMenu::CleanPage()
 	PageId = -1;
 }
 
-CustomMenu::CustomMenu(string fileName)
+CustomMenu::CustomMenu(string fileName, bool CheckFailure)
 {
 	this->fileName = fileName;
 	this->cid = -1;
 	albumIdList.LoadFromFile(fileName);
+	if (CheckFailure)
+		RemoveFailure();
 	albumCount = albumIdList.size();
+}
+
+void CustomMenu::RemoveFailure() // 移除失效的节目
+{
+	string url("video/vidcheck?vid=");
+	url = url + albumIdList.ToString();
+	json_t *js = json_loadurl(url.c_str());
+
+	if (js) {
+		json_t *v;
+		json_array_foreach(js, v) {
+			if (json_is_string(v)) {
+				const char *vid = json_string_value(v);
+				albumIdList.Remove(vid);
+			}
+		}
+
+		json_decref(js);
+	}
 }
 
 void CustomMenu::AlbumAdd(IAlbum *album)

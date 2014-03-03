@@ -70,6 +70,9 @@ class KolatvServer:
 
         return [], 0
 
+    def GetAlbumFailure(self, vids):
+        return self.db.GetAlbumFailure(vids)
+
     def GetMenuAlbumListByVidList(self, vids, argument):
         if 'filter' not in argument:
             argument['filter'] = {}
@@ -111,6 +114,12 @@ class KolatvServer:
             self.UpdateAlbumFlag = False
 
 tv = KolatvServer()
+
+class AlbumVidCheckHandler(BaseHandler):
+    def get(self):
+        vids = self.get_argument('vid', '')
+        ret = tv.GetAlbumFailure(vids)
+        self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
 class AlbumListHandler(BaseHandler):
     def argument(self):
@@ -779,6 +788,7 @@ class ViewApplication(tornado.web.Application):
 
         handlers = [
             (r'/',                 IndexHandler),
+            (r'/video/vidcheck',   AlbumVidCheckHandler),
             (r'/video/list',       AlbumListHandler),
             (r'/video/getvideo',   GetVideoHandler),
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本

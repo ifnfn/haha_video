@@ -500,7 +500,8 @@ private:
 
 class CustomMenu: public KolaMenu {
 public:
-	CustomMenu(string fileName);
+	CustomMenu(string fileName, bool CheckFailure=true);
+	void RemoveFailure(); // 移除失效的节目
 	void AlbumAdd(IAlbum *album);
 	void AlbumAdd(string vid);
 	void AlbumRemove(IAlbum *album);

@@ -50,7 +50,7 @@ static string Serial("000002");
  */
 static bool GetCPUID(string &CPUID, ssize_t len)
 {
-#define ADDR  "0x338@8"
+#ifdef LINUX
 	int fd;
 	char buffer[8];
 	uint8_t *data;
@@ -71,18 +71,19 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 	}
 	free(data);
 
+#else
+	CPUID = "000002";
+#endif
 	return true;
 }
 
-string CPUID;
 static string GetChipKey(void)
 {
+	static string CPUID;
 	if (CPUID.empty()) {
 		if (GetCPUID(CPUID, 8) == false)
 			CPUID = "000002";
 	}
-
-	printf("CPUID: %s\n", CPUID.c_str());
 
 	return CPUID;
 }

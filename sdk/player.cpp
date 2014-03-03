@@ -42,10 +42,10 @@ void KolaPlayer::Run()
 
 			string url;
 
-			KolaClient &kola = KolaClient::Instance();
-			url = kola.GetFullUrl("/ad?vid=" + resolution.vid + "&chipid=");
-			if (not url.empty())
-				DoPlay(resolution.defaultKey, url);
+//			KolaClient &kola = KolaClient::Instance();
+//			url = kola.GetFullUrl("/ad?vid=" + resolution.vid + "&chipid=");
+//			if (not url.empty())
+//				DoPlay(resolution.defaultKey, url);
 
 			url = resolution.GetVideoUrl();
 

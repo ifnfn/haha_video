@@ -55,7 +55,7 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 	char buffer[8];
 	uint8_t *data;
 
-	fd = open("/proc/gx_otp", 4);
+	fd = open("/proc/gx_otp", O_RDWR);
 	if (fd < 0){
 		printf("open otp err!!!\n");
 		return false;
@@ -74,16 +74,17 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 	return true;
 }
 
+string CPUID;
 static string GetChipKey(void)
 {
-	static string CPUID;
-
 	if (CPUID.empty()) {
-		if (GetCPUID(CPUID, 8))
-			return CPUID;
+		if (GetCPUID(CPUID, 8) == false)
+			CPUID = "000002";
 	}
 
-	return "000002";
+	printf("CPUID: %s\n", CPUID.c_str());
+
+	return CPUID;
 }
 
 static string GetSerial(void)

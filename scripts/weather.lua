@@ -1,6 +1,15 @@
 function kola_main(city)
 	local url = "http://weather.hao.360.cn/api_weather_info.php?app=hao360"
 
+	if city ~= nil and city ~= '' then
+		url = kola.getserver() .. "/city?cid=1&name=" .. city
+		local areaCode = kola.wget(url)
+
+		if areaCode ~= nil and areaCode ~= '' then
+			url = string.format("http://weather.hao.360.cn/api_weather_info.php?app=hao360&city_code=%s", areaCode)
+		end
+	end
+	--print(url)
 	local text = kola.wget(url, false)
 
 	local ret = {}
@@ -10,6 +19,15 @@ function kola_main(city)
 
 		if js == nil then
 			return {}
+		end
+
+		ret.area = ''
+		city = ''
+		for k,v in pairs(js.area) do
+			if v[1] ~= city then
+				ret.area = ret.area .. v[1]
+				city = v[1]
+			end
 		end
 
 		ret.weather = {}
@@ -35,9 +53,11 @@ function kola_main(city)
 
 			ret.weather[i] = info
 		end
-
-		ret.pm25 = js.pm25.pm25[1]
+		if js.pm25 and js.pm25.pm25 then
+			ret.pm25 = tostring(js.pm25.pm25[1])
+		end
 	end
 
+	--print(cjson.encode(ret))
 	return cjson.encode(ret)
 end

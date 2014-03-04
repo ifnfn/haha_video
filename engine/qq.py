@@ -5,8 +5,8 @@ import re
 import sys
 import time
 import traceback
-from bs4 import BeautifulSoup as bs
-from bs4 import Tag
+from bs4 import BeautifulSoup as bs, Tag
+from urllib.parse import quote
 
 import tornado.escape
 
@@ -237,7 +237,7 @@ class ParserAlbumList(KolaParser):
             href = a.attrs['href']
             name = a.text
             print(name, href)
-            ParserAlbumPage(href, name, js['cid']).Execute()
+            ParserAlbumPage2(href, name, js['cid']).Execute()
 
         if len(playlist) > 0 and False:
             g = re.search('http://v.qq.com/movielist/10001/0/10004-100001/0/(\d+)', js['source'])
@@ -246,6 +246,83 @@ class ParserAlbumList(KolaParser):
                 link = re.compile('http://v.qq.com/movielist/10001/0/10004-100001/0/\d+')
                 newurl = re.sub(link, 'http://v.qq.com/movielist/10001/0/10004-100001/0/%d' % (current_page + 1), js['source'])
                 ParserAlbumList(newurl, js['cid']).Execute()
+
+class ParserAlbumPage2(KolaParser):
+    #http://s.video.qq.com/search?comment=1&plat=2&otype=json&query=%E6%84%8F%E5%A4%96%E7%9A%84%E6%81%8B%E7%88%B1%E6%97%B6%E5%85%89
+    #urlencode
+    def __init__(self, url=None, name=None, cid=0):
+        super().__init__()
+
+        if url and name and cid:
+            self.cmd['source'] = 'http://s.video.qq.com/search?comment=1&plat=2&otype=json&query=%s' % quote(name)
+            self.cmd['cid']     = cid
+            self.cmd['name']    = name
+            self.cmd['urlx']    = url
+
+    def CmdParser(self, js):
+        db = QQDB()
+        text = re.findall('QZOutputJson=({[\s\S]*});', js['data'])
+        if not text:
+            return
+
+        json = tornado.escape.json_decode(text[0])
+
+        for a in json['list']:
+            if a['AW'] == js['urlx']:
+                print(a['AC'], a['AT'], a['AU'], a['TX'])
+                album = QQAlbum()
+                album_js = DB().FindAlbumJson(albumName=a['name'])
+                if album_js:
+                        album.LoadFromJson(album_js)
+
+                album.albumName = db.GetAlbumName(a['title'])
+                if not album.albumName:
+                    continue
+                album.vid = utils.genAlbumId(album.albumName)
+                album.cid = js['cid']
+
+                if 'AC' in a: album.area        = self.alias.Get(a['AC'])                      # 地区
+                if 'BE' in a: album.categories  = self.alias.GetStrings(a['BE'], ';')   # 类型
+                if 'BM' in a: album.mainActors  = a['BM'].split(';')     # 主演
+                if 'BD' in a: album.directors   = a['BD'].split(';')     # 导演
+                if 'AY' in a: album.publishYear = a['AY']
+                if 'TX' in a: album.albumDesc   = a['TX']                # 简介
+
+                if 'AU' in a:
+                    album.largePicUrl      = a['AU']                # 大图
+                    album.smallPicUrl      = a['AU']                # 小图
+                    album.largeHorPicUrl   = a['AU']                # 横大图
+                    album.smallHorPicUrl   = a['AU']                # 横小图
+                    album.largeVerPicUrl   = a['AU']                # 竖大图
+                    album.smallVerPicUrl   = a['AU']                # 竖小图
+
+                if 'Z1' in a and 'pic2' in a['Z1']:
+                    album.smallHorPicUrl = a['Z1']['pic2']
+
+
+                if 'duration' in a:    album.playLength       = autoint(a['duration']) * 60  # 时长
+      #          if 'mtime' in a:       album.updateTime       = Time(a['mtime'])             # 更新时间
+      #          if 'ctime' in a:       album.publishTime      = Time(a['ctime'])         # 更新时间
+                if 'rating' in a:      album.Score            = autofloat(a['rating'])       # 推荐指数
+                if 'episodes' in a:    album.totalSet         = autoint(a['episodes'])       # 总集数
+                if 'nowEpisodes' in a: album.updateSet        = autoint(a['nowEpisodes'])    # 当前更新集
+                if 'dayCount' in a:    album.dailyPlayNum     = autoint(a['dayCount'])       # 每日播放次数
+                if 'weekCount' in a:   album.weeklyPlayNum    = autoint(a['weekCount'])      # 每周播放次数
+                if 'monthCount' in a:  album.monthlyPlayNum   = autoint(a['monthCount'])     # 每月播放次数
+                if 'playCount' in a:   album.totalPlayNum     = autoint(a['playCount'])      # 总播放次数
+                if 'aid' in a:         album.letv.playlistid  = a['aid']
+
+
+                if 'starring' in a and a['starring']:
+                    if type(a['starring']) == dict:
+                        album.mainActors       = [x for _, x in a['starring'].items()]
+                    elif type(a['starring']) == str:
+                        album.mainActors       = a['BM'].split(',')     # 主演
+
+                album.letv.videoListUrl = utils.GetScript('letv', 'get_videolist', [album.letv.playlistid, album.letv.vid])
+
+                db.SaveAlbum(album)
+
 
 # 节目列表
 class ParserAlbumPage(KolaParser):
@@ -368,4 +445,5 @@ class QQEngine(VideoEngine):
             ParserAlbumList(),
             ParserPlayCount(),
             ParserAlbumPage(),
+            ParserAlbumPage2(),
         ]

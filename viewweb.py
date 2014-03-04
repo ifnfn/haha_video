@@ -19,7 +19,7 @@ try:
 except ImportError:
     ImageWriter = None
 
-from kola import BaseHandler, log, utils, KolaCommand, element, DB
+from kola import BaseHandler, log, utils, KolaCommand, element, DB, City
 
 
 class KolatvServer:
@@ -336,6 +336,17 @@ class UploadHandler(BaseHandler):
                 #tv.AddTask(body)
         except:
             pass
+
+class CityHandler(BaseHandler):
+    city = City()
+    def get(self):
+        name = self.get_argument('name', '');
+        cid = self.get_argument('cid', '')
+        if cid == '':
+            ret = self.city.GetListByFullName(name)
+            self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+        else:
+            self.finish(self.city.GetCiyByFullName(name))
 
 class ADHandler(BaseHandler):
     def initialize(self):
@@ -801,6 +812,7 @@ class ViewApplication(tornado.web.Application):
             (r'/login',            LoginHandler),           # 登录认证
             (r'/show',             ShowHandler),
             (r'/ad',               ADHandler),              # 广告
+            (r'/city',             CityHandler),            # 城市编码
 
             (r'/admin/userinfo',   UserInfoHandler),        # 用户信息
             (r'/admin/serial',     SerialHandler),          # 生成序列号

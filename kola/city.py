@@ -5,8 +5,7 @@ import re
 
 import pymongo
 import tornado.escape
-
-import engine
+from .fetchTools import GetCacheUrl
 
 
 class City():
@@ -35,7 +34,7 @@ class City():
         return x
 
     def Parser(self, url, pid=None):
-        text = engine.GetCacheUrl(url).decode()
+        text = GetCacheUrl(url).decode()
         x = re.findall('callback\((.*)\);', text)
 
         ret = []
@@ -74,7 +73,69 @@ class City():
                 else:
                     return p
         return p
+    
+    
+    def GetListByCid(self, cid):
+        ret = []
+        for x in self.city_table.find({'pid': cid}):
+            del x['_id']
+            ret.append(x)
+            
+        return ret
 
+    def GetListByFullName(self, name):
+        ret = []
+        cid = '0'
+        if name == '':
+            return self.GetListByCid(cid)
+
+        found = False
+        names = name.split('-')
+        for n in names:
+            if not n:
+                continue
+            found = False
+            ret = self.GetListByCid(cid)
+            for x in ret:
+                if n == x['name']:
+                    cid = x['id']
+                    found = True
+
+        if found:
+            return self.GetListByCid(cid)
+        else:
+            return []
+    
+    def GetCiyByFullName(self, name):
+        if not name:
+            return ''
+        cid = '0'
+        
+        found = False
+        names = name.split('-')
+        for n in names:
+            if not n:
+                continue
+            
+            found = False
+            ret = self.GetListByCid(cid)
+            for x in ret:
+                if n == x['name']:
+                    cid = x['id']
+                    found = True
+
+        if found:
+            return cid
+        else:
+            return ''
+        
+    def GetCid(self, name):
+        for prov in self.cityList:
+            if prov['name'] in name:
+                return prov['id']
+            
+        return None
+    
     def GetCity(self, city):
         if '东南' in city:
             return '福建'

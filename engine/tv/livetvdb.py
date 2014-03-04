@@ -3,8 +3,8 @@
 
 import re
 
-from engine import KolaParser, City
-from kola import VideoBase, AlbumBase, DB, utils, GetOrder
+from engine import KolaParser
+from kola import VideoBase, AlbumBase, DB, utils, GetOrder, City
 
 from .common import PRIOR_COMMON
 

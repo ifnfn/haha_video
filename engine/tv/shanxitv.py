@@ -28,8 +28,8 @@ class ParserShanXiLivetv(LivetvParser):
         channel = re.findall('<a href="\?channel=(.*?)" class="channel_name">(.*?)</a>', js['data'])
         for pid, name in channel:
             album  = self.NewAlbum(name)
-                if album == None:
-                    continue
+            if album == None:
+                continue
 
             v = album.NewVideo()
             v.order = self.order

@@ -18,6 +18,57 @@ void KolaWeather::Clear()
 	weatherList.clear();
 }
 
+void KolaWeather::Get(string name, StringList &value)
+{
+	string url = "city?name=" + name;
+
+	json_t *js = json_loadurl(url.c_str());
+
+	if (js) {
+		json_t *v;
+		json_array_foreach(js, v) {
+			const char *n = json_gets(v, "name", "");
+			value.Add(n);
+		}
+
+		json_decref(js);
+	}
+}
+
+void KolaWeather::GetProvince(StringList &value)
+{
+	Get("", value);
+}
+
+void KolaWeather::GetCity(string province, StringList &city)
+{
+	Get(province, city);
+}
+
+void KolaWeather::GetCounty(string province, string city, StringList &county)
+{
+	Get(province + "-" + city, county);
+}
+
+void KolaWeather::SetArea(string area)
+{
+	this->Area = area;
+}
+
+void KolaWeather::SetArea(string province, string area, string county)
+{
+	if (not province.empty()) {
+		this->Area = province;
+
+		if (not area.empty()) {
+			this->Area += "-" + area;
+
+			if (not county.empty())
+				this->Area += "-" + county;
+		}
+	}
+}
+
 bool KolaWeather::ParserWeatherData(WeatherData& data, json_t *js)
 {
 	data.picture       = json_gets(js, "picture",       "");
@@ -34,8 +85,8 @@ void KolaWeather::Run(void)
 {
 	LuaScript &lua = LuaScript::Instance();
 	vector<string> args;
-	args.push_back("");
-	
+
+	args.push_back(Area);
 	string text = lua.RunScript(args, "weather");
 
 	if (not text.empty()) {
@@ -67,7 +118,7 @@ void KolaWeather::Run(void)
 				this->weatherList.push_back(w);
 			}
 		}
-		
+
 		PM25 = json_gets(js, "pm25", "");
 		mutex.unlock();
 
@@ -82,11 +133,13 @@ bool KolaWeather::UpdateFinish()
 
 void KolaWeather::Update()
 {
-	Wait();
-	mutex.lock();
-	Clear();
-	mutex.unlock();
-	Start();
+	if (status != Task::StatusDownloading) {
+		mutex.lock();
+		Clear();
+		mutex.unlock();
+		status = Task::StatusInit;
+		Start();
+	}
 }
 
 Weather *KolaWeather::Today()

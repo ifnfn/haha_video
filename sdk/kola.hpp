@@ -592,9 +592,9 @@ public:
 class KolaWeather: public Task {
 public:
 	virtual ~KolaWeather();
-	//void GetProvince(StringList &value);
-	//void GetArea(string province, StringList &area);
-	//void GetCounty(string province, string area, StringList &County);
+	void GetProvince(StringList &value);
+	void GetCity(string province, StringList &area);
+	void GetCounty(string province, string area, StringList &county);
 	void Update();
 	bool UpdateFinish();
 	Weather *Today();
@@ -602,8 +602,12 @@ public:
 	vector<Weather*> weatherList;
 	string PM25;
 	virtual void Run(void);
+	void SetArea(string province, string area, string county);
+	void SetArea(string area);
+	string Area;
 protected:
 	virtual bool ParserWeatherData(WeatherData& data, json_t *js);
+	void Get(string name, StringList &value);
 private:
 	Mutex mutex;
 	void Clear();

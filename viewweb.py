@@ -121,6 +121,12 @@ class AlbumVidCheckHandler(BaseHandler):
         ret = tv.GetAlbumFailure(vids)
         self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
+    def post(self):
+        if self.request.body:
+            vids = tornado.escape.to_basestring(self.request.body)
+            ret = tv.GetAlbumFailure(vids)
+            self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+
 class AlbumListHandler(BaseHandler):
     def argument(self):
         args = {}
@@ -163,8 +169,9 @@ class AlbumListHandler(BaseHandler):
 
         if self.request.body:
             try:
-                text = self.request.body
-                umap = tornado.escape.json_decode(text)
+                umap = tornado.escape.json_decode(self.request.body)
+                if 'vid' in umap:
+                    vid = umap['vid']
                 args.update(umap)
             except:
                 t, v, tb = sys.exc_info()

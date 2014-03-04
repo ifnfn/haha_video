@@ -323,7 +323,6 @@ class ParserAlbumPage2(KolaParser):
 
                 db.SaveAlbum(album)
 
-
 # 节目列表
 class ParserAlbumPage(KolaParser):
     alias = QQAlias()

@@ -484,6 +484,7 @@ protected:
 	int         PageId;
 	size_t      albumCount;
 	string      quickFilter;
+	string      basePosData;
 
 	int ParserFromUrl(AlbumPage *page, string &jsonstr);
 

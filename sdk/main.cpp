@@ -407,7 +407,8 @@ static void test_weather(KolaClient &kola)
 	while (kola.weather.UpdateFinish()) {
 		Weather *w = kola.weather.Today();
 		if (w) {
-			printf("%s: %s %s %s %s %s,%s, PM2.5: %s\n",
+			printf("[%s] %s: %s %s %s %s %s,%s, PM2.5: %s\n",
+			       w->city.ToString("", "", "-").c_str(),
 			       w->date.c_str(),
 			       w->day.temp.c_str(),
 			       w->day.code.c_str(),
@@ -428,7 +429,8 @@ static void test_weather(KolaClient &kola)
 	while (kola.weather.UpdateFinish()) {
 		Weather *w = kola.weather.Today();
 		if (w) {
-			printf("%s: %s %s %s %s %s,%s, PM2.5: %s\n",
+			printf("[%s] %s: %s %s %s %s %s,%s, PM2.5: %s\n",
+			       w->city.ToString("", "", "-").c_str(),
 			       w->date.c_str(),
 			       w->day.temp.c_str(),
 			       w->day.code.c_str(),

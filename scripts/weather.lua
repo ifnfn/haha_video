@@ -21,12 +21,14 @@ function kola_main(city)
 			return {}
 		end
 
-		ret.area = ''
+		ret.area = {}
 		city = ''
-		for k,v in pairs(js.area) do
+		k=1
+		for _,v in pairs(js.area) do
 			if v[1] ~= city then
-				ret.area = ret.area .. v[1]
+				ret.area[k] = v[1]
 				city = v[1]
+				k = k + 1
 			end
 		end
 

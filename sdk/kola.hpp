@@ -586,6 +586,7 @@ public:
 class Weather {
 public:
 	string date;
+	StringList city;
 	WeatherData day, night;
 };
 

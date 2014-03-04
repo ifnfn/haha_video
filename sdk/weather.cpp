@@ -100,11 +100,15 @@ void KolaWeather::Run(void)
 		mutex.lock();
 		Clear();
 
+		StringList city;
+		json_get_stringlist(js, "area", &city);
+
 		json_t *weather = json_geto(js, "weather");
 		if (weather) {
 			json_t *info;
 			json_array_foreach(weather, info) {
 				Weather *w = new Weather();
+				w->city = city;
 				
 				w->date = json_gets(info, "date", "");
 				

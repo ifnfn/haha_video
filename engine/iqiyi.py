@@ -494,14 +494,13 @@ class ParserShowAlbumList(KolaParser):
             album.cid       = js['cid']
 
             if album.cid == 3:
-                a = ComicAlias
+                a_alias = ComicAlias
             else:
-                a = alias
+                a_alias = alias
 
-            album.area        = a.Get(js['ar'])                           # 地区
-            album.categories  = a.GetStrings(js['tg'], ' ')               # 类型
+            album.area        = a_alias.Get(js['ar'])                     # 地区
+            album.categories  = a_alias.GetStrings(js['tg'], ' ')         # 类型
             album.publishYear = autoint(json['tvYear']) // 10000          # 年
-
             album.largePicUrl = json['tvPictureUrl']                      # 大图 post20 最大的
 
             if not album.largePicUrl:

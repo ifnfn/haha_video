@@ -11,7 +11,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 
-from engine import QiyiEngine, LetvEngine, SohuEngine, LiveEngine, QQEngine,\
+from engine import QiyiEngine, LetvEngine, SohuEngine, LiveEngine, QQEngine, \
     EngineCommands
 from kola import BaseHandler, DB, ThreadPool
 

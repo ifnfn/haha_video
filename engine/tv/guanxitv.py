@@ -3,8 +3,7 @@
 
 from xml.etree import ElementTree
 
-from engine import GetUrl
-from kola import utils, LivetvMenu
+from kola import utils, LivetvMenu, GetUrl
 
 from .livetvdb import LivetvParser, LivetvDB
 

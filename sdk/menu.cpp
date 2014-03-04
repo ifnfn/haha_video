@@ -346,7 +346,6 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 			json_array_foreach(js, v) {
 				if (json_is_string(v)) {
 					const char *vid = json_string_value(v);
-					printf("vid = %s\n", vid);
 					albumIdList.Remove(vid);
 				}
 			}

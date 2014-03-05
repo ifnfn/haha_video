@@ -335,10 +335,15 @@ class ParserAlbumJsonA(KolaParser):
             album.area             = a.Get(js['ar'])                           # 地区
             album.categories       = a.GetStrings(js['tg'], ' ')               # 类型
 
-            album.publishYear      = json['issueTime'] // 10000          # 年
-            album.publishTime      = json['issueTime']
+            album.publishYear      = json['issueTime'] // 10000                # 年
 
-            album.largePicUrl      = json['tvPictureUrl']                      # 大图 post20 最大的
+            if 'tvPictureUrl' in json:
+                album.largePicUrl      = json['tvPictureUrl']                  # 大图
+                album.smallPicUrl      = json['tvPictureUrl']                  # 小图
+                album.largeHorPicUrl   = json['tvPictureUrl']                  # 横大图
+                album.smallHorPicUrl   = json['tvPictureUrl']                  # 横小图
+                album.largeVerPicUrl   = json['tvPictureUrl']                  # 竖大图
+                album.smallVerPicUrl   = json['tvPictureUrl']                  # 竖小图
 
             if 'episodeCounts' in json:
                 album.totalSet = autoint(json['episodeCounts'])                # 总集数
@@ -351,6 +356,7 @@ class ParserAlbumJsonA(KolaParser):
 
             album.totalPlayNum     = autoint(json['playCounts'])               # 总播放次数
             album.updateTime       = Time(json['pubTime'])                     # 更新时间
+            album.publishTime      = Time(json['pubTime'])
 
             album.qiyi.vid     = js['videoid']
             album.qiyi.albumid = js['albumid']
@@ -501,7 +507,13 @@ class ParserShowAlbumList(KolaParser):
             album.area        = a_alias.Get(js['ar'])                     # 地区
             album.categories  = a_alias.GetStrings(js['tg'], ' ')         # 类型
             album.publishYear = autoint(json['tvYear']) // 10000          # 年
-            album.largePicUrl = json['tvPictureUrl']                      # 大图 post20 最大的
+            if 'tvPictureUrl' in json:
+                album.largePicUrl      = json['tvPictureUrl']                  # 大图
+                album.smallPicUrl      = json['tvPictureUrl']                  # 小图
+                album.largeHorPicUrl   = json['tvPictureUrl']                  # 横大图
+                album.smallHorPicUrl   = json['tvPictureUrl']                  # 横小图
+                album.largeVerPicUrl   = json['tvPictureUrl']                  # 竖大图
+                album.smallVerPicUrl   = json['tvPictureUrl']                  # 竖小图
 
             if not album.largePicUrl:
                 print(album.largePicUrl)

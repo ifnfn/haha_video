@@ -34,7 +34,7 @@ class KolaEngine:
         self.AddEngine(QiyiEngine)
         self.AddEngine(SohuEngine)
         #self.AddEngine(FunshionEngine)
-        self.AddEngine(PPtvEngine)
+        #self.AddEngine(PPtvEngine)
         #self.AddEngine(LetvEngine)
 
     def AddEngine(self, egClass):

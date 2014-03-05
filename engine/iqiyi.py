@@ -3,7 +3,6 @@
 
 import re
 import sys
-import time
 import traceback
 
 from bs4 import BeautifulSoup as bs
@@ -301,7 +300,6 @@ class ParserAlbumJsonA(KolaParser):
     def CmdParser(self, js):
         def Time(t):
             return int(autoint(t) / 1000)
-            return time.strftime('%Y-%m-%d', time.gmtime(autoint(t) / 1000))
 
         try:
             db = QiyiDB()

@@ -320,7 +320,7 @@ class ParserAlbumPage2(KolaParser):
 
                 if 'AT' in a:
                     updateTime = time.mktime(time.strptime(a['AT'],"%Y-%m-%d %H:%M:%S"))
-                    album.updateTime  = time.strftime('%Y-%m-%d', time.gmtime(updateTime))
+                    album.updateTime  = updateTime
                     album.publishTime = album.updateTime
 
                 if 'src_list' in a and 'vsrcarray' in a['src_list']:

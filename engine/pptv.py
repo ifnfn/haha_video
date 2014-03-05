@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import re
+import sys
 import time
+import traceback
 from urllib.parse import quote
 
 from bs4 import BeautifulSoup as bs, Tag
@@ -224,40 +226,109 @@ class ParserPlayCount(KolaParser):
 
 # 节目列表
 class ParserAlbumList(KolaParser):
-    def __init__(self, url=None, cid=None, album_regular_key=None, next_regular_key=None):
+    def __init__(self, url=None, cid=None):
         super().__init__()
-        if url and cid and album_regular_key and next_regular_key:
-            regular = '(<a href=.*(_hot="%s"|class="next").*</a>|<strong class="c_txt3">.*</strong>)' % (album_regular_key)
+        if url and cid:
             self.cmd['source']    = url
-            self.cmd['regular']   = [regular]
             self.cmd['cid']       = cid
-            self.cmd['album_key'] = album_regular_key
-            self.cmd['next_key']  = next_regular_key
 
     def CmdParser(self, js):
-        #print(js['data'])
-        albumlist = []
-        soup = bs(js['data'])  # , from_encoding = 'GBK')
-        albumTag = soup.findAll('a', { "target" : '_blank' })
-        for a in albumTag:
-            href = a.attrs['href']
-            name = a.text
-            albumlist.append({'href': href, 'name': name})
+        def Time(t):
+            return int(kola.autoint(t) / 1000)
+            return time.strftime('%Y-%m-%d', time.gmtime(kola.autoint(t) / 1000))
 
-        scoreTag = soup.findAll('strong')
-        idx = 0
-        for a in scoreTag:
-            href = albumlist[idx]['href']
-            name = albumlist[idx]['name']
-            ParserAlbumPage2(href, name, js['cid'], a.text).Execute()
-            idx += 1
+        json = tornado.escape.json_decode(js['data'])
+        if (json['err'] != 0) or ('data' not in json) or ('channel_list' not in json['data']):
+            return
 
-        nextTag = soup.findAll('a', { "class" : 'next' })
-        if nextTag:
-            nexturl = nextTag[0].get('href', '')
-            if nexturl:
-                print(nexturl)
-                ParserAlbumList(nexturl, js['cid'], js['album_key'], js['next_key']).Execute()
+        db = PPtvDB()
+        for a in json['data']['channel_list']:
+            if 'basic' not in a:
+                continue
+
+            basic = a['basic']
+
+            if json['isPay'] != 0:
+                continue
+
+            album = PPtvAlbum()
+            album_js = kola.DB().FindAlbumJson(albumName=basic['title'])
+            if album_js:
+                    album.LoadFromJson(album_js)
+
+            try:
+                album.albumName = db.GetAlbumName(basic['title'])
+                if not album.albumName:
+                    continue
+                album.vid = kola.genAlbumId(album.albumName)
+                album.cid = js['cid']
+
+                if 'basic' in a:
+                    basic = a['basic']
+                    if 'durationSeconds' in basic:
+                        album.playLength = basic['durationSeconds']
+                    if 'views_week' in basic:
+                        album.dailyPlayNum = basic['views_week'] / 7
+                        album.weeklyPlayNum = basic['views_week']
+                    if 'views_total' in basic:
+                        album.totalPlayNum = basic['views_total']
+
+                if 'dynamic' in a:
+                    if 'score' in a['dynamic']:
+                        album.Score = a['dynamic']['score']
+
+                if 'info' in a:
+                    info = a['info']
+                    if 'actors' in info:
+                        album.mainActors = []
+                        for actor in info['actors']:
+                            album.mainActors.append(actor['name'])
+                    if 'directors' in info:
+                        album.directors = []
+                        for actor in info['directors']:
+                            album.directors.append(actor['name'])
+                    if 'area' in info:
+                        album.area = info['area']
+                    if 'extendDescription' in info:
+                        album.albumDesc = info['extendDescription']
+
+                if 'img_url' in a:
+                    album.largePicUrl      = a['img_url']                     # 大图
+                    album.smallPicUrl      = a['img_url']                     # 小图
+                    album.largeHorPicUrl   = a['img_url']                     # 横大图
+                    album.smallHorPicUrl   = a['img_url']                     # 横小图
+                    album.largeVerPicUrl   = a['img_url']                     # 竖大图
+                    album.smallVerPicUrl   = a['img_url']                     # 竖小图
+
+                if 'rating' in a:      album.Score            = kola.autofloat(a['rating'])       # 推荐指数
+
+                if 'subname' in a:         album.subName     = a['subname']
+                if 'subCategoryName' in a: album.categories  = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
+
+                if 'mtime' in a:       album.updateTime       = Time(a['mtime'])             # 更新时间
+                if 'releaseDate' in a: album.publishYear      = time.gmtime(kola.autoint(a['releaseDate']) / 1000).tm_year
+                if 'ctime' in a:       album.publishTime      = Time(a['ctime'])         # 更新时间
+                if 'episodes' in a:    album.totalSet         = kola.autoint(a['episodes'])       # 总集数
+                if 'nowEpisodes' in a: album.updateSet        = kola.autoint(a['nowEpisodes'])    # 当前更新集
+                if 'dayCount' in a:    album.dailyPlayNum     = kola.autoint(a['dayCount'])       # 每日播放次数
+                if 'weekCount' in a:   album.weeklyPlayNum    = kola.autoint(a['weekCount'])      # 每周播放次数
+                if 'monthCount' in a:  album.monthlyPlayNum   = kola.autoint(a['monthCount'])     # 每月播放次数
+                if 'playCount' in a:   album.totalPlayNum     = kola.autoint(a['playCount'])      # 总播放次数
+                if 'aid' in a:         album.letv.playlistid  = a['aid']
+                if 'directory' in a and a['directory']: album.directors        = a['directory'].split(',')    # 导演
+
+                if 'starring' in a and a['starring']:
+                    if type(a['starring']) == dict:
+                        album.mainActors       = [x for _, x in a['starring'].items()]
+                    elif type(a['starring']) == str:
+                        album.mainActors       = a['starring'].split(',')     # 主演
+
+                album.letv.videoListUrl = kola.GetScript('letv', 'get_videolist', [album.letv.playlistid, album.letv.vid])
+
+                db.SaveAlbum(album)
+            except:
+                t, v, tb = sys.exc_info()
+                print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
 
 class ParserAlbumPage2(KolaParser):
     #http://s.video.qq.com/search?comment=1&plat=2&otype=json&query=%E6%84%8F%E5%A4%96%E7%9A%84%E6%81%8B%E7%88%B1%E6%97%B6%E5%85%89
@@ -394,22 +465,18 @@ class PPtvVideoMenu(EngineVideoMenu):
         super().__init__(name)
         self.albumClass = PPtvAlbum
         self.DBClass = PPtvDB
-        self.album_regular_key = ''
-        self.next_regular_key = ''
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:
-            ParserAlbumList(url, self.cid, self.album_regular_key, self.next_regular_key).Execute()
+            ParserAlbumList(url, self.cid).Execute()
 
 # 电影
 class PPtvMovie(PPtvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 1
-        self.album_regular_key = 'movielist.title.link.0'
-        self.next_regular_key = 'movielist.page\w*?.next'
-        self.HomeUrlList = ['http://v.qq.com/movielist/10001/0/10004-100001/0/0/100/0/0.html']
+        self.HomeUrlList = ['http://list.pptv.com/api/1------1---1.json?action=getListChannel&filter=channel_list']
 
 # 电视
 class PPtvTV(PPtvVideoMenu):
@@ -452,7 +519,7 @@ class PPtvEngine(VideoEngine):
         # 引擎主菜单
         self.menu = [
             PPtvMovie('电影'),
-            PPtvTV('电视剧'),
+            #PPtvTV('电视剧'),
             #PPtvComic('动漫'),
             #PPtvDocumentary('记录片'),
             #PPtvShow('综艺')

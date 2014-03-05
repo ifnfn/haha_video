@@ -670,11 +670,12 @@ class IndexHandler(BaseHandler):
             _item['id'] = i['vid']
             _item['title'] = i['albumName']
             if 'publishTime' in i:
-                _item['time'] = i['publishTime']
+                _item['time'] = time.strftime('%Y-%m-%d', time.gmtime(i['publishTime']))
             elif 'publishYear' in i:
                 _item['time'] = i['publishYear']
             else:
                 _item['time'] = ''
+
 #            _item['time'] = _item['time'].replace("集更新", "集|更新至")
 #            if "更新" in _item['time']:
 #                _item['time'] = "更"+ _item['time'].split("更")[1]
@@ -731,7 +732,7 @@ class IndexHandler(BaseHandler):
             _item['id'] = i['vid']
             _item['title'] = i['albumName']
             if 'publishTime' in i:
-                _item['time'] = i['publishTime']
+                _item['time'] = time.strftime('%Y-%m-%d', time.gmtime(i['publishTime']))
             elif 'publishYear' in i:
                 _item['time'] = i['publishYear']
             else:

@@ -228,8 +228,8 @@ class ParserAlbumPlayCount(KolaParser):
         json = tornado.escape.json_decode(text[0])
         if json['code'] == 'A00000' and 'data' in json:
             playCount = autoint(json['data'])
-            if playCount > album.totalPlayNum:
-                album.totalPlayNum = playCount
+            if playCount > album.dailyPlayNum:
+                album.dailyPlayNum = playCount
                 db.SaveAlbum(album)
 
 class ParserAlbumScore(KolaParser):

@@ -40,7 +40,7 @@ class KolatvServer:
 
     def GetVideoSource(self):
         return {
-            'source' : ['乐视', '搜狐', '爱奇艺'],
+            'source' : ['腾讯', '搜狐', '爱奇艺'],
             'resolution' : ['1080P', '原画质', '720P', '超清', '高清', '标清', '默认']
         }
 

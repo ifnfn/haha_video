@@ -17,7 +17,7 @@ from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
 global Debug
 Debug = True
 
-class QQAlias(KolaAlias):
+class PPtvAlias(KolaAlias):
     def __init__(self):
         self.alias = {
             '中国大陆' : '内地',
@@ -75,9 +75,9 @@ class QQAlias(KolaAlias):
             '经典' : '其他',
         }
 
-alias = QQAlias()
+alias = PPtvAlias()
 
-class QQVideo(kola.VideoBase):
+class PPtvVideo(kola.VideoBase):
     def SaveToJson(self):
         ret = super().SaveToJson()
 
@@ -88,7 +88,7 @@ class QQVideo(kola.VideoBase):
 
     def SetVideoScript(self, name, vid, func_name='kola_main'):
         url = {
-            'script'     : 'qq',
+            'script'     : 'pptv',
             'parameters' : [kola.autostr(vid), kola.autostr(self.cid)]
         }
         if func_name and func_name != 'kola_main':
@@ -96,9 +96,9 @@ class QQVideo(kola.VideoBase):
 
         self.SetVideoUrl(name, url)
 
-class QQPrivate:
+class PPtvPrivate:
     def __init__(self):
-        self.name =  '腾讯'
+        self.name =  'PPTV'
         self.vid = ''
         self.videoListUrl = {}
 
@@ -114,14 +114,13 @@ class QQPrivate:
         if 'vid' in js          : self.vid          = js['vid']
         if 'videoListUrl' in js : self.videoListUrl = js['videoListUrl']
 
-class QQAlbum(kola.AlbumBase):
+class PPtvAlbum(kola.AlbumBase):
     def __init__(self):
-        self.engineName = 'QQEngine'
+        self.engineName = 'PPtvEngine'
         super().__init__()
 
-        self.qq = QQPrivate()
-
-        self.videoClass = QQVideo
+        self.qq = PPtvPrivate()
+        self.videoClass = PPtvVideo
 
     def SaveToJson(self):
         if self.qq:
@@ -140,7 +139,7 @@ class QQAlbum(kola.AlbumBase):
         if self.qq.vid:
             ParserPlayCount(self).Execute()
 
-class QQDB(kola.DB, kola.Singleton):
+class PPtvDB(kola.DB, kola.Singleton):
     def __init__(self):
         super().__init__()
         self.albumNameAlias = {}   # 别名
@@ -154,9 +153,9 @@ class QQDB(kola.DB, kola.Singleton):
 
         f = []
         if albumName: f.append({'albumName'            : albumName})
-        if qvid     : f.append({'private.QQEngine.vid' : qvid})
+        if qvid     : f.append({'private.PPtvEngine.vid' : qvid})
 
-        return self.album_table.find_one({'engineList' : {'$in' : ['QQEngine']}, '$or' : f})
+        return self.album_table.find_one({'engineList' : {'$in' : ['PPtvEngine']}, '$or' : f})
 
     def GetMenuAlbumList(self, cid, All=False):
         fields = {'engineList' : True,
@@ -165,11 +164,11 @@ class QQDB(kola.DB, kola.Singleton):
                   'cid'      : True,
                   'vid'      : True}
 
-        data = self.album_table.find({'engineList' : {'$in' : ['QQEngine']}, 'cid' : cid}, fields)
+        data = self.album_table.find({'engineList' : {'$in' : ['PPtvEngine']}, 'cid' : cid}, fields)
 
         albumList = []
         for p in data:
-            album = QQAlbum()
+            album = PPtvAlbum()
             album.LoadFromJson(p)
             albumList.append(album)
 
@@ -180,10 +179,10 @@ class QQDB(kola.DB, kola.Singleton):
         album = None
         json = self.FindAlbumJson(qvid, albumName)
         if json:
-            album = QQAlbum()
+            album = PPtvAlbum()
             album.LoadFromJson(json)
         elif auto:
-            album = QQAlbum()
+            album = PPtvAlbum()
             if qvid:
                 album.qq.vid = qvid
             if albumName:
@@ -193,7 +192,7 @@ class QQDB(kola.DB, kola.Singleton):
 
     def SaveAlbum(self, album, upsert=True):
         if album.albumName and album.qq.vid:
-            self._save_update_append(None, album, key={'private.QQEngine.vid' : album.qq.vid}, upsert=upsert)
+            self._save_update_append(None, album, key={'private.PPtvEngine.vid' : album.qq.vid}, upsert=upsert)
 
 class ParserPlayCount(KolaParser):
     def __init__(self, album=None):
@@ -212,7 +211,7 @@ class ParserPlayCount(KolaParser):
         if json['msg'] != 'success':
             return
 
-        db = QQDB()
+        db = PPtvDB()
         album = db.GetAlbumFormDB(qvid=js['qvid'])
         if album == None:
             return
@@ -257,6 +256,7 @@ class ParserAlbumList(KolaParser):
         if nextTag:
             nexturl = nextTag[0].get('href', '')
             if nexturl:
+                print(nexturl)
                 ParserAlbumList(nexturl, js['cid'], js['album_key'], js['next_key']).Execute()
 
 class ParserAlbumPage2(KolaParser):
@@ -273,7 +273,7 @@ class ParserAlbumPage2(KolaParser):
             self.cmd['score']   = score
 
     def CmdParser(self, js):
-        db = QQDB()
+        db = PPtvDB()
         text = re.findall('QZOutputJson=({[\s\S]*});', js['data'])
         if not text:
             return
@@ -286,7 +286,7 @@ class ParserAlbumPage2(KolaParser):
         for a in json['list']:
             if a['AW'] == js['urlx']:
                 #print(a['AC'], a['AT'], a['AU'], a['TX'])
-                album = QQAlbum()
+                album = PPtvAlbum()
                 album_js = kola.DB().FindAlbumJson(albumName=a['title'])
                 if album_js:
                         album.LoadFromJson(album_js)
@@ -337,10 +337,11 @@ class ParserAlbumPage2(KolaParser):
 
 # 节目列表
 class ParserAlbumPage(KolaParser):
-    alias = QQAlias()
+    alias = PPtvAlias()
     def __init__(self, url=None, name=None, cid=0):
         super().__init__()
         if url and cid and name:
+            print(url)
             self.cmd['source']  = url
             self.cmd['regular'] = ['(<div class="(video_title|info_cast|info_director|info_category|info_area|info_years|info_summary cf)"[\s\S]*?</div>|<img itemprop="image" src=[\s\S]*?>)']
             self.cmd['cid']     = cid
@@ -388,11 +389,11 @@ class ParserAlbumPage(KolaParser):
 
         print(ret)
 
-class QQVideoMenu(EngineVideoMenu):
+class PPtvVideoMenu(EngineVideoMenu):
     def __init__(self, name):
         super().__init__(name)
-        self.albumClass = QQAlbum
-        self.DBClass = QQDB
+        self.albumClass = PPtvAlbum
+        self.DBClass = PPtvDB
         self.album_regular_key = ''
         self.next_regular_key = ''
 
@@ -402,7 +403,7 @@ class QQVideoMenu(EngineVideoMenu):
             ParserAlbumList(url, self.cid, self.album_regular_key, self.next_regular_key).Execute()
 
 # 电影
-class QQMovie(QQVideoMenu):
+class PPtvMovie(PPtvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 1
@@ -411,7 +412,7 @@ class QQMovie(QQVideoMenu):
         self.HomeUrlList = ['http://v.qq.com/movielist/10001/0/10004-100001/0/0/100/0/0.html']
 
 # 电视
-class QQTV(QQVideoMenu):
+class PPtvTV(PPtvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 2
@@ -420,41 +421,41 @@ class QQTV(QQVideoMenu):
         self.HomeUrlList = ['http://v.qq.com/list/2_-1_-1_-1_0_0_0_100_-1_-1_0.html']
 
 # 动漫
-class QQComic(QQVideoMenu):
+class PPtvComic(PPtvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 3
         self.HomeUrlList = []
 
 # 记录片
-class QQDocumentary(QQVideoMenu):
+class PPtvDocumentary(PPtvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 4
         self.HomeUrlList = []
 
 # 综艺
-class QQShow(QQVideoMenu):
+class PPtvShow(PPtvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 5
         self.HomeUrlList = []
 
-# QQ 搜索引擎
-class QQEngine(VideoEngine):
+# PPtv 搜索引擎
+class PPtvEngine(VideoEngine):
     def __init__(self):
         super().__init__()
 
-        self.engine_name = 'QQEngine'
-        self.albumClass = QQAlbum
+        self.engine_name = 'PPtvEngine'
+        self.albumClass = PPtvAlbum
 
         # 引擎主菜单
         self.menu = [
-            QQMovie('电影'),
-            QQTV('电视剧'),
-            #QQComic('动漫'),
-            #QQDocumentary('记录片'),
-            #QQShow('综艺')
+            PPtvMovie('电影'),
+            PPtvTV('电视剧'),
+            #PPtvComic('动漫'),
+            #PPtvDocumentary('记录片'),
+            #PPtvShow('综艺')
         ]
 
         self.parserList = [

@@ -257,11 +257,39 @@ class GetPlayerHandler(BaseHandler):
 
     def post(self):
         body = self.request.body.decode()
+        url = self.request.protocol + '://' + self.request.host  + '/video/urls'
         if body and len(body) > 0:
-            text = self.sohuVideoUrl(body, self.request.protocol + '://' + self.request.host  + '/video/urls')
+            text = self.sohuVideoUrl(body, url)
+            if text == '':
+                text = self.QQVideoUrl(body, url)
             self.finish(text)
         else:
             raise tornado.web.HTTPError(404)
+
+    def QQVideoUrl(self, text, url):
+        try:
+            urls_list = tornado.escape.json_decode(text)
+            if type(urls_list) == str:
+                urls_list = tornado.escape.json_decode(urls_list)
+
+            max_duration = 0.0
+            m3u8 = ''
+            for u in urls_list:
+                duration = u['time']
+                m3u8 += '#EXTINF:%.0f\n%s\n' % (duration, u['url'])
+                if duration > max_duration:
+                    max_duration = duration
+
+            m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
+            name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
+            tv.db.SetVideoCache(name, m3u8)
+
+            return url + name
+        except:
+            t, v, tb = sys.exc_info()
+            log.error('SohuEngine._ParserRealUrlStep2: %s,%s,%s' % (t, v, traceback.format_tb(tb)))
+
+        return ''
 
     def sohuVideoUrl(self, text, url):
         try:

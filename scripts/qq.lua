@@ -79,7 +79,7 @@ function get_videolist(url, qvid, pageNo, pageSize)
 	return cjson.encode(ret)
 end
 
-function get_video_url(qvid, url_prefix, segments, stream_id )
+function get_video_url(qvid, url_prefix, segments, stream_id)
 	-- 获取所有视频段的 key
 	segments = cjson.decode(segments)
 	local name_prefix = 'p' .. string.sub(tostring(stream_id), 3)
@@ -95,11 +95,7 @@ function get_video_url(qvid, url_prefix, segments, stream_id )
 	for k,v in pairs(keys) do
 		local text = kola.pcre("QZOutput.*=({[\\s\\S]*});", v)
 
-		if text == nil then
-			keys[k] = ''
-		else
-			keys[k] = cjson.decode(text).key
-		end
+		if text == nil then keys[k] = ''else keys[k] = cjson.decode(text).key end
 	end
 
 	-- 生成视频段
@@ -120,8 +116,11 @@ function get_video_url(qvid, url_prefix, segments, stream_id )
 end
 
 function get_resolution(qvid)
-	local function video_url_script(qvid, url_prefix, segments, stream_id)
+	local function video_url_script(qvid, url_prefix, segments, stream_id, default)
 		res = {}
+		if default then
+			res.default = 1
+		end
 		res.script = 'qq'
 		res['function'] = 'get_video_url'
 		res.parameters = {}
@@ -130,18 +129,51 @@ function get_resolution(qvid)
 		res.parameters[3] = cjson.encode(segments)
 		res.parameters[4] = stream_id
 
-		return res
+		if default then
+			default = false
+		end
+		return res, default
+	end
+
+	local function get_url_prefix(ui)
+		if #ui == 0 then
+			return ''
+		end
+		local url = ui[1].url
+		local level = 0
+		for k,v in pairs(ui) do
+			local tmp_level = 0
+
+			if string.find(v.url, 'videocdn.qq.com') then
+				if level < 9 then tmp_level = 9 end
+			elseif string.find(v.url, 'video.qq.com') then
+				if level < 8 then tmp_level = 8 end
+			elseif string.find(v.url, 'tc.qq.com') then
+				if level < 7 then tmp_level = 7 end
+			else
+				tmp_level = 1
+			end
+
+			if tmp_level > level then
+				level = tmp_level
+				url = v.url
+			end
+		end
+
+		return url
 	end
 
 	local ret = {}
 	local url = string.format('http://vv.video.qq.com/getinfo?vids=%s&otype=json', qvid)
+	print(url)
 	local js = GetData(url)
 
 	if js == nil then
 		return '{}'
 	end
 
-	local url_prefix  = js.vl.vi[1].ul.ui[1].url
+	local url_prefix = get_url_prefix(js.vl.vi[1].ul.ui)
+	--local url_prefix  = js.vl.vi[1].ul.ui[1].url
 	local stream_type = js.fl.fi
 	local format_num  = #stream_type
 	local segments = {}
@@ -156,41 +188,22 @@ function get_resolution(qvid)
 		ret['高清'] = strint("%s%s.flv?vkey=%s", url_prefix, qvid, getkey(qvid))
 		ret['高清'].default = 1
 	else
-		local hasDefault = false
+		local Default = true
 		for j=1,format_num,1 do
 			local definition = stream_type[j].name
 			local stream_id  = stream_type[j].id
-			--local urls_list = get_video_url(qvid, segments, stream_id)
-			--print(cjson.encode(urls_list))
-			--ret[definition] = urls_list
-
-			local video = video_url_script(url_prefix, qvid, segments, stream_id)
 
 			if definition == 'hd' then
-				ret['高清'] = video
-				ret['默认'] = video
-				ret['默认'].default = 1
+				ret['高清'], Default = video_url_script(url_prefix, qvid, segments, stream_id, Default)
 			end
 			if definition == 'sd' then
-				ret['标清'] = video
-				if hasDefault == false then
-					ret['默认'] = video
-					ret['默认'].default = 1
-				end
+				ret['标清'], Default = video_url_script(url_prefix, qvid, segments, stream_id, Default)
 			end
 			if definition == 'shd' then
-				ret['超清'] = video
-				if hasDefault == false then
-					ret['默认'] = video
-					ret['默认'].default = 1
-				end
+				ret['超清'], Default = video_url_script(url_prefix, qvid, segments, stream_id, Default)
 			end
 			if definition == 'fhd' then
-				ret['原画质'] = video
-				if hasDefault == false then
-					ret['默认'] = video
-					ret['默认'].default = 1
-				end
+				ret['原画质'], Default = video_url_script(url_prefix, qvid, segments, stream_id, Default)
 			end
 		end
 	end

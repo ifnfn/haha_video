@@ -243,7 +243,7 @@ void test_video(const char *menuName)
 	//m->SetSort("评分最高");
 	//m->SetSort("最新发布");
 	//m->SetSort("名称");
-	m->FilterAdd("PinYin", "fhjr");
+	//m->FilterAdd("PinYin", "fhjr");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
 {
 	KolaClient &kola = KolaClient::Instance();
 
-#if 1
+#if 0
 	test_info(kola);
 	test_area(kola);
 	test_weather(kola);
@@ -461,7 +461,7 @@ int main(int argc, char **argv)
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
-	//printf("Test Video\n"); test_video("电影"); return 0;
+	printf("Test Video\n"); test_video("电影"); return 0;
 	printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");

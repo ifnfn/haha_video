@@ -101,19 +101,19 @@ class PPtvVideo(kola.VideoBase):
 class PPtvPrivate:
     def __init__(self):
         self.name =  'PPTV'
-        self.vid = ''
+        self.channel_id = ''
         self.videoListUrl = {}
 
     def Json(self):
         json = {'name' : self.name}
-        if self.vid          : json['vid'] = self.vid
+        if self.channel_id   : json['channel_id'] = self.channel_id
         if self.videoListUrl : json['videoListUrl'] = self.videoListUrl
 
         return json
 
     def Load(self, js):
         if 'name' in js         : self.name         = js['name']
-        if 'vid' in js          : self.vid          = js['vid']
+        if 'channel_id' in js   : self.channel_id   = js['channel_id']
         if 'videoListUrl' in js : self.videoListUrl = js['videoListUrl']
 
 class PPtvAlbum(kola.AlbumBase):
@@ -121,12 +121,12 @@ class PPtvAlbum(kola.AlbumBase):
         self.engineName = 'PPtvEngine'
         super().__init__()
 
-        self.qq = PPtvPrivate()
+        self.pptv = PPtvPrivate()
         self.videoClass = PPtvVideo
 
     def SaveToJson(self):
-        if self.qq:
-            self.private[self.engineName] = self.qq.Json()
+        if self.pptv:
+            self.private[self.engineName] = self.pptv.Json()
         ret = super().SaveToJson()
 
         return ret
@@ -134,11 +134,11 @@ class PPtvAlbum(kola.AlbumBase):
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
         if self.engineName in self.private:
-            self.qq.Load(self.private[self.engineName])
+            self.pptv.Load(self.private[self.engineName])
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):
-        if self.qq.vid:
+        if self.pptv.channel_id:
             ParserPlayCount(self).Execute()
 
 class PPtvDB(kola.DB, kola.Singleton):
@@ -148,14 +148,14 @@ class PPtvDB(kola.DB, kola.Singleton):
         self.blackAlbumName = {}   # 黑名单
 
     # 从数据库中找到 album
-    def FindAlbumJson(self, qvid='', albumName=''):
-        qvid = kola.autostr(qvid)
-        if qvid == '' and albumName == '':
+    def FindAlbumJson(self, channel_id='', albumName=''):
+        channel_id = kola.autostr(channel_id)
+        if channel_id == '' and albumName == '':
             return None
 
         f = []
-        if albumName: f.append({'albumName'            : albumName})
-        if qvid     : f.append({'private.PPtvEngine.vid' : qvid})
+        if albumName  : f.append({'albumName'                     : albumName})
+        if channel_id : f.append({'private.PPtvEngine.channel_id' : channel_id})
 
         return self.album_table.find_one({'engineList' : {'$in' : ['PPtvEngine']}, '$or' : f})
 
@@ -177,32 +177,32 @@ class PPtvDB(kola.DB, kola.Singleton):
         return albumList
 
     # 从数据库中找到album
-    def GetAlbumFormDB(self, qvid='', albumName='', auto=False):
+    def GetAlbumFormDB(self, channel_id='', albumName='', auto=False):
         album = None
-        json = self.FindAlbumJson(qvid, albumName)
+        json = self.FindAlbumJson(channel_id, albumName)
         if json:
             album = PPtvAlbum()
             album.LoadFromJson(json)
         elif auto:
             album = PPtvAlbum()
-            if qvid:
-                album.qq.vid = qvid
+            if channel_id:
+                album.pptv.channel_id = channel_id
             if albumName:
                 album.mName = albumName
 
         return album
 
     def SaveAlbum(self, album, upsert=True):
-        if album.albumName and album.qq.vid:
-            self._save_update_append(None, album, key={'private.PPtvEngine.vid' : album.qq.vid}, upsert=upsert)
+        if album.albumName and album.pptv.channel_id:
+            self._save_update_append(None, album, key={'private.PPtvEngine.channel_id' : album.pptv.channel_id}, upsert=upsert)
 
 class ParserPlayCount(KolaParser):
     def __init__(self, album=None):
         super().__init__()
         if album:
-            self.cmd['name'] = album.albumName
-            self.cmd['source'] = 'http://sns.video.qq.com/tvideo/fcgi-bin/batchgetplaymount?id=%s&otype=json' % album.qq.vid
-            self.cmd['qvid'] = album.qq.vid
+            self.cmd['name']       = album.albumName
+            self.cmd['source']     = 'http://sns.video.pptv.com/tvideo/fcgi-bin/batchgetplaymount?id=%s&otype=json' % album.pptv.channel_id
+            self.cmd['channel_id'] = album.pptv.channel_id
 
     def CmdParser(self, js):
         text = re.findall('QZOutputJson=({[\s\S]*});', js['data'])
@@ -214,12 +214,12 @@ class ParserPlayCount(KolaParser):
             return
 
         db = PPtvDB()
-        album = db.GetAlbumFormDB(qvid=js['qvid'])
+        album = db.GetAlbumFormDB(channel_id=js['channel_id'])
         if album == None:
             return
 
         for v in json['node']:
-            if v['id'] == js['qvid']:
+            if v['id'] == js['channel_id']:
                 if 'all' in v: album.totalPlayNum = v['all']
                 if 'yest' in v: album.dailyPlayNum = v['yest']
                 db.SaveAlbum(album)
@@ -248,7 +248,7 @@ class ParserAlbumList(KolaParser):
 
             basic = a['basic']
 
-            if json['isPay'] != 0:
+            if basic['isPay'] != '0':
                 continue
 
             album = PPtvAlbum()
@@ -287,8 +287,8 @@ class ParserAlbumList(KolaParser):
                         album.directors = []
                         for actor in info['directors']:
                             album.directors.append(actor['name'])
-                    if 'area' in info:
-                        album.area = info['area']
+                    if 'areas' in info:
+                        album.area = info['areas']
                     if 'extendDescription' in info:
                         album.albumDesc = info['extendDescription']
 
@@ -299,112 +299,25 @@ class ParserAlbumList(KolaParser):
                     album.smallHorPicUrl   = a['img_url']                     # 横小图
                     album.largeVerPicUrl   = a['img_url']                     # 竖大图
                     album.smallVerPicUrl   = a['img_url']                     # 竖小图
-
-                if 'rating' in a:      album.Score            = kola.autofloat(a['rating'])       # 推荐指数
-
-                if 'subname' in a:         album.subName     = a['subname']
+                '''
+                if 'rating' in a:      album.Score            = kola.autofloat(a['rating'])                       # 推荐指数
                 if 'subCategoryName' in a: album.categories  = self.alias.GetStrings(a['subCategoryName'], ',')   # 类型
-
-                if 'mtime' in a:       album.updateTime       = Time(a['mtime'])             # 更新时间
+                if 'mtime' in a:       album.updateTime       = Time(a['mtime'])                                  # 更新时间
                 if 'releaseDate' in a: album.publishYear      = time.gmtime(kola.autoint(a['releaseDate']) / 1000).tm_year
-                if 'ctime' in a:       album.publishTime      = Time(a['ctime'])         # 更新时间
+                if 'ctime' in a:       album.publishTime      = Time(a['ctime'])                                  # 更新时间
                 if 'episodes' in a:    album.totalSet         = kola.autoint(a['episodes'])       # 总集数
                 if 'nowEpisodes' in a: album.updateSet        = kola.autoint(a['nowEpisodes'])    # 当前更新集
-                if 'dayCount' in a:    album.dailyPlayNum     = kola.autoint(a['dayCount'])       # 每日播放次数
-                if 'weekCount' in a:   album.weeklyPlayNum    = kola.autoint(a['weekCount'])      # 每周播放次数
-                if 'monthCount' in a:  album.monthlyPlayNum   = kola.autoint(a['monthCount'])     # 每月播放次数
-                if 'playCount' in a:   album.totalPlayNum     = kola.autoint(a['playCount'])      # 总播放次数
-                if 'aid' in a:         album.letv.playlistid  = a['aid']
-                if 'directory' in a and a['directory']: album.directors        = a['directory'].split(',')    # 导演
+                '''
 
-                if 'starring' in a and a['starring']:
-                    if type(a['starring']) == dict:
-                        album.mainActors       = [x for _, x in a['starring'].items()]
-                    elif type(a['starring']) == str:
-                        album.mainActors       = a['starring'].split(',')     # 主演
+                if 'channel_id' in a:
+                    album.pptv.channel_id = a['channel_id']
 
-                album.letv.videoListUrl = kola.GetScript('letv', 'get_videolist', [album.letv.playlistid, album.letv.vid])
+                album.pptv.videoListUrl = kola.GetScript('pptv', 'get_videolist', [album.pptv.channel_id])
 
                 db.SaveAlbum(album)
             except:
                 t, v, tb = sys.exc_info()
                 print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
-
-class ParserAlbumPage2(KolaParser):
-    #http://s.video.qq.com/search?comment=1&plat=2&otype=json&query=%E6%84%8F%E5%A4%96%E7%9A%84%E6%81%8B%E7%88%B1%E6%97%B6%E5%85%89
-    #urlencode
-    def __init__(self, url=None, name=None, cid=0, score=None):
-        super().__init__()
-
-        if url and name and cid and score:
-            self.cmd['source'] = 'http://s.video.qq.com/search?comment=1&plat=2&otype=json&query=%s' % quote(name)
-            self.cmd['cid']     = cid
-            self.cmd['name']    = name
-            self.cmd['urlx']    = url
-            self.cmd['score']   = score
-
-    def CmdParser(self, js):
-        db = PPtvDB()
-        text = re.findall('QZOutputJson=({[\s\S]*});', js['data'])
-        if not text:
-            return
-
-        json = tornado.escape.json_decode(text[0])
-
-        if 'list' not in json:
-            return
-
-        for a in json['list']:
-            if a['AW'] == js['urlx']:
-                #print(a['AC'], a['AT'], a['AU'], a['TX'])
-                album = PPtvAlbum()
-                album_js = kola.DB().FindAlbumJson(albumName=a['title'])
-                if album_js:
-                        album.LoadFromJson(album_js)
-
-                album.albumName = db.GetAlbumName(a['title'])
-                if not album.albumName:
-                    continue
-
-                album.vid   = kola.genAlbumId(album.albumName)
-                album.cid   = js['cid']
-                album.Score = kola.autofloat(js['score'])
-
-                if 'AC' in a: album.area        = alias.Get(a['AC'])               # 地区
-                if 'BE' in a: album.categories  = alias.GetStrings(a['BE'], ';')   # 类型
-                if 'BM' in a: album.mainActors  = a['BM'].split(';')     # 主演
-                if 'BD' in a: album.directors   = a['BD'].split(';')     # 导演
-                if 'AY' in a: album.publishYear = a['AY']
-                if 'TX' in a: album.albumDesc   = a['TX']                # 简介
-                if 'ID' in a: album.qq.vid      = a['ID']
-
-                if 'AU' in a:
-                    album.largePicUrl      = a['AU']                     # 大图
-                    album.smallPicUrl      = a['AU']                     # 小图
-                    album.largeHorPicUrl   = a['AU']                     # 横大图
-                    album.smallHorPicUrl   = a['AU']                     # 横小图
-                    album.largeVerPicUrl   = a['AU']                     # 竖大图
-                    album.smallVerPicUrl   = a['AU']                     # 竖小图
-
-                if 'Z1' in a and 'pic2' in a['Z1']:
-                    album.smallHorPicUrl = a['Z1']['pic2']
-
-                if 'AT' in a:
-                    updateTime = time.mktime(time.strptime(a['AT'],"%Y-%m-%d %H:%M:%S"))
-                    album.updateTime  = time.strftime('%Y-%m-%d', time.gmtime(updateTime))
-                    album.publishTime = album.updateTime
-
-                if 'src_list' in a and 'vsrcarray' in a['src_list']:
-                    vsrcarray = a['src_list']['vsrcarray'][0]
-                    if 'total_episode' in vsrcarray:
-                        album.totalSet = kola.autoint(vsrcarray['total_episode'])       # 总集数
-                    if 'cnt' in vsrcarray:
-                        if 'nowEpisodes' in a: album.updateSet = kola.autoint(a['nowEpisodes'])    # 当前更新集
-
-                album.qq.videoListUrl = kola.GetScript('qq', 'get_videolist', [js['source'], album.qq.vid])
-
-                db.SaveAlbum(album)
-                break
 
 # 节目列表
 class ParserAlbumPage(KolaParser):
@@ -414,51 +327,12 @@ class ParserAlbumPage(KolaParser):
         if url and cid and name:
             print(url)
             self.cmd['source']  = url
-            self.cmd['regular'] = ['(<div class="(video_title|info_cast|info_director|info_category|info_area|info_years|info_summary cf)"[\s\S]*?</div>|<img itemprop="image" src=[\s\S]*?>)']
+            self.cmd['regular'] = []
             self.cmd['cid']     = cid
             self.cmd['name']    = name
 
     def CmdParser(self, js):
-        ret = {}
-        soup = bs(js['data'])  # , from_encoding = 'GBK')
-
-        images = soup.findAll('img', {'itemprop' : 'image'})
-        for img in images:
-            image = img.get('src', '')
-            if image:
-                ret['image'] = image
-        ret['name'] = js['name']
-
-        playlist = soup.findAll('div') #, { "_hot" : "movielist.title.link.0" })
-        for a in playlist:
-            if type(a) == Tag:
-                x = a.findAll('span', {'class' : 'label'})
-                if x:
-                    key = x[0].text.replace('：', '')
-                    ret[key] = []
-
-                    if key in ['主演', '导演']:
-                        vlist = a.findAll('span', {'itemprop' : 'name'})
-                        for v in vlist:
-                            text = v.text.strip()
-                            ret[key].append(text)
-                    elif key in ['类型']:
-                        vlist = a.findAll('a')
-                        for v in vlist:
-                            text = v.text.strip()
-                            ret[key].append(text)
-                    elif key in ['地区', '年份']:
-                        vlist = a.findAll('a')
-                        for v in vlist:
-                            text = v.text.strip()
-                            ret[key] = text
-                    elif key  in ['简介']:
-                        vlist = a.findAll('span', {'class' : 'desc'})
-                        for v in vlist:
-                            text = v.text.strip()
-                            ret[key] = text
-
-        print(ret)
+        pass
 
 class PPtvVideoMenu(EngineVideoMenu):
     def __init__(self, name):
@@ -483,9 +357,7 @@ class PPtvTV(PPtvVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 2
-        self.album_regular_key = 'tv.title.link.\w*.\w*'
-        self.next_regular_key = 'tv.page\w*?.next.\w*'
-        self.HomeUrlList = ['http://v.qq.com/list/2_-1_-1_-1_0_0_0_100_-1_-1_0.html']
+        self.HomeUrlList = []
 
 # 动漫
 class PPtvComic(PPtvVideoMenu):
@@ -529,5 +401,4 @@ class PPtvEngine(VideoEngine):
             ParserAlbumList(),
             ParserPlayCount(),
             ParserAlbumPage(),
-            ParserAlbumPage2(),
         ]

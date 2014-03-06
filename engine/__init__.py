@@ -67,9 +67,13 @@ class KolaEngine:
             eg.UpdateAllScore()
 
     # 更新所有节目
-    def UpdateAllAlbumList(self):
+    def UpdateAllAlbumList(self, engine):
         for eg in self.engines:
-            eg.UpdateAllAlbumList()
+            if engine:
+                if eg.engine_name in engine:
+                    eg.UpdateAllAlbumList()
+            else:
+                eg.UpdateAllAlbumList()
 
     def CommandEmptyMessage(self):
         if self.UpdateAlbumFlag == True:

@@ -50,14 +50,15 @@ class UpdateCommandHandle(BaseHandler):
         pass
 
     def get(self):
-        cmdlist = {}
-        cmdlist['list']      = tv.UpdateAllAlbumList
-        cmdlist['score']     = tv.UpdateAllScore
-
         command = self.get_argument('cmd', '')
         for cmd in command.split(','):
-            if cmd in cmdlist:
-                cmdlist[cmd]()
+            if cmd == 'list':
+                engine = self.get_argument('engine')
+                if engine:
+                    engine = engine.split(',')
+                tv.UpdateAllAlbumList(engine)
+            elif cmd == 'score':
+                tv.UpdateAllScore()
 
         self.finish('OK\n')
 

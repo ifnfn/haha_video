@@ -2,9 +2,15 @@
 
 URL="http://127.0.0.1:9992"
 
-curl "$URL/manage/update?cmd=list"
-./super_client.py
+function UpdateAlbum() {
+    curl "$URL/manage/update?cmd=list&engine=$1Engine" && ./super_client.py
+}
 
-curl "$URL/manage/update?cmd=score"
-./super_client.py
+UpdateAlbum Livetv
+UpdateAlbum Qiyi
+UpdateAlbum QQ
+UpdateAlbum Sohu
+#UpdateAlbum Letv
+
+curl "$URL/manage/update?cmd=score" && ./super_client.py
 

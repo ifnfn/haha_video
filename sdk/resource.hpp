@@ -78,7 +78,7 @@ protected:
 
 class ResourceManager {
 public:
-	ResourceManager(size_t memory = 1024 * 1024 * 10);
+	ResourceManager(size_t memory = 1024 * 1024 * 2);
 	virtual ~ResourceManager();
 
 	bool GetFile(FileResource& picture, const string &url);

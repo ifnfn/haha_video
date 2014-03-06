@@ -90,7 +90,6 @@ protected:
 class ScriptCommand {
 public:
 	ScriptCommand(json_t *js=NULL);
-	~ScriptCommand();
 	string Run();
 	bool Exists() {return not script_name.empty(); }
 	void AddParams(const char *arg);

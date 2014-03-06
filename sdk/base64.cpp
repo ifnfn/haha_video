@@ -14,11 +14,11 @@ string base64encode(const string input)
 	string ret;
 
 	char *out_buffer = (char *)calloc(1, out_size);
-	base64encode((unsigned char *)input.c_str(), input.size(), (unsigned char*)out_buffer, out_size);
-
-	ret = out_buffer;
-
-	free(out_buffer);
+	if (out_buffer) {
+		base64encode((unsigned char *)input.c_str(), input.size(), (unsigned char*)out_buffer, out_size);
+		ret = out_buffer;
+		free(out_buffer);
+	}
 
 	return ret;
 }

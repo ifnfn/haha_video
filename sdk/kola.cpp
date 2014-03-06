@@ -21,18 +21,15 @@
 #include "resource.hpp"
 
 #if TEST
-#define SERVER_HOST "192.168.56.1"
-//#define SERVER_HOST "127.0.0.1"
-#define PORT 9991
+#	define SERVER_HOST "192.168.56.1"
+#	define PORT 9991
 #else
-//#define SERVER_HOST "121.199.20.175"
-//#define SERVER_HOST "112.124.60.152"
-#define SERVER_HOST "www.kolatv.com"
-
-#define PORT 80
+#	define SERVER_HOST "www.kolatv.com"
+#	define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE 8
+#define MAX_THREAD_POOL_SIZE (8)
+#define MAX_CACHE_SIZE       (1024 * 1024 * 2)
 
 static string loginKey;
 static string loginKeyCookie;
@@ -52,12 +49,11 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 {
 #ifdef LINUX
 	int fd;
-	char buffer[8];
 	uint8_t *data;
 
 	fd = open("/proc/gx_otp", O_RDWR);
 	if (fd < 0){
-		printf("open otp err!!!\n");
+		//printf("open otp err!!!\n");
 		return false;
 	}
 	data =(uint8_t*)malloc(len);
@@ -66,6 +62,7 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 	close(fd);
 
 	for (int i = 0; i < len; i++) {
+		char buffer[8];
 		sprintf(buffer, "%02X", data[i]);
 		CPUID += buffer;
 	}
@@ -156,8 +153,7 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 	int err = 0;
 	int ret = -1;
 
-	if(data && ndata > 0)
-	{
+	if(data && ndata > 0) {
 		c_stream.zalloc = Z_NULL;
 		c_stream.zfree = Z_NULL;
 		c_stream.opaque = Z_NULL;
@@ -187,9 +183,9 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 
 		return 0;
 	}
-
 out:
 	deflateEnd(&c_stream);
+
 	return ret;
 }
 
@@ -228,7 +224,7 @@ KolaClient::KolaClient(void)
 	debug = 0;
 
 	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
-	resManager = new ResourceManager(1024 * 1024 * 3);
+	resManager = new ResourceManager(MAX_CACHE_SIZE);
 
 	LoginOne(true);
 	thread = new Thread(this, &KolaClient::Login);

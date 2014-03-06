@@ -388,7 +388,9 @@ static void test_area(KolaClient &kola)
 
 static void test_weather(KolaClient &kola)
 {
+#if 0
 	StringList data;
+
 	kola.weather.GetProvince(data);
 	cout << data.ToString() << endl;
 
@@ -399,51 +401,51 @@ static void test_weather(KolaClient &kola)
 	data.clear();
 	kola.weather.GetCounty("安徽", "安庆", data);
 	cout << data.ToString() << endl;
+#endif
+	while (true) {
+		kola.weather.SetArea("安徽-安庆-枞阳");
+		kola.weather.Update();
+		kola.weather.Update();
 
-	kola.weather.SetArea("安徽-安庆-枞阳");
-	kola.weather.Update();
-	kola.weather.Wait();
+		while (not kola.weather.UpdateFinish()) {
+			Weather *w = kola.weather.Today();
+			if (w) {
+				printf("[%s] %s: %s %s %s %s %s,%s, PM2.5: %s\n",
+				       w->city.ToString("", "", "-").c_str(),
+				       w->date.c_str(),
+				       w->day.temp.c_str(),
+				       w->day.code.c_str(),
+				       w->day.weather.c_str(),
+				       w->day.windDirection.c_str(),
+				       w->day.windPower.c_str(),
+				       w->day.picture.c_str(),
+				       kola.weather.PM25.c_str()
+				       );
+				break;
+			}
+		}
 
-	while (kola.weather.UpdateFinish()) {
-		Weather *w = kola.weather.Today();
-		if (w) {
-			printf("[%s] %s: %s %s %s %s %s,%s, PM2.5: %s\n",
-			       w->city.ToString("", "", "-").c_str(),
-			       w->date.c_str(),
-			       w->day.temp.c_str(),
-			       w->day.code.c_str(),
-			       w->day.weather.c_str(),
-			       w->day.windDirection.c_str(),
-			       w->day.windPower.c_str(),
-			       w->day.picture.c_str(),
-			       kola.weather.PM25.c_str()
-			       );
-			break;
+		kola.weather.SetArea("");
+		kola.weather.Update();
+
+		while (not kola.weather.UpdateFinish()) {
+			Weather *w = kola.weather.Today();
+			if (w) {
+				printf("[%s] %s: %s %s %s %s %s,%s, PM2.5: %s\n",
+				       w->city.ToString("", "", "-").c_str(),
+				       w->date.c_str(),
+				       w->day.temp.c_str(),
+				       w->day.code.c_str(),
+				       w->day.weather.c_str(),
+				       w->day.windDirection.c_str(),
+				       w->day.windPower.c_str(),
+				       w->day.picture.c_str(),
+				       kola.weather.PM25.c_str()
+				       );
+				break;
+			}
 		}
 	}
-
-	kola.weather.SetArea("");
-	kola.weather.Update();
-	kola.weather.Wait();
-
-	while (kola.weather.UpdateFinish()) {
-		Weather *w = kola.weather.Today();
-		if (w) {
-			printf("[%s] %s: %s %s %s %s %s,%s, PM2.5: %s\n",
-			       w->city.ToString("", "", "-").c_str(),
-			       w->date.c_str(),
-			       w->day.temp.c_str(),
-			       w->day.code.c_str(),
-			       w->day.weather.c_str(),
-			       w->day.windDirection.c_str(),
-			       w->day.windPower.c_str(),
-			       w->day.picture.c_str(),
-			       kola.weather.PM25.c_str()
-			       );
-			break;
-		}
-	}
-
 }
 
 int main(int argc, char **argv)

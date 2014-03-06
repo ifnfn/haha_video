@@ -2,7 +2,7 @@
 
 URL="http://127.0.0.1:9992"
 
-function UpdateAlbum() {
+UpdateAlbum() {
     curl "$URL/manage/update?cmd=list&engine=$1Engine" && ./super_client.py
 }
 

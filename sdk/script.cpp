@@ -168,14 +168,6 @@ static void luaL_openmini(lua_State *L)
 	}
 }
 
-LuaScript::LuaScript()
-{
-}
-
-LuaScript::~LuaScript()
-{
-}
-
 LuaScript& LuaScript::Instance()
 {
 	static LuaScript _lua;
@@ -250,10 +242,6 @@ ScriptCommand::ScriptCommand(json_t *js)
 
 	if (js)
 		LoadFromJson(js);
-}
-
-ScriptCommand::~ScriptCommand()
-{
 }
 
 void ScriptCommand::DelParams(int count)

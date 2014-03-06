@@ -27,8 +27,6 @@ public:
 
 class LuaScript {
 public:
-	LuaScript();
-	~LuaScript();
 	static LuaScript& Instance();
 	string RunScript(vector<string> &args, const char *name, const char *fname="kola_main");
 private:

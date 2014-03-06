@@ -661,7 +661,7 @@ class IndexHandler(BaseHandler):
         args = {}
         args['page'] = 0
         args['size'] = 20
-        args['sort'] = '日播放最多'
+        args['sort'] = '昨日热播'
 
         _items, _ = tv.GetMenuAlbumListByName('电视剧', args)
         newtv = []
@@ -724,7 +724,7 @@ class IndexHandler(BaseHandler):
 
         args['page'] = 0
         args['size'] = 20
-        args['sort'] = '日播放最多'
+        args['sort'] = '昨日热播'
         _items, _ = tv.GetMenuAlbumListByName('电影', args)
         newmovie = []
         for i in _items:

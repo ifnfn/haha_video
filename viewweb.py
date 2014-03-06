@@ -440,7 +440,10 @@ class ShowHandler(BaseHandler):
         if 'playLength'   not in album: album['playLength'] = 0
         if 'albumDesc'    not in album: album['albumDesc'] = ''
         if 'totalPlayNum' not in album: album['totalPlayNum'] = ''
-        if 'Score'        not in album: album['Score'] = 0
+        if 'Score' in album:
+            album['score'] = '%.2f' % (float(album['Score']))
+        else:
+            album['score'] = ''
 
         totalPlayNum = utils.autoint(album['totalPlayNum'])
         if totalPlayNum > 100000000:

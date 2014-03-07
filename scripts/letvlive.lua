@@ -17,7 +17,7 @@ function get_channel(vid)
 	local time = kola.gettime()
 	local d = os.date("%Y%m%d", time)
 	local url = string.format("http://st.live.letv.com/live/playlist/%s/%s.json?_=%d", d, vid, time)
-	d = os.date("*t", time)
+	local d = os.date("*t", time)
 
 	local ret = {}
 	text = kola.wget(url, false)

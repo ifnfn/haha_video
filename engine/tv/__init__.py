@@ -18,7 +18,8 @@ from .tvielivetv import ParserTVIELivetv
 from .xinjiangtv import XinJianLiveTV
 from .zhjiantv import ZheJianLiveTV
 from .smgbb import SmgbbLivetv
-from .btv import BtvLivetv
+from .btv import BtvLiveTV
+from .pptv import PPtvLiveTV
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
@@ -31,19 +32,20 @@ class LiveEngine(VideoEngine):
         # 引擎菜单
         self.menu = []
 
-        self.AddMenu(JianSuLiveTV ('江苏'))
-        self.AddMenu(ZheJianLiveTV('浙江'))
-        self.AddMenu(AnHuiLiveTV  ('安徽'))
-        #self.AddMenu(XinJianLiveTV('新疆'))
-        self.AddMenu(JilingLiveTV ('吉林'))
-        self.AddMenu(CuLiveTV     ('CuTV'))
-        self.AddMenu(CntvLiveTV   ("CNTV"))
-        self.AddMenu(SohuLiveTV   ('Sohu'))
+        #self.AddMenu(JianSuLiveTV ('江苏'))
+        #self.AddMenu(ZheJianLiveTV('浙江'))
+        #self.AddMenu(AnHuiLiveTV  ('安徽'))
+        #self.AddMenu(JilingLiveTV ('吉林'))
+        #self.AddMenu(CuLiveTV     ('CuTV'))
+        #self.AddMenu(CntvLiveTV   ("CNTV"))
+        #self.AddMenu(SohuLiveTV   ('Sohu'))
+        #self.AddMenu(QQLiveTV     ('腾讯'))
+        #self.AddMenu(SmgbbLivetv  ('东方卫视'))
+        #self.AddMenu(BtvLiveTV    ('北京'))
+        self.AddMenu(PPtvLiveTV   ('PPTV'))
         #self.AddMenu(LetvLiveTV   ('Letv'))
-        self.AddMenu(QQLiveTV     ('腾讯'))
-        self.AddMenu(SmgbbLivetv  ('东方卫视'))
-        self.AddMenu(BtvLivetv    ('北京'))
         #self.AddMenu(GuangXiLiveTV('广西'))
+        #self.AddMenu(XinJianLiveTV('新疆'))
 
     def AddMenu(self, menu):
         self.menu.append(menu)

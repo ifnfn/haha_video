@@ -144,7 +144,7 @@ void test_livetv()
 //				player.AddVideo(video);
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
-#if 0
+#if 1
 				KolaEpg epg;
 
 				video->GetEPG(epg);
@@ -459,7 +459,7 @@ int main(int argc, char **argv)
 #endif
 
 	//test_custommenu();
-	//printf("Test LiveTV\n"); test_livetv(); return 0;
+	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

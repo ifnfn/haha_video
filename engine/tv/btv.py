@@ -23,7 +23,7 @@ class ParserBTV(LivetvParser):
     def CmdParser(self, js):
         pass
 
-class BtvLivetv(LivetvMenu):
+class BtvLiveTV(LivetvMenu):
     '''
     北京卫视
     '''

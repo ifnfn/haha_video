@@ -169,7 +169,7 @@ Resource* ResourceManager::AddResource(const string &url)
 	Lock();
 	mResources.insert(mResources.end(), pResource);
 	Unlock();
-	pResource->Start();
+	pResource->Start(true);
 
 	return pResource;
 }
@@ -233,6 +233,17 @@ static bool compare_nocase(const Resource* first, const Resource* second)
 	//	return first->GetSize() > second->GetSize();
 	//else
 	//	return first->score > second->score;
+}
+
+void ResourceManager::Clear()
+{
+	list<Resource*>::iterator it;
+	for (it = mResources.begin(); it != mResources.end();) {
+		Resource* pRet = (*it);
+
+		pRet->DecRefCount();
+		mResources.erase(it++);
+	}
 }
 
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存

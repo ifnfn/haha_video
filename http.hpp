@@ -113,8 +113,8 @@ public:
 	void Exec();
 private:
 	CURLM *multi_handle;
-	int still_running;
 	Mutex mutex;
+	int work();
 };
 
 #endif

@@ -36,6 +36,8 @@ SRC += lua-cjson-xml/lua_cjson.c lua-cjson-xml/strbuf.c lua-cjson-xml/fpconv.c l
 SRC += lua-curl/src/Lua-cURL-callback.c  lua-curl/src/Lua-cURL-multi.c  lua-curl/src/Lua-cURL-setopt.c  lua-curl/src/Lua-cURL.c \
 	   lua-curl/src/Lua-cURL-getinfo.c   lua-curl/src/Lua-cURL-post.c   lua-curl/src/Lua-cURL-share.c   lua-curl/src/Lua-utility.c
 
+SRC += lua-pcre/common.c lua-pcre/lpcre.c lua-pcre/lpcre_f.c
+
 LIB=liblua.a
 
 

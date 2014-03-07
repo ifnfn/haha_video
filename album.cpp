@@ -182,7 +182,7 @@ size_t KolaAlbum::GetSource(StringList &sources) // 获取节目的节目来源�
 	return sources.size();
 }
 
-bool KolaAlbum::SetSource(string &source)      // 设置节目来源，为""时，使用默认来源
+bool KolaAlbum::SetSource(string source)      // 设置节目来源，为""时，使用默认来源
 {
 	this->CurrentSource = source;
 	videoPageId = -1;
@@ -355,10 +355,12 @@ void AlbumPage::Clear()
 						kola.resManager->RemoveResource(res);
 				}
 			}
-			delete (*it);
 		}
 	}
 
+	for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		delete (*it);
+	}
 	albumList.clear();
 	pageId = -1;
 	mutex.unlock();

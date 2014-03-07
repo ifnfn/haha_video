@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		445169E118C97387003D671D /* lpcre_f.c in Sources */ = {isa = PBXBuildFile; fileRef = 445169DF18C97387003D671D /* lpcre_f.c */; };
+		445169E218C97387003D671D /* lpcre.c in Sources */ = {isa = PBXBuildFile; fileRef = 445169E018C97387003D671D /* lpcre.c */; };
+		445169E618C97843003D671D /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 445169E418C97843003D671D /* common.c */; };
 		446A5EA9188D01600046E0E3 /* player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 446A5EA8188D01600046E0E3 /* player.cpp */; };
 		446A5EAB188D024F0046E0E3 /* resolution.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 446A5EAA188D024F0046E0E3 /* resolution.cpp */; };
 		4473FE8A186C5AF300136610 /* album.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FDD7186C5AF300136610 /* album.cpp */; };
@@ -88,9 +91,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		443C706318C454C6002EBFC2 /* kolatv Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kolatv Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		445169DF18C97387003D671D /* lpcre_f.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lpcre_f.c; sourceTree = "<group>"; };
+		445169E018C97387003D671D /* lpcre.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lpcre.c; sourceTree = "<group>"; };
+		445169E318C97843003D671D /* algo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = algo.h; sourceTree = "<group>"; };
+		445169E418C97843003D671D /* common.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
+		445169E518C97843003D671D /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 		446A5EA8188D01600046E0E3 /* player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = player.cpp; sourceTree = "<group>"; };
 		446A5EAA188D024F0046E0E3 /* resolution.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = resolution.cpp; sourceTree = "<group>"; };
-		446EF32118AB705000559A53 /* kolatv Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kolatv Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4473FDD7186C5AF300136610 /* album.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = album.cpp; sourceTree = "<group>"; };
 		4473FDD8186C5AF300136610 /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = base64.cpp; sourceTree = "<group>"; };
 		4473FDD9186C5AF300136610 /* base64.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = base64.hpp; sourceTree = "<group>"; };
@@ -202,9 +210,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		445169DE18C97330003D671D /* lua-prcre */ = {
+			isa = PBXGroup;
+			children = (
+				445169E318C97843003D671D /* algo.h */,
+				445169E418C97843003D671D /* common.c */,
+				445169E518C97843003D671D /* common.h */,
+				445169DF18C97387003D671D /* lpcre_f.c */,
+				445169E018C97387003D671D /* lpcre.c */,
+			);
+			name = "lua-prcre";
+			path = "lua-pcre";
+			sourceTree = "<group>";
+		};
 		4473FDBF186C5ACA00136610 = {
 			isa = PBXGroup;
 			children = (
+				4473FDE7186C5AF300136610 /* lua */,
 				44E9209F189264FC0076FB2A /* flv.cpp */,
 				44E920A0189264FC0076FB2A /* flv.hpp */,
 				4473FDD7186C5AF300136610 /* album.cpp */,
@@ -234,15 +256,15 @@
 				44F2E43A187A99E200B05FDB /* resource.hpp */,
 				4473FE83186C5AF300136610 /* script.hpp */,
 				4473FE88186C5AF300136610 /* threadpool.hpp */,
-				4473FDE7186C5AF300136610 /* lua */,
 				44C557D418910E7300D3F5EC /* kolatv */,
-				446EF32118AB705000559A53 /* kolatv Tests.xctest */,
+				443C706318C454C6002EBFC2 /* kolatv Tests.xctest */,
 			);
 			sourceTree = "<group>";
 		};
 		4473FDE7186C5AF300136610 /* lua */ = {
 			isa = PBXGroup;
 			children = (
+				445169DE18C97330003D671D /* lua-prcre */,
 				4473FDEB186C5AF300136610 /* lua-cjson-xml */,
 				4473FE41186C5AF300136610 /* src */,
 			);
@@ -361,7 +383,7 @@
 			);
 			name = "kolatv Tests";
 			productName = "kolatv Tests";
-			productReference = 446EF32118AB705000559A53 /* kolatv Tests.xctest */;
+			productReference = 443C706318C454C6002EBFC2 /* kolatv Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -412,11 +434,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				4473FED8186C5AF300136610 /* lgc.c in Sources */,
+				445169E618C97843003D671D /* common.c in Sources */,
 				4473FEE0186C5AF300136610 /* lopcodes.c in Sources */,
 				446A5EA9188D01600046E0E3 /* player.cpp in Sources */,
 				4473FEED186C5AF300136610 /* main.cpp in Sources */,
 				4473FEF4186C5AF300136610 /* task.cpp in Sources */,
 				4473FE8B186C5AF300136610 /* base64.cpp in Sources */,
+				445169E218C97387003D671D /* lpcre.c in Sources */,
 				4473FE8D186C5AF300136610 /* filter.cpp in Sources */,
 				4473FEE7186C5AF300136610 /* ltablib.c in Sources */,
 				4473FE8A186C5AF300136610 /* album.cpp in Sources */,
@@ -436,6 +460,7 @@
 				4473FED2186C5AF300136610 /* lctype.c in Sources */,
 				4473FE95186C5AF300136610 /* lua_xml.c in Sources */,
 				4473FE94186C5AF300136610 /* lua_cjson.c in Sources */,
+				445169E118C97387003D671D /* lpcre_f.c in Sources */,
 				4473FEE3186C5AF300136610 /* lstate.c in Sources */,
 				4473FEE1186C5AF300136610 /* loslib.c in Sources */,
 				4473FED0186C5AF300136610 /* lcode.c in Sources */,

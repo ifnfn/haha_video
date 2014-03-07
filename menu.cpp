@@ -181,26 +181,34 @@ string KolaMenu::GetPostData()
 	string sort = Sort.GetJsonStr();
 
 	if (quickFilter.size() > 0) {
-		body = body + "\"quickFilter\": \"" + quickFilter + "\"";
+		body += "\"quickFilter\": \"" + quickFilter + "\"";
 		count++;
 	}
 	else if (filter.size() > 0) {
-		body = body + filter;
+		body += filter;
 		count++;
 	}
 
 	if (sort.size() > 0) {
 		if (count)
-			body = body + ",";
-		body = body + sort;
+			body += ",";
+		body += sort;
 		count++;
 	}
 
 	KolaArea area;
 	if (client->GetArea(area)) {
 		if (count)
-			body = body + ", ";
-		body = body + area.toJson();
+			body += ", ";
+		body += area.toJson();
+		count++;
+	}
+
+	if (not basePosData.empty()) {
+		if (count)
+			body += ",";
+		body += basePosData;
+		count++;
 	}
 
 	body = body + "}";
@@ -290,7 +298,7 @@ AlbumPage* KolaMenu::updateCache(int pos)
 		if (pageCache[x].pageId != i) {
 			pageCache[x].Clear();
 			pageCache[x].pageId = i;
-			pageCache[x].Start(true);
+			pageCache[x].Start(false);
 		}
 	}
 
@@ -314,12 +322,37 @@ void KolaMenu::CleanPage()
 	PageId = -1;
 }
 
-CustomMenu::CustomMenu(string fileName)
+CustomMenu::CustomMenu(string fileName, bool CheckFailure)
 {
 	this->fileName = fileName;
 	this->cid = -1;
 	albumIdList.LoadFromFile(fileName);
+	if (CheckFailure)
+		RemoveFailure();
 	albumCount = albumIdList.size();
+}
+
+void CustomMenu::RemoveFailure() // 移除失效的节目
+{
+	string text;
+	string vids = albumIdList.ToString();
+
+	KolaClient& kola = KolaClient::Instance();
+	if (kola.UrlPost("video/vidcheck", vids.c_str(), text) == true) {
+		json_error_t error;
+		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
+		if (js) {
+			json_t *v;
+			json_array_foreach(js, v) {
+				if (json_is_string(v)) {
+					const char *vid = json_string_value(v);
+					albumIdList.Remove(vid);
+				}
+			}
+
+			json_decref(js);
+		}
+	}
 }
 
 void CustomMenu::AlbumAdd(IAlbum *album)
@@ -369,9 +402,10 @@ int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 		char buf[128];
 		string url;
 
-		sprintf(buf, "video/list?full=0&page=%ld&size=%ld&vid=", pageId, pageSize);
+		sprintf(buf, "video/list?full=0&page=%ld&size=%ld", pageId, pageSize);
+		url = buf;
 
-		url = buf + UrlEncode(text);
+		basePosData = "\"vid\" : \"" + text + "\"";
 
 		return ParserFromUrl(page, url);
 	}
@@ -387,13 +421,15 @@ int CustomMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pag
 		char buf[256];
 		string url;
 
-		sprintf(buf, "/video/list?&full=0&size=%ld&key=%s&value=%s&vid=",
+		sprintf(buf, "/video/list?&full=0&size=%ld&key=%s&value=%s",
 				pageSize,
 				key.c_str(),
 				value.c_str()
 			);
 
-		url = buf + UrlEncode(text);
+		url = buf;
+
+		basePosData = "\"vid\" : \"" + text + "\"";
 
 		return ParserFromUrl(page, url);
 	}

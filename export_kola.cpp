@@ -267,6 +267,7 @@ static int StringToTime(const string &strDateStr,time_t &timeData)
 	sourcedate.tm_mon = iMonth - 1;
 	sourcedate.tm_year = iYear - 1900;
 	timeData = mktime(&sourcedate);
+
 	return 0;
 }
 

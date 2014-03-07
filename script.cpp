@@ -19,6 +19,7 @@ extern "C" {
 	LUALIB_API int luaopen_cjson(lua_State *L);
 	LUALIB_API int luaopen_LuaXML_lib(lua_State *L);
 	LUALIB_API int luaopen_cURL(lua_State* L);
+	LUALIB_API int luaopen_rex_pcre(lua_State* L);
 }
 
 #include "json.hpp"
@@ -150,6 +151,7 @@ static const luaL_Reg lualibs[] = {
 	{"kola"         , luaopen_kola      },
 	{"cjson"        , luaopen_cjson     },
 	{"xml"          , luaopen_LuaXML_lib},
+	{"rex"          , luaopen_rex_pcre  },
 	//{"cURL"         , luaopen_cURL      },
 	//{LUA_LOADLIBNAME, luaopen_package},
 	//{LUA_COLIBNAME, luaopen_coroutine},
@@ -166,14 +168,6 @@ static void luaL_openmini(lua_State *L)
 		luaL_requiref(L, lib->name, lib->func, 1);
 		lua_pop(L, 1);
 	}
-}
-
-LuaScript::LuaScript()
-{
-}
-
-LuaScript::~LuaScript()
-{
 }
 
 LuaScript& LuaScript::Instance()
@@ -250,10 +244,6 @@ ScriptCommand::ScriptCommand(json_t *js)
 
 	if (js)
 		LoadFromJson(js);
-}
-
-ScriptCommand::~ScriptCommand()
-{
 }
 
 void ScriptCommand::DelParams(int count)

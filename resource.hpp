@@ -78,7 +78,7 @@ protected:
 
 class ResourceManager {
 public:
-	ResourceManager(size_t memory = 1024 * 1024 * 10);
+	ResourceManager(size_t memory = 1024 * 1024 * 2);
 	virtual ~ResourceManager();
 
 	bool GetFile(FileResource& picture, const string &url);
@@ -87,6 +87,7 @@ public:
 	Resource* FindResource(const string &url);
 	void RemoveResource(Resource* res);
 
+	void Clear();
 	bool GC(size_t mem); // 收回指定大小的内存
 	void MemoryInc(size_t size);
 	void MemoryDec(size_t size);

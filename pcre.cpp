@@ -33,9 +33,8 @@ int KolaPcre::AddRule(const string &patten)
 		printf("pcre compile failed, offset %d: %s\n", erroffset, error);
 		return -1;
 	}
-	else {
-		re_arr.push_back(re);
-	}
+
+	re_arr.push_back(re);
 
 	return 0;
 }
@@ -62,7 +61,7 @@ string KolaPcre::MatchAll(const char *content)
 		int rc;
 
 		while(offset < length && (rc = pcre_exec(re_arr[i], NULL, content, length, offset, flags, ovector, VECSIZE)) >= 0) {
-			//			printf("rc=%d\n", rc);
+			//printf("rc=%d\n", rc);
 			result.append(content, ovector[2], ovector[3] - ovector[2]);
 			result = result + "\n";
 

@@ -78,7 +78,7 @@ public:
 	virtual void operator()();
 	int  GetStatus() {return status; }
 
-	void Start(bool priority=false);
+	void Start(bool priority=true);
 	void Wait();
 	void Reset();
 	void Wakeup();
@@ -90,7 +90,6 @@ protected:
 class ScriptCommand {
 public:
 	ScriptCommand(json_t *js=NULL);
-	~ScriptCommand();
 	string Run();
 	bool Exists() {return not script_name.empty(); }
 	void AddParams(const char *arg);
@@ -335,7 +334,7 @@ public:
 	virtual size_t GetTotalSet() = 0;
 	virtual size_t GetVideoCount() = 0;
 	virtual size_t GetSource(StringList &sources) = 0;   // 获取节目的节目来源列表
-	virtual bool   SetSource(string &source) = 0;        // 设置节目来源，为""时，使用默认来源
+	virtual bool   SetSource(string source) = 0;         // 设置节目来源，为""时，使用默认来源
 	virtual bool   GetPictureFile(FileResource& picture, enum PicType type) = 0;
 	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO) = 0;
 	virtual IVideo *GetVideo(size_t id) = 0;
@@ -398,7 +397,7 @@ public:
 	virtual size_t GetTotalSet();
 	virtual size_t GetVideoCount();
 	virtual size_t GetSource(StringList &sources); // 获取节目的节目来源列表
-	virtual bool SetSource(string &source);        // 设置节目来源，为""时，使用默认来源
+	virtual bool SetSource(string source);         // 设置节目来源，为""时，使用默认来源
 	virtual bool GetPictureFile(FileResource& picture, enum PicType type);
 	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO);
 	virtual IVideo *GetVideo(size_t id);
@@ -484,6 +483,7 @@ protected:
 	int         PageId;
 	size_t      albumCount;
 	string      quickFilter;
+	string      basePosData;
 
 	int ParserFromUrl(AlbumPage *page, string &jsonstr);
 
@@ -500,7 +500,8 @@ private:
 
 class CustomMenu: public KolaMenu {
 public:
-	CustomMenu(string fileName);
+	CustomMenu(string fileName, bool CheckFailure=true);
+	void RemoveFailure(); // 移除失效的节目
 	void AlbumAdd(IAlbum *album);
 	void AlbumAdd(string vid);
 	void AlbumRemove(IAlbum *album);
@@ -572,25 +573,29 @@ public:
 	}
 };
 
+class WeatherData {
+public:
+	string picture;
+	string code;
+	string weather;
+	string temp;
+	string windDirection;
+	string windPower;
+};
+
 class Weather {
 public:
 	string date;
-	struct {
-		string picture;
-		string code;
-		string weather;
-		string temp;
-		string windDirection;
-		string windPower;
-	} day, night;
+	StringList city;
+	WeatherData day, night;
 };
 
 class KolaWeather: public Task {
 public:
 	virtual ~KolaWeather();
-	//void GetProvince(StringList &value);
-	//void GetArea(string province, StringList &area);
-	//void GetCounty(string province, string area, StringList &County);
+	void GetProvince(StringList &value);
+	void GetCity(string province, StringList &area);
+	void GetCounty(string province, string area, StringList &county);
 	void Update();
 	bool UpdateFinish();
 	Weather *Today();
@@ -598,6 +603,12 @@ public:
 	vector<Weather*> weatherList;
 	string PM25;
 	virtual void Run(void);
+	void SetArea(string province, string area, string county);
+	void SetArea(string area);
+	string Area;
+protected:
+	virtual bool ParserWeatherData(WeatherData& data, json_t *js);
+	void Get(string name, StringList &value);
 private:
 	Mutex mutex;
 	void Clear();
@@ -613,7 +624,7 @@ protected:
 
 class KolaClient: public IClient {
 public:
-	static KolaClient& Instance(const char *user_id = NULL);
+	static KolaClient& Instance(const char *serial = NULL);
 	virtual ~KolaClient(void);
 
 	void Quit(void);
@@ -636,6 +647,7 @@ public:
 	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
 	bool InternetReady();
+	void CleanResource();
 	int debug;
 	ResourceManager *resManager;
 	ThreadPool *threadPool;

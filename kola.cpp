@@ -21,35 +21,73 @@
 #include "resource.hpp"
 
 #if TEST
-#define SERVER_HOST "192.168.56.1"
-//#define SERVER_HOST "127.0.0.1"
-#define PORT 9991
+#	define SERVER_HOST "192.168.56.1"
+#	define PORT 9991
 #else
-//#define SERVER_HOST "121.199.20.175"
-//#define SERVER_HOST "112.124.60.152"
-#define SERVER_HOST "www.kolatv.com"
-
-#define PORT 80
+#	define SERVER_HOST "www.kolatv.com"
+#	define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE 4
+#define MAX_THREAD_POOL_SIZE (8)
+#define MAX_CACHE_SIZE       (1024 * 1024 * 2)
 
 static string loginKey;
 static string loginKeyCookie;
 static string xsrf_cookie;
+static string Serial("000002");
+
+/**
+ * 功能:获取芯片的CPUID。
+ * 参数:
+ *    pbyCPUID:       芯片提供的CPUID，最多128个字节
+ *    pLen:           输出CPUID的实际长度
+ * 返回值:
+ *    0:              获取CPUID成功
+ *    其他值: 获取CPUID失败
+ */
+static bool GetCPUID(string &CPUID, ssize_t len)
+{
+#ifdef LINUX
+	int fd;
+	uint8_t *data;
+
+	fd = open("/proc/gx_otp", O_RDWR);
+	if (fd < 0){
+		//printf("open otp err!!!\n");
+		return false;
+	}
+	data =(uint8_t*)malloc(len);
+	memset(data, 0 ,len);
+	len = read(fd, data, len);
+	close(fd);
+
+	for (int i = 0; i < len; i++) {
+		char buffer[8];
+		sprintf(buffer, "%02X", data[i]);
+		CPUID += buffer;
+	}
+	free(data);
+
+#else
+	CPUID = "000002";
+#endif
+	return true;
+}
 
 static string GetChipKey(void)
 {
-	return "000002";
+	static string CPUID;
+	if (CPUID.empty()) {
+		if (GetCPUID(CPUID, 8) == false)
+			CPUID = "000002";
+	}
+
+	return CPUID;
 }
 
 static string GetSerial(void)
 {
-#ifdef LINUX
-	return "aaaaaaaaaaaaaa";
-#endif
-
-	return "aaaaaaaaaaaaaa";
+	return Serial;
 }
 
 
@@ -115,8 +153,7 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 	int err = 0;
 	int ret = -1;
 
-	if(data && ndata > 0)
-	{
+	if(data && ndata > 0) {
 		c_stream.zalloc = Z_NULL;
 		c_stream.zfree = Z_NULL;
 		c_stream.opaque = Z_NULL;
@@ -146,9 +183,9 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 
 		return 0;
 	}
-
 out:
 	deflateEnd(&c_stream);
+
 	return ret;
 }
 
@@ -187,7 +224,7 @@ KolaClient::KolaClient(void)
 	debug = 0;
 
 	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
-	resManager = new ResourceManager(1024 * 1024 * 2);
+	resManager = new ResourceManager(MAX_CACHE_SIZE);
 
 	LoginOne(true);
 	thread = new Thread(this, &KolaClient::Login);
@@ -361,7 +398,7 @@ bool KolaClient::LoginOne(bool quick)
 {
 	json_error_t error;
 	string text;
-	string url("/login?user_id=");
+	string url("/login?chipid=");
 
 	url = url + GetChipKey() + "&serial=" + GetSerial();
 	if (quick == true)
@@ -517,6 +554,8 @@ void KolaClient::Login()
 
 KolaClient& KolaClient::Instance(const char *user_id)
 {
+	if (user_id)
+		Serial = user_id;
 	static KolaClient m_kola;
 
 	return m_kola;
@@ -600,3 +639,9 @@ string KolaClient::GetFullUrl(string url)
 	else
 		return GetServer() + url;
 }
+
+void KolaClient::CleanResource()
+{
+	resManager->Clear();
+}
+

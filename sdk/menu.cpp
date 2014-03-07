@@ -336,6 +336,8 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 {
 	string text;
 	string vids = albumIdList.ToString();
+	if (vids.empty())
+		return;
 
 	KolaClient& kola = KolaClient::Instance();
 	if (kola.UrlPost("video/vidcheck", vids.c_str(), text) == true) {

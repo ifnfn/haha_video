@@ -601,6 +601,7 @@ bool KolaClient::GetArea(KolaArea &area)
 
 	if (not local_area.Empty()) {
 		area = local_area;
+
 		return true;
 	}
 

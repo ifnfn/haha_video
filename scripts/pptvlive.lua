@@ -13,7 +13,6 @@ function get_channel(vid)
 			os.date("%Y-%m-%d", time),
 			vid)
 
-	print(url)
 	local ret = {}
 	local text = kola.wget(url, false)
 	if text ~= nil then
@@ -31,9 +30,7 @@ function get_channel(vid)
 			ret[i].time        = os.time(d)
 			ret[i].title       = title
 			ret[i].duration    = 0
-			print(ret[i].time, ret[i].time_string, ret[i].title)
 			if i > 1 then
-				--print(ret[i].title, ret[i-1].title)
 				ret[i-1].duration = os.difftime(ret[i].time, ret[i-1].time)
 			end
 			i = i + 1

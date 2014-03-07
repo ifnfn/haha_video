@@ -105,20 +105,19 @@ bool KolaEpg::GetNext(EPG &e)
 {
 	EPG ok;
 	time_t t = KolaClient::Instance().GetTime();
-
 	int count = (int)size();
-	for (int i = count - 1; i >= 0; i--) {
+
+	time_t time = 0xffffffff;
+	for (int i=0; i < count; i++) {
 		EPG x = at(i);
 
-		if (t >= x.startTime) {
-			e = ok;
-			return true;
+		if (x.startTime > t && x.startTime < time) {
+			time = x.startTime;
+			e = x;
 		}
-
-		ok = x;
 	}
 
-	return false;
+	return time != 0xffffffff;
 }
 
 bool KolaEpg::Get(EPG &e, time_t t)

@@ -103,8 +103,8 @@ def GetQuickFilter(name, default):
 
 py = Pinyin()
 
-def GetPinYin(text):
-    return py.get_initials(text, '')
+def GetPinYin(text, full=False):
+    return py.get_initials(text, '', full)
 
 logging.basicConfig()
 log = logging.getLogger("crawler")

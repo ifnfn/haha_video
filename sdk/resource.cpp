@@ -10,6 +10,7 @@ Resource::~Resource()
 	if (manager && miDataSize > 0)
 		manager->MemoryDec(miDataSize);
 
+	printf("Remove file: %s\n", md5Name.c_str());
 	unlink(md5Name.c_str());
 }
 

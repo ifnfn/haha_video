@@ -20,7 +20,6 @@ function get_channel(vid)
 		local d = os.date("*t", time)
 		for x in rex.gmatch(text, '(<div class=".*sta_unlive j_wanthover">[\\s\\S]*?</div>)') do
 			for time, title in rex.gmatch(x, '<span class="time">(.*)</span>\\s*<span title="(.*)" class') do
-				print(time, title)
 				d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
 				d.min  = tonumber(string.sub(time, string.find(time, ":") + 1))
 

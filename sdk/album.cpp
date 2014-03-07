@@ -184,9 +184,13 @@ size_t KolaAlbum::GetSource(StringList &sources) // 获取节目的节目来源�
 
 bool KolaAlbum::SetSource(string source)      // 设置节目来源，为""时，使用默认来源
 {
-	this->CurrentSource = source;
-	videoPageId = -1;
-	VideosClear();
+	map<string, Variant>::iterator it = SourceList.find(source);
+
+	if (it != SourceList.end()) {
+		this->CurrentSource = source;
+		videoPageId = -1;
+		VideosClear();
+	}
 
 	return true;
 }

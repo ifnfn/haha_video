@@ -37,7 +37,7 @@ class ParserHangZhouLivetv(LivetvParser):
         text = js['data']
         root = ElementTree.fromstring(text)
 
-        name = root.attrib['name']
+        name = '杭州台-' + root.attrib['name']
         if name == '':
             return
 
@@ -76,13 +76,13 @@ class ParserZJLivetv(ParserTVIELivetv):
 
         self.Alias = {
             "频道101" : "浙江卫视",
-            "频道102" : "钱江频道",
-            "频道103" : "浙江经视",
-            "频道104" : "教育科技",
-            "频道105" : "浙江影视",
-            "频道106" : "6频道",
-            "频道107" : "公共新农村",
-            "频道108" : "浙江少儿",
+            "频道102" : "浙江台-钱江频道",
+            "频道103" : "浙江台-经视",
+            "频道104" : "浙江台-教育科技",
+            "频道105" : "浙江台-影视",
+            "频道106" : "浙江台-6频道",
+            "频道107" : "浙江台-公共新农村",
+            "频道108" : "浙江台-少儿",
             #"频道109" : "留学世界",
             #"频道110" : "浙江国际",
             #"频道111" : "好易购"
@@ -97,11 +97,11 @@ class ParserNBLivetv(ParserTVIELivetv):
         self.tvName = '宁波电视台'
 
         self.Alias = {
-            'nbtv1直播' : '宁波-新闻综合',
-            'nbtv2直播' : '宁波-社会生活',
-            'nbtv3直播' : '宁波-都市文体',
-            'nbtv4直播' : '宁波-影视剧',
-            'nbtv5直播' : '宁波-少儿',
+            'nbtv1直播' : '宁波台-新闻综合',
+            'nbtv2直播' : '宁波台-社会生活',
+            'nbtv3直播' : '宁波台-都市文体',
+            'nbtv4直播' : '宁波台-影视',
+            'nbtv5直播' : '宁波台-少儿',
         }
         self.ExcludeName = ('.*广播', '阳光调频', 'sunhotline')
         self.area = '中国,浙江,宁波'
@@ -112,8 +112,8 @@ class ParserYiwuLivetv(ParserTVIELivetv):
         super().__init__('live-01.ywcity.cn')
         self.tvName = '义乌电视台'
         self.Alias = {
-            "新闻综合" : '义乌-新闻综合',
-            "商贸频道" : '义乌-商贸频道',
+            "新闻综合" : '义乌台-新闻综合',
+            "商贸频道" : '义乌台-商贸频道',
         }
         self.ExcludeName = ('FM')
         self.area = '中国,浙江,金华,义乌'
@@ -124,9 +124,9 @@ class ParserShaoxinLivetv(ParserTVIELivetv):
         super().__init__('115.239.168.72')
         self.tvName = '绍兴电视台'
         self.Alias = {
-            "新闻综合频道" : '绍兴-新闻综合频道',
-            "公共频道"     : '绍兴-公共频道',
-            "文化影视频道" : '绍兴-文化影视频道',
+            "新闻综合频道" : '绍兴台-新闻综合',
+            "公共频道"     : '绍兴台-公共频道',
+            "文化影视频道" : '绍兴台-文化影视',
         }
         self.ExcludeName = ('.*广播', '直播')
         self.area = '中国,浙江,绍兴'
@@ -148,7 +148,7 @@ class ParserWenZhouLivetv(LivetvParser):
 
         ch_list = re.findall('data-source="(.*?)" data-id="(.*?)">(.*?)<i>', js['data'])
         for source, data_id, name in ch_list:
-            name = '温州-' + name
+            name = '温州台-' + name
             album  = self.NewAlbum(name)
 
             v = album.NewVideo()

@@ -71,9 +71,9 @@ def GetOrder(name):
             return '%04d' % i
         
         i += 1
-    pinyin = GetPinYin(name)
+    pinyin = GetPinYin(name, True)
     if pinyin:
-        return '9' + pinyin[:4]
+        return '9' + pinyin
 
     return '9999'
 9

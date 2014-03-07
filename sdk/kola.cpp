@@ -220,13 +220,13 @@ KolaClient::KolaClient(void)
 
 	nextLoginSec = 3;
 	running = true;
-	havecmd = true;
 	debug = 0;
+	connected = false;
 
 	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
 	resManager = new ResourceManager(MAX_CACHE_SIZE);
 
-	LoginOne(true);
+	LoginOne();
 	thread = new Thread(this, &KolaClient::Login);
 	thread->start();
 }
@@ -394,20 +394,22 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	return 0;
 }
 
-bool KolaClient::LoginOne(bool quick)
+bool KolaClient::LoginOne()
 {
 	json_error_t error;
 	string text;
 	string url("/login?chipid=");
 
 	url = url + GetChipKey() + "&serial=" + GetSerial();
-	if (quick == true)
-		url = url + "&cmd=0";
-	else
+	if (connected)
 		url = url + "&cmd=1";
+	else
+		url = url + "&cmd=0";
 
-	if (UrlGet(url, text) == false)
+	if (UrlGet(url, text) == false) {
+		connected = false;
 		return false;
+	}
 
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
@@ -418,20 +420,27 @@ bool KolaClient::LoginOne(bool quick)
 		mutex.unlock();
 
 		base_url = json_gets(js, "server", base_url.c_str());
-		json_t *cmd = json_geto(js, "command");
-		if (cmd) {
-			const char *dest = json_gets(js, "dest", NULL);
-			if (dest && json_is_array(cmd)) {
-				json_t *value;
-				json_array_foreach(cmd, value)
-					ProcessCommand(value, dest);
+
+		if (connected) {
+			json_t *cmd = json_geto(js, "command");
+			if (cmd) {
+				const char *dest = json_gets(js, "dest", NULL);
+				if (dest && json_is_array(cmd)) {
+					json_t *value;
+					json_array_foreach(cmd, value)
+						ProcessCommand(value, dest);
+				}
 			}
+
+			ScriptCommand script;
+			if (json_get_variant(js, "script", &script))
+				script.Run();
 		}
-		else
-			havecmd = false;
 
 		nextLoginSec = (int)json_geti(js, "next", nextLoginSec);
 		json_delete(js);
+
+		connected = true;
 	}
 
 	return true;
@@ -495,23 +504,6 @@ IMenu* KolaClient::GetMenuByCid(int cid)
 	return NULL;
 }
 
-bool KolaClient::GetInfo(KolaInfo &info) {
-	if (Info.Empty()) {
-		json_t *js = json_loadurl("/video/getinfo");
-
-		if (js) {
-			json_get_stringlist(js, "source", &Info.VideoSource);
-			json_get_stringlist(js, "resolution", &Info.Resolution);
-
-			json_delete(js);
-		}
-	}
-
-	info = Info;
-
-	return not Info.Empty();
-}
-
 IMenu* KolaClient::GetMenuByName(const char *menuName)
 {
 	map<string, IMenu*>::iterator it;
@@ -533,6 +525,23 @@ IMenu* KolaClient::GetMenuByName(const char *menuName)
 	return NULL;
 }
 
+bool KolaClient::GetInfo(KolaInfo &info) {
+	if (Info.Empty()) {
+		json_t *js = json_loadurl("/video/getinfo");
+
+		if (js) {
+			json_get_stringlist(js, "source", &Info.VideoSource);
+			json_get_stringlist(js, "resolution", &Info.Resolution);
+
+			json_delete(js);
+		}
+	}
+
+	info = Info;
+
+	return not Info.Empty();
+}
+
 static void cancel(void *any)
 {
 	printf("Login thread canceled!!\n");
@@ -543,7 +552,7 @@ void KolaClient::Login()
 	pthread_cleanup_push(cancel, NULL);
 	while (thread->_state) {
 		pthread_testcancel();
-		LoginOne(false);
+		LoginOne();
 		pthread_testcancel();
 		sleep(nextLoginSec);
 	}
@@ -556,6 +565,7 @@ KolaClient& KolaClient::Instance(const char *user_id)
 {
 	if (user_id)
 		Serial = user_id;
+
 	static KolaClient m_kola;
 
 	return m_kola;

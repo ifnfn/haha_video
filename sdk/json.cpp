@@ -38,7 +38,10 @@ bool json_get_variant(json_t *js, const char *key, ScriptCommand *script)
 {
 	json_t *p = json_object_get(js, key);
 
-	return json_to_variant(p, script);
+	if (p)
+		return json_to_variant(p, script);
+	else
+		return false;
 }
 
 const bool json_gets(json_t *js, const char *key, string &ret)

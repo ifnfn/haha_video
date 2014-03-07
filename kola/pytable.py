@@ -26,7 +26,7 @@ class Pinyin(object):
         except KeyError:
             return char
 
-    def get_initials(self, chars='', splitter='-'):
+    def get_initials(self, chars='', splitter='-', full=False):
         result = []
         flag = 1
         for char in chars:
@@ -34,7 +34,10 @@ class Pinyin(object):
                 if ord(char) < 255:
                     c = char.upper()
                 else:
-                    c = self.dict["%X" % ord(char)].split(" ")[0][0]
+                    c = self.dict["%X" % ord(char)].split(" ")[0]
+                    if not full:
+                        c = c[0]
+
                 result.append(c.lower())
                 flag = 1
             except KeyError:
@@ -47,7 +50,7 @@ class Pinyin(object):
 
     def __init__(self):
         pass
-    
+
     dict = {"3400" : "QIU1",
             "3401" : "TIAN3 TIAN4",
             "3404" : "KUA4",

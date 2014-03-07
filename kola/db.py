@@ -59,7 +59,7 @@ class VideoBase:
             self.LoadFromJson(js)
 
     def SetVideoUrlScript(self, name, script, param):
-        url = GetScript(script, 'kola_main', param)
+        url = GetScript(script, 'get_video_url', param)
         self.SetVideoUrl(name, url)
 
     def SetVideoUrl(self, name, url):

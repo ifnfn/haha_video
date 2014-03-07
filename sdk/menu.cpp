@@ -136,6 +136,7 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 				json_t *value;
 				json_array_foreach(results, value) {
 					KolaAlbum *album = new KolaAlbum();
+					album->SetSource(client->DefaultVideoSource);
 					album->Parser(value);
 					page->PutAlbum(album);
 					cnt++;

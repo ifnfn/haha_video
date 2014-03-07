@@ -636,7 +636,6 @@ public:
 	inline size_t MenuCount() { return menuMap.size(); };
 	IMenu* operator[] (const char *name);
 	IMenu* operator[] (int inx);
-	bool haveCommand() { return havecmd; }
 	inline string GetFullUrl(string url);
 	bool UrlGet(string url, string &ret);
 	bool UrlPost(string url, const char *body, string &ret);
@@ -653,6 +652,8 @@ public:
 	ThreadPool *threadPool;
 	KolaWeather weather;
 	UrlCache cache;
+	string DefaultResolution;
+	string DefaultVideoSource;
 protected:
 	virtual IVideo* NewVideo() {
 		return new KolaVideo();
@@ -673,14 +674,14 @@ private:
 
 	int nextLoginSec;
 
-	bool LoginOne(bool quick=false);
+	bool LoginOne();
 	char *Run(const char *cmd);
 	bool ProcessCommand(json_t *cmd, const char *dest);
 	bool running;
 	Thread* thread;
 	Mutex mutex;
-	bool havecmd;
 	KolaInfo Info;
+	bool connected;
 
 	friend class KolaMenu;
 	friend class KolaVideo;

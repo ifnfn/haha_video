@@ -629,6 +629,9 @@ class LoginHandler(BaseHandler):
             }
         }
 
+#        cmd = self.get_argument('cmd', '1')
+#        if cmd == '1':
+#            ret['script'] = utils.GetScript('command', 'test', ['aaaaa', 'asdfasdfasd'])
 #===============================================================================
 #         cmd = self.get_argument('cmd', '1')
 #         if cmd == '1':

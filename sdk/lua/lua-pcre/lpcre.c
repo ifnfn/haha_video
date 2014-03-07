@@ -98,7 +98,7 @@ static int getcflags (lua_State *L, int pos) {
     case LUA_TNIL:
       return ALG_CFLAGS_DFLT;
     case LUA_TNUMBER:
-      return lua_tointeger (L, pos);
+      return (int)lua_tointeger (L, pos);
     case LUA_TSTRING: {
       const char *s = lua_tostring (L, pos);
       int res = 0, ch;
@@ -265,7 +265,7 @@ static int Lpcre_dfa_exec (lua_State *L)
   wspace = buf + argE.ovecsize;
 
   res = pcre_dfa_exec (ud->pr, ud->extra, argE.text, (int)argE.textlen,
-    argE.startoffset, argE.eflags, ovector, argE.ovecsize, wspace, argE.wscount);
+    argE.startoffset, argE.eflags, ovector, (int)argE.ovecsize, wspace, (int)argE.wscount);
 
   if (ALG_ISMATCH (res) || res == PCRE_ERROR_PARTIAL) {
     int i;
@@ -293,7 +293,7 @@ static int Lpcre_dfa_exec (lua_State *L)
 #ifdef ALG_USERETRY
   static int gmatch_exec (TUserdata *ud, TArgExec *argE, int retry) {
     int eflags = retry ? (argE->eflags|PCRE_NOTEMPTY|PCRE_ANCHORED) : argE->eflags;
-    return pcre_exec (ud->pr, ud->extra, argE->text, argE->textlen,
+    return pcre_exec (ud->pr, ud->extra, argE->text, (int)argE->textlen,
       argE->startoffset, eflags, ud->match, (ALG_NSUB(ud) + 1) * 3);
   }
 #else
@@ -308,14 +308,14 @@ static void gmatch_pushsubject (lua_State *L, TArgExec *argE) {
 }
 
 static int findmatch_exec (TPcre *ud, TArgExec *argE) {
-  return pcre_exec (ud->pr, ud->extra, argE->text, argE->textlen,
+  return pcre_exec (ud->pr, ud->extra, argE->text, (int)argE->textlen,
     argE->startoffset, argE->eflags, ud->match, (ALG_NSUB(ud) + 1) * 3);
 }
 
 #ifdef ALG_USERETRY
   static int gsub_exec (TPcre *ud, TArgExec *argE, int st, int retry) {
     int eflags = retry ? (argE->eflags|PCRE_NOTEMPTY|PCRE_ANCHORED) : argE->eflags;
-    return pcre_exec (ud->pr, ud->extra, argE->text, argE->textlen,
+    return pcre_exec (ud->pr, ud->extra, argE->text, (int)argE->textlen,
       st, eflags, ud->match, (ALG_NSUB(ud) + 1) * 3);
   }
 #else
@@ -326,7 +326,7 @@ static int findmatch_exec (TPcre *ud, TArgExec *argE) {
 #endif
 
 static int split_exec (TPcre *ud, TArgExec *argE, int offset) {
-  return pcre_exec (ud->pr, ud->extra, argE->text, argE->textlen, offset,
+  return pcre_exec (ud->pr, ud->extra, argE->text, (int)argE->textlen, offset,
                     argE->eflags, ud->match, (ALG_NSUB(ud) + 1) * 3);
 }
 

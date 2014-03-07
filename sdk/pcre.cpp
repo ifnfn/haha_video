@@ -17,7 +17,6 @@ KolaPcre::~KolaPcre()
 		pcre_free(re_arr[i]);
 }
 
-//Add a regrex patten and compile it.
 int KolaPcre::AddRule(const string &patten)
 {
 	const char *error;
@@ -39,7 +38,6 @@ int KolaPcre::AddRule(const string &patten)
 	return 0;
 }
 
-//clear all the rule
 void KolaPcre::ClearRules()
 {
 	for(size_t i=0; i<re_arr.size(); i++)
@@ -48,7 +46,6 @@ void KolaPcre::ClearRules()
 	re_arr.clear();
 }
 
-//match all regrex, if any match, return the matched patten name and it's values
 string KolaPcre::MatchAll(const char *content)
 {
 	int length = (int)strlen(content);

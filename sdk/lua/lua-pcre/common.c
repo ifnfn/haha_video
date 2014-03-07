@@ -15,7 +15,7 @@ int get_int_field (lua_State *L, const char* field)
 {
   int val;
   lua_getfield (L, -1, field);
-  val = lua_tointeger (L, -1);
+  val = (int)lua_tointeger (L, -1);
   lua_pop (L, 1);
   return val;
 }
@@ -210,7 +210,7 @@ void bufferZ_putrepstring (TBuffer *BufRep, int reppos, int nsub) {
         if (isdigit (*q)) {
           int num;
           *dbuf = *q;
-          num = strtol (dbuf, NULL, 10);
+          num = (int)strtol (dbuf, NULL, 10);
           if (num == 1 && nsub == 0)
             num = 0;
           else if (num > nsub) {

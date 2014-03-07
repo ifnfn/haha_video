@@ -383,7 +383,7 @@ static int algf_gsub (lua_State *L) {
       }
       /* Handle the 2-nd return value */
       if (lua_type (L, -1) == LUA_TNUMBER) {    /* no coercion is allowed here */
-        int n = lua_tointeger (L, -1);
+        int n = (int)lua_tointeger (L, -1);
         if (n < 0)                              /* n */
           n = 0;
         argE.maxmatch = n_match + n;
@@ -480,10 +480,10 @@ static int gmatch_iter (lua_State *L) {
   TArgExec argE;
   TUserdata *ud    = (TUserdata*) lua_touserdata (L, lua_upvalueindex (1));
   argE.text        = lua_tolstring (L, lua_upvalueindex (2), &argE.textlen);
-  argE.eflags      = lua_tointeger (L, lua_upvalueindex (3));
-  argE.startoffset = lua_tointeger (L, lua_upvalueindex (4));
+  argE.eflags      = (int)lua_tointeger (L, lua_upvalueindex (3));
+  argE.startoffset = (int)lua_tointeger (L, lua_upvalueindex (4));
 #ifdef ALG_USERETRY
-  retry            = lua_tointeger (L, lua_upvalueindex (5));
+  retry            = (int)lua_tointeger (L, lua_upvalueindex (5));
 #endif
 
   if (argE.startoffset > (int)argE.textlen)
@@ -542,9 +542,9 @@ static int split_iter (lua_State *L) {
   TArgExec argE;
   TUserdata *ud    = (TUserdata*) lua_touserdata (L, lua_upvalueindex (1));
   argE.text        = lua_tolstring (L, lua_upvalueindex (2), &argE.textlen);
-  argE.eflags      = lua_tointeger (L, lua_upvalueindex (3));
-  argE.startoffset = lua_tointeger (L, lua_upvalueindex (4));
-  incr             = lua_tointeger (L, lua_upvalueindex (5));
+  argE.eflags      = (int)lua_tointeger (L, lua_upvalueindex (3));
+  argE.startoffset = (int)lua_tointeger (L, lua_upvalueindex (4));
+  incr             = (int)lua_tointeger (L, lua_upvalueindex (5));
 
   if (argE.startoffset > (int)argE.textlen)
     return 0;

@@ -360,7 +360,7 @@ void test_video(const char *menuName)
 	printf("%s End!!!\n", __func__);
 }
 
-static void test_info(KolaClient &kola)
+void test_info(KolaClient &kola)
 {
 	KolaInfo info;
 	if (kola.GetInfo(info)) {
@@ -370,7 +370,7 @@ static void test_info(KolaClient &kola)
 
 }
 
-static void test_area(KolaClient &kola)
+void test_area(KolaClient &kola)
 {
 	cout << kola.GetArea() << endl;
 	cout << kola.GetTime() << endl;
@@ -386,7 +386,7 @@ static void test_area(KolaClient &kola)
 	}
 }
 
-static void test_weather(KolaClient &kola)
+void test_weather(KolaClient &kola)
 {
 #if 0
 	StringList data;
@@ -450,21 +450,21 @@ static void test_weather(KolaClient &kola)
 
 int main(int argc, char **argv)
 {
+#if 0
 	KolaClient &kola = KolaClient::Instance();
 
-#if 0
 	test_info(kola);
 	test_area(kola);
 	test_weather(kola);
 #endif
 
-	//test_custommenu();
+	test_custommenu();
 	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
-	printf("Test Video\n"); test_video("电影"); return 0;
-	printf("Test TV\n");    test_video("电视剧"); return 0;
+	//printf("Test Video\n"); test_video("电影"); return 0;
+	//printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");
 	//test_task();

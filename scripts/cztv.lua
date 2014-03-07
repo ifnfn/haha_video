@@ -1,4 +1,5 @@
-function kola_main(id)
+-- 攻取节目的播放地址
+function get_video_url(id)
 	local url = string.format("http://api.cztv.com/api/getCDNByChannelId/%s?domain=api.cztv.com", id)
 	local text = kola.wget(url, false)
 

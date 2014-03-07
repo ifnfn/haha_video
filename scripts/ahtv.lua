@@ -1,4 +1,4 @@
-function find(var, tag, key, value)
+local function find(var, tag, key, value)
 	-- check input
 	if type(var)~="table" then return end
 	if type(tag)=="string" and #tag==0 then tag=nil end

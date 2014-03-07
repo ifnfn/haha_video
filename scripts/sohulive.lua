@@ -1,4 +1,5 @@
-function kola_main(url, cid)
+-- 攻取节目的播放地址
+function get_video_url(url, cid)
 	local text = kola.wget(url, false)
 
 	if text == nil then

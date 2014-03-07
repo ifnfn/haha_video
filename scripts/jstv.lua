@@ -1,4 +1,5 @@
-function kola_main(url)
+-- 攻取节目的播放地址
+function get_video_url(url)
 	if url ~= '' then
 		return url
 	end

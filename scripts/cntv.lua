@@ -1,4 +1,4 @@
-function find(var, tag, key, value)
+local function find(var, tag, key, value)
 	-- check input:
 	if type(var)~="table" then return end
 	if type(tag)=="string" and #tag==0 then tag=nil end
@@ -25,7 +25,7 @@ function find(var, tag, key, value)
 	end
 end
 
-function check_m3u8(url)
+local function check_m3u8(url)
 	local text = kola.wget(url, false)
 	if text ~= nil and string.find(text, "EXTM3U") ~= nil then
 		return url
@@ -34,7 +34,7 @@ function check_m3u8(url)
 	return nil
 end
 
-function geturl_hds(url, aid)
+local function geturl_hds(url, aid)
 	local text = kola.wget(url, false)
 
 	if text == nil then
@@ -66,7 +66,8 @@ function geturl_hds(url, aid)
 	return video_url
 end
 
-function kola_main(vid, aid)
+-- 攻取节目的播放地址
+function get_video_url(vid, aid)
 	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s&client=html5", vid)
 	local text = kola.wget(url, false)
 	local video_url = ''

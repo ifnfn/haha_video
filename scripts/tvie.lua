@@ -1,8 +1,9 @@
---function get_timestamp()
+--local function get_timestamp()
 --	return kola.gettime()
 --end
 
-function kola_main(url)
+-- 攻取节目的播放地址
+function get_video_url(url)
 	local text = kola.wget(url, false)
 
 	if text ~= nil and text ~= "TVie Exception: No streams." then

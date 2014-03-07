@@ -1,4 +1,4 @@
-function find(var, tag, key, value)
+local function find(var, tag, key, value)
 	-- check input:
 	if type(var)~="table" then return end
 	if type(tag)=="string" and #tag==0 then tag=nil end
@@ -25,7 +25,8 @@ function find(var, tag, key, value)
 	end
 end
 
-function kola_main(tv_id, channel_id)
+-- 攻取节目的播放地址
+function get_video_url(tv_id, channel_id)
 	local url = string.format('http://ugc.sun-cam.com/api/tv_live_api.php?action=channel_prg_list&tv_id=%s', tv_id)
 	local text = kola.wget(url, false)
 
@@ -58,6 +59,7 @@ function kola_main(tv_id, channel_id)
 	return ""
 end
 
+-- 获取节目的EPG
 function get_channel(vid)
 	local url = string.format('http://cls.cutv.com/live/ajax/getprogrammelist2/id/%s/callback/callTslEpg', vid)
 	local text = kola.wget(url, false)

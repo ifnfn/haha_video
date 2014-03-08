@@ -24,11 +24,9 @@ class KolaClient:
         self.key = ''
 
     def GetUrl(self, url):
-        print("Download: ", url)
         return GetUrl(url)
 
     def GetCacheUrl(self, url):
-        #return GetUrl(url)
         return GetCacheUrl(url)
 
     def PostUrl(self, url, body):
@@ -55,6 +53,8 @@ class KolaClient:
 
     def ProcessCommand(self, cmd, dest, times = 0):
         ret = False
+        cached = True
+
         if times > MAX_TRY or type(cmd) != dict:
             return False
         try:
@@ -62,7 +62,12 @@ class KolaClient:
                 response = cmd['text']
             else:
                 if 'source' in cmd:
-                    response = self.GetCacheUrl(cmd['source'])
+                    if 'cache' in cmd:
+                        cached = cmd['cache']
+                        if cached:
+                            response = self.GetCacheUrl(cmd['source'])
+                        else:
+                            response = self.GetUrl(cmd['source'])
 
             coding = 'utf8'
             try:
@@ -109,9 +114,7 @@ class KolaClient:
             return self.ProcessCommand(cmd, dest, times + 1)
 
         if 'source' in cmd:
-            print((ret == True and "OK:" or "ERROR:"), cmd['source'],  '-->', dest)
-        else:
-            print((ret == True and "OK:" or "ERROR:"), '-->', dest)
+            print((ret == True and "OK:" or "ERROR:"), (cached and "[CACHE]" or ''), cmd['source'],  '-->', dest)
 
         return ret
 

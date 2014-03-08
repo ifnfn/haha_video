@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import hashlib
 import re
 import time
 from urllib.parse import quote
@@ -99,19 +100,22 @@ class QQVideo(kola.VideoBase):
 class QQPrivate:
     def __init__(self):
         self.name =  '腾讯'
-        self.vid = ''
+        self.qvid = ''
+        self.href = ''
         self.videoListUrl = {}
 
     def Json(self):
         json = {'name' : self.name}
-        if self.vid          : json['vid'] = self.vid
+        if self.qvid         : json['qvid'] = self.qvid
+        if self.href         : json['href'] = self.href
         if self.videoListUrl : json['videoListUrl'] = self.videoListUrl
 
         return json
 
     def Load(self, js):
         if 'name' in js         : self.name         = js['name']
-        if 'vid' in js          : self.vid          = js['vid']
+        if 'qvid' in js         : self.qvid         = js['qvid']
+        if 'href' in js         : self.href         = js['href']
         if 'videoListUrl' in js : self.videoListUrl = js['videoListUrl']
 
 class QQAlbum(kola.AlbumBase):
@@ -147,14 +151,15 @@ class QQDB(kola.DB, kola.Singleton):
         self.blackAlbumName = {}   # 黑名单
 
     # 从数据库中找到 album
-    def FindAlbumJson(self, qvid='', albumName=''):
+    def FindAlbumJson(self, qvid='', albumName='', href=''):
         qvid = kola.autostr(qvid)
-        if qvid == '' and albumName == '':
+        if qvid == '' and albumName == '' and href == '':
             return None
 
         f = []
-        if albumName: f.append({'albumName'            : albumName})
-        if qvid     : f.append({'private.QQEngine.vid' : qvid})
+        if albumName: f.append({'albumName'             : albumName})
+        if qvid     : f.append({'private.QQEngine.qvid' : qvid})
+        if href     : f.append({'private.QQEngine.href' : href})
 
         return self.album_table.find_one({'engineList' : {'$in' : ['QQEngine']}, '$or' : f})
 
@@ -192,16 +197,17 @@ class QQDB(kola.DB, kola.Singleton):
         return album
 
     def SaveAlbum(self, album, upsert=True):
-        if album.albumName and album.qq.vid:
-            self._save_update_append(None, album, key={'private.QQEngine.vid' : album.qq.vid}, upsert=upsert)
+        if album.albumName and album.qq.qvid:
+            self._save_update_append(None, album, key={'private.QQEngine.qvid' : album.qq.qvid}, upsert=upsert)
 
 class ParserPlayCount(KolaParser):
     def __init__(self, album=None):
         super().__init__()
         if album:
             self.cmd['name'] = album.albumName
-            self.cmd['source'] = 'http://sns.video.qq.com/tvideo/fcgi-bin/batchgetplaymount?id=%s&otype=json' % album.qq.vid
-            self.cmd['qvid'] = album.qq.vid
+            self.cmd['source'] = 'http://sns.video.qq.com/tvideo/fcgi-bin/batchgetplaymount?id=%s&otype=json' % album.qq.qvid
+            self.cmd['qvid'] = album.qq.qvid
+            self.cmd['cache'] = False
 
     def CmdParser(self, js):
         text = re.findall('QZOutputJson=({[\s\S]*});', js['data'])
@@ -225,15 +231,15 @@ class ParserPlayCount(KolaParser):
 
 # 节目列表
 class ParserAlbumList(KolaParser):
-    def __init__(self, url=None, cid=None, album_regular_key=None, next_regular_key=None):
+    def __init__(self, url=None, cid=None, album_regular_key=None):
         super().__init__()
-        if url and cid and album_regular_key and next_regular_key:
-            regular = '(<a href=.*(_hot="%s"|class="next").*</a>|<strong class="c_txt3">.*</strong>)' % (album_regular_key)
+        if url and cid and album_regular_key:
+            regular = '(<a href=.*_hot="%s[\s\S]*?</a>|<a href=.*class="next".*</a>|<strong class="c_txt3">.*</strong>)' % album_regular_key
             self.cmd['source']    = url
             self.cmd['regular']   = [regular]
             self.cmd['cid']       = cid
             self.cmd['album_key'] = album_regular_key
-            self.cmd['next_key']  = next_regular_key
+            self.cmd['cache']     = False
 
     def CmdParser(self, js):
         #print(js['data'])
@@ -241,23 +247,44 @@ class ParserAlbumList(KolaParser):
         soup = bs(js['data'])  # , from_encoding = 'GBK')
         albumTag = soup.findAll('a', { "target" : '_blank' })
         for a in albumTag:
-            href = a.attrs['href']
-            name = a.text
-            albumlist.append({'href': href, 'name': name})
+            href = a.get('href')
+            albumName = a.get('title')
+
+            if type(a) == Tag:
+                clips = False
+                for sup in a.contents:
+                    if sup.name == 'sup' and sup.text == '片花':
+                        clips = True
+                albumlist.append({'href': href, 'name': albumName, 'clips': clips})
 
         scoreTag = soup.findAll('strong')
         idx = 0
+        db = QQDB()
+        needNextPage = False
         for a in scoreTag:
+            if albumlist[idx]['clips']:
+                idx += 1
+                continue
             href = albumlist[idx]['href']
             name = albumlist[idx]['name']
-            ParserAlbumPage2(href, name, js['cid'], a.text).Execute()
+            print(albumName, href, a.text)
+
+            href_md5 = hashlib.md5(href.encode()).hexdigest()
+
+            Found = db.FindAlbumJson(href=href_md5)
+            if not Found:
+                if not needNextPage:
+                    needNextPage = True
+                ParserAlbumPage2(href, name, js['cid'], a.text).Execute()
+            else:
+                pass
             idx += 1
 
         nextTag = soup.findAll('a', { "class" : 'next' })
-        if nextTag:
+        if nextTag and needNextPage:
             nexturl = nextTag[0].get('href', '')
             if nexturl:
-                ParserAlbumList(nexturl, js['cid'], js['album_key'], js['next_key']).Execute()
+                ParserAlbumList(nexturl, js['cid'], js['album_key']).Execute()
 
 class ParserAlbumPage2(KolaParser):
     #http://s.video.qq.com/search?comment=1&plat=2&otype=json&query=%E6%84%8F%E5%A4%96%E7%9A%84%E6%81%8B%E7%88%B1%E6%97%B6%E5%85%89
@@ -266,10 +293,10 @@ class ParserAlbumPage2(KolaParser):
         super().__init__()
 
         if url and name and cid and score:
-            self.cmd['source'] = 'http://s.video.qq.com/search?comment=1&plat=2&otype=json&query=%s' % quote(name)
+            self.cmd['source'] = 'http://s.video.qq.com/search?comment=1&plat=2&otype=json&num=10000&query=%s' % quote(name)
             self.cmd['cid']     = cid
             self.cmd['name']    = name
-            self.cmd['urlx']    = url
+            self.cmd['href']    = url
             self.cmd['score']   = score
 
     def CmdParser(self, js):
@@ -278,13 +305,14 @@ class ParserAlbumPage2(KolaParser):
         if not text:
             return
 
+        x = hashlib.md5(js['href'].encode()).hexdigest()
         json = tornado.escape.json_decode(text[0])
 
         if 'list' not in json:
             return
 
         for a in json['list']:
-            if a['AW'] == js['urlx']:
+            if a['AW'] == js['href']:
                 #print(a['AC'], a['AT'], a['AU'], a['TX'])
                 album = QQAlbum()
                 album_js = kola.DB().FindAlbumJson(albumName=a['title'])
@@ -305,7 +333,6 @@ class ParserAlbumPage2(KolaParser):
                 if 'BD' in a: album.directors   = a['BD'].split(';')     # 导演
                 if 'AY' in a: album.publishYear = a['AY']
                 if 'TX' in a: album.albumDesc   = a['TX']                # 简介
-                if 'ID' in a: album.qq.vid      = a['ID']
 
                 if 'AU' in a:
                     album.largePicUrl      = a['AU']                     # 大图
@@ -319,7 +346,15 @@ class ParserAlbumPage2(KolaParser):
                     album.smallHorPicUrl = a['Z1']['pic2']
 
                 if 'AT' in a:
-                    updateTime = time.mktime(time.strptime(a['AT'],"%Y-%m-%d %H:%M:%S"))
+                    updateTime = 0
+                    try:
+                        updateTime = time.mktime(time.strptime(a['AT'],"%Y-%m-%d %H:%M:%S"))
+                    except:
+                        try:
+                            updateTime = time.mktime(time.strptime(a['AT'],"%Y-%m-%d%H:%M:%S"))
+                        except:
+                            pass
+
                     album.updateTime  = updateTime
                     album.publishTime = album.updateTime
 
@@ -330,7 +365,10 @@ class ParserAlbumPage2(KolaParser):
                     if 'cnt' in vsrcarray:
                         if 'nowEpisodes' in a: album.updateSet = kola.autoint(a['nowEpisodes'])    # 当前更新集
 
-                album.qq.videoListUrl = kola.GetScript('qq', 'get_videolist', [js['source'], album.qq.vid])
+                if 'ID' in a:
+                    album.qq.qvid     = a['ID']
+                album.qq.href         = hashlib.md5(js['href'].encode()).hexdigest()
+                album.qq.videoListUrl = kola.GetScript('qq', 'get_videolist', [js['source'], album.qq.qvid])
 
                 db.SaveAlbum(album)
                 break
@@ -394,20 +432,18 @@ class QQVideoMenu(EngineVideoMenu):
         self.albumClass = QQAlbum
         self.DBClass = QQDB
         self.album_regular_key = ''
-        self.next_regular_key = ''
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:
-            ParserAlbumList(url, self.cid, self.album_regular_key, self.next_regular_key).Execute()
+            ParserAlbumList(url, self.cid, self.album_regular_key).Execute()
 
 # 电影
 class QQMovie(QQVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 1
-        self.album_regular_key = 'movielist.title.link.0'
-        self.next_regular_key = 'movielist.page\w*?.next'
+        self.album_regular_key = 'movielist.title.link'
         self.HomeUrlList = ['http://v.qq.com/movielist/10001/0/10004-100001/0/0/100/0/0.html']
 
 # 电视
@@ -415,8 +451,7 @@ class QQTV(QQVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 2
-        self.album_regular_key = 'tv.title.link.\w*.\w*'
-        self.next_regular_key = 'tv.page\w*?.next.\w*'
+        self.album_regular_key = 'tv.image.link'
         self.HomeUrlList = ['http://v.qq.com/list/2_-1_-1_-1_0_0_0_100_-1_-1_0.html']
 
 # 动漫

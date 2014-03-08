@@ -6,9 +6,9 @@ UpdateAlbum() {
     curl "$URL/manage/update?cmd=list&engine=$1Engine" && ./super_client.py
 }
 
-UpdateAlbum Livetv
+#UpdateAlbum Livetv
 #UpdateAlbum Qiyi
-#UpdateAlbum QQ
+UpdateAlbum QQ
 #UpdateAlbum Sohu
 #UpdateAlbum PPtv
 #UpdateAlbum Letv

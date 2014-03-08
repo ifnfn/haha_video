@@ -201,6 +201,7 @@ class ParserPlayCount(KolaParser):
             self.cmd['name'] = album.albumName
             self.cmd['source'] = 'http://sns.video.qq.com/tvideo/fcgi-bin/batchgetplaymount?id=%s&otype=json' % album.qq.vid
             self.cmd['qvid'] = album.qq.vid
+            self.cmd['cache'] = False
 
     def CmdParser(self, js):
         text = re.findall('QZOutputJson=({[\s\S]*});', js['data'])

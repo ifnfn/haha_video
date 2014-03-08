@@ -177,7 +177,7 @@ class QiyiDB(DB, Singleton):
 
     # 从数据库中找到 album
     def FindAlbumJson(self, tvid='', albumName=''):
-        tvid = autostr(tvid)
+        tvid = autoint(tvid)
         if tvid == '' and albumName == '':
             return None
 
@@ -211,8 +211,8 @@ class ParserAlbumPlayCount(KolaParser):
         super().__init__()
         if album:
             self.cmd['albumName'] = album.albumName
-            album.qiyi.albumid
             self.cmd['source']  = 'http://cache.video.qiyi.com/p/%s/' % album.qiyi.albumid
+            self.cmd['cache'] = False
 
     def CmdParser(self, js):
         db = QiyiDB()
@@ -236,8 +236,8 @@ class ParserAlbumScore(KolaParser):
         super().__init__()
         if album:
             self.cmd['albumName'] = album.albumName
-            album.qiyi.albumid
             self.cmd['source']  = 'http://score.video.qiyi.com/ud/%s/' % album.qiyi.albumid
+            self.cmd['cache'] = False
 
     def CmdParser(self, js):
         db = QiyiDB()
@@ -403,11 +403,8 @@ class ParserAlbumPage(KolaParser):
                 videoid = u[1]
             elif u[0] == 'tvid':
                 tvid = u[1]
-#            elif u[0] == 'albumid':
-#                albumid = u[1]
         if videoid and tvid:
             ParserAlbumJson(tvid, videoid, js['cid']).Execute()
-            #ParserAlbumXml('http://cache.video.qiyi.com/v/%s' % videoid).Execute()
 
 # 节目列表
 class ParserAlbumList(KolaParser):
@@ -425,9 +422,12 @@ class ParserAlbumList(KolaParser):
     def CmdParser(self, js):
         if not js['data']: return
 
+        Found=False
+        db = QiyiDB()
         soup = bs(js['data'])  # , from_encoding = 'GBK')
         playlist = soup.findAll('a', { "class" : "pic_list imgBg1" })
-        #playlist = js['data'].split()
+
+        needNextPage = False
         for a in playlist:
             text = str(a)
 
@@ -443,12 +443,17 @@ class ParserAlbumList(KolaParser):
                 elif u[0] == 'tvid':
                     tvid = u[1]
 
-            if tvid != albumid:
-                ParserAlbumJsonAVList(albumid, tvid, href, js['cid']).Execute()
-            elif href:
-                ParserAlbumPage(href, js['cid']).Execute()
+            Found = db.FindAlbumJson(tvid=tvid)
 
-        if len(playlist) > 0:
+            if not Found:
+                if not needNextPage:
+                    needNextPage = True
+                if tvid != albumid:
+                    ParserAlbumJsonAVList(albumid, tvid, href, js['cid']).Execute()
+                elif href:
+                    ParserAlbumPage(href, js['cid']).Execute()
+
+        if len(playlist) > 0 and needNextPage:
                 ParserAlbumList(js['cid'], js['baseurl'], js['page'] + 1).Execute()
 
 # 综艺节目列表
@@ -470,20 +475,18 @@ class ParserShowAlbumList(KolaParser):
         soup = bs(js['data'])  # , from_encoding = 'GBK')
         playlist = soup.findAll('a', { "rseat" : "list_lm" })
         for a in playlist:
-            #href = a.attrs['href']
             text = a.text
 
         try:
-            db = QiyiDB()
-
             text = re.findall('AlbumInfo=([\s\S]*)', js['data'])
             if text:
                 text = text[0]
             json = tornado.escape.json_decode(text)
             if json['code'] != 'A00000':
                 return
-
             json = json['data']
+
+            db = QiyiDB()
             albumName = db.GetAlbumName(json['tvName'])
             if not albumName:
                 return
@@ -496,15 +499,18 @@ class ParserShowAlbumList(KolaParser):
             album.albumName = albumName
             album.vid       = utils.genAlbumId(album.albumName)
             album.cid       = js['cid']
-
             if album.cid == 3:
                 a_alias = ComicAlias
             else:
                 a_alias = alias
 
-            album.area        = a_alias.Get(js['ar'])                     # 地区
-            album.categories  = a_alias.GetStrings(js['tg'], ' ')         # 类型
-            album.publishYear = autoint(json['tvYear']) // 10000          # 年
+            album.qiyi.vid     = js['videoid']
+            album.qiyi.albumid = js['albumid']
+            album.qiyi.tvid    = js['tvid']
+
+            album.area        = a_alias.Get(js['ar'])                          # 地区
+            album.categories  = a_alias.GetStrings(js['tg'], ' ')              # 类型
+            album.publishYear = autoint(json['tvYear']) // 10000               # 年
             if 'tvPictureUrl' in json:
                 album.largePicUrl      = json['tvPictureUrl']                  # 大图
                 album.smallPicUrl      = json['tvPictureUrl']                  # 小图
@@ -525,10 +531,6 @@ class ParserShowAlbumList(KolaParser):
             if 'actors' in json:     album.directors      = json['actors']     # 导演
 
             album.totalPlayNum     = autoint(json['playCounts'])               # 总播放次数
-
-            album.qiyi.vid     = js['videoid']
-            album.qiyi.albumid = js['albumid']
-            album.qiyi.tvid    = js['tvid']
 
             album.qiyi.videoListUrl = utils.GetScript(
                                                       'qiyi',

@@ -160,6 +160,7 @@ class ParserAlbumList(KolaParser):
             self.cmd['regular'] = ['(<li class="clear">|<p class="tit tit-p.*|<em class="pay"></em>|\t</li>)']
             self.cmd['source']  = url
             self.cmd['cid']     = cid
+            self.cmd['cache']   = False
 
     def CmdParser(self, js):
         if not js['data']: return
@@ -185,12 +186,14 @@ class ParserAlbumList(KolaParser):
                 elif u[0] == '_s_a':
                     playlistid = utils.autostr(u[1])
 
-            if (not needNextPage) and (not db.FindAlbumJson(playlistid=playlistid, vid=vid)):
-                needNextPage = True
-            if playlistid and vid:
-                ParserAlbumFullInfo(playlistid, vid, cid).AddCommand()
+            Found = db.FindAlbumJson(playlistid=playlistid, vid=vid)
+            if not Found:
+                if not needNextPage:
+                    needNextPage = True
+                if playlistid and vid:
+                    ParserAlbumFullInfo(playlistid, vid, cid).AddCommand()
 
-        needNextPage = True
+        #needNextPage = True
         if needNextPage:
             g = re.search('p10(\d+)', js['source'])
             if g:
@@ -284,6 +287,7 @@ class ParserAlbumScore(KolaParser):
                     'attachment.album',
                     'attachment.index'
                 ]
+            self.cmd['cache'] = False
 
     def CmdParser(self, js):
         data = tornado.escape.json_decode(js['data'])

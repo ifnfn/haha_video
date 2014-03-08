@@ -165,7 +165,6 @@ function get_resolution(qvid)
 
 	local ret = {}
 	local url = string.format('http://vv.video.qq.com/getinfo?vids=%s&otype=json', qvid)
-	print(url)
 	local js = GetData(url)
 
 	if js == nil then

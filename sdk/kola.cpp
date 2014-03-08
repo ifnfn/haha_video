@@ -108,7 +108,7 @@ string MD5STR(const char *data)
 	return string(buf);
 }
 
-static char *GetIP(const char *hostp)
+static string GetIP(const char *hostp)
 {
 	char str[32] = "";
 	struct hostent *host = gethostbyname(hostp);
@@ -119,10 +119,10 @@ static char *GetIP(const char *hostp)
 	const char *p = inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
 
 	//freehostent(host);
-	if (p)
-		return strdup(str);
-	else
-		return NULL;
+	if (!p)
+		memset(str, 0, 32);
+
+	return str;
 }
 
 static char *ReadStringFile(FILE *fp)
@@ -239,12 +239,11 @@ bool KolaClient::InternetReady()
 string& KolaClient::GetServer() {
 	if (base_url.empty()) {
 		char buffer[512];
-		char *ip = GetIP(SERVER_HOST);
+		string ip = GetIP(SERVER_HOST);
 
-		if (ip) {
-			sprintf(buffer, "http://%s:%d", ip, PORT);
+		if (not ip.empty()) {
+			sprintf(buffer, "http://%s:%d", ip.c_str(), PORT);
 			base_url = buffer;
-			free(ip);
 		}
 	}
 

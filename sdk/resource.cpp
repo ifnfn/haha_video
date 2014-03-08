@@ -197,6 +197,7 @@ Resource* ResourceManager::FindResource(const string &url)
 	for (it = mResources.begin(); (it != mResources.end()) && (pRet == NULL); it++) {
 		if ((*it)->GetName() == url) {
 			pRet = (*it);
+			pRet->UpdateTime();
 		}
 	}
 
@@ -230,10 +231,6 @@ void ResourceManager::RemoveResource(Resource* res)
 static bool compare_nocase(const Resource* first, const Resource* second)
 {
 	return first->updateTime < second->updateTime;
-	//if (first->score == second->score)
-	//	return first->GetSize() > second->GetSize();
-	//else
-	//	return first->score > second->score;
 }
 
 void ResourceManager::Clear()
@@ -269,8 +266,10 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	list<Resource*>::iterator it;
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
-		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now)
+		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now && pRet->GetStatus() == Task::StatusFinish) {
+			pRet->DecRefCount();
 			mResources.erase(it++);
+		}
 		else
 			it++;
 	}

@@ -46,9 +46,8 @@ public:
 	Resource(ResourceManager *manage=NULL) {
 		manager = manage;
 		miDataSize = 0;
-		score = 0;
 		ExpiryTime = 0;
-		time(&updateTime);
+		UpdateTime();
 	}
 	virtual ~Resource();
 	static Resource* Create(ResourceManager *manage) {
@@ -65,8 +64,10 @@ public:
 	const string &GetFileName() {return md5Name;}
 	size_t GetSize() const { return miDataSize; }
 	string ToString();
+	void UpdateTime() {
+		time(&updateTime);
+	}
 
-	int score;
 	time_t ExpiryTime;
 	time_t updateTime;
 protected:

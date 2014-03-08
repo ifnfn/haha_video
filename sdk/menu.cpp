@@ -278,13 +278,6 @@ AlbumPage* KolaMenu::updateCache(int pos)
 
 	PageId = pos;
 
-	// 更新页中图片资源优先级
-	int x = pos % PAGE_CACHE;
-	for (int i = 0; i < PAGE_CACHE; i ++) {
-		pageCache[i].score = abs(i - x);
-		pageCache[i].UpdateCache();
-	}
-
 	// 更新当前页
 	cur = &pageCache[pos % PAGE_CACHE];
 	if (cur->pageId != PageId) {

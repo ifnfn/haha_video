@@ -284,7 +284,6 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 			Resource *res = kola.resManager->GetResource(url);
 
 			if (res) {
-				res->score = score;
 				res->DecRefCount();
 			}
 			pictureCount++;
@@ -293,28 +292,6 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 	mutex.unlock();
 
 	return pictureCount;
-}
-
-void AlbumPage::UpdateCache()
-{
-	KolaClient &kola = KolaClient::Instance();
-
-	if (menu == NULL || menu->PictureCacheType == PIC_DISABLE)
-		return;
-
-	mutex.lock();
-
-	for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		string &url = (*it)->GetPictureUrl(menu->PictureCacheType);
-		if (not url.empty()) {
-			Resource *res = kola.resManager->FindResource(url);
-			if (res) {
-				res->score = score;
-			}
-		}
-	}
-
-	mutex.unlock();
 }
 
 void AlbumPage::PutAlbum(IAlbum *album)
@@ -354,7 +331,6 @@ void AlbumPage::Clear()
 			if (not url.empty()) {
 				Resource *res = kola.resManager->FindResource(url);
 				if (res) {
-					res->score = 255;
 					if (kola.threadPool->removeTask(res))
 						kola.resManager->RemoveResource(res);
 				}

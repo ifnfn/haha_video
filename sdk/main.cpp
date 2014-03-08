@@ -212,6 +212,40 @@ void test_livetv()
 	printf("%s End!!!\n", __func__);
 }
 
+void test_picture(const char *menuName)
+{
+	IMenu* m = NULL;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+	m = kola[menuName];
+
+	if (m == NULL)
+		return;
+
+
+	size_t count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album) {
+			printf("[%d] %s\n", i, album->albumName.c_str());
+#if 0
+			FileResource picture;
+
+			if (album->GetPictureFile(picture, PIC_LARGE) == true) {
+				picture.Wait();
+				if (picture.isCached()) {
+					printf("[%d] %s: size=%ld\n", i,
+					       picture.GetName().c_str(),
+					       picture.GetSize());
+				}
+			}
+#endif
+		}
+	}
+}
+
 void test_video(const char *menuName)
 {
 	IMenu* m = NULL;
@@ -340,7 +374,7 @@ void test_video(const char *menuName)
 	}
 
 #if 0
-	count = page.PictureCount();
+	size_t count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
 		IAlbum *album = page.GetAlbum(i);
@@ -457,13 +491,13 @@ int main(int argc, char **argv)
 	test_area(kola);
 	test_weather(kola);
 #endif
-
-	test_custommenu();
-	printf("Test LiveTV\n"); test_livetv(); return 0;
+	test_picture("电影"); return 0;
+	//test_custommenu();
+	//printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
-	//printf("Test Video\n"); test_video("电影"); return 0;
+	printf("Test Video\n"); test_video("电影"); return 0;
 	//printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");

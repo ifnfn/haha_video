@@ -305,7 +305,6 @@ class ParserAlbumPage2(KolaParser):
         if not text:
             return
 
-        x = hashlib.md5(js['href'].encode()).hexdigest()
         json = tornado.escape.json_decode(text[0])
 
         if 'list' not in json:

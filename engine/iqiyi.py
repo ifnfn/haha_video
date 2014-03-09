@@ -414,10 +414,9 @@ class ParserAlbumList(KolaParser):
             self.cmd['baseurl'] = url
             self.cmd['source']  = url % page
             self.cmd['regular'] = ['(<a  class="pic_list imgBg1"[\s\S]*?</a>)']
-            #self.cmd['regular'] = ['class="imgBg1 pic_list" (href=".*")']
-            #self.cmd['regular'] = ['(data-qidanadd-tvid=".*")']
             self.cmd['cid']     = cid
             self.cmd['page']    = page
+            self.cmd['cache']   = False
 
     def CmdParser(self, js):
         if not js['data']: return

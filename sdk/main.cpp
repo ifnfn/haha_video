@@ -491,9 +491,9 @@ int main(int argc, char **argv)
 	test_area(kola);
 	test_weather(kola);
 #endif
-	test_picture("电影"); return 0;
+//	test_picture("电影"); return 0;
 	//test_custommenu();
-	//printf("Test LiveTV\n"); test_livetv(); return 0;
+	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

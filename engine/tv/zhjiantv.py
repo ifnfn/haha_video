@@ -2,70 +2,32 @@
 # -*- coding: utf-8 -*-
 
 import re
-from xml.etree import ElementTree
 
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_HZTV, PRIOR_ZJTV
 from .livetvdb import LivetvParser, LivetvDB
 from .tvielivetv import ParserTVIELivetv
+from .m2oplayer import M2OLivetvParser
 
 
 # 杭州电视台
-class ParserHangZhouLivetv(LivetvParser):
+class ParserHangZhouLivetv(M2OLivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '杭州电视台'
         self.order = PRIOR_HZTV
 
-        #self.cmd['text'] = 'OK'
         self.Alias = {}
         self.ExcludeName = ('交通918', 'FM1054', 'FM89')
+
+        self.Alias = {
+        }
+
+        self.ExcludeName = ()
         self.area = '中国,浙江,杭州'
-
-    def Execute(self):
-        for i in (1, 2, 3, 5, 13, 14, 15):
-            self.cmd['source'] = 'http://api1.hoolo.tv/player/live/channel_xml.php?id=%d' % i
-            self.cmd['channel_id'] = i
-            self.command.AddCommand(self.cmd)
-
-        self.cmd = None
-        self.command.Execute()
-
-    def CmdParser(self, js):
-        url = js['source']
-        text = js['data']
-        root = ElementTree.fromstring(text)
-
-        name = '杭州台-' + root.attrib['name']
-        if name == '':
-            return
-
-        ok = False
-        for p in root:
-            if p.tag == 'video':
-                for item in p.getchildren():
-                    if 'url' in item.attrib:
-                        ok = True
-                        break
-
-        if ok == False:
-            return
-
-        album  = self.NewAlbum(name)
-
-        v = album.NewVideo()
-        v.order = self.order
-        v.name  = self.tvName
-
-        v.vid   = utils.getVidoId(url)
-        v.SetVideoUrlScript('default', 'hztv', [url])
-
-        chid = utils.autostr(js['channel_id'])
-        v.info = utils.GetScript('hztv', 'get_channel',[chid])
-
-        album.videos.append(v)
-        LivetvDB().SaveAlbum(album)
+        self.baseUrl = 'www.hoolo.tv'
+        self.channelIds = (1, 2, 3, 5, 13, 30, 31)
 
 # 浙江电视台
 class ParserZJLivetv(ParserTVIELivetv):

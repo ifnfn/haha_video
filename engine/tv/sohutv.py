@@ -15,6 +15,12 @@ class ParserSohuLivetv(LivetvParser):
         super().__init__()
         self.tvName = '搜狐'
         self.order = PRIOR_SOHU
+        self.Alias = {
+            '无锡综合' : '无锡-综合',
+            '南京教科' : '南京-教科',
+            '南京生活' : '南京-生活',
+            '南京娱乐' : '南京-娱乐'
+        }
 
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 

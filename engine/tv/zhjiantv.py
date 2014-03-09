@@ -19,13 +19,16 @@ class ParserHangZhouLivetv(M2OLivetvParser):
         self.area = '中国,浙江,杭州'
         self.order = PRIOR_HZTV
 
-        self.Alias = {}
-        self.ExcludeName = ('交通918', 'FM1054', 'FM89')
-
         self.Alias = {
+            '西湖明珠' : '杭州-西湖明珠',
+            '杭州导视' : '杭州-导视',
+            '杭州房产' : '杭州-房产',
+            '杭州少儿' : '杭州-少儿',
+            '杭州生活' : '杭州-生活',
+            '杭州综合' : '杭州-综合'
         }
+        self.ExcludeName = []
 
-        self.ExcludeName = ()
         self.baseUrl = 'www.hoolo.tv'
         self.channelIds = (1, 2, 3, 5, 13, 30, 31)
 
@@ -39,18 +42,18 @@ class ParserZJLivetv(ParserTVIELivetv):
 
         self.Alias = {
             "频道101" : "浙江卫视",
-            "频道102" : "浙江台-钱江频道",
-            "频道103" : "浙江台-经视",
-            "频道104" : "浙江台-教育科技",
-            "频道105" : "浙江台-影视",
-            "频道106" : "浙江台-6频道",
-            "频道107" : "浙江台-公共新农村",
-            "频道108" : "浙江台-少儿",
+            "频道102" : "浙江-钱江频道",
+            "频道103" : "浙江-经视",
+            "频道104" : "浙江-教育科技",
+            "频道105" : "浙江-影视",
+            "频道106" : "浙江-6频道",
+            "频道107" : "浙江-公共新农村",
+            "频道108" : "浙江-少儿",
             #"频道109" : "留学世界",
             #"频道110" : "浙江国际",
             #"频道111" : "好易购"
         }
-        self.ExcludeName = ('频道109', '频道1[1,2,3]\w*', '频道[23].*')
+        self.ExcludeName = ['频道109', '频道1[1,2,3]\w*', '频道[23].*']
 
 # 宁波电视台
 class ParserNBLivetv(ParserTVIELivetv):
@@ -60,13 +63,13 @@ class ParserNBLivetv(ParserTVIELivetv):
         self.area = '中国,浙江,宁波'
 
         self.Alias = {
-            'nbtv1直播' : '宁波台-新闻综合',
-            'nbtv2直播' : '宁波台-社会生活',
-            'nbtv3直播' : '宁波台-都市文体',
-            'nbtv4直播' : '宁波台-影视',
-            'nbtv5直播' : '宁波台-少儿',
+            'nbtv1直播' : '宁波-新闻综合',
+            'nbtv2直播' : '宁波-社会生活',
+            'nbtv3直播' : '宁波-都市文体',
+            'nbtv4直播' : '宁波-影视',
+            'nbtv5直播' : '宁波-少儿',
         }
-        self.ExcludeName = ('.*广播', '阳光调频', 'sunhotline')
+        self.ExcludeName = ['.*广播', '阳光调频', 'sunhotline']
 
 # 义乌电视台
 class ParserYiwuLivetv(ParserTVIELivetv):
@@ -75,10 +78,10 @@ class ParserYiwuLivetv(ParserTVIELivetv):
         self.tvName = '义乌电视台'
         self.area = '中国,浙江,金华,义乌'
         self.Alias = {
-            "新闻综合" : '义乌台-新闻综合',
-            "商贸频道" : '义乌台-商贸频道',
+            "新闻综合" : '义乌-新闻综合',
+            "商贸频道" : '义乌-商贸频道',
         }
-        self.ExcludeName = ('FM')
+        self.ExcludeName = ['FM']
 
 # 绍兴电视台
 class ParserShaoxinLivetv(ParserTVIELivetv):
@@ -88,11 +91,11 @@ class ParserShaoxinLivetv(ParserTVIELivetv):
         self.area = '中国,浙江,绍兴'
 
         self.Alias = {
-            "新闻综合频道" : '绍兴台-新闻综合',
-            "公共频道"     : '绍兴台-公共频道',
-            "文化影视频道" : '绍兴台-文化影视',
+            "新闻综合频道" : '绍兴-新闻综合',
+            "公共频道"     : '绍兴-公共频道',
+            "文化影视频道" : '绍兴-文化影视',
         }
-        self.ExcludeName = ('.*广播', '直播')
+        self.ExcludeName = ['.*广播', '直播']
 
 # 温州电视台
 class ParserWenZhouLivetv(LivetvParser):
@@ -104,14 +107,14 @@ class ParserWenZhouLivetv(LivetvParser):
         self.cmd['source'] = 'http://tv.dhtv.cn'
         self.cmd['regular'] = ['(<a href=.* data-source=.*</a>)']
         self.Alias = {}
-        self.ExcludeName = ()
+        self.ExcludeName = []
 
     def CmdParser(self, js):
         db = LivetvDB()
 
         ch_list = re.findall('data-source="(.*?)" data-id="(.*?)">(.*?)<i>', js['data'])
         for source, data_id, name in ch_list:
-            name = '温州台-' + name
+            name = '温州-' + name
             album  = self.NewAlbum(name)
 
             v = album.NewVideo()

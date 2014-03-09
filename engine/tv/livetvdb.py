@@ -86,7 +86,7 @@ class LivetvParser(KolaParser):
         super().__init__()
         self.tvCate = TVCategory()
         self.Alias = {}
-        self.ExcludeName = ()
+        self.ExcludeName = []
         self.tvName = ''
         self.order = PRIOR_COMMON
         self.area = ''

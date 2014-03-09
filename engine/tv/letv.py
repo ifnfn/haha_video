@@ -20,9 +20,9 @@ class ParserLetvLivetv(LivetvParser):
         #self.cmd['source']  = 'http://www.leshizhibo.com/channel/index.php'
         self.cmd['source']  = 'http://www.leshizhibo.com/'
         self.cmd['regular'] = ['<p class="channelimg">(.*)</p>']
-        self.ExcludeName = ('中国教育一台', '中国教育三台', '中国教育二台', '游戏风云一套', '优漫卡通', '延边卫视', '星空卫视',
+        self.ExcludeName = ['中国教育一台', '中国教育三台', '中国教育二台', '游戏风云一套', '优漫卡通', '延边卫视', '星空卫视',
                             '五星体育', 'TVB翡翠台', '三沙卫视', '厦门卫视', 'NEOTV综合频道', '嘉佳卡通', '华娱卫视',
-                            '湖北体育', '广东体育', 'CCTV.*', '兵团卫视', '澳亚卫视')
+                            '湖北体育', '广东体育', 'CCTV.*', '兵团卫视', '澳亚卫视']
 
     def CmdParser(self, js):
         db = LivetvDB()

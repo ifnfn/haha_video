@@ -16,12 +16,12 @@ class ParserHLJLivetv(ParserTVIELivetv):
 
         self.Alias = {
             '卫视' : '黑龙江卫视',
-            '第七' : '黑龙江台-第七频道',
-            '公共' : '黑龙江台-公共频道',
-            '考试' : '黑龙江台-考试频道',
-            '导视' : '黑龙江台-导视频道',
+            '第七' : '黑龙江-第七频道',
+            '公共' : '黑龙江-公共频道',
+            '考试' : '黑龙江-考试频道',
+            '导视' : '黑龙江-导视频道',
         }
-        self.ExcludeName = ()
+        self.ExcludeName = []
 
 class HeiLongJiangLiveTV(LivetvMenu):
     '''

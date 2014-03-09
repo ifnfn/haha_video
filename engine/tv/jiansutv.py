@@ -17,8 +17,11 @@ class ParserJianSuLivetv(LivetvParser):
         self.area = '中国,江苏'
         self.order = PRIOR_JSTV
 
-        self.Alias = {}
-        self.ExcludeName = ()
+        self.Alias = {
+            '学习频道' : '江苏-学习频道',
+            '好享购物' : '江苏-好享购物'
+        }
+        self.ExcludeName = []
 
         self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_1.html'
         #self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_2.html'

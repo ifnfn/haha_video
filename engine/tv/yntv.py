@@ -15,10 +15,10 @@ class ParserYunNanLivetv(ParserTVIELivetv):
         self.order = PRIOR_TV
 
         self.Alias = {
-            '娱乐频道YNTV_3' : '云南台-娱乐频道',
             '卫视频道YNTV_1' : '云南卫视',
-            '都市频道YNTV_2' : '云南台-都市频道',
-            '公共频道YNTV_6' : '云南台-公共频道',
+            '都市频道YNTV_2' : '云南-都市频道',
+            '娱乐频道YNTV_3' : '云南-娱乐频道',
+            '公共频道YNTV_6' : '云南-公共频道',
         }
         self.ExcludeName = ['云南卫视CDN']
 

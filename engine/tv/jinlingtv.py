@@ -18,9 +18,18 @@ class ParserJLntvLivetv(LivetvParser):
         self.order = PRIOR_TV
 
         self.Alias = {
-            '吉林台-公共·新闻' : '吉林台-公共新闻'
+            '吉林台-公共·新闻' : '吉林-公共新闻',
+            '吉林台-东北戏曲' : '吉林-东北戏曲',
+            '吉林台-都市频道' : '吉林-都市频道',
+            '吉林台-吉林卫视' : '吉林-吉林卫视',
+            '吉林台-家有购物' : '吉林-家有购物',
+            '吉林台-篮球频道' : '吉林-篮球频道',
+            '吉林台-生活频道' : '吉林-生活频道',
+            '吉林台-乡村频道' : '吉林-乡村频道',
+            '吉林台-影视频道' : '吉林-影视频道',
+            '吉林台-综艺·文化' : '吉林-综艺文化',
         }
-        self.ExcludeName = ('交通918', 'FM1054', 'FM89')
+        self.ExcludeName = ['交通918', 'FM1054', 'FM89']
 
         self.cmd['source']  = 'http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6'
         self.cmd['regular'] = ['(<li id="T_Menu_.*</a></li>)']

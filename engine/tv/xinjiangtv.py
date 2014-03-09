@@ -28,7 +28,7 @@ class ParserUCLivetv(ParserTVIELivetv):
         self.tvName = '新疆电视台'
         self.order = PRIOR_UCTV
 
-        self.ExcludeName = ('.*广播', '106点5旅游音乐', '天山云LIVE', 'CCTV-4')
+        self.ExcludeName = ['.*广播', '106点5旅游音乐', '天山云LIVE', 'CCTV-4']
         self.area = '中国,新疆'
         self.Alias = {
             'CCTV-1' : 'CCTV-1 综合',

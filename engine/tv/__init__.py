@@ -39,7 +39,6 @@ class LiveEngine(VideoEngine):
         self.parserList = []
 
         self.LiveEngines = {
-            '''
             '江苏'  : JianSuLiveTV,
             '浙江'  : ZheJianLiveTV,
             '安徽'  : AnHuiLiveTV,
@@ -57,10 +56,9 @@ class LiveEngine(VideoEngine):
             '湖北'  : HuBeiLiveTV,
             '河北'  : HeBeiLiveTV,
             '云南'  : YunNanLiveTV,
-            '''
             #'广西' : GuangXiLiveTV,
             #'新疆' : XinJianLiveTV,
-            'Letv' : LetvLiveTV,
+            #'Letv' : LetvLiveTV,
         }
 
         for name, e  in self.LiveEngines.items():

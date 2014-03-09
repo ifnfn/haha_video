@@ -283,9 +283,9 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 		if (not url.empty()) {
 			Resource *res = kola.resManager->GetResource(url);
 
-			if (res) {
-				res->DecRefCount();
-			}
+//			if (res)
+//				res->DecRefCount();
+
 			pictureCount++;
 		}
 	}
@@ -333,6 +333,8 @@ void AlbumPage::Clear()
 				if (res) {
 					if (kola.threadPool->removeTask(res))
 						kola.resManager->RemoveResource(res);
+
+					res->DecRefCount();
 				}
 			}
 		}

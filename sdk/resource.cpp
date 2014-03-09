@@ -180,10 +180,9 @@ Resource* ResourceManager::GetResource(const string &url)
 	Resource* pResource = dynamic_cast<Resource*>(FindResource(url));
 	if (pResource == NULL)
 		pResource = AddResource(url);
-//	else
-//		printf("Cached Found: %s ==> %s\n", url.c_str(), pResource->GetFileName().c_str());
 
-	pResource->IncRefCount();
+	if (pResource)
+		pResource->IncRefCount();
 
 	return pResource;
 }
@@ -248,7 +247,6 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	Resource* pRet = NULL;
 	bool ret = true;
-	time_t now;
 
 	Lock();
 
@@ -259,11 +257,11 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 
 	mResources.sort(compare_nocase);
 
-#if 1
-	// 清除所有过期的文件
-	now = time(&now);
-
 	list<Resource*>::iterator it;
+#if 0
+	// 清除所有过期的文件
+	time_t now = time(&now);
+
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
 		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now && pRet->GetStatus() == Task::StatusFinish) {

@@ -13,10 +13,8 @@ class ParserCntvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):
         super().__init__()
         self.tvName = '中央电视台'
-        self.order = PRIOR_CNTV
         self.area = ''
-        self.cmd['source'] = 'http://tv.cntv.cn/live'
-        self.cmd['regular'] = ['var chs = (.*);']
+        self.order = PRIOR_CNTV
 
         self.Alias = {
             'CCTV-Español' : 'CCTV-欧洲',
@@ -25,6 +23,9 @@ class ParserCntvLivetv(LivetvParser):
             'CCTV-Русский'  : 'CCTV-俄语',
         }
         self.ExcludeName = ('厦门卫视', '香港卫视', '山东教育台', '延边卫视')
+
+        self.cmd['source'] = 'http://tv.cntv.cn/live'
+        self.cmd['regular'] = ['var chs = (.*);']
 
     def CmdParser(self, js):
         db = LivetvDB()

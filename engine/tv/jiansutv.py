@@ -10,17 +10,18 @@ from .common import PRIOR_JSTV
 
 
 # 江苏电视台
-class ParserJiansuLivetv(LivetvParser):
+class ParserJianSuLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '江苏电视台'
+        self.area = '中国,江苏'
         self.order = PRIOR_JSTV
+
+        self.Alias = {}
+        self.ExcludeName = ()
 
         self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_1.html'
         #self.cmd['source'] = 'http://newplayerapi.jstv.com/rest/getplayer_2.html'
-        self.Alias = {}
-        self.ExcludeName = ()
-        self.area = '中国,江苏'
 
     def CmdParser(self, js):
         db = LivetvDB()
@@ -65,4 +66,4 @@ class JianSuLiveTV(LivetvMenu):
     '''
     def __init__(self, name):
         super().__init__(name)
-        self.parserClassList = [ParserJiansuLivetv]
+        self.parserClassList = [ParserJianSuLivetv]

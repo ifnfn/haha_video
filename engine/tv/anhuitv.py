@@ -12,6 +12,7 @@ class ParserAnhuiLivetv(M2OLivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '安徽电视台'
+        self.area = '中国,安徽'
         self.order = PRIOR_AHTV
 
         self.Alias = {
@@ -25,7 +26,6 @@ class ParserAnhuiLivetv(M2OLivetvParser):
         }
 
         self.ExcludeName = ()
-        self.area = '中国,安徽'
         self.baseUrl = 'www.ahtv.cn'
         self.channelIds = (2, 3, 4, 5, 6, 7, 8, 9)
 

@@ -16,6 +16,7 @@ class ParserHangZhouLivetv(M2OLivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '杭州电视台'
+        self.area = '中国,浙江,杭州'
         self.order = PRIOR_HZTV
 
         self.Alias = {}
@@ -25,7 +26,6 @@ class ParserHangZhouLivetv(M2OLivetvParser):
         }
 
         self.ExcludeName = ()
-        self.area = '中国,浙江,杭州'
         self.baseUrl = 'www.hoolo.tv'
         self.channelIds = (1, 2, 3, 5, 13, 30, 31)
 
@@ -34,6 +34,7 @@ class ParserZJLivetv(ParserTVIELivetv):
     def __init__(self):
         super().__init__('api.cztv.com')
         self.tvName = '浙江电视台'
+        self.area = '中国,浙江'
         self.order = PRIOR_ZJTV
 
         self.Alias = {
@@ -50,13 +51,13 @@ class ParserZJLivetv(ParserTVIELivetv):
             #"频道111" : "好易购"
         }
         self.ExcludeName = ('频道109', '频道1[1,2,3]\w*', '频道[23].*')
-        self.area = '中国,浙江'
 
 # 宁波电视台
 class ParserNBLivetv(ParserTVIELivetv):
     def __init__(self):
         super().__init__('ming-api.nbtv.cn')
         self.tvName = '宁波电视台'
+        self.area = '中国,浙江,宁波'
 
         self.Alias = {
             'nbtv1直播' : '宁波台-新闻综合',
@@ -66,44 +67,44 @@ class ParserNBLivetv(ParserTVIELivetv):
             'nbtv5直播' : '宁波台-少儿',
         }
         self.ExcludeName = ('.*广播', '阳光调频', 'sunhotline')
-        self.area = '中国,浙江,宁波'
 
 # 义乌电视台
 class ParserYiwuLivetv(ParserTVIELivetv):
     def __init__(self):
         super().__init__('live-01.ywcity.cn')
         self.tvName = '义乌电视台'
+        self.area = '中国,浙江,金华,义乌'
         self.Alias = {
             "新闻综合" : '义乌台-新闻综合',
             "商贸频道" : '义乌台-商贸频道',
         }
         self.ExcludeName = ('FM')
-        self.area = '中国,浙江,金华,义乌'
 
 # 绍兴电视台
 class ParserShaoxinLivetv(ParserTVIELivetv):
     def __init__(self):
         super().__init__('115.239.168.72')
         self.tvName = '绍兴电视台'
+        self.area = '中国,浙江,绍兴'
+
         self.Alias = {
             "新闻综合频道" : '绍兴台-新闻综合',
             "公共频道"     : '绍兴台-公共频道',
             "文化影视频道" : '绍兴台-文化影视',
         }
         self.ExcludeName = ('.*广播', '直播')
-        self.area = '中国,浙江,绍兴'
 
 # 温州电视台
 class ParserWenZhouLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '温州电视台'
+        self.area = '中国,浙江,温州'
 
         self.cmd['source'] = 'http://tv.dhtv.cn'
         self.cmd['regular'] = ['(<a href=.* data-source=.*</a>)']
         self.Alias = {}
         self.ExcludeName = ()
-        self.area = '中国,浙江,温州'
 
     def CmdParser(self, js):
         db = LivetvDB()

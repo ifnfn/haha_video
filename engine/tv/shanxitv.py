@@ -13,9 +13,10 @@ from .livetvdb import LivetvParser, LivetvDB
 class ParserShanXiLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
-        self.tvName = 'PRIOR_SXTV'
-        self.order = PRIOR_SXTV
+        self.tvName = '陕西电视台'
         self.area = '中国,陕西'
+        self.order = PRIOR_SXTV
+
         self.Alias = {
         }
 

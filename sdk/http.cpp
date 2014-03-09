@@ -7,9 +7,15 @@
 
 #define NETWORK_TIMEOUT 10
 #define TRY_TIME 1
+typedef unsigned char BYTE;
 
 inline static unsigned char toHex(unsigned char x) {
 	return x > 9 ? x + 55 : x + 48;
+}
+
+inline BYTE fromHex(const BYTE &x)
+{
+        return isdigit(x) ? x-'0' : x-'A'+10;
 }
 
 string UrlEncode(const string & sIn)
@@ -34,22 +40,23 @@ string UrlEncode(const string & sIn)
 	return sOut;
 }
 
-string UrlDecode(const string & sIn)
+string UrlDecode(const string &sIn)
 {
 	string sOut;
 
-	for(size_t i = 0; i < sIn.size(); i++) {
-		unsigned char buf[4];
-		memset(buf, 0, 4);
-		if( isalnum( sIn[i] ) )
-			buf[0] = sIn[i];
-		else if ( '+'==( sIn[i] ) )
-			buf[0] = ' ';
-		else {
-			buf[0] = toHex( sIn[i + 1] << 4 );
-			buf[1] = toHex( sIn[i]);
+	for( size_t ix = 0; ix < sIn.size(); ix++ ) {
+		BYTE ch = 0;
+		if(sIn[ix]=='%') {
+			ch = (fromHex(sIn[ix+1])<<4);
+			ch |= fromHex(sIn[ix+2]);
+			ix += 2;
 		}
-		sOut += (char *)buf;
+		else if(sIn[ix] == '+')
+			ch = ' ';
+		else
+			ch = sIn[ix];
+
+		sOut += (char)ch;
 	}
 
 	return sOut;

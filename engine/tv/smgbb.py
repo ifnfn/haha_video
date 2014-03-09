@@ -14,8 +14,9 @@ class ParserSmgbbLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '东方卫视'
-        self.order = PRIOR_SMGBB
         self.area = '中国,上海'
+        self.order = PRIOR_SMGBB
+
         self.Alias = {
             '生活时尚' : '上海-生活时尚',
             '第一财经' : '上海-第一财经',

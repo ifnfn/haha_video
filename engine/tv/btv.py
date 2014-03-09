@@ -12,8 +12,9 @@ class ParserBTV(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = '北京电视台'
-        self.order = PRIOR_BTV
         self.area = '中国,北京'
+        self.order = PRIOR_BTV
+
         self.Alias = {
         }
 

@@ -4,7 +4,7 @@
 
 -- 攻取节目的播放地址
 function get_video_url(url, id)
-	print(url)
+	--print(url)
 	local text = kola.wget(url, false)
 
 	if text ~= nil and text ~= "TVie Exception: No streams." then

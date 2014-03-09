@@ -21,8 +21,8 @@ class ParserTVIELivetv(LivetvParser):
         jdata = tornado.escape.json_decode(js['data'])
 
         for x in jdata['result']:
-            #if 'group_names' in x and x['group_names'] == '':
-            #    continue
+            if 'group_names' in x and x['group_names'] == 'audio':
+                continue
             name = ''
             if 'name' in x: name = x['name']
             if 'display_name' in x: name = x['display_name']

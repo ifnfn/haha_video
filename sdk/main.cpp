@@ -224,7 +224,6 @@ void test_picture(const char *menuName)
 	if (m == NULL)
 		return;
 
-
 	size_t count = m->GetAlbumCount();
 	for (int i=0; i < count; i++) {
 		IAlbum *album = m->GetAlbum(i);

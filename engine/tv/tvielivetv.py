@@ -41,10 +41,10 @@ class ParserTVIELivetv(LivetvParser):
 
             v.vid = utils.getVidoId(url)
 
-            v.SetVideoUrlScript('default', 'tvie', [url])
+            v.SetVideoUrlScript('default', 'tvie', [url, x['id']])
 
             url = 'http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])
-            v.info = utils.GetScript('tvie', 'get_channel',[url])
+            v.info = utils.GetScript('tvie', 'get_channel',[url, x['id']])
 
             album.videos.append(v)
             db.SaveAlbum(album)

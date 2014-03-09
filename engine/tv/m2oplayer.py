@@ -49,9 +49,9 @@ class M2OLivetvParser(LivetvParser):
         v.name  = self.tvName
 
         v.vid   = utils.getVidoId(url)
-        v.SetVideoUrlScript('default', 'hztv', [url])
+        v.SetVideoUrlScript('default', 'm2oplayer', [url])
 
-        v.info = utils.GetScript('hztv', 'get_channel',['http://%s/m2o/player/program_xml.php?channel_id=%d' % (self.baseUrl, js['channel_id'])])
+        v.info = utils.GetScript('m2oplayer', 'get_channel',['http://%s/m2o/player/program_xml.php?channel_id=%d' % (self.baseUrl, js['channel_id'])])
 
         album.videos.append(v)
         LivetvDB().SaveAlbum(album)

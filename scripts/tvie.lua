@@ -3,7 +3,8 @@
 --end
 
 -- 攻取节目的播放地址
-function get_video_url(url)
+function get_video_url(url, id)
+	print(url)
 	local text = kola.wget(url, false)
 
 	if text ~= nil and text ~= "TVie Exception: No streams." then
@@ -21,7 +22,7 @@ function get_video_url(url)
 				timestamp = math.floor(timestamp / 1000) * 1000
 
 				for k,v in pairs(data_obj.result.datarates) do
-					video_url = string.format('http://%s/channels/%d/%s.flv/live?%s', v[1], 102, k, tostring(timestamp))
+					video_url = string.format('http://%s/channels/%s/%s.flv/live?%s', v[1], id, k, tostring(timestamp))
 					break
 				end
 
@@ -47,7 +48,7 @@ function get_video_url(url)
 	return ""
 end
 
-function get_channel(vid)
+function get_channel(vid, id)
 	local url = string.format("%s/0/%d", vid, kola.gettime())
 
 	local ret = {}

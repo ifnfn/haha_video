@@ -134,6 +134,7 @@ CURL *Curl::GetCurl(const char *url) {
 		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "KolaClient");
 		curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
 		curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
+		curl_easy_setopt(curl, CURLOPT_BUFFERSIZE       , 1024 * 8);
 		if (curlinfo->features & CURL_VERSION_LIBZ)
 			curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING , "gzip,deflate");
 

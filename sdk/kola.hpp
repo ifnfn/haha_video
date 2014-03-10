@@ -21,7 +21,7 @@ using namespace std;
 			for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 #define DEFAULT_PAGE_SIZE 20
-#define PAGE_CACHE 5
+#define PAGE_CACHE 3
 
 class IMenu;
 class IAlbum;
@@ -363,7 +363,7 @@ public:
 	virtual bool   SetQuickFilter(string) = 0;
 	virtual void   SetSort(string v, string s="1") = 0;
 
-	virtual AlbumPage &GetPage(int pageNo = -1) = 0;
+	virtual AlbumPage *GetPage(int pageNo = -1) = 0;
 	virtual void   SetPageSize(int size) = 0;
 	virtual size_t GetPageSize() = 0;
 	virtual int    SeekByAlbumId(string vid) = 0;
@@ -471,7 +471,7 @@ public:
 	virtual bool   SetQuickFilter(string);
 	virtual void   SetSort(string v, string s);
 
-	virtual AlbumPage &GetPage(int pageNo = -1);
+	virtual AlbumPage *GetPage(int pageNo = -1);
 	virtual void   SetPageSize(int size);
 	virtual size_t GetPageSize() { return PageSize;}
 	virtual int    SeekByAlbumId(string vid);

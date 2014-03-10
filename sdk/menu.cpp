@@ -251,13 +251,13 @@ int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageS
 	return ParserFromUrl(page, url);
 }
 
-AlbumPage &KolaMenu::GetPage(int pageNo)
+AlbumPage *KolaMenu::GetPage(int pageNo)
 {
 	if (pageNo == -1) { // 下一页
 		pageNo = PageId + 1;
 	}
 
-	return *updateCache(pageNo);
+	return updateCache(pageNo);
 }
 
 AlbumPage* KolaMenu::updateCache(int pos)

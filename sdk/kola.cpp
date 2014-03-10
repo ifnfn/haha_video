@@ -28,7 +28,7 @@
 #	define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE (8)
+#define MAX_THREAD_POOL_SIZE (12)
 #define MAX_CACHE_SIZE       (1024 * 1024 * 1)
 
 static string loginKey;

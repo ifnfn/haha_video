@@ -230,6 +230,7 @@ size_t Http::curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data)
 const char *Http::curlGetCurlURL(int times)
 {
 	CURLcode res;
+	const char *data = NULL;
 
 	if (times >= TRY_TIME)
 		return NULL;
@@ -240,22 +241,25 @@ const char *Http::curlGetCurlURL(int times)
 	if ( res ) {
 		printf("curlGetCurlURL: %s, cant perform curl: %s\n", url.c_str(), errormsg);
 		if (download_cancel == 1)
-			return NULL;
+			goto end;
 		return curlGetCurlURL(times + 1);
 	}
 
-	if (download_cancel == 1)
-		return NULL;
+	if (download_cancel == 1) {
+		goto end;
+	}
 
 	if (buffer.mem == NULL)
 		return curlGetCurlURL(times + 1);
 
 	if (this->httpcode != 200 && this->httpcode != 304) {
 		buffer.reset();
-		return NULL;
+		goto end;
 	}
-
-	return buffer.mem;
+	data = buffer.mem;
+end:
+	status = CURLMSG_DONE;
+	return data;
 }
 
 const char *Http::Get(const char *url)

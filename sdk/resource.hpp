@@ -60,6 +60,8 @@ public:
 	void Load(const string &url);
 	virtual void Run(void);
 
+	void Cancel();
+
 	const string &GetName() {return resName;}
 	const string &GetFileName() {return md5Name;}
 	size_t GetSize() const { return miDataSize; }
@@ -75,6 +77,8 @@ protected:
 	string resName;
 	string md5Name;
 	ResourceManager *manager;
+private:
+	Http http;
 };
 
 class ResourceManager {

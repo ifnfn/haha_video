@@ -230,9 +230,8 @@ void test_picture(const char *menuName)
 		IAlbum *album = m->GetAlbum(i);
 		if (album) {
 			printf("[%d] %s\n", i, album->albumName.c_str());
+#if 0
 			FileResource &pic = picture[0];
-#if 1
-
 			if (album->GetPictureFile(pic, PIC_LARGE) == true) {
 				pic.Wait();
 				if (pic.isCached()) {

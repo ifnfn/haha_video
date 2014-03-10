@@ -10,7 +10,7 @@ Resource::~Resource()
 	if (manager && miDataSize > 0)
 		manager->MemoryDec(miDataSize);
 
-	printf("Remove file: %s\n", md5Name.c_str());
+	printf("Remove %s -> %s\n", md5Name.c_str(), resName.c_str());
 	unlink(md5Name.c_str());
 }
 
@@ -32,13 +32,22 @@ void Resource::Load(const string &url)
 {
 	resName = url;
 	string extname = StringGetFileExt(url);
+	md5Name = "";
+	md5Name.assign(MD5STR(resName.c_str()), 0, 15);
 
-	md5Name = "/tmp/" + MD5STR(resName.c_str()) + extname;
+	md5Name = "/tmp/" + md5Name + extname;
+}
+
+void Resource::Cancel()
+{
+	if (status != Task::StatusFinish) {
+		http.Cancel();
+		Wait();
+	}
 }
 
 void Resource::Run(void)
 {
-	Http http;
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		this->ExpiryTime = http.Headers.GetExpiryTime();
@@ -170,7 +179,7 @@ Resource* ResourceManager::AddResource(const string &url)
 	Lock();
 	mResources.insert(mResources.end(), pResource);
 	Unlock();
-	pResource->Start(true);
+	pResource->Start(false);
 
 	return pResource;
 }

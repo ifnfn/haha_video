@@ -327,6 +327,8 @@ void AlbumPage::Clear()
 				if (res) {
 					if (kola.threadPool->removeTask(res))
 						kola.resManager->RemoveResource(res);
+					else
+						res->Cancel();
 
 					res->DecRefCount();
 				}

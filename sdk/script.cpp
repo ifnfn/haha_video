@@ -153,7 +153,7 @@ static const luaL_Reg lualibs[] = {
 	{"cjson"        , luaopen_cjson     },
 	{"xml"          , luaopen_LuaXML_lib},
 	{"rex"          , luaopen_rex_pcre  },
-	//{"cURL"         , luaopen_cURL      },
+	{"cURL"         , luaopen_cURL      },
 	//{LUA_LOADLIBNAME, luaopen_package},
 	//{LUA_BITLIBNAME, luaopen_bit32},
 

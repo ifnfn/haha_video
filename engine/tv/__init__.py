@@ -21,11 +21,13 @@ from .pptv import PPtvLiveTV
 from .qqtv import QQLiveTV
 from .smgbb import SmgbbLivetv
 from .sohutv import SohuLiveTV
+from .textv import TextLiveTV
 from .tvielivetv import ParserTVIELivetv
 from .xinjiangtv import XinJianLiveTV
 from .yntv import YunNanLiveTV
 from .zhjiantv import ZheJianLiveTV
-
+from .shangdongtv import ShangDongLiveTV
+from .wolidou import WolidouLiveTV
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
@@ -55,6 +57,9 @@ class LiveEngine(VideoEngine):
             '湖北'  : HuBeiLiveTV,
             '河北'  : HeBeiLiveTV,
             '云南'  : YunNanLiveTV,
+            '山东' :  ShangDongLiveTV,
+            '文本'  : TextLiveTV,
+            '私有' : WolidouLiveTV,
             #'广西' : GuangXiLiveTV,
             #'新疆' : XinJianLiveTV,
             #'Letv' : LetvLiveTV,

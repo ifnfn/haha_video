@@ -5,6 +5,7 @@ import tornado.escape
 
 from kola import utils
 
+from .common import PRIOR_UCTV
 from .livetvdb import LivetvParser, LivetvDB
 
 
@@ -12,9 +13,11 @@ class ParserTVIELivetv(LivetvParser):
     def __init__(self, url):
         super().__init__()
         self.base_url = url
-        self.cmd['source'] = 'http://' + self.base_url + '/api/getChannels'
+        self.order = PRIOR_UCTV
         self.area = ''
 
+        self.cmd['source'] = 'http://' + self.base_url + '/api/getChannels'
+        
     def CmdParser(self, js):
         db = LivetvDB()
 

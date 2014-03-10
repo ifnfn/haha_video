@@ -15,8 +15,7 @@ from .jiansutv import JianSuLiveTV
 from .jianxitv import JianXiLiveTV
 from .jinlingtv import JilingLiveTV
 from .letv import LetvLiveTV
-from .livetvdb import TVCategory, LivetvDB, LivetvVideo, LivetvAlbum, \
-    LivetvParser
+from .livetvdb import *
 from .lntv import LiaoNingLiveTV
 from .pptv import PPtvLiveTV
 from .qqtv import QQLiveTV

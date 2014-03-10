@@ -5,7 +5,7 @@ import re
 
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_HZTV, PRIOR_ZJTV
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 from .tvielivetv import ParserTVIELivetv
 from .m2oplayer import M2OLivetvParser
@@ -17,7 +17,7 @@ class ParserHangZhouLivetv(M2OLivetvParser):
         super().__init__()
         self.tvName = '杭州电视台'
         self.area = '中国,浙江,杭州'
-        self.order = PRIOR_HZTV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '西湖明珠' : '杭州-西湖明珠',
@@ -30,7 +30,7 @@ class ParserHangZhouLivetv(M2OLivetvParser):
         self.ExcludeName = []
 
         self.baseUrl = 'www.hoolo.tv'
-        self.channelIds = (1, 2, 3, 5, 13, 30, 31)
+        self.channelIds = (1, 2, 3, 5, 30, 31)
 
 # 浙江电视台
 class ParserZJLivetv(ParserTVIELivetv):
@@ -38,7 +38,7 @@ class ParserZJLivetv(ParserTVIELivetv):
         super().__init__('api.cztv.com')
         self.tvName = '浙江电视台'
         self.area = '中国,浙江'
-        self.order = PRIOR_ZJTV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             "频道101" : "浙江卫视",

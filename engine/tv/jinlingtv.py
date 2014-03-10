@@ -4,7 +4,7 @@
 import re
 
 from kola import utils, LivetvMenu
-from .common import PRIOR_TV
+from .common import PRIOR_DEFTV
 
 from .livetvdb import LivetvParser, LivetvDB
 
@@ -15,7 +15,7 @@ class ParserJLntvLivetv(LivetvParser):
         super().__init__()
         self.tvName = '吉林电视台'
         self.area   = '中国,吉林'
-        self.order = PRIOR_TV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '吉林台-公共·新闻' : '吉林-公共新闻',

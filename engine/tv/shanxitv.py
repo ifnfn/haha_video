@@ -5,7 +5,7 @@ import re
 
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_SXTV
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 
 
@@ -15,7 +15,7 @@ class ParserShanXiLivetv(LivetvParser):
         super().__init__()
         self.tvName = '陕西电视台'
         self.area = '中国,陕西'
-        self.order = PRIOR_SXTV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
         }

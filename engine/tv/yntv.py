@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .tvielivetv import ParserTVIELivetv
-from .common import PRIOR_TV
+from .common import PRIOR_DEFTV
 from kola import LivetvMenu
 
 
@@ -12,7 +12,7 @@ class ParserYunNanLivetv(ParserTVIELivetv):
         super().__init__('mediamobile.yntv.cn')
         self.tvName = '云南电视台'
         self.area = '中国,云南'
-        self.order = PRIOR_TV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '卫视频道YNTV_1' : '云南卫视',

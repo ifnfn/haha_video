@@ -5,7 +5,7 @@ import re
 
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_SMGBB
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 
 
@@ -15,7 +15,7 @@ class ParserSmgbbLivetv(LivetvParser):
         super().__init__()
         self.tvName = '东方卫视'
         self.area = '中国,上海'
-        self.order = PRIOR_SMGBB
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '生活时尚' : '上海-生活时尚',

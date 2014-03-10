@@ -1,15 +1,19 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+from xml.etree import ElementTree
+
 from kola import utils
 
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
-from xml.etree import ElementTree
+
 
 class M2OLivetvParser(LivetvParser):
     def __init__(self):
         super().__init__()
 
+        self.order = PRIOR_DEFTV
         self.baseUrl = ''
         self.channelIds = ()
 

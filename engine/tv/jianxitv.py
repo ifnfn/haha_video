@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup as bs
 from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_TV
+from .common import PRIOR_DEFTV
 
 # 江西电视台
 class ParserJianXiLivetv(LivetvParser):
@@ -14,7 +14,7 @@ class ParserJianXiLivetv(LivetvParser):
         super().__init__()
         self.tvName = '江西电视台'
         self.area = '中国,江西'
-        self.order = PRIOR_TV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '江西卫视频道在线直播' : '江西卫视',

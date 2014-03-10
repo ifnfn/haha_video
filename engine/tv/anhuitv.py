@@ -3,7 +3,7 @@
 
 from kola import LivetvMenu
 
-from .common import PRIOR_AHTV
+from .common import PRIOR_DEFTV
 from .m2oplayer import M2OLivetvParser
 
 
@@ -13,7 +13,7 @@ class ParserAnhuiLivetv(M2OLivetvParser):
         super().__init__()
         self.tvName = '安徽电视台'
         self.area = '中国,安徽'
-        self.order = PRIOR_AHTV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '安徽公共' : '安徽-公共综合',

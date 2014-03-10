@@ -3,7 +3,7 @@
 
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_BTV
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 
 
@@ -13,7 +13,7 @@ class ParserBTV(LivetvParser):
         super().__init__()
         self.tvName = '北京电视台'
         self.area = '中国,北京'
-        self.order = PRIOR_BTV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
         }
@@ -52,7 +52,7 @@ class BtvLiveTV(LivetvMenu):
                 continue
 
             v = album.NewVideo()
-            v.order = PRIOR_BTV
+            v.order = PRIOR_DEFTV
             v.name     = '北京电视台'
             v.vid      = utils.getVidoId('http://his.cdn.brtn.cn/approve/live?channel=%s' % pid)
 

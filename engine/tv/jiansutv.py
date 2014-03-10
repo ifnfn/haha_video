@@ -6,7 +6,7 @@ import tornado.escape
 from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_JSTV
+from .common import PRIOR_DEFTV
 
 
 # 江苏电视台
@@ -15,7 +15,7 @@ class ParserJianSuLivetv(LivetvParser):
         super().__init__()
         self.tvName = '江苏电视台'
         self.area = '中国,江苏'
-        self.order = PRIOR_JSTV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '学习频道' : '江苏-学习频道',

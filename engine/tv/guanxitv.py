@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from xml.etree import ElementTree
-from .common import PRIOR_TV
+from .common import PRIOR_DEFTV
 
 from kola import utils, LivetvMenu, GetUrl
 
@@ -15,7 +15,7 @@ class ParserNNLivetv(LivetvParser):
         super().__init__()
         self.tvName = '南宁电视台'
         self.area = '中国,广西,南宁'
-        self.order = PRIOR_TV
+        self.order = PRIOR_DEFTV
 
         self.cmd['source'] = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=104'
 

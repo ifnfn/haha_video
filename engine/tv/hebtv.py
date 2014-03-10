@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .tvielivetv import ParserTVIELivetv
-from .common import PRIOR_TV
+from .common import PRIOR_DEFTV
 from kola import LivetvMenu
 
 
@@ -12,7 +12,7 @@ class ParserHeBeiLivetv(ParserTVIELivetv):
         super().__init__('api.hebtv.com')
         self.tvName = '河北电视台'
         self.area = '中国,河北'
-        self.order = PRIOR_TV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '河北卫视-标清' : '河北卫视',

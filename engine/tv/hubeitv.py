@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .tvielivetv import ParserTVIELivetv
-from .common import PRIOR_TV
+from .common import PRIOR_DEFTV
 from kola import LivetvMenu
 
 
@@ -12,7 +12,7 @@ class ParserHuBeiLivetv(ParserTVIELivetv):
         super().__init__('59.175.153.182')
         self.tvName = '湖北电视台'
         self.area = '中国,湖北'
-        self.order = PRIOR_TV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             'CCTV13' : 'CCTV-13 新闻',

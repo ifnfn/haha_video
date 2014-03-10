@@ -3,7 +3,7 @@
 
 from kola import LivetvMenu, utils
 
-from .common import PRIOR_TV
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 from bs4 import BeautifulSoup as bs
 
@@ -14,7 +14,7 @@ class LiaoningLivetvParser(LivetvParser):
         super().__init__()
         self.tvName = '辽宁电视台'
         self.area = '中国,辽宁'
-        self.order = PRIOR_TV
+        self.order = PRIOR_DEFTV
 
         self.Alias = {
             '辽宁北方' : '辽宁-北方',

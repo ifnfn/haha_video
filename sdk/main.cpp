@@ -324,7 +324,7 @@ void test_video(const char *menuName)
 	}
 #endif
 	AlbumPage &page = m->GetPage();
-#if 1
+#if 0
 	Player player;
 
 	for (int i = 0; i < page.Count(); i++) {
@@ -360,6 +360,8 @@ void test_video(const char *menuName)
 #endif
 	}
 #endif
+
+#if 0
 	PictureIterator x(&page, PIC_LARGE);
 
 	while (x.size() > 0) {
@@ -371,6 +373,7 @@ void test_video(const char *menuName)
 					picture.GetSize());
 		}
 	}
+#endif
 
 #if 0
 	size_t count = page.PictureCount();

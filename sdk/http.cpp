@@ -5,7 +5,7 @@
 
 #include "http.hpp"
 
-#define NETWORK_TIMEOUT 10
+#define NETWORK_TIMEOUT 15
 #define TRY_TIME 1
 typedef unsigned char BYTE;
 
@@ -239,8 +239,13 @@ const char *Http::curlGetCurlURL(int times)
 	res = curl_easy_perform(curl);
 	if ( res ) {
 		printf("curlGetCurlURL: %s, cant perform curl: %s\n", url.c_str(), errormsg);
+		if (download_cancel == 1)
+			return NULL;
 		return curlGetCurlURL(times + 1);
 	}
+
+	if (download_cancel == 1)
+		return NULL;
 
 	if (buffer.mem == NULL)
 		return curlGetCurlURL(times + 1);

@@ -225,23 +225,26 @@ void test_picture(const char *menuName)
 		return;
 
 	size_t count = m->GetAlbumCount();
+	FileResource picture[10000];
 	for (int i=0; i < count; i++) {
 		IAlbum *album = m->GetAlbum(i);
 		if (album) {
 			printf("[%d] %s\n", i, album->albumName.c_str());
-#if 0
-			FileResource picture;
+			FileResource &pic = picture[0];
+#if 1
 
-			if (album->GetPictureFile(picture, PIC_LARGE) == true) {
-				picture.Wait();
-				if (picture.isCached()) {
+			if (album->GetPictureFile(pic, PIC_LARGE) == true) {
+				pic.Wait();
+				if (pic.isCached()) {
 					printf("[%d] %s: size=%ld\n", i,
-					       picture.GetName().c_str(),
-					       picture.GetSize());
+					       pic.GetName().c_str(),
+					       pic.GetSize());
 				}
 			}
 #endif
 		}
+//		if (i > 100)
+//			break;
 	}
 }
 

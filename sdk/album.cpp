@@ -151,11 +151,8 @@ void KolaAlbum::Parser(json_t *js)
 		json_t *values;
 
 		SourceList.clear();
-		json_object_foreach(sub, key, values) {
-//			char *text = json_dumps(values, 0);
-//			printf("%s: %s\n", key, text);
+		json_object_foreach(sub, key, values)
 			SourceList.insert(pair<string, Variant>(key, Variant(values)));
-		}
 	}
 
 	sub = json_geto(js, "sources");
@@ -268,32 +265,6 @@ void AlbumPage::Run(void)
 	}
 }
 
-size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
-{
-	pictureCount = 0;
-	KolaClient &kola = KolaClient::Instance();
-
-	if (menu == NULL || menu->PictureCacheType == PIC_DISABLE)
-		return 0;
-
-	mutex.lock();
-
-	for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
-		string &url = (*it)->GetPictureUrl(type);
-		if (not url.empty()) {
-			Resource *res = kola.resManager->GetResource(url);
-
-//			if (res)
-//				res->DecRefCount();
-
-			pictureCount++;
-		}
-	}
-	mutex.unlock();
-
-	return pictureCount;
-}
-
 void AlbumPage::PutAlbum(IAlbum *album)
 {
 	mutex.lock();
@@ -316,6 +287,29 @@ IAlbum* AlbumPage::GetAlbum(size_t index)
 	mutex.unlock();
 
 	return album;
+}
+
+size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
+{
+	pictureCount = 0;
+	KolaClient &kola = KolaClient::Instance();
+
+	if (menu == NULL || menu->PictureCacheType == PIC_DISABLE)
+		return 0;
+
+	mutex.lock();
+
+	for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
+		string &url = (*it)->GetPictureUrl(type);
+		if (not url.empty()) {
+			kola.resManager->GetResource(url);
+
+			pictureCount++;
+		}
+	}
+	mutex.unlock();
+
+	return pictureCount;
 }
 
 void AlbumPage::Clear()
@@ -343,6 +337,7 @@ void AlbumPage::Clear()
 	for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		delete (*it);
 	}
+
 	albumList.clear();
 	pageId = -1;
 	mutex.unlock();

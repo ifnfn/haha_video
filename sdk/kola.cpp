@@ -29,7 +29,7 @@
 #endif
 
 #define MAX_THREAD_POOL_SIZE (8)
-#define MAX_CACHE_SIZE       (1024 * 1024 * 2)
+#define MAX_CACHE_SIZE       (1024 * 1024 * 1)
 
 static string loginKey;
 static string loginKeyCookie;
@@ -159,9 +159,9 @@ static int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata)
 		c_stream.opaque = Z_NULL;
 		if(deflateInit2(&c_stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
 					-MAX_WBITS, 8, Z_DEFAULT_STRATEGY) != Z_OK) return -1;
-		c_stream.next_in  = data;
-		c_stream.avail_in  = (uInt)ndata;
-		c_stream.next_out = zdata;
+		c_stream.next_in    = data;
+		c_stream.avail_in   = (uInt)ndata;
+		c_stream.next_out   = zdata;
 		c_stream.avail_out  = (uInt)*nzdata;
 
 		while (c_stream.avail_in != 0 && c_stream.total_out < *nzdata) {

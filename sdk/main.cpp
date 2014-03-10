@@ -325,7 +325,7 @@ void test_video(const char *menuName)
 			break;
 	}
 #endif
-	AlbumPage &page = m->GetPage();
+	AlbumPage *page = m->GetPage();
 #if 0
 	Player player;
 

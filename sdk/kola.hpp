@@ -363,7 +363,7 @@ public:
 	virtual bool   SetQuickFilter(string) = 0;
 	virtual void   SetSort(string v, string s="1") = 0;
 
-	virtual AlbumPage *GetPage(int pageNo = -1) = 0;
+	virtual AlbumPage &GetPage(int pageNo = -1) = 0;
 	virtual void   SetPageSize(int size) = 0;
 	virtual size_t GetPageSize() = 0;
 	virtual int    SeekByAlbumId(string vid) = 0;
@@ -438,7 +438,6 @@ public:
 	void SetMenu(IMenu *m) {
 		menu = m;
 	}
-	size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
 	IAlbum* GetAlbum(size_t index);
 
 	void PutAlbum(IAlbum *album);
@@ -453,6 +452,7 @@ private:
 	vector<IAlbum*> albumList;
 	size_t pictureCount;
 	IMenu *menu;
+	size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
 };
 
 class KolaMenu: public IMenu {
@@ -471,7 +471,7 @@ public:
 	virtual bool   SetQuickFilter(string);
 	virtual void   SetSort(string v, string s);
 
-	virtual AlbumPage *GetPage(int pageNo = -1);
+	virtual AlbumPage &GetPage(int pageNo = -1);
 	virtual void   SetPageSize(int size);
 	virtual size_t GetPageSize() { return PageSize;}
 	virtual int    SeekByAlbumId(string vid);

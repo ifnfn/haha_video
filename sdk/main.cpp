@@ -5,41 +5,6 @@
 #include "kola.hpp"
 #include "resource.hpp"
 
-void test_resource(void)
-{
-	const string f1("http://baike.baidu.com/view/1745213.htm");
-	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
-	KolaClient &kola = KolaClient::Instance();
-
-
-	ResourceManager *manage = kola.resManager;
-	manage->AddResource(f1);
-	manage->AddResource(f2);
-
-	FileResource pic;
-
-	manage->GetFile(pic, f1);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f1);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f2);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f2);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f2);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f1);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f1);
-	cout << pic.GetName() << endl;
-}
-
 void test_custommenu()
 {
 	size_t count;

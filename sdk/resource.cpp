@@ -202,10 +202,12 @@ Resource* ResourceManager::FindResource(const string &url)
 	list<Resource*>::iterator it;
 
 	Lock();
-	for (it = mResources.begin(); (it != mResources.end()) && (pRet == NULL); it++) {
-		if ((*it)->GetName() == url) {
-			pRet = (*it);
+	for (it = mResources.begin(); (it != mResources.end()); it++) {
+		pRet = (*it);
+
+		if (pRet->GetName() == url) {
 			pRet->UpdateTime();
+			break;
 		}
 	}
 
@@ -228,10 +230,23 @@ void ResourceManager::RemoveResource(Resource* res)
 	list<Resource*>::iterator it = mResources.begin();
 	for (; it != mResources.end(); it++) {
 		if (*it == res) {
-			res->DecRefCount();
 			mResources.erase(it++);
+			res->DecRefCount();
 			break;
 		}
+	}
+	Unlock();
+}
+
+void ResourceManager::Clear()
+{
+	list<Resource*>::iterator it;
+	Lock();
+	for (it = mResources.begin(); it != mResources.end();) {
+		Resource* pRet = (*it);
+
+		mResources.erase(it++);
+		pRet->DecRefCount();
 	}
 	Unlock();
 }
@@ -239,17 +254,6 @@ void ResourceManager::RemoveResource(Resource* res)
 static bool compare_nocase(const Resource* first, const Resource* second)
 {
 	return first->updateTime < second->updateTime;
-}
-
-void ResourceManager::Clear()
-{
-	list<Resource*>::iterator it;
-	for (it = mResources.begin(); it != mResources.end();) {
-		Resource* pRet = (*it);
-
-		pRet->DecRefCount();
-		mResources.erase(it++);
-	}
 }
 
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
@@ -274,8 +278,8 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
 		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now && pRet->GetStatus() == Task::StatusFinish) {
-			pRet->DecRefCount();
 			mResources.erase(it++);
+			pRet->DecRefCount();
 		}
 		else
 			it++;
@@ -285,8 +289,8 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 		pRet = (*it);
 
 		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
-			pRet->DecRefCount();
 			mResources.erase(it++);
+			pRet->DecRefCount();
 		}
 		else
 			it++;

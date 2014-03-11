@@ -31,7 +31,7 @@ class PaserVideoPage(LivetvParser):
 
         album  = self.NewAlbum(js['albumName'])
         if album == None:
-            continue
+           return
 
         v = album.NewVideo()
         v.order = self.order

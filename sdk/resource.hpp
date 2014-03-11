@@ -87,7 +87,6 @@ public:
 	virtual ~ResourceManager();
 
 	bool GetFile(FileResource& picture, const string &url);
-	Resource* AddResource(const string &url);
 	Resource* GetResource(const string &url);
 	Resource* FindResource(const string &url);
 	void RemoveResource(Resource* res);
@@ -102,6 +101,7 @@ public:
 		MaxMemory = size;
 	}
 protected:
+	Resource* AddResource(const string &url);
 	list<Resource*> mResources;
 	size_t MaxMemory;
 	size_t UseMemory;

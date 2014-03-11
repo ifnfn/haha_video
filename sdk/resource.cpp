@@ -209,6 +209,8 @@ Resource* ResourceManager::FindResource(const string &url)
 			pRet->UpdateTime();
 			break;
 		}
+
+		pRet = NULL;
 	}
 
 	Unlock();

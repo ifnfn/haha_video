@@ -10,6 +10,7 @@ TVOrder = [
     "CCTV-4 (欧洲)",
     "CCTV-4 (美洲)",
     "CCTV-5 体育",
+    "CCTV-5+ 体育",
     "CCTV-6 电影",
     "CCTV-7 军事农业",
     "CCTV-8 电视剧",

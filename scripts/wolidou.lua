@@ -61,7 +61,7 @@ local function basic_1(video_url)
 	--geturl
 	local ret = {}
 	ret.headers = {}
-	c2:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) print(str) end })
+	c2:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
 
 	if ret.headers.Location ~= 'http://www.wolidou.com/live.mp4' then
 		return ret.headers.Location
@@ -70,14 +70,12 @@ local function basic_1(video_url)
 	return ""
 end
 
-
 local function sdsj_url(video_url)
 	local s = cURL.share_init()
 	s:setopt_share("COOKIE")
 	s:setopt_share("DNS")
 
 	video_url = string.format("%s&ts=%d", video_url, kola.gettime() * 1000)
-	print(video_url)
 	local c = curl_key(s)
 	local c2 = curl_init(s, video_url)
 
@@ -89,24 +87,46 @@ local function sdsj_url(video_url)
 	c2:perform({writefunction=function(str) ret = ret .. str end })
 
 	if ret then
-	local data_obj = cjson.decode(text)
+		local data_obj = cjson.decode(ret)
 
-	if data_obj == nil then
-		return ''
+		if data_obj ~= nil then
+			return data_obj.wolidou
+		end
 	end
 
-	video_url = data_obj.u
+	return ''
+end
+
+local function sxmsp_url(video_url)
+	local s = cURL.share_init()
+	s:setopt_share("COOKIE")
+	s:setopt_share("DNS")
+
+	local c2 = curl_init(s, video_url)
+
+	--geturl
+	local ret = {}
+	ret.headers = {}
+	c2:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
 
 	if ret.headers.Location ~= 'http://www.wolidou.com/live.mp4' then
 		return ret.headers.Location
 	end
+
+	return ""
 end
 
 function get_video_url(video_url)
-	if string.find(video_url, 'http://www.wolidou.com/c/basic') or string.find(video_url, 'http://www.wolidou.com/s/dxcctv.php') then
+	if string.find(video_url, 'http://www.wolidou.com/c/basic') then
 		return basic_1(video_url)
-	elseif string.find(video_url, 'http://www.wolidou.com/s/sdsj.php') then
+	elseif string.find(video_url, 'http://www.wolidou.com/s/sdsj.php') or
+		string.find(video_url, 'http://www.wolidou.com/s/dxcctv.php') or
+		string.find(video_url, 'http://www.wolidou.com/s/yu.php') then
 		return sdsj_url(video_url)
+	elseif string.find(video_url, 'http://wolidou.gotoip3.com/sxmsp.php') then
+		return sxmsp_url(video_url)
+	elseif string.find(video_url, 'rtmp://') then
+		return video_url
 	else
 		return video_url
 	end

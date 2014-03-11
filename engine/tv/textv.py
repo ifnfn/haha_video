@@ -16,7 +16,6 @@ class TextLivetvParser(LivetvParser):
             '沈阳-新闻频道' : ('http://streamer.csytv.com/live/1?fmt=h264_800k_flv', {}),
             '沈阳-经济频道' : ('http://streamer.csytv.com/live/2?fmt=h264_800k_flv', {}),
             '沈阳-公共频道' : ('http://streamer.csytv.com/live/3?fmt=h264_800k_flv', {}),
-            'CCTV-1 综合': ('rtmp://live.asbctv.com/livepkgr/_definst_/2013asUBiNYsYoats8AbvqT0mfBclSk246JHoLj0TIibO37R3zdi13', {}),
         }
 
         self.cmd['text'] = 'OK'

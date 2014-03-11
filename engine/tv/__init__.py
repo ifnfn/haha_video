@@ -28,6 +28,7 @@ from .yntv import YunNanLiveTV
 from .zhjiantv import ZheJianLiveTV
 from .shangdongtv import ShangDongLiveTV
 from .wolidou import WolidouLiveTV
+from .hunantv import HuNanLiveTV
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
@@ -40,7 +41,6 @@ class LiveEngine(VideoEngine):
         self.parserList = []
 
         self.LiveEngines = {
-            '江苏'  : JianSuLiveTV,
             '浙江'  : ZheJianLiveTV,
             '安徽'  : AnHuiLiveTV,
             '吉林'  : JilingLiveTV,
@@ -55,11 +55,13 @@ class LiveEngine(VideoEngine):
             '黑龙江': HeiLongJiangLiveTV,
             '江西'  : JianXiLiveTV,
             '湖北'  : HuBeiLiveTV,
+            '湖南' : HuNanLiveTV,
             '河北'  : HeBeiLiveTV,
             '云南'  : YunNanLiveTV,
             '山东' :  ShangDongLiveTV,
             '文本'  : TextLiveTV,
-            '私有' : WolidouLiveTV,
+            #'私有' : WolidouLiveTV,
+            #'江苏'  : JianSuLiveTV,
             #'广西' : GuangXiLiveTV,
             #'新疆' : XinJianLiveTV,
             #'Letv' : LetvLiveTV,

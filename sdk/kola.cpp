@@ -47,7 +47,6 @@ static int    ThreadNum = 8;
  */
 static bool GetCPUID(string &CPUID, ssize_t len)
 {
-#ifdef LINUX
 	int fd;
 	uint8_t *data;
 
@@ -68,9 +67,6 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 	}
 	free(data);
 
-#else
-	CPUID = "000002";
-#endif
 	return true;
 }
 

@@ -235,11 +235,13 @@ string &KolaAlbum::GetPictureUrl(enum PicType type)
 
 bool KolaAlbum::GetPictureFile(FileResource& picture, enum PicType type)
 {
-	string &fileName = GetPictureUrl(type);
+	if (type != PIC_DISABLE) {
+		string &fileName = GetPictureUrl(type);
 
-	if (not fileName.empty()) {
-		KolaClient &kola = KolaClient::Instance();
-		return kola.resManager->GetFile(picture, fileName);
+		if (not fileName.empty()) {
+			KolaClient &kola = KolaClient::Instance();
+			return kola.resManager->GetFile(picture, fileName);
+		}
 	}
 
 	return false;

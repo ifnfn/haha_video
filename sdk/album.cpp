@@ -322,17 +322,8 @@ void AlbumPage::Clear()
 	if (menu && menu->PictureCacheType != PIC_DISABLE) {
 		for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 			string &url = (*it)->GetPictureUrl(menu->PictureCacheType);
-			if (not url.empty()) {
-				Resource *res = kola.resManager->FindResource(url);
-				if (res) {
-					if (kola.threadPool->removeTask(res))
-						kola.resManager->RemoveResource(res);
-					else
-						res->Cancel();
-
-					res->DecRefCount();
-				}
-			}
+			if (not url.empty())
+				kola.resManager->RemoveResource(url);
 		}
 	}
 

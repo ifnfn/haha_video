@@ -12,16 +12,22 @@ void KolaMenu::init()
 	albumCount = 0;
 	PictureCacheType = PIC_LARGE;
 
-	cur = &pageCache[0];
-	for (int i=0; i < PAGE_CACHE; i++)
-		pageCache[i].SetMenu(this);
-
 	client = &KolaClient::Instance();
+	cur = &pageCache[0];
+	for (int i=0; i < PAGE_CACHE; i++) {
+		pageCache[i].SetMenu(this);
+		pageCache[i].SetPool(client->threadPool);
+	}
+
 }
 
 KolaMenu::KolaMenu()
 {
 	init();
+}
+
+KolaMenu::~KolaMenu(void)
+{
 }
 
 void KolaMenu::Parser(json_t *js)

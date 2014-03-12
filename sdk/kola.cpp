@@ -223,8 +223,8 @@ KolaClient::KolaClient(void)
 	debug = 0;
 	connected = false;
 
-	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
-	resManager = new ResourceManager(MAX_CACHE_SIZE);
+	resManager = new ResourceManager(MAX_THREAD_POOL_SIZE, MAX_CACHE_SIZE);
+	threadPool = new ThreadPool(1);
 
 	LoginOne();
 	thread = new Thread(this, &KolaClient::Login);

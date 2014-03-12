@@ -5,6 +5,15 @@
 
 extern string MD5STR(const char *data);
 
+Resource::Resource(ResourceManager *manage)
+{
+	manager = manage;
+	miDataSize = 0;
+	ExpiryTime = 0;
+	UpdateTime();
+	SetPool(manager->threadPool);
+}
+
 Resource::~Resource()
 {
 	if (manager && miDataSize > 0)
@@ -42,12 +51,13 @@ void Resource::Cancel()
 {
 	if (status != Task::StatusFinish) {
 		http.Cancel();
-		Wait();
+		//Wait();
 	}
 }
 
 void Resource::Run(void)
 {
+	IncRefCount();
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		this->ExpiryTime = http.Headers.GetExpiryTime();
@@ -63,6 +73,8 @@ void Resource::Run(void)
 			}
 		}
 	}
+
+	DecRefCount();
 }
 
 string Resource::ToString()
@@ -136,9 +148,10 @@ void FileResource::Wait()
 		res->Wait();
 }
 
-ResourceManager::ResourceManager(size_t memory) : MaxMemory(memory), UseMemory(0)
+ResourceManager::ResourceManager(int thread_num, size_t memory) : MaxMemory(memory), UseMemory(0)
 {
 	pthread_mutex_init(&lock, NULL);
+	threadPool = new ThreadPool(thread_num);
 }
 
 ResourceManager::~ResourceManager()
@@ -151,6 +164,7 @@ ResourceManager::~ResourceManager()
 	}
 	mResources.clear();
 	Unlock();
+	delete threadPool;
 	pthread_mutex_destroy(&lock);
 }
 
@@ -194,6 +208,23 @@ Resource* ResourceManager::GetResource(const string &url)
 		pResource->IncRefCount();
 
 	return pResource;
+}
+
+bool ResourceManager::RemoveResource(const string &url)
+{
+	Resource *res = FindResource(url);
+	if (res) {
+		if (threadPool->removeTask(res))
+			RemoveResource(res);
+		else
+			res->Cancel();
+
+		res->DecRefCount();
+
+		return true;
+	}
+
+	return false;
 }
 
 Resource* ResourceManager::FindResource(const string &url)

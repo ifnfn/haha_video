@@ -72,7 +72,7 @@ public:
 		StatusDownloading = 1,
 		StatusFinish = 2,
 	};
-	Task();
+	Task(ThreadPool *pool=NULL);
 	virtual ~Task();
 	virtual void Run(void) = 0;
 	virtual void operator()();
@@ -82,9 +82,11 @@ public:
 	void Wait();
 	void Reset();
 	void Wakeup();
+	void SetPool(ThreadPool *pool) {this->pool = pool;}
 	enum TaskStatus status;
 protected:
 	ConditionVar *_condvar;
+	ThreadPool *pool;
 };
 
 class ScriptCommand {
@@ -399,11 +401,11 @@ public:
 	virtual size_t GetSource(StringList &sources); // 获取节目的节目来源列表
 	virtual bool SetSource(string source);         // 设置节目来源，为""时，使用默认来源
 	virtual bool GetPictureFile(FileResource& picture, enum PicType type);
-	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO);
 	virtual IVideo *GetVideo(size_t id);
 private:
 	void VideosClear();
 	bool LowVideoGetPage(size_t pageNo, size_t pageSize);
+	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO);
 
 	int cid;
 	vector<IVideo*> videoList;
@@ -411,6 +413,7 @@ private:
 	size_t totalSet;         // 总集数
 	size_t updateSet;        // 当前更新集
 	string videoPlayUrl;
+
 	string largePicUrl;      // 大图片网址
 	string smallPicUrl;      // 小图片网址
 	string largeHorPicUrl;
@@ -418,7 +421,6 @@ private:
 	string largeVerPicUrl;
 	string smallVerPicUrl;
 
-	string defaultPageUrl;   // 当前播放集
 	bool   directVideos;
 	size_t videoPageSize;
 	size_t videoPageId;
@@ -458,7 +460,7 @@ private:
 class KolaMenu: public IMenu {
 public:
 	KolaMenu();
-	virtual ~KolaMenu(void) {}
+	virtual ~KolaMenu(void);
 
 	virtual void Parser(json_t *js);
 

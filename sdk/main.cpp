@@ -189,6 +189,7 @@ void test_picture(const char *menuName)
 	if (m == NULL)
 		return;
 
+	//m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
 	FileResource picture[10000];
 	for (int i=0; i < count; i++) {

@@ -124,7 +124,7 @@ Curl::~Curl() {
 	pthread_mutex_destroy(&lock);
 }
 
-CURL *Curl::GetCurl(const char *url) {
+CURL *Curl::GetCurl() {
 	CURL *curl = curl_easy_init();
 
 	if ( curl ) {
@@ -137,44 +137,23 @@ CURL *Curl::GetCurl(const char *url) {
 		curl_easy_setopt(curl, CURLOPT_BUFFERSIZE       , 1024 * 8);
 		if (curlinfo->features & CURL_VERSION_LIBZ)
 			curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING , "gzip,deflate");
-
-		if (url && strlen(url) > 0)
-			curl_easy_setopt(curl, CURLOPT_URL, url);
 	}
 
 	return curl;
 }
 
-Http::Http(const char *url)
+Http::Http()
 {
 	download_cancel = 0;
 	msg = CURLMSG_NONE;
 	status = 0;
 	httpcode = 0;
-
-	if (url)
-		this->url = url;
-
-	curl = Curl::Instance()->GetCurl(url);
-
-	if ( curl) {
-		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
-		curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
-
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION   , curlWriteCallback);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA       , (void*)this);
-
-		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION  , curlHeaderCallbck);
-		curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
-	}
-	else
-		syslog(LOG_ERR, "wget: cant initialize curl!");
+	curl = NULL;
 }
 
 Http::~Http()
 {
-	if (curl)
-		curl_easy_cleanup(curl);
+	Close();
 }
 
 void Http::SetCookie(const char *cookie)
@@ -189,16 +168,56 @@ void Http::SetReferer(const char *referer)
 		SetOpt(CURLOPT_REFERER, referer);
 }
 
-void Http::Set(const char *url, const char *cookie, const char *referer)
+void Http::SetOpt(CURLoption option, const char *value)
+{
+	if (curl)
+		curl_easy_setopt(curl, option, value);
+}
+
+void Http::SetOpt(CURLoption option, int value)
+{
+	if (curl)
+		curl_easy_setopt(curl, option, value);
+}
+
+
+bool Http::Open(const char *url, const char *cookie, const char *referer)
 {
 	if (url && strlen(url) > 0) {
 		this->url = url;
-		SetOpt(CURLOPT_URL, url);
+		if (curl == NULL)
+			curl = Curl::Instance()->GetCurl();
+
+		if ( curl) {
+			curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
+			curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
+
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION   , curlWriteCallback);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA       , (void*)this);
+
+			curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION  , curlHeaderCallbck);
+			curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
+			SetOpt(CURLOPT_URL, url);
+			SetCookie(cookie);
+			SetReferer(referer);
+
+			return true;
+		}
+		else
+			syslog(LOG_ERR, "wget: cant initialize curl!");
 	}
 
-	SetCookie(cookie);
-	SetReferer(referer);
+	return false;
 }
+
+void Http::Close()
+{
+	if (curl) {
+		curl_easy_cleanup(curl);
+		curl = NULL;
+	}
+}
+
 
 size_t Http::curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
@@ -265,18 +284,26 @@ end:
 
 const char *Http::Get(const char *url)
 {
-	Set(url);
+	const char *data;
+	Open(url);
 
-	return curlGetCurlURL();
+	data = curlGetCurlURL();
+	Close();
+
+	return data;
 }
 
 const char *Http::Post(const char *url, const char *postdata)
 {
-	Set(url);
+	const char *data;
+	Open(url);
 	SetOpt(CURLOPT_POST, 1);
 	SetOpt(CURLOPT_POSTFIELDS, postdata);
 
-	return curlGetCurlURL();
+	data = curlGetCurlURL();
+	Close();
+
+	return data;
 }
 
 void Http::Cancel()

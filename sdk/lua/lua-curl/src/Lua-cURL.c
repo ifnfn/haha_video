@@ -354,7 +354,8 @@ LUACURL_API int luaopen_cURL(lua_State* L) {
   lua_setglobal(L,LUACURL_LIBNAME);
 
   /* initialize curl once */
-  if ((rc = curl_global_init(CURL_GLOBAL_ALL)) != CURLE_OK)
-    luaL_error(L, "curl_global_init: %s", curl_easy_strerror(rc));
+  // 已经在kola库中初始化
+  //if ((rc = curl_global_init(CURL_GLOBAL_ALL)) != CURLE_OK)
+  //  luaL_error(L, "curl_global_init: %s", curl_easy_strerror(rc));
   return 1;
 }

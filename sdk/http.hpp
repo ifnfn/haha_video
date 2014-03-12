@@ -20,7 +20,7 @@ class Curl {
 public:
 	~Curl();
 	static Curl* Instance(void);
-	CURL *GetCurl(const char *url);
+	CURL *GetCurl();
 private:
 	Curl();
 	static void my_lock(CURL *handle, curl_lock_data data, curl_lock_access laccess, void *useptr) {
@@ -73,18 +73,19 @@ public:
 
 class Http {
 public:
-	Http(const char *url=NULL);
+	Http();
 	~Http();
 
-	void Set(const char *url, const char *cookie=NULL, const char *referer=NULL);
+	bool Open(const char *url, const char *cookie=NULL, const char *referer=NULL);
+	void Close();
 	void SetCookie(const char *cookie);
 	void SetReferer(const char *referer);
 
 	const char *Get(const char *url=NULL);
 	const char *Post(const char *url, const char *postdata);
 
-	void SetOpt(CURLoption option, const char *value) { curl_easy_setopt(curl, option, value); }
-	void SetOpt(CURLoption option, int value)         { curl_easy_setopt(curl, option, value); }
+	void SetOpt(CURLoption option, const char *value);
+	void SetOpt(CURLoption option, int value);
 
 	HttpBuffer& Data() { return buffer; }
 	HttpBuffer buffer;

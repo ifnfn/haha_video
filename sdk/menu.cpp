@@ -11,6 +11,11 @@ void KolaMenu::init()
 	PageSize = DEFAULT_PAGE_SIZE;
 	albumCount = 0;
 	PictureCacheType = PIC_LARGE;
+}
+
+KolaMenu::KolaMenu()
+{
+	init();
 
 	client = &KolaClient::Instance();
 	cur = &pageCache[0];
@@ -18,12 +23,6 @@ void KolaMenu::init()
 		pageCache[i].SetMenu(this);
 		pageCache[i].SetPool(client->threadPool);
 	}
-
-}
-
-KolaMenu::KolaMenu()
-{
-	init();
 }
 
 KolaMenu::~KolaMenu(void)

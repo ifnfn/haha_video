@@ -5,11 +5,17 @@
 
 #include "http.hpp"
 
-#define NETWORK_TIMEOUT 10
+#define NETWORK_TIMEOUT 15
 #define TRY_TIME 1
+typedef unsigned char BYTE;
 
 inline static unsigned char toHex(unsigned char x) {
 	return x > 9 ? x + 55 : x + 48;
+}
+
+inline BYTE fromHex(const BYTE &x)
+{
+        return isdigit(x) ? x-'0' : x-'A'+10;
 }
 
 string UrlEncode(const string & sIn)
@@ -34,22 +40,23 @@ string UrlEncode(const string & sIn)
 	return sOut;
 }
 
-string UrlDecode(const string & sIn)
+string UrlDecode(const string &sIn)
 {
 	string sOut;
 
-	for(size_t i = 0; i < sIn.size(); i++) {
-		unsigned char buf[4];
-		memset(buf, 0, 4);
-		if( isalnum( sIn[i] ) )
-			buf[0] = sIn[i];
-		else if ( '+'==( sIn[i] ) )
-			buf[0] = ' ';
-		else {
-			buf[0] = toHex( sIn[i + 1] << 4 );
-			buf[1] = toHex( sIn[i]);
+	for( size_t ix = 0; ix < sIn.size(); ix++ ) {
+		BYTE ch = 0;
+		if(sIn[ix]=='%') {
+			ch = (fromHex(sIn[ix+1])<<4);
+			ch |= fromHex(sIn[ix+2]);
+			ix += 2;
 		}
-		sOut += (char *)buf;
+		else if(sIn[ix] == '+')
+			ch = ' ';
+		else
+			ch = sIn[ix];
+
+		sOut += (char)ch;
 	}
 
 	return sOut;
@@ -127,6 +134,7 @@ CURL *Curl::GetCurl(const char *url) {
 		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "KolaClient");
 		curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
 		curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
+		curl_easy_setopt(curl, CURLOPT_BUFFERSIZE       , 1024 * 8);
 		if (curlinfo->features & CURL_VERSION_LIBZ)
 			curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING , "gzip,deflate");
 
@@ -223,6 +231,7 @@ size_t Http::curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data)
 const char *Http::curlGetCurlURL(int times)
 {
 	CURLcode res;
+	const char *data = NULL;
 
 	if (times >= TRY_TIME)
 		return NULL;
@@ -232,7 +241,13 @@ const char *Http::curlGetCurlURL(int times)
 	res = curl_easy_perform(curl);
 	if ( res ) {
 		printf("curlGetCurlURL: %s, cant perform curl: %s\n", url.c_str(), errormsg);
+		if (download_cancel == 1)
+			goto end;
 		return curlGetCurlURL(times + 1);
+	}
+
+	if (download_cancel == 1) {
+		goto end;
 	}
 
 	if (buffer.mem == NULL)
@@ -240,10 +255,12 @@ const char *Http::curlGetCurlURL(int times)
 
 	if (this->httpcode != 200 && this->httpcode != 304) {
 		buffer.reset();
-		return NULL;
+		goto end;
 	}
-
-	return buffer.mem;
+	data = buffer.mem;
+end:
+	status = CURLMSG_DONE;
+	return data;
 }
 
 const char *Http::Get(const char *url)

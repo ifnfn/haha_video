@@ -472,7 +472,7 @@ static void json_append_string(lua_State *l, strbuf_t *json, int lindex)
      * This buffer is reused constantly for small strings
      * If there are any excess pages, they won't be hit anyway.
      * This gains ~5% speedup. */
-    strbuf_ensure_empty_length(json, len * 6 + 2);
+    strbuf_ensure_empty_length(json, (int)(len * 6 + 2));
 
     strbuf_append_char_unsafe(json, '\"');
     for (i = 0; i < len; i++) {
@@ -876,7 +876,7 @@ static void json_set_token_error(json_token_t *token, json_parse_t *json,
                                  const char *errtype)
 {
     token->type = T_ERROR;
-    token->index = json->ptr - json->data;
+    token->index = (int)(json->ptr - json->data);
     token->value.string = errtype;
 }
 
@@ -1025,7 +1025,7 @@ static void json_next_token(json_parse_t *json, json_token_t *token)
 
     /* Store location of new token. Required when throwing errors
      * for unexpected tokens (syntax errors). */
-    token->index = json->ptr - json->data;
+    token->index = (int)(json->ptr - json->data);
 
     /* Don't advance the pointer for an error or the end */
     if (token->type == T_ERROR) {
@@ -1272,7 +1272,7 @@ static int json_decode(lua_State *l)
     /* Ensure the temporary buffer can hold the entire string.
      * This means we no longer need to do length checks since the decoded
      * string must be smaller than the entire json string */
-    json.tmp = strbuf_new(json_len);
+    json.tmp = strbuf_new((int)json_len);
 
     json_next_token(&json, &token);
     json_process_value(l, &json, &token);

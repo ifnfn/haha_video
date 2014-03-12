@@ -4,40 +4,21 @@
 #include "http.hpp"
 #include "kola.hpp"
 #include "resource.hpp"
+#include "script.hpp"
 
-void test_resource(void)
+void test_script(KolaClient &kola)
 {
-	const string f1("http://baike.baidu.com/view/1745213.htm");
-	const string f2("http://www.cnblogs.com/ider/archive/2011/08/01/cpp_cast_operator_part5.html");
-	KolaClient &kola = KolaClient::Instance();
+	LuaScript &lua = LuaScript::Instance();
 
+	vector<string> args;
+	args.push_back("http://www.wolidou.com/c/basic_1.php?u=cctv1");
+	string ret = lua.RunScript(args, "wolidou", "get_video_url");
+	cout << ret << endl;
 
-	ResourceManager *manage = kola.resManager;
-	manage->AddResource(f1);
-	manage->AddResource(f2);
-
-	FileResource pic;
-
-	manage->GetFile(pic, f1);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f1);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f2);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f2);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f2);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f1);
-	cout << pic.GetName() << endl;
-
-	manage->GetFile(pic, f1);
-	cout << pic.GetName() << endl;
+	args.clear();
+	args.push_back("http://www.wolidou.com/c/basic_1.php?u=cctv2");
+	ret = lua.RunScript(args, "wolidou", "get_video_url");
+	cout << ret << endl;
 }
 
 void test_custommenu()
@@ -212,6 +193,41 @@ void test_livetv()
 	printf("%s End!!!\n", __func__);
 }
 
+void test_picture(const char *menuName)
+{
+	IMenu* m = NULL;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+	m = kola[menuName];
+
+	if (m == NULL)
+		return;
+
+	size_t count = m->GetAlbumCount();
+	FileResource picture[10000];
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album) {
+			printf("[%d] %s\n", i, album->albumName.c_str());
+#if 0
+			FileResource &pic = picture[0];
+			if (album->GetPictureFile(pic, PIC_LARGE) == true) {
+				pic.Wait();
+				if (pic.isCached()) {
+					printf("[%d] %s: size=%ld\n", i,
+					       pic.GetName().c_str(),
+					       pic.GetSize());
+				}
+			}
+#endif
+		}
+//		if (i > 100)
+//			break;
+	}
+}
+
 void test_video(const char *menuName)
 {
 	IMenu* m = NULL;
@@ -291,7 +307,7 @@ void test_video(const char *menuName)
 	}
 #endif
 	AlbumPage &page = m->GetPage();
-#if 1
+#if 0
 	Player player;
 
 	for (int i = 0; i < page.Count(); i++) {
@@ -327,6 +343,8 @@ void test_video(const char *menuName)
 #endif
 	}
 #endif
+
+#if 0
 	PictureIterator x(&page, PIC_LARGE);
 
 	while (x.size() > 0) {
@@ -338,9 +356,10 @@ void test_video(const char *menuName)
 					picture.GetSize());
 		}
 	}
+#endif
 
 #if 0
-	count = page.PictureCount();
+	size_t count = page.PictureCount();
 	printf("Picture count %ld\n", count);
 	for (size_t i = 0; i < page.Count(); i++) {
 		IAlbum *album = page.GetAlbum(i);
@@ -360,7 +379,7 @@ void test_video(const char *menuName)
 	printf("%s End!!!\n", __func__);
 }
 
-static void test_info(KolaClient &kola)
+void test_info(KolaClient &kola)
 {
 	KolaInfo info;
 	if (kola.GetInfo(info)) {
@@ -370,7 +389,7 @@ static void test_info(KolaClient &kola)
 
 }
 
-static void test_area(KolaClient &kola)
+void test_area(KolaClient &kola)
 {
 	cout << kola.GetArea() << endl;
 	cout << kola.GetTime() << endl;
@@ -386,7 +405,7 @@ static void test_area(KolaClient &kola)
 	}
 }
 
-static void test_weather(KolaClient &kola)
+void test_weather(KolaClient &kola)
 {
 #if 0
 	StringList data;
@@ -450,20 +469,21 @@ static void test_weather(KolaClient &kola)
 
 int main(int argc, char **argv)
 {
-	KolaClient &kola = KolaClient::Instance();
-
 #if 0
+	KolaClient &kola = KolaClient::Instance();
+	test_script(kola); return 0;
+
 	test_info(kola);
 	test_area(kola);
 	test_weather(kola);
 #endif
-
-	test_custommenu();
-	printf("Test LiveTV\n"); test_livetv(); return 0;
+	test_picture("电影"); return 0;
+	//test_custommenu();
+	//printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
-	//printf("Test Video\n"); test_video("电影"); return 0;
+	printf("Test Video\n"); test_video("电影"); return 0;
 	//printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");

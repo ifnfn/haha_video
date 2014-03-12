@@ -21,7 +21,7 @@ using namespace std;
 			for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 #define DEFAULT_PAGE_SIZE 20
-#define PAGE_CACHE 5
+#define PAGE_CACHE 3
 
 class IMenu;
 class IAlbum;
@@ -438,7 +438,6 @@ public:
 	void SetMenu(IMenu *m) {
 		menu = m;
 	}
-	size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
 	IAlbum* GetAlbum(size_t index);
 
 	void PutAlbum(IAlbum *album);
@@ -453,6 +452,7 @@ private:
 	vector<IAlbum*> albumList;
 	size_t pictureCount;
 	IMenu *menu;
+	size_t CachePicture(enum PicType type); // 将图片加至线程队列，后台下载
 };
 
 class KolaMenu: public IMenu {
@@ -636,7 +636,6 @@ public:
 	inline size_t MenuCount() { return menuMap.size(); };
 	IMenu* operator[] (const char *name);
 	IMenu* operator[] (int inx);
-	bool haveCommand() { return havecmd; }
 	inline string GetFullUrl(string url);
 	bool UrlGet(string url, string &ret);
 	bool UrlPost(string url, const char *body, string &ret);
@@ -653,6 +652,8 @@ public:
 	ThreadPool *threadPool;
 	KolaWeather weather;
 	UrlCache cache;
+	string DefaultResolution;
+	string DefaultVideoSource;
 protected:
 	virtual IVideo* NewVideo() {
 		return new KolaVideo();
@@ -673,14 +674,14 @@ private:
 
 	int nextLoginSec;
 
-	bool LoginOne(bool quick=false);
+	bool LoginOne();
 	char *Run(const char *cmd);
 	bool ProcessCommand(json_t *cmd, const char *dest);
 	bool running;
 	Thread* thread;
 	Mutex mutex;
-	bool havecmd;
 	KolaInfo Info;
+	bool connected;
 
 	friend class KolaMenu;
 	friend class KolaVideo;

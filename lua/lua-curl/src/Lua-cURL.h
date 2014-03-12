@@ -115,7 +115,6 @@ int l_easy_gc (lua_State *L);
 int l_setopt(lua_State *L);
 int l_getopt(lua_State *L);
 
-
 #define LUACURL_LIB
 
 #if defined(BUILD_AS_DLL) && defined(WIN32)

@@ -148,13 +148,13 @@ static const luaL_Reg lualibs[] = {
 	{LUA_STRLIBNAME , luaopen_string    },
 	{LUA_MATHLIBNAME, luaopen_math      },
 	{LUA_DBLIBNAME  , luaopen_debug     },
+	{LUA_COLIBNAME  , luaopen_coroutine },
 	{"kola"         , luaopen_kola      },
 	{"cjson"        , luaopen_cjson     },
 	{"xml"          , luaopen_LuaXML_lib},
 	{"rex"          , luaopen_rex_pcre  },
-	//{"cURL"         , luaopen_cURL      },
+	{"cURL"         , luaopen_cURL      },
 	//{LUA_LOADLIBNAME, luaopen_package},
-	//{LUA_COLIBNAME, luaopen_coroutine},
 	//{LUA_BITLIBNAME, luaopen_bit32},
 
 	{NULL, NULL}

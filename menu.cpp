@@ -136,6 +136,7 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 				json_t *value;
 				json_array_foreach(results, value) {
 					KolaAlbum *album = new KolaAlbum();
+					album->SetSource(client->DefaultVideoSource);
 					album->Parser(value);
 					page->PutAlbum(album);
 					cnt++;
@@ -250,15 +251,6 @@ int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageS
 	return ParserFromUrl(page, url);
 }
 
-AlbumPage &KolaMenu::GetPage(int pageNo)
-{
-	if (pageNo == -1) { // 下一页
-		pageNo = PageId + 1;
-	}
-
-	return *updateCache(pageNo);
-}
-
 AlbumPage* KolaMenu::updateCache(int pos)
 {
 	int start = 0, end = 0;
@@ -277,13 +269,6 @@ AlbumPage* KolaMenu::updateCache(int pos)
 
 	PageId = pos;
 
-	// 更新页中图片资源优先级
-	int x = pos % PAGE_CACHE;
-	for (int i = 0; i < PAGE_CACHE; i ++) {
-		pageCache[i].score = abs(i - x);
-		pageCache[i].UpdateCache();
-	}
-
 	// 更新当前页
 	cur = &pageCache[pos % PAGE_CACHE];
 	if (cur->pageId != PageId) {
@@ -298,11 +283,20 @@ AlbumPage* KolaMenu::updateCache(int pos)
 		if (pageCache[x].pageId != i) {
 			pageCache[x].Clear();
 			pageCache[x].pageId = i;
-			pageCache[x].Start(false);
+			pageCache[x].Start(true);
 		}
 	}
 
 	return cur;
+}
+
+AlbumPage &KolaMenu::GetPage(int pageNo)
+{
+	if (pageNo == -1) { // 下一页
+		pageNo = PageId + 1;
+	}
+
+	return *updateCache(pageNo);
 }
 
 IAlbum* KolaMenu::GetAlbum(size_t position)
@@ -336,6 +330,8 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 {
 	string text;
 	string vids = albumIdList.ToString();
+	if (vids.empty())
+		return;
 
 	KolaClient& kola = KolaClient::Instance();
 	if (kola.UrlPost("video/vidcheck", vids.c_str(), text) == true) {

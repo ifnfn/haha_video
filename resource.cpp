@@ -10,6 +10,7 @@ Resource::~Resource()
 	if (manager && miDataSize > 0)
 		manager->MemoryDec(miDataSize);
 
+	printf("Remove %s -> %s\n", md5Name.c_str(), resName.c_str());
 	unlink(md5Name.c_str());
 }
 
@@ -31,13 +32,22 @@ void Resource::Load(const string &url)
 {
 	resName = url;
 	string extname = StringGetFileExt(url);
+	md5Name = "";
+	md5Name.assign(MD5STR(resName.c_str()), 0, 15);
 
-	md5Name = "/tmp/" + MD5STR(resName.c_str()) + extname;
+	md5Name = "/tmp/" + md5Name + extname;
+}
+
+void Resource::Cancel()
+{
+	if (status != Task::StatusFinish) {
+		http.Cancel();
+		Wait();
+	}
 }
 
 void Resource::Run(void)
 {
-	Http http;
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		this->ExpiryTime = http.Headers.GetExpiryTime();
@@ -169,7 +179,7 @@ Resource* ResourceManager::AddResource(const string &url)
 	Lock();
 	mResources.insert(mResources.end(), pResource);
 	Unlock();
-	pResource->Start(true);
+	pResource->Start(false);
 
 	return pResource;
 }
@@ -179,10 +189,9 @@ Resource* ResourceManager::GetResource(const string &url)
 	Resource* pResource = dynamic_cast<Resource*>(FindResource(url));
 	if (pResource == NULL)
 		pResource = AddResource(url);
-//	else
-//		printf("Cached Found: %s ==> %s\n", url.c_str(), pResource->GetFileName().c_str());
 
-	pResource->IncRefCount();
+	if (pResource)
+		pResource->IncRefCount();
 
 	return pResource;
 }
@@ -193,10 +202,15 @@ Resource* ResourceManager::FindResource(const string &url)
 	list<Resource*>::iterator it;
 
 	Lock();
-	for (it = mResources.begin(); (it != mResources.end()) && (pRet == NULL); it++) {
-		if ((*it)->GetName() == url) {
-			pRet = (*it);
+	for (it = mResources.begin(); (it != mResources.end()); it++) {
+		pRet = (*it);
+
+		if (pRet->GetName() == url) {
+			pRet->UpdateTime();
+			break;
 		}
+
+		pRet = NULL;
 	}
 
 	Unlock();
@@ -218,10 +232,23 @@ void ResourceManager::RemoveResource(Resource* res)
 	list<Resource*>::iterator it = mResources.begin();
 	for (; it != mResources.end(); it++) {
 		if (*it == res) {
-			res->DecRefCount();
 			mResources.erase(it++);
+			res->DecRefCount();
 			break;
 		}
+	}
+	Unlock();
+}
+
+void ResourceManager::Clear()
+{
+	list<Resource*>::iterator it;
+	Lock();
+	for (it = mResources.begin(); it != mResources.end();) {
+		Resource* pRet = (*it);
+
+		mResources.erase(it++);
+		pRet->DecRefCount();
 	}
 	Unlock();
 }
@@ -229,28 +256,12 @@ void ResourceManager::RemoveResource(Resource* res)
 static bool compare_nocase(const Resource* first, const Resource* second)
 {
 	return first->updateTime < second->updateTime;
-	//if (first->score == second->score)
-	//	return first->GetSize() > second->GetSize();
-	//else
-	//	return first->score > second->score;
-}
-
-void ResourceManager::Clear()
-{
-	list<Resource*>::iterator it;
-	for (it = mResources.begin(); it != mResources.end();) {
-		Resource* pRet = (*it);
-
-		pRet->DecRefCount();
-		mResources.erase(it++);
-	}
 }
 
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	Resource* pRet = NULL;
 	bool ret = true;
-	time_t now;
 
 	Lock();
 
@@ -261,15 +272,17 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 
 	mResources.sort(compare_nocase);
 
-#if 1
-	// 清除所有过期的文件
-	now = time(&now);
-
 	list<Resource*>::iterator it;
+#if 0
+	// 清除所有过期的文件
+	time_t now = time(&now);
+
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
-		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now)
+		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now && pRet->GetStatus() == Task::StatusFinish) {
 			mResources.erase(it++);
+			pRet->DecRefCount();
+		}
 		else
 			it++;
 	}
@@ -278,8 +291,8 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 		pRet = (*it);
 
 		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
-			pRet->DecRefCount();
 			mResources.erase(it++);
+			pRet->DecRefCount();
 		}
 		else
 			it++;

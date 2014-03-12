@@ -65,6 +65,14 @@
 		4473FEF6186C5AF300136610 /* video.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE89186C5AF300136610 /* video.cpp */; };
 		44E3229E188A5EBF00E9452E /* weather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44E3229D188A5EBF00E9452E /* weather.cpp */; };
 		44E920A1189264FC0076FB2A /* flv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44E9209F189264FC0076FB2A /* flv.cpp */; };
+		44F12AD718CDED1F00C87B7D /* Lua-cURL-callback.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12ACC18CDED1F00C87B7D /* Lua-cURL-callback.c */; };
+		44F12AD818CDED1F00C87B7D /* Lua-cURL-getinfo.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12ACD18CDED1F00C87B7D /* Lua-cURL-getinfo.c */; };
+		44F12AD918CDED1F00C87B7D /* Lua-cURL-multi.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12ACE18CDED1F00C87B7D /* Lua-cURL-multi.c */; };
+		44F12ADA18CDED1F00C87B7D /* Lua-cURL-post.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12ACF18CDED1F00C87B7D /* Lua-cURL-post.c */; };
+		44F12ADB18CDED1F00C87B7D /* Lua-cURL-setopt.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12AD018CDED1F00C87B7D /* Lua-cURL-setopt.c */; };
+		44F12ADC18CDED1F00C87B7D /* Lua-cURL-share.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12AD118CDED1F00C87B7D /* Lua-cURL-share.c */; };
+		44F12ADD18CDED1F00C87B7D /* Lua-cURL.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12AD318CDED1F00C87B7D /* Lua-cURL.c */; };
+		44F12ADE18CDED1F00C87B7D /* Lua-utility.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12AD518CDED1F00C87B7D /* Lua-utility.c */; };
 		44F2E43B187A99E200B05FDB /* resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44F2E439187A99E200B05FDB /* resource.cpp */; };
 /* End PBXBuildFile section */
 
@@ -91,7 +99,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		443C706318C454C6002EBFC2 /* kolatv Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kolatv Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		445169DF18C97387003D671D /* lpcre_f.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lpcre_f.c; sourceTree = "<group>"; };
 		445169E018C97387003D671D /* lpcre.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lpcre.c; sourceTree = "<group>"; };
 		445169E318C97843003D671D /* algo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = algo.h; sourceTree = "<group>"; };
@@ -184,10 +191,22 @@
 		4473FE87186C5AF300136610 /* threadpool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = threadpool.cpp; sourceTree = "<group>"; };
 		4473FE88186C5AF300136610 /* threadpool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = threadpool.hpp; sourceTree = "<group>"; };
 		4473FE89186C5AF300136610 /* video.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video.cpp; sourceTree = "<group>"; };
+		44B61A4418C9A478001EF652 /* kolatv Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kolatv Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		44C557D418910E7300D3F5EC /* kolatv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = kolatv; sourceTree = BUILT_PRODUCTS_DIR; };
 		44E3229D188A5EBF00E9452E /* weather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = weather.cpp; sourceTree = "<group>"; };
 		44E9209F189264FC0076FB2A /* flv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = flv.cpp; sourceTree = "<group>"; };
 		44E920A0189264FC0076FB2A /* flv.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = flv.hpp; sourceTree = "<group>"; };
+		44F12ACC18CDED1F00C87B7D /* Lua-cURL-callback.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-callback.c"; path = "src/Lua-cURL-callback.c"; sourceTree = "<group>"; };
+		44F12ACD18CDED1F00C87B7D /* Lua-cURL-getinfo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-getinfo.c"; path = "src/Lua-cURL-getinfo.c"; sourceTree = "<group>"; };
+		44F12ACE18CDED1F00C87B7D /* Lua-cURL-multi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-multi.c"; path = "src/Lua-cURL-multi.c"; sourceTree = "<group>"; };
+		44F12ACF18CDED1F00C87B7D /* Lua-cURL-post.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-post.c"; path = "src/Lua-cURL-post.c"; sourceTree = "<group>"; };
+		44F12AD018CDED1F00C87B7D /* Lua-cURL-setopt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-setopt.c"; path = "src/Lua-cURL-setopt.c"; sourceTree = "<group>"; };
+		44F12AD118CDED1F00C87B7D /* Lua-cURL-share.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-share.c"; path = "src/Lua-cURL-share.c"; sourceTree = "<group>"; };
+		44F12AD218CDED1F00C87B7D /* Lua-cURL-share.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "Lua-cURL-share.h"; path = "src/Lua-cURL-share.h"; sourceTree = "<group>"; };
+		44F12AD318CDED1F00C87B7D /* Lua-cURL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL.c"; path = "src/Lua-cURL.c"; sourceTree = "<group>"; };
+		44F12AD418CDED1F00C87B7D /* Lua-cURL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "Lua-cURL.h"; path = "src/Lua-cURL.h"; sourceTree = "<group>"; };
+		44F12AD518CDED1F00C87B7D /* Lua-utility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-utility.c"; path = "src/Lua-utility.c"; sourceTree = "<group>"; };
+		44F12AD618CDED1F00C87B7D /* Lua-utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "Lua-utility.h"; path = "src/Lua-utility.h"; sourceTree = "<group>"; };
 		44F2E439187A99E200B05FDB /* resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = resource.cpp; sourceTree = "<group>"; };
 		44F2E43A187A99E200B05FDB /* resource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = resource.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -257,13 +276,14 @@
 				4473FE83186C5AF300136610 /* script.hpp */,
 				4473FE88186C5AF300136610 /* threadpool.hpp */,
 				44C557D418910E7300D3F5EC /* kolatv */,
-				443C706318C454C6002EBFC2 /* kolatv Tests.xctest */,
+				44B61A4418C9A478001EF652 /* kolatv Tests.xctest */,
 			);
 			sourceTree = "<group>";
 		};
 		4473FDE7186C5AF300136610 /* lua */ = {
 			isa = PBXGroup;
 			children = (
+				44F12ACB18CDECC500C87B7D /* lua-curl */,
 				445169DE18C97330003D671D /* lua-prcre */,
 				4473FDEB186C5AF300136610 /* lua-cjson-xml */,
 				4473FE41186C5AF300136610 /* src */,
@@ -348,6 +368,24 @@
 			path = src;
 			sourceTree = "<group>";
 		};
+		44F12ACB18CDECC500C87B7D /* lua-curl */ = {
+			isa = PBXGroup;
+			children = (
+				44F12ACC18CDED1F00C87B7D /* Lua-cURL-callback.c */,
+				44F12ACD18CDED1F00C87B7D /* Lua-cURL-getinfo.c */,
+				44F12ACE18CDED1F00C87B7D /* Lua-cURL-multi.c */,
+				44F12ACF18CDED1F00C87B7D /* Lua-cURL-post.c */,
+				44F12AD018CDED1F00C87B7D /* Lua-cURL-setopt.c */,
+				44F12AD118CDED1F00C87B7D /* Lua-cURL-share.c */,
+				44F12AD218CDED1F00C87B7D /* Lua-cURL-share.h */,
+				44F12AD318CDED1F00C87B7D /* Lua-cURL.c */,
+				44F12AD418CDED1F00C87B7D /* Lua-cURL.h */,
+				44F12AD518CDED1F00C87B7D /* Lua-utility.c */,
+				44F12AD618CDED1F00C87B7D /* Lua-utility.h */,
+			);
+			path = "lua-curl";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -383,7 +421,7 @@
 			);
 			name = "kolatv Tests";
 			productName = "kolatv Tests";
-			productReference = 443C706318C454C6002EBFC2 /* kolatv Tests.xctest */;
+			productReference = 44B61A4418C9A478001EF652 /* kolatv Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -446,13 +484,16 @@
 				4473FE8A186C5AF300136610 /* album.cpp in Sources */,
 				4473FED4186C5AF300136610 /* ldebug.c in Sources */,
 				4473FEE8186C5AF300136610 /* ltm.c in Sources */,
+				44F12AD818CDED1F00C87B7D /* Lua-cURL-getinfo.c in Sources */,
 				446A5EAB188D024F0046E0E3 /* resolution.cpp in Sources */,
 				4473FE8E186C5AF300136610 /* http.cpp in Sources */,
 				4473FED3186C5AF300136610 /* ldblib.c in Sources */,
 				4473FEEF186C5AF300136610 /* menu.cpp in Sources */,
+				44F12AD918CDED1F00C87B7D /* Lua-cURL-multi.c in Sources */,
 				4473FEEB186C5AF300136610 /* lzio.c in Sources */,
 				4473FEE6186C5AF300136610 /* ltable.c in Sources */,
 				4473FED6186C5AF300136610 /* ldump.c in Sources */,
+				44F12AD718CDED1F00C87B7D /* Lua-cURL-callback.c in Sources */,
 				4473FED5186C5AF300136610 /* ldo.c in Sources */,
 				4473FEE4186C5AF300136610 /* lstring.c in Sources */,
 				4473FEDB186C5AF300136610 /* llex.c in Sources */,
@@ -461,6 +502,7 @@
 				4473FE95186C5AF300136610 /* lua_xml.c in Sources */,
 				4473FE94186C5AF300136610 /* lua_cjson.c in Sources */,
 				445169E118C97387003D671D /* lpcre_f.c in Sources */,
+				44F12ADD18CDED1F00C87B7D /* Lua-cURL.c in Sources */,
 				4473FEE3186C5AF300136610 /* lstate.c in Sources */,
 				4473FEE1186C5AF300136610 /* loslib.c in Sources */,
 				4473FED0186C5AF300136610 /* lcode.c in Sources */,
@@ -470,6 +512,7 @@
 				4473FED7186C5AF300136610 /* lfunc.c in Sources */,
 				4473FED9186C5AF300136610 /* linit.c in Sources */,
 				4473FEE5186C5AF300136610 /* lstrlib.c in Sources */,
+				44F12ADE18CDED1F00C87B7D /* Lua-utility.c in Sources */,
 				4473FEF5186C5AF300136610 /* threadpool.cpp in Sources */,
 				4473FEF1186C5AF300136610 /* script.cpp in Sources */,
 				4473FEE2186C5AF300136610 /* lparser.c in Sources */,
@@ -485,10 +528,13 @@
 				4473FECC186C5AF300136610 /* lapi.c in Sources */,
 				4473FEDE186C5AF300136610 /* loadlib.c in Sources */,
 				4473FECD186C5AF300136610 /* lauxlib.c in Sources */,
+				44F12ADC18CDED1F00C87B7D /* Lua-cURL-share.c in Sources */,
+				44F12ADA18CDED1F00C87B7D /* Lua-cURL-post.c in Sources */,
 				4473FE8F186C5AF300136610 /* json.cpp in Sources */,
 				4473FECF186C5AF300136610 /* lbitlib.c in Sources */,
 				44E3229E188A5EBF00E9452E /* weather.cpp in Sources */,
 				4473FEF6186C5AF300136610 /* video.cpp in Sources */,
+				44F12ADB18CDED1F00C87B7D /* Lua-cURL-setopt.c in Sources */,
 				4473FE90186C5AF300136610 /* kola.cpp in Sources */,
 				4473FED1186C5AF300136610 /* lcorolib.c in Sources */,
 				4473FEF3186C5AF300136610 /* stringlist.cpp in Sources */,
@@ -590,13 +636,15 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/usr/local/include,
+					/usr/local/opt/libxml2/include/libxml2/,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/lib,
+					/usr/local/opt/libxml2/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=1",
+					"-DTEST=0",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
@@ -605,6 +653,7 @@
 					"-ljansson",
 					"-lz",
 					"-lcrypto",
+					"-lxml2",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -619,6 +668,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/usr/local/include,
+					/usr/local/opt/libxml2/include/libxml2/,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -627,7 +677,7 @@
 					/usr/local/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=1",
+					"-DTEST=0",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
@@ -636,6 +686,7 @@
 					"-ljansson",
 					"-lz",
 					"-lcrypto",
+					"-lxml2",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

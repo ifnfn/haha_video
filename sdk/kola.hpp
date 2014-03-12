@@ -130,7 +130,7 @@ public:
 	void operator>> (string v);
 	bool Find(string v);
 	string ToString(string s = "", string e = "", string split = ",");
-	string ToString(int offset, int count, string s = "", string e = "", string split = ",");
+	string ToString(size_t offset, size_t count, string s = "", string e = "", string split = ",");
 	void Split(const string items, string sp=",");
 	bool SaveToFile(string fileName);
 	bool LoadFromFile(string fileName);
@@ -441,7 +441,7 @@ protected:
 private:
 	void init();
 	AlbumPage* updateCache(int pos);
-	AlbumPage pageCache[PAGE_CACHE];
+	AlbumPage  pageCache[PAGE_CACHE];
 	AlbumPage *cur;
 };
 

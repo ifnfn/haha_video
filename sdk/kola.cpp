@@ -224,6 +224,7 @@ KolaClient::KolaClient(void)
 	resManager = new ResourceManager(ThreadNum, CacheSize);
 	threadPool = new ThreadPool(1);
 
+	weather.SetPool(threadPool);
 	LoginOne();
 	thread = new Thread(this, &KolaClient::Login);
 	thread->start();

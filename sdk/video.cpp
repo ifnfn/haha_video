@@ -6,7 +6,7 @@
 #include "json.hpp"
 #include "base64.hpp"
 #include "threadpool.hpp"
-
+#include "kolabase.hpp"
 
 void KolaVideo::Parser(json_t *js)
 {
@@ -33,7 +33,8 @@ void KolaVideo::Parser(json_t *js)
 	totalBytes     = (int)json_geti(js, "totalBytes", 0);
 	fps            = (int)json_geti(js, "fps"       , 0);
 
-	json_get_variant(js, "info", &sc_info);
+	json_get_variant(js, "info", &scInfo);
+
 	json_get_variant(js, "resolution", &Resolution);
 	Resolution.vid = vid;
 }
@@ -55,7 +56,7 @@ string KolaVideo::GetVideoUrl()
 
 bool KolaVideo::GetEPG(KolaEpg &epg)
 {
-	string text = sc_info.GetString();
+	string text = scInfo.GetString();
 
 	if (not text.empty()) {
 		epg.LoadFromText(text);

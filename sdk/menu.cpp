@@ -3,6 +3,7 @@
 #include "json.hpp"
 #include "kola.hpp"
 #include "http.hpp"
+#include "kolabase.hpp"
 
 void KolaMenu::init()
 {
@@ -140,7 +141,7 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 			if (json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value) {
-					KolaAlbum *album = new KolaAlbum();
+					IAlbum *album = new KolaAlbum();
 					album->SetSource(client->DefaultVideoSource);
 					album->Parser(value);
 					page->PutAlbum(album);

@@ -376,61 +376,6 @@ public:
 	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
 };
 
-class KolaVideo: public IVideo {
-public:
-	virtual void Parser(json_t *js);
-
-	virtual void GetResolution(StringList& res);
-	virtual void SetResolution(string &res);
-	virtual string GetVideoUrl();
-	virtual string GetSubtitle(const char *lang) {return "";}
-	virtual bool GetEPG(KolaEpg &epg);
-private:
-	string directPlayUrl;
-	Variant sc_info;
-};
-
-class KolaAlbum: public IAlbum {
-public:
-	KolaAlbum();
-	virtual ~KolaAlbum();
-
-	virtual void Parser(json_t *js);
-
-	virtual size_t GetTotalSet();
-	virtual size_t GetVideoCount();
-	virtual size_t GetSource(StringList &sources); // 获取节目的节目来源列表
-	virtual bool SetSource(string source);         // 设置节目来源，为""时，使用默认来源
-	virtual bool GetPictureFile(FileResource& picture, enum PicType type);
-	virtual IVideo *GetVideo(size_t id);
-private:
-	void VideosClear();
-	bool LowVideoGetPage(size_t pageNo, size_t pageSize);
-	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO);
-
-	int cid;
-	vector<IVideo*> videoList;
-
-	size_t totalSet;         // 总集数
-	size_t updateSet;        // 当前更新集
-	string videoPlayUrl;
-
-	string largePicUrl;      // 大图片网址
-	string smallPicUrl;      // 小图片网址
-	string largeHorPicUrl;
-	string smallHorPicUrl;
-	string largeVerPicUrl;
-	string smallVerPicUrl;
-
-	bool   directVideos;
-	size_t videoPageSize;
-	size_t videoPageId;
-	map<string, Variant> SourceList;
-	string CurrentSource;   // 设置节目来源
-
-	friend class CustomMenu;
-};
-
 class AlbumPage: public Task {
 public:
 	AlbumPage();
@@ -498,13 +443,12 @@ private:
 	AlbumPage* updateCache(int pos);
 	AlbumPage pageCache[PAGE_CACHE];
 	AlbumPage *cur;
-	friend class AlbumPage;
 };
 
 class CustomMenu: public KolaMenu {
 public:
 	CustomMenu(string fileName, bool CheckFailure=true);
-	void RemoveFailure(); // 移除失效的节目
+	void RemoveFailure();         // 移除失效的节目
 	void AlbumAdd(IAlbum *album);
 	void AlbumAdd(string vid);
 	void AlbumRemove(IAlbum *album);
@@ -534,11 +478,13 @@ class KolaPlayer {
 public:
 	KolaPlayer();
 	~KolaPlayer();
-	virtual void Run();
 	virtual bool Play(string name, string url) = 0;
-	void AddVideo(IVideo *video);
-	bool DoPlay(string &name, string &url);
+	string curUrl;
 private:
+	bool DoPlay(string &name);
+	void AddVideo(IVideo *video);
+	virtual void Run();
+
 	list<VideoResolution> videoList;
 	ConditionVar *_condvar;
 	Thread* thread;
@@ -617,15 +563,7 @@ private:
 	void Clear();
 };
 
-class IClient {
-protected:
-	virtual ~IClient() {}
-	virtual IVideo* NewVideo() = 0;
-	virtual IAlbum* NewAlbum() = 0;
-	virtual IMenu* NewMenu() = 0;
-};
-
-class KolaClient: public IClient {
+class KolaClient {
 public:
 	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, size_t thread_num=0);
 	virtual ~KolaClient(void);
@@ -657,17 +595,6 @@ public:
 	UrlCache cache;
 	string DefaultResolution;
 	string DefaultVideoSource;
-protected:
-	virtual IVideo* NewVideo() {
-		return new KolaVideo();
-	}
-	virtual IAlbum* NewAlbum() {
-		return new KolaAlbum();
-	}
-	virtual IMenu* NewMenu() {
-		return new KolaMenu();
-	}
-
 private:
 	KolaClient(void);
 	void Login();
@@ -685,13 +612,6 @@ private:
 	Mutex mutex;
 	KolaInfo Info;
 	bool connected;
-
-	friend class KolaMenu;
-	friend class KolaVideo;
-	friend class KolaAlbum;
-	friend class CustomMenu;
-	friend class Picture;
-	friend class Task;
 };
 
 #endif

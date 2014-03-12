@@ -4,6 +4,7 @@
 #include "kola.hpp"
 #include "base64.hpp"
 #include "resource.hpp"
+#include "kolabase.hpp"
 
 #define VIDEO_COUNT 16
 

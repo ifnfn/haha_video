@@ -451,8 +451,8 @@ public:
 	void RemoveFailure();         // 移除失效的节目
 	void AlbumAdd(IAlbum *album);
 	void AlbumAdd(string vid);
-	void AlbumRemove(IAlbum *album);
-	void AlbumRemove(string vid);
+	void AlbumRemove(IAlbum *album,bool sync=false);
+	void AlbumRemove(string vid, bool sync=false);
 	bool SaveToFile(string otherFile = "");
 	virtual size_t GetAlbumCount();
 protected:

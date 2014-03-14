@@ -370,17 +370,18 @@ void CustomMenu::AlbumAdd(string vid)
 	albumCount = albumIdList.size();
 }
 
-void CustomMenu::AlbumRemove(IAlbum *album)
+void CustomMenu::AlbumRemove(IAlbum *album, bool sync)
 {
 	if (album)
-		AlbumRemove(album->vid);
+		AlbumRemove(album->vid, sync);
 }
 
-void CustomMenu::AlbumRemove(string vid)
+void CustomMenu::AlbumRemove(string vid, bool sync)
 {
 	albumIdList.Remove(vid);
 	albumCount = albumIdList.size();
-	CleanPage();
+	if (sync)
+		CleanPage();
 }
 
 size_t CustomMenu::GetAlbumCount()

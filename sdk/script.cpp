@@ -9,10 +9,8 @@
 #include <signal.h>
 #include <unistd.h>
 #ifdef LINUX
-#include <crypt.h>
+#	include <crypt.h>
 #endif
-
-//#include <openssl/aes.h>
 
 extern "C" {
 	LUALIB_API int luaopen_kola(lua_State *L);

@@ -17,6 +17,7 @@ void test_custommenu()
 			IAlbum *album = menu->GetAlbum(i);
 			if (album == NULL)
 				continue;
+#if 0
 			size_t video_count = album->GetVideoCount();
 			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 			string player_url;
@@ -27,6 +28,7 @@ void test_custommenu()
 					printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				}
 			}
+#endif
 		}
 		break;
 	}

@@ -373,7 +373,7 @@ public:
 	virtual int    SeekByAlbumName(string name) = 0;
 	virtual size_t GetAlbumCount() = 0;
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize) = 0;
-	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
+	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
 };
 
 class AlbumPage: public Task {
@@ -437,7 +437,7 @@ protected:
 
 	virtual string GetPostData();
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
-	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
+	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 private:
 	void init();
 	AlbumPage* updateCache(int pos);
@@ -457,7 +457,7 @@ public:
 	virtual size_t GetAlbumCount();
 protected:
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
-	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
+	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 private:
 	StringList albumIdList;
 	string fileName;

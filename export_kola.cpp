@@ -26,7 +26,8 @@ static int lua_mwget(lua_State *L)
 		/* table, key, value */
 		if (lua_type(L, -2) == LUA_TNUMBER && (k = lua_tonumber(L, -2))) {
 			if (lua_type(L, -1) == LUA_TSTRING && (v = lua_tostring(L, -1))) {
-				Http *http = new Http(v);
+				Http *http = new Http();
+				http->Open(v);
 				taskList.push_back(http);
 				multi.Add(http);
 			}
@@ -82,8 +83,8 @@ static int lua_wget(lua_State *L)
 			}
 		}
 		else {
-			Http http(url);
-			const char * text = http.Get();
+			Http http;
+			const char * text = http.Get(url);
 			if (text) {
 				lua_pushstring(L, text);
 				return 1;

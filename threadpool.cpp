@@ -95,7 +95,16 @@ ThreadPool::ThreadPool(int num)
 
 ThreadPool::~ThreadPool()
 {
+	list<Thread*>::iterator it;
 
+	for (it = _threadsList.begin(); it != _threadsList.end(); it++) {
+		Thread* th = *it;
+		th->cancel();
+		th->join();
+		delete th;
+	}
+
+	_threadsList.clear();
 }
 
 bool ThreadPool::init(size_t nbThread)

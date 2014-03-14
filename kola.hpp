@@ -72,7 +72,7 @@ public:
 		StatusDownloading = 1,
 		StatusFinish = 2,
 	};
-	Task();
+	Task(ThreadPool *pool=NULL);
 	virtual ~Task();
 	virtual void Run(void) = 0;
 	virtual void operator()();
@@ -82,9 +82,11 @@ public:
 	void Wait();
 	void Reset();
 	void Wakeup();
+	void SetPool(ThreadPool *pool) {this->pool = pool;}
 	enum TaskStatus status;
 protected:
 	ConditionVar *_condvar;
+	ThreadPool *pool;
 };
 
 class ScriptCommand {
@@ -128,7 +130,7 @@ public:
 	void operator>> (string v);
 	bool Find(string v);
 	string ToString(string s = "", string e = "", string split = ",");
-	string ToString(int offset, int count, string s = "", string e = "", string split = ",");
+	string ToString(size_t offset, size_t count, string s = "", string e = "", string split = ",");
 	void Split(const string items, string sp=",");
 	bool SaveToFile(string fileName);
 	bool LoadFromFile(string fileName);
@@ -139,15 +141,16 @@ public:
 	FileResource() : res(NULL) {}
 	~FileResource();
 
-	Resource *GetResource(ResourceManager *manage, const string &url);
 	string& GetName();
 	size_t GetSize();
 	bool isCached();
 	void Wait();
 	void Clear();
 private:
+	Resource *GetResource(ResourceManager *manage, const string &url);
 	Resource *res;
 	string FileName;
+	friend class ResourceManager;
 };
 
 class EPG {
@@ -370,62 +373,7 @@ public:
 	virtual int    SeekByAlbumName(string name) = 0;
 	virtual size_t GetAlbumCount() = 0;
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize) = 0;
-	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
-};
-
-class KolaVideo: public IVideo {
-public:
-	virtual void Parser(json_t *js);
-
-	virtual void GetResolution(StringList& res);
-	virtual void SetResolution(string &res);
-	virtual string GetVideoUrl();
-	virtual string GetSubtitle(const char *lang) {return "";}
-	virtual bool GetEPG(KolaEpg &epg);
-private:
-	string directPlayUrl;
-	Variant sc_info;
-};
-
-class KolaAlbum: public IAlbum {
-public:
-	KolaAlbum();
-	virtual ~KolaAlbum();
-
-	virtual void Parser(json_t *js);
-
-	virtual size_t GetTotalSet();
-	virtual size_t GetVideoCount();
-	virtual size_t GetSource(StringList &sources); // 获取节目的节目来源列表
-	virtual bool SetSource(string source);         // 设置节目来源，为""时，使用默认来源
-	virtual bool GetPictureFile(FileResource& picture, enum PicType type);
-	virtual string &GetPictureUrl(enum PicType type=PIC_AUTO);
-	virtual IVideo *GetVideo(size_t id);
-private:
-	void VideosClear();
-	bool LowVideoGetPage(size_t pageNo, size_t pageSize);
-
-	int cid;
-	vector<IVideo*> videoList;
-
-	size_t totalSet;         // 总集数
-	size_t updateSet;        // 当前更新集
-	string videoPlayUrl;
-	string largePicUrl;      // 大图片网址
-	string smallPicUrl;      // 小图片网址
-	string largeHorPicUrl;
-	string smallHorPicUrl;
-	string largeVerPicUrl;
-	string smallVerPicUrl;
-
-	string defaultPageUrl;   // 当前播放集
-	bool   directVideos;
-	size_t videoPageSize;
-	size_t videoPageId;
-	map<string, Variant> SourceList;
-	string CurrentSource;   // 设置节目来源
-
-	friend class CustomMenu;
+	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
 };
 
 class AlbumPage: public Task {
@@ -458,7 +406,7 @@ private:
 class KolaMenu: public IMenu {
 public:
 	KolaMenu();
-	virtual ~KolaMenu(void) {}
+	virtual ~KolaMenu(void);
 
 	virtual void Parser(json_t *js);
 
@@ -489,19 +437,18 @@ protected:
 
 	virtual string GetPostData();
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
-	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
+	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 private:
 	void init();
 	AlbumPage* updateCache(int pos);
-	AlbumPage pageCache[PAGE_CACHE];
+	AlbumPage  pageCache[PAGE_CACHE];
 	AlbumPage *cur;
-	friend class AlbumPage;
 };
 
 class CustomMenu: public KolaMenu {
 public:
 	CustomMenu(string fileName, bool CheckFailure=true);
-	void RemoveFailure(); // 移除失效的节目
+	void RemoveFailure();         // 移除失效的节目
 	void AlbumAdd(IAlbum *album);
 	void AlbumAdd(string vid);
 	void AlbumRemove(IAlbum *album);
@@ -510,7 +457,7 @@ public:
 	virtual size_t GetAlbumCount();
 protected:
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
-	virtual int LowGetPage(AlbumPage *page, string key, string value, size_t pageSize);
+	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 private:
 	StringList albumIdList;
 	string fileName;
@@ -531,11 +478,13 @@ class KolaPlayer {
 public:
 	KolaPlayer();
 	~KolaPlayer();
-	virtual void Run();
 	virtual bool Play(string name, string url) = 0;
-	void AddVideo(IVideo *video);
-	bool DoPlay(string &name, string &url);
+	string curUrl;
 private:
+	bool DoPlay(string &name);
+	void AddVideo(IVideo *video);
+	virtual void Run();
+
 	list<VideoResolution> videoList;
 	ConditionVar *_condvar;
 	Thread* thread;
@@ -614,17 +563,9 @@ private:
 	void Clear();
 };
 
-class IClient {
-protected:
-	virtual ~IClient() {}
-	virtual IVideo* NewVideo() = 0;
-	virtual IAlbum* NewAlbum() = 0;
-	virtual IMenu* NewMenu() = 0;
-};
-
-class KolaClient: public IClient {
+class KolaClient {
 public:
-	static KolaClient& Instance(const char *serial = NULL);
+	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, size_t thread_num=0);
 	virtual ~KolaClient(void);
 
 	void Quit(void);
@@ -654,17 +595,6 @@ public:
 	UrlCache cache;
 	string DefaultResolution;
 	string DefaultVideoSource;
-protected:
-	virtual IVideo* NewVideo() {
-		return new KolaVideo();
-	}
-	virtual IAlbum* NewAlbum() {
-		return new KolaAlbum();
-	}
-	virtual IMenu* NewMenu() {
-		return new KolaMenu();
-	}
-
 private:
 	KolaClient(void);
 	void Login();
@@ -682,13 +612,6 @@ private:
 	Mutex mutex;
 	KolaInfo Info;
 	bool connected;
-
-	friend class KolaMenu;
-	friend class KolaVideo;
-	friend class KolaAlbum;
-	friend class CustomMenu;
-	friend class Picture;
-	friend class Task;
 };
 
 #endif

@@ -22,9 +22,9 @@ KolaPlayer::~KolaPlayer()
 	delete _condvar;
 }
 
-bool KolaPlayer::DoPlay(string &name, string &url)
+bool KolaPlayer::DoPlay(string &name)
 {
-	return Play(name, url);
+	return Play(name, curUrl);
 }
 
 void KolaPlayer::Run()
@@ -40,16 +40,14 @@ void KolaPlayer::Run()
 			videoList.clear();
 			_condvar->unlock();
 
-			string url;
-
 //			KolaClient &kola = KolaClient::Instance();
 //			url = kola.GetFullUrl("/ad?vid=" + resolution.vid + "&chipid=");
 //			if (not url.empty())
 //				DoPlay(resolution.defaultKey, url);
 
-			url = resolution.GetVideoUrl();
+			curUrl = resolution.GetVideoUrl();
 
-			DoPlay(resolution.defaultKey, url);
+			DoPlay(resolution.defaultKey);
 		}
 	}
 }

@@ -3,6 +3,7 @@
 #include "json.hpp"
 #include "kola.hpp"
 #include "http.hpp"
+#include "kolabase.hpp"
 
 void KolaMenu::init()
 {
@@ -11,17 +12,22 @@ void KolaMenu::init()
 	PageSize = DEFAULT_PAGE_SIZE;
 	albumCount = 0;
 	PictureCacheType = PIC_LARGE;
-
-	cur = &pageCache[0];
-	for (int i=0; i < PAGE_CACHE; i++)
-		pageCache[i].SetMenu(this);
-
-	client = &KolaClient::Instance();
 }
 
 KolaMenu::KolaMenu()
 {
 	init();
+
+	client = &KolaClient::Instance();
+	cur = &pageCache[0];
+	for (int i=0; i < PAGE_CACHE; i++) {
+		pageCache[i].SetMenu(this);
+		pageCache[i].SetPool(client->threadPool);
+	}
+}
+
+KolaMenu::~KolaMenu(void)
+{
 }
 
 void KolaMenu::Parser(json_t *js)
@@ -88,7 +94,7 @@ int KolaMenu::SeekByAlbumId(string vid)
 {
 	CleanPage();
 	cur = &this->pageCache[0];
-	int count = LowGetPage(cur, "vid", vid, PageSize);
+	int count = SeekGetPage(cur, "vid", vid, PageSize);
 
 	PageId = cur->pageId;
 
@@ -105,7 +111,7 @@ int KolaMenu::SeekByAlbumName(string name)
 {
 	CleanPage();
 	cur = &this->pageCache[0];
-	int count = LowGetPage(cur, "albumName", name, PageSize);
+	int count = SeekGetPage(cur, "albumName", name, PageSize);
 
 	PageId = cur->pageId;
 
@@ -135,7 +141,7 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 			if (json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value) {
-					KolaAlbum *album = new KolaAlbum();
+					IAlbum *album = new KolaAlbum();
 					album->SetSource(client->DefaultVideoSource);
 					album->Parser(value);
 					page->PutAlbum(album);
@@ -232,7 +238,7 @@ int KolaMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 	return ParserFromUrl(page, url);
 }
 
-int KolaMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageSize)
+int KolaMenu::SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize)
 {
 	char buf[256];
 	string url;
@@ -409,7 +415,7 @@ int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 	return 0;
 }
 
-int CustomMenu::LowGetPage(AlbumPage *page, string key, string value, size_t pageSize)
+int CustomMenu::SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize)
 {
 	string text = albumIdList.ToString();
 

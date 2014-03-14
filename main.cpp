@@ -4,22 +4,6 @@
 #include "http.hpp"
 #include "kola.hpp"
 #include "resource.hpp"
-#include "script.hpp"
-
-void test_script(KolaClient &kola)
-{
-	LuaScript &lua = LuaScript::Instance();
-
-	vector<string> args;
-	args.push_back("http://www.wolidou.com/c/basic_1.php?u=cctv1");
-	string ret = lua.RunScript(args, "wolidou", "get_video_url");
-	cout << ret << endl;
-
-	args.clear();
-	args.push_back("http://www.wolidou.com/c/basic_1.php?u=cctv2");
-	ret = lua.RunScript(args, "wolidou", "get_video_url");
-	cout << ret << endl;
-}
 
 void test_custommenu()
 {
@@ -33,6 +17,7 @@ void test_custommenu()
 			IAlbum *album = menu->GetAlbum(i);
 			if (album == NULL)
 				continue;
+#if 0
 			size_t video_count = album->GetVideoCount();
 			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 			string player_url;
@@ -43,6 +28,7 @@ void test_custommenu()
 					printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				}
 			}
+#endif
 		}
 		break;
 	}
@@ -205,6 +191,7 @@ void test_picture(const char *menuName)
 	if (m == NULL)
 		return;
 
+	//m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
 	FileResource picture[10000];
 	for (int i=0; i < count; i++) {
@@ -471,14 +458,13 @@ int main(int argc, char **argv)
 {
 #if 0
 	KolaClient &kola = KolaClient::Instance();
-	test_script(kola); return 0;
 
 	test_info(kola);
 	test_area(kola);
 	test_weather(kola);
 #endif
-	test_picture("电影"); return 0;
-	//test_custommenu();
+	//test_picture("电影"); return 0;
+	test_custommenu();
 	//printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;

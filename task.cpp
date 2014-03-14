@@ -5,10 +5,11 @@
 #include "kola.hpp"
 #include "threadpool.hpp"
 
-Task::Task()
+Task::Task(ThreadPool *pool)
 {
 	_condvar = new ConditionVar();
 	status = StatusInit;
+	this->pool = pool;
 }
 
 Task::~Task()
@@ -42,10 +43,9 @@ void Task::operator()()
 
 void Task::Start(bool priority)
 {
-	if (status == Task::StatusInit) {
+	if (status == Task::StatusInit && pool) {
 		status = Task::StatusDownloading;
-		KolaClient &client = KolaClient::Instance();
-		client.threadPool->addTask(this, priority);
+		pool->addTask(this, priority);
 	}
 }
 

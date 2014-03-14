@@ -28,13 +28,13 @@
 #	define PORT 80
 #endif
 
-#define MAX_THREAD_POOL_SIZE (12)
-#define MAX_CACHE_SIZE       (1024 * 1024 * 1)
-
 static string loginKey;
 static string loginKeyCookie;
 static string xsrf_cookie;
 static string Serial("000002");
+
+static size_t CacheSize = 1024 * 1024 * 1;
+static int    ThreadNum = 8;
 
 /**
  * 功能:获取芯片的CPUID。
@@ -47,7 +47,6 @@ static string Serial("000002");
  */
 static bool GetCPUID(string &CPUID, ssize_t len)
 {
-#ifdef LINUX
 	int fd;
 	uint8_t *data;
 
@@ -68,9 +67,6 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 	}
 	free(data);
 
-#else
-	CPUID = "000002";
-#endif
 	return true;
 }
 
@@ -223,9 +219,12 @@ KolaClient::KolaClient(void)
 	debug = 0;
 	connected = false;
 
-	threadPool = new ThreadPool(MAX_THREAD_POOL_SIZE);
-	resManager = new ResourceManager(MAX_CACHE_SIZE);
+	Curl::Instance();
 
+	resManager = new ResourceManager(ThreadNum, CacheSize);
+	threadPool = new ThreadPool(1);
+
+	weather.SetPool(threadPool);
 	LoginOne();
 	thread = new Thread(this, &KolaClient::Login);
 	thread->start();
@@ -278,7 +277,7 @@ bool KolaClient::UrlGet(string url, string &ret)
 	}
 
 	Http http;
-	http.Set(url.c_str(), cookie);
+	http.Open(url.c_str(), cookie);
 	if (http.Get() != NULL) {
 		ret.assign(http.Data().mem);
 
@@ -306,7 +305,7 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	new_body = UrlEncode(new_body);
 
 	Http http;
-	http.Set(NULL, cookie);
+	http.Open(NULL, cookie);
 
 	if (http.Post(url.c_str(), new_body.c_str()) != NULL) {
 		ret = http.buffer.mem;
@@ -560,10 +559,16 @@ void KolaClient::Login()
 	pthread_exit(NULL);
 }
 
-KolaClient& KolaClient::Instance(const char *user_id)
+KolaClient& KolaClient::Instance(const char *user_id, size_t cache_size, size_t thread_num)
 {
 	if (user_id)
 		Serial = user_id;
+
+	if (cache_size)
+		CacheSize = cache_size;
+
+	if (thread_num)
+		ThreadNum = thread_num;
 
 	static KolaClient m_kola;
 

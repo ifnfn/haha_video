@@ -43,12 +43,7 @@ protected:
 
 class Resource : public virtual RefCountable, public virtual IDestructable, public Task {
 public:
-	Resource(ResourceManager *manage=NULL) {
-		manager = manage;
-		miDataSize = 0;
-		ExpiryTime = 0;
-		UpdateTime();
-	}
+	Resource(ResourceManager *manage=NULL);
 	virtual ~Resource();
 	static Resource* Create(ResourceManager *manage) {
 		return dynamic_cast<Resource*>(new Resource(manage));
@@ -83,13 +78,12 @@ private:
 
 class ResourceManager {
 public:
-	ResourceManager(size_t memory = 1024 * 1024 * 2);
+	ResourceManager(int thread_num = 1, size_t memory = 1024 * 1024 * 2);
 	virtual ~ResourceManager();
 
 	bool GetFile(FileResource& picture, const string &url);
 	Resource* GetResource(const string &url);
-	Resource* FindResource(const string &url);
-	void RemoveResource(Resource* res);
+	bool RemoveResource(const string &url);
 
 	void Clear();
 	bool GC(size_t mem); // 收回指定大小的内存
@@ -102,10 +96,14 @@ public:
 	}
 protected:
 	Resource* AddResource(const string &url);
+	void RemoveResource(Resource* res);
+	Resource* FindResource(const string &url);
 	list<Resource*> mResources;
 	size_t MaxMemory;
 	size_t UseMemory;
 	pthread_mutex_t lock;
+	ThreadPool *threadPool;
+	friend class Resource;
 };
 
 #endif

@@ -56,7 +56,7 @@ bool StringList::Find(string v)
 	return iter != end();
 }
 
-string StringList::ToString(int offset, int len, string s, string e, string split)
+string StringList::ToString(size_t offset, size_t len, string s, string e, string split)
 {
 	string ret;
 	size_t count = size();

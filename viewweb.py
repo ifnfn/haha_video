@@ -587,20 +587,21 @@ class LoginHandler(BaseHandler):
     redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
     def initialize(self):
-        pass
+        self.chipid = self.get_argument('chipid', '')
+        self.serial = self.get_argument('serial', '')
+        self.area   = self.get_argument('area', '')
+        print("[%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
 
     def check_user_id(self):
-        self.chipid = self.get_argument('chipid')
-        serial = self.get_argument('serial', '')
         status = 'NO'
 
-        if serial in ['000001', '000002', '000003', '000004', 'aaaaaaaaaaaaaa']:
+        if self.serial in ['000001', '000002', '000003', '000004', 'aaaaaaaaaaaaaa']:
             status = 'YES'
-        elif self.chipid and serial: # 默认的测试号
-            json = self.user_table.find_one({'serial' : serial})
+        elif self.chipid and self.serial: # 默认的测试号
+            json = self.user_table.find_one({'serial' : self.serial})
             if json and (json['chipid'] == '' or json['chipid'] == self.chipid):
                 status = 'YES'
-                self.user_table.update({'serial' : serial}, {'$set' : {'chipid': self.chipid, 'updateTime' : time.time()}})
+                self.user_table.update({'serial' : self.serial}, {'$set' : {'chipid': self.chipid, 'updateTime' : time.time()}})
 
         if status == 'NO':
             raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.chipid)
@@ -870,6 +871,7 @@ def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)
     db.flushdb()
 
+    tornado.options.options.logging = "warning"
     tornado.options.parse_command_line()
     ViewApplication().listen(9991, xheaders = True)
     tornado.ioloop.IOLoop.instance().start()

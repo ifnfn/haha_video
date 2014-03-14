@@ -34,7 +34,7 @@ static string xsrf_cookie;
 static string Serial("000002");
 
 static size_t CacheSize = 1024 * 1024 * 1;
-static int    ThreadNum = 8;
+static int    ThreadNum = 10;
 
 /**
  * 功能:获取芯片的CPUID。
@@ -106,19 +106,18 @@ string MD5STR(const char *data)
 
 static string GetIP(const char *hostp)
 {
-	char str[32] = "";
+	string ip;
 	struct hostent *host = gethostbyname(hostp);
 
-	if (host == NULL)
-		return NULL;
+	if (host) {
+		char str[64];
+		const char *p = inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
+		if (p)
+			ip = p;
+		//freehostent(host);
+	}
 
-	const char *p = inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
-
-	//freehostent(host);
-	if (!p)
-		memset(str, 0, 32);
-
-	return str;
+	return ip;
 }
 
 static char *ReadStringFile(FILE *fp)
@@ -400,7 +399,7 @@ bool KolaClient::LoginOne()
 
 	url = url + GetChipKey() + "&serial=" + GetSerial();
 	if (connected)
-		url = url + "&cmd=1";
+		url = url + "&cmd=1&area=" + GetArea();
 	else
 		url = url + "&cmd=0";
 
@@ -559,7 +558,7 @@ void KolaClient::Login()
 	pthread_exit(NULL);
 }
 
-KolaClient& KolaClient::Instance(const char *user_id, size_t cache_size, size_t thread_num)
+KolaClient& KolaClient::Instance(const char *user_id, size_t cache_size, int thread_num)
 {
 	if (user_id)
 		Serial = user_id;
@@ -582,11 +581,17 @@ void KolaClient::SetPicutureCacheSize(size_t size)
 
 string KolaClient::GetArea()
 {
-	LuaScript &lua = LuaScript::Instance();
-	vector<string> args;
-	args.push_back("");
+	static string local_area;
 
-	return lua.RunScript(args, "getip", "getip");
+	if (local_area.empty()) {
+		LuaScript &lua = LuaScript::Instance();
+		vector<string> args;
+		args.push_back("");
+
+		local_area = lua.RunScript(args, "getip", "getip");
+	}
+
+	return local_area;
 }
 
 bool KolaClient::GetArea(KolaArea &area)

@@ -565,7 +565,7 @@ private:
 
 class KolaClient {
 public:
-	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, size_t thread_num=0);
+	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, int thread_num=0);
 	virtual ~KolaClient(void);
 
 	void Quit(void);

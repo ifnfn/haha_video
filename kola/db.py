@@ -641,7 +641,7 @@ class DB:
         else:
             arg['sort'] = [('dailyPlayNum', pymongo.DESCENDING)]
 
-        print(arg['sort'])
+        #print(arg['sort'])
         return arg
 
     def _ConvertFilterJson(self, f):

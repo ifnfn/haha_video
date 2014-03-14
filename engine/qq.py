@@ -141,7 +141,7 @@ class QQAlbum(kola.AlbumBase):
 
     # 更新节目指数信息
     def UpdateScoreCommand(self):
-        if self.qq.vid:
+        if self.qq.qvid:
             ParserPlayCount(self).Execute()
 
 class QQDB(kola.DB, kola.Singleton):
@@ -190,7 +190,7 @@ class QQDB(kola.DB, kola.Singleton):
         elif auto:
             album = QQAlbum()
             if qvid:
-                album.qq.vid = qvid
+                album.qq.qvid = qvid
             if albumName:
                 album.mName = albumName
 

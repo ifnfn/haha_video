@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re, os, time
+import re, time
 import tornado.escape
 
 from kola import LivetvMenu

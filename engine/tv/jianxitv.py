@@ -33,7 +33,6 @@ class ParserJianXiLivetv(LivetvParser):
         self.cmd['regular'] = ['(<li><a href=".*.shtml">.*</a></li>)']
 
     def CmdParser(self, js):
-        print(js['data'])
         baseUrl = js['source']
         db = LivetvDB()
         soup = bs(js['data'])  # , from_encoding = 'GBK')

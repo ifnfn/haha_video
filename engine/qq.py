@@ -267,7 +267,7 @@ class ParserAlbumList(KolaParser):
                 continue
             href = albumlist[idx]['href']
             name = albumlist[idx]['name']
-            print(albumName, href, a.text)
+            #print(albumName, href, a.text)
 
             href_md5 = hashlib.md5(href.encode()).hexdigest()
 
@@ -423,7 +423,6 @@ class ParserAlbumPage(KolaParser):
                             text = v.text.strip()
                             ret[key] = text
 
-        print(ret)
 
 class QQVideoMenu(EngineVideoMenu):
     def __init__(self, name):

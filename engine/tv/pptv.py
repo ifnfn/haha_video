@@ -137,8 +137,6 @@ class ParserPPtvList(LivetvParser):
                                 channel_id = channel_id[0]
                             albumName = t.text
 
-                            print(albumName, href, channel_id)
-
                             if not (albumName and channel_id):
                                 continue
 

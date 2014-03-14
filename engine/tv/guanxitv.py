@@ -42,8 +42,6 @@ class ParserNNLivetv(LivetvParser):
             v.vid  = utils.getVidoId(url)
             for p in root:
                 if p.tag == 'url':
-                    print(p.text)
-
                     if count == 0:
                         v.SetVideoUrl('default', {'text' : p.text})
                     else:

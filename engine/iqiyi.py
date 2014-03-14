@@ -518,8 +518,6 @@ class ParserShowAlbumList(KolaParser):
                 album.largeVerPicUrl   = json['tvPictureUrl']                  # 竖大图
                 album.smallVerPicUrl   = json['tvPictureUrl']                  # 竖小图
 
-            if not album.largePicUrl:
-                print(album.largePicUrl)
             if 'episodeCounts' in json:
                 album.totalSet = autoint(json['episodeCounts'])                # 总集数
             #if 'currentMaxEpisode' in json:

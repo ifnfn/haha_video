@@ -31,7 +31,6 @@ class ParserCntvLivetv(LivetvParser):
         db = LivetvDB()
         tvlist = tornado.escape.json_decode(js['data'])
         for x, v in tvlist.items():
-            print(x)
             if x in [ "数字频道", "城市频道"]:
                 continue
             for ch in v:

@@ -20,7 +20,6 @@ class KolaCommand(Singleton):
     def GetCommand(self, timeout = 0, count=1):
         if time.time() - self.time > timeout: # 命令不要拿得太快，否则几百万个客户端同时跑来，服务器受不了
             ret = []
-            print(time.time() - self.time)
             self.time = time.time()
             KolaCommand.mutex.acquire()
             for _ in range(count):

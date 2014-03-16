@@ -391,19 +391,27 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	return 0;
 }
 
+static inline string stringlink(string key, string value) {
+	return "\""  + key + "\" : \"" + value + "\"";
+}
+
 bool KolaClient::LoginOne()
 {
 	json_error_t error;
 	string text;
-	string url("/login?chipid=");
+	string url("/login");
+	string params = "{";
 
-	url = url + GetChipKey() + "&serial=" + GetSerial();
-	if (connected)
-		url = url + "&cmd=1&area=" + GetArea();
-	else
-		url = url + "&cmd=0";
+	if (connected) {
+		params += stringlink("area"  , GetArea()) + ",";
+		params += stringlink("cmd"   , connected ? "1" : "0")+ ",";
+	}
+	params += stringlink("chipid", GetChipKey()) + ",";
+	params += stringlink("serial", GetSerial());
 
-	if (UrlGet(url, text) == false) {
+	params += "}";
+
+	if (UrlPost(url, params.c_str(), text) == false) {
 		connected = false;
 		return false;
 	}

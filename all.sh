@@ -7,11 +7,11 @@ UpdateAlbum() {
 }
 
 UpdateAlbum Livetv
-#UpdateAlbum Qiyi
-#UpdateAlbum QQ
+UpdateAlbum Qiyi
+UpdateAlbum QQ
 UpdateAlbum Sohu
 #UpdateAlbum PPtv
 #UpdateAlbum Letv
 
-#curl "$URL/manage/update?cmd=score" && ./super_client.py
+curl "$URL/manage/update?cmd=score" && ./super_client.py
 

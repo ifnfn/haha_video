@@ -590,6 +590,7 @@ class LoginHandler(BaseHandler):
         self.chipid = self.get_argument('chipid', '')
         self.serial = self.get_argument('serial', '')
         self.area   = self.get_argument('area', '')
+        self.cmd    = self.get_argument('cmd', '0')
         print("[%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
 
     def check_user_id(self):
@@ -630,12 +631,10 @@ class LoginHandler(BaseHandler):
             }
         }
 
-#        cmd = self.get_argument('cmd', '1')
-#        if cmd == '1':
+#        if self.cmd == '1':
 #            ret['script'] = utils.GetScript('command', 'test', ['aaaaa', 'asdfasdfasd'])
 #===============================================================================
-#         cmd = self.get_argument('cmd', '1')
-#         if cmd == '1':
+#         if self.cmd == '1':
 #             if self.user_id == '000001':
 #                 timeout = 0
 #             else:
@@ -658,7 +657,23 @@ class LoginHandler(BaseHandler):
         self.finish(json.dumps(ret))
 
     def post(self):
-        self.finish('OK')
+        js = tornado.escape.json_decode(self.request.body)
+        if js:
+            if 'cmd'    in js: self.cmd    = js['cmd']
+            if 'chipid' in js: self.chipid = js['chipid']
+            if 'serial' in js: self.serial = js['serial']
+            if 'area'   in js: self.area   = js['area']
+
+        ret = {
+            'key'    : self.check_user_id(),
+            'server' : self.request.protocol + '://' + self.request.host,
+            'next'   : 60,   # 下次登录时间
+            'image'  : {
+                'wallpaper' : '',
+            }
+        }
+
+        self.finish(json.dumps(ret))
 
 class IndexHandler(BaseHandler):
     def initialize(self):

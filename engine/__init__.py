@@ -54,17 +54,15 @@ class KolaEngine:
 
         return True
 
-    def UpdateNewest(self): # 更新最新节目
-        print("UpdateNewest")
-
-    def UpdateAllHotList(self):
-        print("UpdateAllHotList")
-
     # 更新所有节目的排名数据
-    def UpdateAllScore(self):
+    def UpdateAllScore(self, engine):
         print("UpdateAllScore")
         for eg in self.engines:
-            eg.UpdateAllScore()
+            if engine:
+                if eg.engine_name in engine:
+                    eg.UpdateAllScore()
+            else:
+                eg.UpdateAllScore()
 
     # 更新所有节目
     def UpdateAllAlbumList(self, engine):

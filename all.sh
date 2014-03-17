@@ -22,8 +22,8 @@ Update() {
 
 Score() {
     #UpdateScore Livetv
-    UpdateScore Qiyi
-    UpdateScore QQ
+    #UpdateScore Qiyi
+    #UpdateScore QQ
     UpdateScore Sohu
 }
 

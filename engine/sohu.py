@@ -95,6 +95,7 @@ class SohuAlbum(kola.AlbumBase):
     # 更新节目指数信息
     def UpdateScoreCommand(self):
         if self.sohu.playlistid:
+            ParserAlbumCount(self).Execute()
             ParserAlbumScore(self).Execute()
 
 class SohuDB(DB, Singleton):
@@ -276,9 +277,35 @@ class ParserAlbumFullInfo(KolaParser):
 
         db.SaveAlbum(album)
 
+class ParserAlbumScore(KolaParser):
+    def __init__(self, album=None):
+        super().__init__()
+        if album:
+            self.cmd['source'] = 'http://vote.biz.itc.cn/count_v77_t2_i%s_b_c.json' % album.sohu.playlistid
+            self.cmd['pid'] = album.sohu.playlistid
+            self.cmd['cache'] = False
+
+    def CmdParser(self, js):
+        playlistid = js['pid']
+        text = re.findall('.*=({[\s\S]*})', js['data'])
+        if text:
+            data = tornado.escape.json_decode(text[0])
+            db = SohuDB()
+            album = db.GetAlbumFormDB(playlistid=playlistid)
+            if album == None:
+                return []
+
+            totalCount = data['totalCount_77']
+            totalScore = data['totalScore_77']
+            if totalCount == 0:
+                album.Score = totalScore
+            else:
+                album.Score = totalScore * 1.0 / totalCount
+            db.SaveAlbum(album, upsert=False)
+
 # http://count.vrs.sohu.com/count/query.action?videoId=1268037
 # 搜狐节目指数
-class ParserAlbumScore(KolaParser):
+class ParserAlbumCount(KolaParser):
     def __init__(self, album=None):
         super().__init__()
         if album:
@@ -314,12 +341,6 @@ class ParserAlbumScore(KolaParser):
                     album.monthlyPlayNum  = utils.autoint(index['monthlyPlayNum']) # 每月播放次数
                 if 'totalPlayNum' in index:
                     album.totalPlayNum    = utils.autoint(index['totalPlayNum'])   # 总播放资料
-                if 'monthlyIndexAveScore' in index:
-                    album.Score = index['monthlyIndexAveScore'] / 10.0             # 每日指数
-                elif 'weeklyIndexAveScore' in index:
-                    album.Score = index['weeklyIndexAveScore'] / 10.0              # 每日指数
-                elif 'dailyIndexScore' in index:
-                    album.Score = index['dailyIndexScore'] / 10.0                  # 每日指数
 
                 db.SaveAlbum(album, upsert=False)
 
@@ -424,4 +445,5 @@ class SohuEngine(VideoEngine):
             ParserAlbumList(),
             ParserAlbumFullInfo(),
             ParserAlbumScore(),
+            ParserAlbumCount(),
         ]

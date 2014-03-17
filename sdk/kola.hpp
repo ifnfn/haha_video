@@ -479,10 +479,10 @@ public:
 	KolaPlayer();
 	~KolaPlayer();
 	virtual bool Play(string name, string url) = 0;
+	void AddVideo(IVideo *video);
 	string curUrl;
 private:
 	bool DoPlay(string &name);
-	void AddVideo(IVideo *video);
 	virtual void Run();
 
 	list<VideoResolution> videoList;

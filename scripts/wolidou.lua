@@ -123,7 +123,8 @@ function get_video_url(video_url)
 		string.find(video_url, 'http://www.wolidou.com/s/dxcctv.php') or
 		string.find(video_url, 'http://www.wolidou.com/s/yu.php') then
 		return sdsj_url(video_url)
-	elseif string.find(video_url, 'http://wolidou.gotoip3.com/sxmsp.php') then
+	elseif string.find(video_url, 'http://wolidou.gotoip3.com/sxmsp.php') or
+    string.find(video_url, 'http://wolidou.gotoip3.com/pptv.php') then
 		return sxmsp_url(video_url)
 	elseif string.find(video_url, 'rtmp://') then
 		return video_url

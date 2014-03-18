@@ -31,6 +31,7 @@ from .云南 import YunNanLiveTV
 from .浙江 import ZheJianLiveTV
 from .山东 import ShangDongLiveTV
 from .湖南 import HuNanLiveTV
+from .香港 import HongKongLiveTV
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
@@ -61,6 +62,7 @@ class LiveEngine(VideoEngine):
             '河北'  : HeBeiLiveTV,
             '云南'  : YunNanLiveTV,
             '山东' :  ShangDongLiveTV,
+            '香港' : HongKongLiveTV,
             #'文本'  : TextLiveTV,
             #'私有' : WolidouLiveTV,
             #'江苏'  : JianSuLiveTV,

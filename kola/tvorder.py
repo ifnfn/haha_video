@@ -6,6 +6,7 @@ TVOrder = [
     "CCTV-1 综合",
     "CCTV-2 财经",
     "CCTV-3 综艺",
+    "CCTV-4 中文国际",
     "CCTV-4 (亚洲)",
     "CCTV-4 (欧洲)",
     "CCTV-4 (美洲)",

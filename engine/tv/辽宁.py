@@ -4,12 +4,13 @@
 from kola import LivetvMenu, utils
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvDB
 from bs4 import BeautifulSoup as bs
+from .wolidou import WolidouBaseParser, WolidouBaseMenu
 
 
 # 辽宁省电视台
-class LiaoningLivetvParser(LivetvParser):
+class LiaoningLivetvParser(WolidouBaseParser):
     def __init__(self):
         super().__init__()
         self.tvName = '辽宁电视台'
@@ -26,6 +27,7 @@ class LiaoningLivetvParser(LivetvParser):
             '辽宁影视剧' : '辽宁-影视剧',
         }
 
+        self.ExcludeName = ['辽宁卫视']
         self.cmd['source'] = 'http://www.lntv.cn'
         self.cmd['regular'] = ["(<li ><a href='/tv.html\?id=\w*'>.*</a>)"]
 
@@ -50,7 +52,32 @@ class LiaoningLivetvParser(LivetvParser):
             album.videos.append(v)
             db.SaveAlbum(album)
 
-class LiaoNingLiveTV(LivetvMenu):
+# 辽宁省电视台
+class LiaoningLivetvParserWolidou(WolidouBaseParser):
+    def __init__(self, albumName=None, url=None):
+        super().__init__(albumName, url)
+        self.tvName = '辽宁电视台'
+        self.area = '中国,辽宁'
+
+class LiaoNingLiveTV(WolidouBaseMenu):
+    '''
+    辽宁省电视台
+    '''
+    def __init__(self, name):
+        self.Parser = LiaoningLivetvParserWolidou
+        super().__init__(name)
+        self.AlbumPage = [
+            ('辽宁-都市' , 'http://www.wolidou.com/tvp/359/play359_1_0.html'),
+            ('辽宁-影视剧',  'http://www.wolidou.com/tvp/359/play359_1_1.html'),
+            ('辽宁-生活' , 'http://www.wolidou.com/tvp/359/play359_1_2.html'),
+            ('辽宁-少儿' , 'http://www.wolidou.com/tvp/359/play359_1_3.html'),
+            ('辽宁-北方' , 'http://www.wolidou.com/tvp/359/play359_1_4.html'),
+            ('辽宁-经济' , 'http://www.wolidou.com/tvp/359/play359_1_5.html'),
+            ('辽宁-公共' , 'http://www.wolidou.com/tvp/359/play359_1_6.html'),
+            ('辽宁-宜佳购物' , 'http://www.wolidou.com/tvp/359/play359_1_7.html'),
+        ]
+
+class LiaoNingLiveTV2(LivetvMenu): # 无效
     '''
     辽宁省内所有电视台
     '''

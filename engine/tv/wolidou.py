@@ -5,15 +5,15 @@ from bs4 import BeautifulSoup as bs, Tag
 
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_QQ
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 
 
-class ParserVideoPage(LivetvParser):
-    def __init__(self, url=None, albumName=None):
+class WolidouBaseParser(LivetvParser):
+    def __init__(self, albumName=None, url=None):
         super().__init__()
         self.tvName = 'Other'
-        self.order = PRIOR_QQ
+        self.order = PRIOR_DEFTV
         self.Alias = {
             "CCTV5+"          : "CCTV-5+ 体育",
             "高尔夫·网球"       : "CCTV-高尔夫",
@@ -108,7 +108,7 @@ class PaserAlbumPage(LivetvParser):
                     elif server_type not in ['超速服务器：', 'M3U8专线服务器：']: # '极速服务器【节目可回放】：'
                         continue
 
-                    ParserVideoPage(href, albumName).Execute()
+                    WolidouBaseParser(albumName, href).Execute()
 
 class ParserAlbumList(LivetvParser):
     def __init__(self, url=None):
@@ -169,6 +169,22 @@ class ParserSportAlbumList(ParserAlbumList):
     def __init__(self, url='http://www.wolidou.com/tvl/tiyu/6_1.html'):
         super().__init__(url)
 
+
+class WolidouBaseMenu(LivetvMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        #self.Parser = LiaoningLivetvParserWolidou
+        self.parserClassList = [self.Parser]
+        self.AlbumPage = []
+
+    def UpdateAlbumList(self):
+        for albumName, url in self.AlbumPage:
+            if type(url) == list:
+                for u in url:
+                    self.Parser(albumName, u).Execute()
+            else:
+                self.Parser(albumName, url).Execute()
+
 class WolidouLiveTV(LivetvMenu):
     '''
     Wolidou 电视
@@ -182,5 +198,5 @@ class WolidouLiveTV(LivetvMenu):
             #ParserGuoleiAlbumList,
             ParserGanaoAlbumList,
             ParserSportAlbumList,
-            PaserAlbumPage, ParserVideoPage]
+            PaserAlbumPage, WolidouBaseParser]
 

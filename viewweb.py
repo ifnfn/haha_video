@@ -591,7 +591,6 @@ class LoginHandler(BaseHandler):
         self.serial = self.get_argument('serial', '')
         self.area   = self.get_argument('area', '')
         self.cmd    = self.get_argument('cmd', '0')
-        print("[%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
 
     def check_user_id(self):
         status = 'NO'
@@ -622,6 +621,7 @@ class LoginHandler(BaseHandler):
         return key
 
     def get(self):
+        print("GET: [%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
         ret = {
             'key'    : self.check_user_id(),
             'server' : self.request.protocol + '://' + self.request.host,
@@ -664,6 +664,7 @@ class LoginHandler(BaseHandler):
             if 'serial' in js: self.serial = js['serial']
             if 'area'   in js: self.area   = js['area']
 
+        print("POST: [%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
         ret = {
             'key'    : self.check_user_id(),
             'server' : self.request.protocol + '://' + self.request.host,

@@ -61,7 +61,7 @@ class LiveEngine(VideoEngine):
             '河北'  : HeBeiLiveTV,
             '云南'  : YunNanLiveTV,
             '山东' :  ShangDongLiveTV,
-            '文本'  : TextLiveTV,
+            #'文本'  : TextLiveTV,
             #'私有' : WolidouLiveTV,
             #'江苏'  : JianSuLiveTV,
             #'广西' : GuangXiLiveTV,

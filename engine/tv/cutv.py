@@ -105,7 +105,7 @@ class ParserCutvLivetv(LivetvParser):
             "郑州都市生活" : "郑州-都市生活",
         }
 
-        self.ExcludeName = ['网络春晚']
+        self.ExcludeName = ['网络春晚', '济南', '邯郸', '西安', '南通', '南宁', '安阳', '大连', '鄂尔多斯']
 
         if station == None:
             self.cmd['step'] = 1

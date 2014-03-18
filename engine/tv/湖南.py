@@ -25,7 +25,7 @@ class ParserHuNanLivetv(ParserVideoPage):
 
 class HuNanLiveTV(LivetvMenu):
     '''
-    湖北省内所有电视台
+    湖南省内所有电视台
     '''
     def __init__(self, name):
         super().__init__(name)
@@ -33,11 +33,11 @@ class HuNanLiveTV(LivetvMenu):
 
     def UpdateAlbumList(self):
         page = [
-            'http://www.wolidou.com/tvp/204/play204_1_0.html',
+            #'http://www.wolidou.com/tvp/204/play204_1_0.html',
             'http://www.wolidou.com/tvp/204/play204_2_0.html',
             'http://www.wolidou.com/tvp/204/play204_2_2.html',
             'http://www.wolidou.com/tvp/204/play204_3_0.html',
-            'http://www.wolidou.com/tvp/204/play204_3_3.html',
+            #'http://www.wolidou.com/tvp/204/play204_3_3.html',
         ]
 
         for p in page:

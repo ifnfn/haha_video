@@ -13,19 +13,19 @@ UpdateScore() {
 
 Update() {
     UpdateAlbum Livetv
-    UpdateAlbum Qiyi
-    UpdateAlbum QQ
-    UpdateAlbum Sohu
+    #UpdateAlbum Qiyi
+    #UpdateAlbum QQ
+    #UpdateAlbum Sohu
     #UpdateAlbum PPtv
     #UpdateAlbum Letv
 }
 
 Score() {
     #UpdateScore Livetv
-    #UpdateScore Qiyi
-    #UpdateScore QQ
+    UpdateScore Qiyi
+    UpdateScore QQ
     UpdateScore Sohu
 }
 
-#Update
-Score
+Update
+#Score

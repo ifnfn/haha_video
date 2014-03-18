@@ -3,32 +3,34 @@
 
 from engine import VideoEngine
 
-from .anhuitv import AnHuiLiveTV
-from .btv import BtvLiveTV
 from .cntv import CntvLiveTV
 from .cutv import CuLiveTV
-from .guanxitv import GuangXiLiveTV
-from .hebtv import HeBeiLiveTV
-from .hljtv import HeiLongJiangLiveTV
-from .hubeitv import HuBeiLiveTV
-from .jiansutv import JianSuLiveTV
-from .jianxitv import JianXiLiveTV
-from .jinlingtv import JilingLiveTV
 from .letv import LetvLiveTV
 from .livetvdb import *
-from .lntv import LiaoNingLiveTV
 from .pptv import PPtvLiveTV
 from .qqtv import QQLiveTV
-from .smgbb import SmgbbLivetv
 from .sohutv import SohuLiveTV
 from .textv import TextLiveTV
 from .tvielivetv import ParserTVIELivetv
-from .xinjiangtv import XinJianLiveTV
-from .yntv import YunNanLiveTV
-from .zhjiantv import ZheJianLiveTV
-from .shangdongtv import ShangDongLiveTV
 from .wolidou import WolidouLiveTV
-from .hunantv import HuNanLiveTV
+
+
+from .安徽 import AnHuiLiveTV
+from .北京 import BtvLiveTV
+from .广西 import GuangXiLiveTV
+from .河北 import HeBeiLiveTV
+from .黑龙江 import HeiLongJiangLiveTV
+from .湖北 import HuBeiLiveTV
+from .江苏 import JianSuLiveTV
+from .江西 import JianXiLiveTV
+from .吉林 import JilingLiveTV
+from .辽宁 import LiaoNingLiveTV
+from .上海 import SmgbbLivetv
+from .新疆 import XinJianLiveTV
+from .云南 import YunNanLiveTV
+from .浙江 import ZheJianLiveTV
+from .山东 import ShangDongLiveTV
+from .湖南 import HuNanLiveTV
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):

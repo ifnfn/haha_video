@@ -12,7 +12,6 @@ end
 -- 攻取节目的播放地址
 function get_video_url(vid, aid)
 	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s&client=html5", vid)
-	print(url)
 	local text = kola.wget(url, false)
 	local video_url = ''
 	if text then
@@ -47,25 +46,33 @@ function get_video_url(vid, aid)
 	return ''
 end
 
+local function to_epg(time, title)
+	local epg = {}
+	local d = os.date("*t", kola.gettime())
+	d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
+	d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
+	d.sec  = 0
+
+	epg.time_string = time
+	epg.title       = string.gsub(title, "_$", "") -- strip, trim, 去头尾空格
+	epg.time        = os.time(d)
+	epg.duration    = 0
+
+	return epg
+end
+
+-- 获取节目的EPG
 function get_channel(vid)
 	local ret = {}
 	local url = string.format('http://tv.cntv.cn/index.php?action=zhibo-jiemu2&channel=%s', vid)
 	local text = kola.wget(url, false)
-	local d = os.date("*t", kola.gettime())
 	local idx = 1
 
 	for time,title in rex.gmatch(text, '<span class="sp_1">(.*?)</span>[\\s\\S]*?&nbsp;(.*?)[</a>|</li>]') do
-		d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
-		d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
-		d.sec  = 0
+		ret[idx] = to_epg(time, title)
 
-		ret[idx] = {}
-		ret[idx].title       = string.gsub(title, "_$", "") -- strip, trim, 去头尾空格
-		ret[idx].time_string = time
-		ret[idx].time        = os.time(d)
-		ret[idx].duration = 0
 		if idx > 1 then
-			ret[idx].duration = os.difftime(ret[idx].time, ret[idx - 1].time)
+			ret[idx-1].duration = os.difftime(ret[idx].time, ret[idx - 1].time)
 		end
 		idx = idx + 1
 	end

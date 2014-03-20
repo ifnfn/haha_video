@@ -21,6 +21,7 @@ class ParserSohuLivetv(LivetvParser):
             '南京生活' : '南京-生活',
             '南京娱乐' : '南京-娱乐'
         }
+        self.ExcludeName = ['浙江卫视']
 
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 

@@ -21,6 +21,23 @@ function get_video_url(url, cid)
 	return ''
 end
 
+local function to_epg(time, title)
+	local epg = {}
+	local d = os.date("*t", kola.gettime())
+	d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
+	d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
+	d.sec  = 0
+
+	epg.time_string = time
+	epg.title       = string.gsub(title, "_$", "") -- strip, trim, 去头尾空格
+	epg.time        = os.time(d)
+	epg.duration    = 0
+
+	--print(epg.time_string, epg.duration, epg.title)
+	return epg
+end
+
+-- 获取节目的EPG
 function get_channel(vid)
 	local url = string.format("http://poll.hd.sohu.com/live/stat/menu-segment.json?&sid=%s", vid)
 
@@ -28,18 +45,9 @@ function get_channel(vid)
 	local ret = {}
 	local text = kola.wget(url, false)
 	if text ~= nil then
-		local d = os.date("*t", kola.gettime())
 		local js = cjson.decode(text)
 		for k,v in ipairs(js.attachment[1].MENU_LIST) do
-			t = v.START_TIME
-			d.hour=tonumber(string.sub(t, 1, string.find(t, ":") - 1))
-			d.min=tonumber(string.sub(t, string.find(t, ":") + 1))
-			d.sec= 0
-			ret[k] = {}
-			ret[k].time_string = v.START_TIME
-			ret[k].time = os.time(d)
-			ret[k].duration = 0
-			ret[k].title = v.NAME
+			ret[k] = to_epg(v.START_TIME, v.NAME)
 			if k > 1 then
 				ret[k-1].duration = os.difftime(ret[k].time, ret[k-1].time)
 			end

@@ -14,11 +14,26 @@ function get_video_url(url)
 	return ''
 end
 
+local function to_epg(time, title)
+	local epg = {}
+	local d = os.date("*t", kola.gettime())
+	d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
+	d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
+	d.sec  = 0
+
+	epg.time_string = time
+	epg.title       = string.gsub(title, "_$", "") -- strip, trim, 去头尾空格
+	epg.time        = os.time(d)
+	epg.duration    = 0
+
+	--print(epg.time_string, epg.duration, epg.title)
+	return epg
+end
+
+-- 获取节目的EPG
 function get_channel(vid)
 	local time = kola.gettime()
-	local d = os.date("%Y%m%d", time)
-	local url = string.format("http://st.live.letv.com/live/playlist/%s/%s.json?_=%d", d, vid, time)
-	local d = os.date("*t", time)
+	local url = string.format("http://st.live.letv.com/live/playlist/%s/%s.json?_=%d", os.date("%Y%m%d", time), vid, time)
 
 	local ret = {}
 	text = kola.wget(url, false)
@@ -26,14 +41,8 @@ function get_channel(vid)
 		local js = cjson.decode(text)
 		for k,v in ipairs(js.content) do
 			--print(k,v.playtime, v.duration, v.title)
-			ret[k] = {}
-			t = v.playtime
-			d.hour             = tonumber(string.sub(t, 1, string.find(t, ":") - 1))
-			d.min              = tonumber(string.sub(t,    string.find(t, ":") + 1))
-			ret[k].time_string = v.playtime
-			ret[k].time        = os.time(d)
-			ret[k].duration    = v.duration
-			ret[k].title       = v.title
+			ret[k] = to_epg(v.playtime, v.title)
+			ret[k].duration = v.duration
 		end
 	end
 

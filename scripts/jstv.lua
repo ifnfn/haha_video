@@ -21,6 +21,22 @@ function get_video_url(url)
 	return ''
 end
 
+local function to_epg(time, title)
+	local epg = {}
+	local d = os.date("*t", kola.gettime())
+	d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
+	d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
+	d.sec  = 0
+
+	epg.time_string = time
+	epg.title       = string.gsub(title, "_$", "") -- strip, trim, 去头尾空格
+	epg.time        = os.time(d)
+	epg.duration    = 0
+
+	return epg
+end
+
+-- 获取节目的EPG
 function get_channel(vid)
 	vid = tonumber(vid)
 	local url = 'http://newplayerapi.jstv.com/rest/getstation_8.html'
@@ -32,22 +48,10 @@ function get_channel(vid)
 
 		for id, ch in ipairs(js.paramz.channels) do
 			if ch.id == vid then
-				local d = os.date("*t", kola.gettime())
-
 				local len = #ch.guides
 				for i, gui in ipairs(ch.guides) do
-					t = gui.bctime
-					d.hour = tonumber(string.sub(t, 1, string.find(t, ":") - 1))
-					d.min  = tonumber(string.sub(t,    string.find(t, ":") + 1))
-					d.sec  = 0
-
 					k = len - i + 1
-					ret[k] = {}
-					ret[k].title = gui.name
-
-					ret[k].time_string = gui.bctime
-					ret[k].time = os.time(d)
-					ret[k].duration = 0
+					ret[k] = to_epg(gui.bctime, gui.name)
 					if k < len then
 						ret[k].duration = os.difftime(ret[k+1].time, ret[k].time)
 					end

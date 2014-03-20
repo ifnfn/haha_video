@@ -11,6 +11,7 @@ function get_video_url(pid)
 	return ""
 end
 
+-- 获取节目的EPG
 function get_channel(pid)
 	print('pid:', pid)
 	local ret = {}

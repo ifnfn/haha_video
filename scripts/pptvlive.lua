@@ -7,7 +7,7 @@ function get_video_url(id)
 	return ''
 end
 
-
+-- 获取节目的EPG
 function get_channel(vid)
 	local time = kola.gettime()
 	local url = string.format('http://live.pptv.com/api/tv_menu?cb=kola&date=%s&id=%s&canBack=0', 

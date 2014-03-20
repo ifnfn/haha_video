@@ -131,7 +131,9 @@ function get_video_url(video_url)
 	end
 end
 
+-- 获取节目的EPG
 function get_channel(video_url)
+	-- 无EPG
 	return ""
 end
 

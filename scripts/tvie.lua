@@ -48,6 +48,7 @@ function get_video_url(url, id)
 	return ""
 end
 
+-- 获取节目的EPG
 function get_channel(vid, id)
 	local url = string.format("%s/0/%d", vid, kola.gettime())
 
@@ -61,9 +62,9 @@ function get_channel(vid, id)
 			ret[k] = {}
 			s = tonumber(v.start_time)
 			ret[k].time_string = os.date("%H:%M", s)
-			ret[k].time = s
-			ret[k].duration = tonumber(v.end_time) - s
-			ret[k].title = v.name
+			ret[k].time        = s
+			ret[k].duration    = tonumber(v.end_time) - s
+			ret[k].title       = v.name
 		end
 	end
 

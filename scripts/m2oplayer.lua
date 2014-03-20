@@ -66,6 +66,7 @@ function get_video_url(url)
 	return ''
 end
 
+-- 获取节目的EPG
 function get_channel(url)
 	local url = string.format("%s&time=%d", url, kola.gettime())
 
@@ -83,7 +84,7 @@ function get_channel(url)
 			ret[k].time_string = os.date("%H:%M", s)
 			ret[k].time = s
 			ret[k].duration = tonumber(b['duration'])
-			ret[k].title = b['name']
+			ret[k].title = b['name']EPG
 			--print("HZTV:", k, ret[k].time_string, ret[k].duration, ret[k].title)
 		end
 	end

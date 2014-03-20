@@ -10,6 +10,22 @@ function get_video_url(url)
 	return ""
 end
 
+local function to_epg(time, title)
+	local epg = {}
+	local d = os.date("*t", kola.gettime())
+	d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
+	d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
+	d.sec  = 0
+
+	epg.time_string = time
+	epg.title       = string.gsub(title, "_$", "") -- strip, trim, 去头尾空格
+	epg.time        = os.time(d)
+	epg.duration    = 0
+
+	return epg
+end
+
+-- 获取节目的EPG
 function get_channel(vid)
 	local url = string.format('http://v.qq.com/live/tv/%s.html', vid)
 	local text = kola.wget(url, false)
@@ -17,16 +33,9 @@ function get_channel(vid)
 	local ret = {}
 	if text ~= nil then
 		local i = 1
-		local d = os.date("*t", time)
 		for x in rex.gmatch(text, '(<div class=".*sta_unlive j_wanthover">[\\s\\S]*?</div>)') do
 			for time, title in rex.gmatch(x, '<span class="time">(.*)</span>\\s*<span title="(.*)" class') do
-				d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
-				d.min  = tonumber(string.sub(time, string.find(time, ":") + 1))
-
-				ret[i] = {}
-				ret[i].time_string = time
-				ret[i].time        = os.time(d)
-				ret[i].title       = title
+				ret[i] = to_epg(time, title)
 				if i > 1 then
 					ret[i-1].duration = os.difftime(ret[i].time, ret[i-1].time)
 				end

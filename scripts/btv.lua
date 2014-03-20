@@ -30,6 +30,7 @@ function get_resolution(vid)
 	return cjson.encode(ret)
 end
 
+-- 获取节目的EPG
 function get_channel(vid)
 	local url = string.format("http://itv.brtn.cn/live/getepgday/%s", vid)
 

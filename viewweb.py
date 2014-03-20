@@ -699,9 +699,6 @@ class IndexHandler(BaseHandler):
             else:
                 _item['time'] = ''
 
-#            _item['time'] = _item['time'].replace("集更新", "集|更新至")
-#            if "更新" in _item['time']:
-#                _item['time'] = "更"+ _item['time'].split("更")[1]
             if 'smallVerPicUrl' in i:
                 _item['pic'] = i['smallVerPicUrl']
             elif 'smallVerPicUrl' in i:

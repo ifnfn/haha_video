@@ -29,7 +29,7 @@ function get_channel(vid)
 			ret[k] = {}
 			t = v.playtime
 			d.hour             = tonumber(string.sub(t, 1, string.find(t, ":") - 1))
-			d.min              = tonumber(string.sub(t, string.find(t, ":") + 1))
+			d.min              = tonumber(string.sub(t,    string.find(t, ":") + 1))
 			ret[k].time_string = v.playtime
 			ret[k].time        = os.time(d)
 			ret[k].duration    = v.duration

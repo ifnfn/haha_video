@@ -38,7 +38,7 @@ function get_channel(vid)
 				for i, gui in ipairs(ch.guides) do
 					t = gui.bctime
 					d.hour = tonumber(string.sub(t, 1, string.find(t, ":") - 1))
-					d.min  = tonumber(string.sub(t, string.find(t, ":") + 1))
+					d.min  = tonumber(string.sub(t,    string.find(t, ":") + 1))
 					d.sec  = 0
 
 					k = len - i + 1

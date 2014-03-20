@@ -51,7 +51,7 @@ class ParserCntvLivetv(LivetvParser):
                 v.SetVideoUrl('default', {'text' : ch[0]})
                 v.SetVideoUrlScript('default', 'cntv', [ch[0], ch[5]])
 
-                v.info = utils.GetScript('cntv', 'get_channel', [v.vid])
+                v.info = utils.GetScript('cntv', 'get_channel', [ch[0]])
 
                 album.videos.append(v)
                 db.SaveAlbum(album)

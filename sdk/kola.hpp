@@ -431,7 +431,6 @@ public:
 	virtual int    SeekByAlbumName(string name);
 	virtual size_t GetAlbumCount();
 protected:
-	KolaClient *client;
 	int         PageSize;
 	int         PageId;
 	size_t      albumCount;

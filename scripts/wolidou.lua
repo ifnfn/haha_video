@@ -1,3 +1,7 @@
+local share = cURL.share_init()
+share:setopt_share("COOKIE")
+share:setopt_share("DNS")
+
 local function h_build_w_cb(t)
 	return function(s,len)
 		--stores the received data in the table t
@@ -23,7 +27,8 @@ local function curl_init(s, url, referer)
 	if referer == nil then
 		referer = 'http://www.wolidou.com'
 	end
-	c:setopt_referer(url)
+	c:setopt_referer(referer)
+	c:setopt_useragent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36")
 	c:setopt_url(key_url)
 
 	return c
@@ -34,29 +39,15 @@ local function curl_key(s)
 	return curl_init(s, key_url)
 end
 
-local function basic_1(video_url)
-	text = kola.wget(video_url, false)
-	if text == nil then
-		return ''
-	end
+local function jstv_url(video_url)
+	local c1 = curl_key(share)
+	local c2 = curl_init(share, video_url)
 
-	local data_obj = cjson.decode(text)
-
-	if data_obj == nil then
-		return ''
-	end
-
-	video_url = data_obj.u
-
-	local s = cURL.share_init()
-	s:setopt_share("COOKIE")
-	s:setopt_share("DNS")
-
-	local c = curl_key(s)
-	local c2 = curl_init(s, video_url)
+	--c1:setopt_verbose(1)
+	--c2:setopt_verbose(1)
 
 	-- getkey
-	c:perform({writefunction=function(str) end })
+	c1:perform({writefunction=function(str) end })
 
 	--geturl
 	local ret = {}
@@ -70,17 +61,29 @@ local function basic_1(video_url)
 	return ""
 end
 
-local function sdsj_url(video_url)
-	local s = cURL.share_init()
-	s:setopt_share("COOKIE")
-	s:setopt_share("DNS")
 
+local function basic_1(video_url)
+	text = kola.wget(video_url, false)
+	if text == nil then
+		return ''
+	end
+
+	local data_obj = cjson.decode(text)
+
+	if data_obj == nil then
+		return ''
+	end
+
+	return jstv_url(data_obj.u)
+end
+
+local function sdsj_url(video_url)
 	video_url = string.format("%s&ts=%d", video_url, kola.gettime() * 1000)
-	local c = curl_key(s)
-	local c2 = curl_init(s, video_url)
+	local c1 = curl_key(share)
+	local c2 = curl_init(share, video_url)
 
 	-- getkey
-	c:perform({writefunction=function(str) end })
+	c1:perform({writefunction=function(str) end })
 
 	--geturl
 	local ret = ''
@@ -89,7 +92,7 @@ local function sdsj_url(video_url)
 	if ret then
 		local data_obj = cjson.decode(ret)
 
-		if data_obj ~= nil then
+		if data_obj then
 			return data_obj.wolidou
 		end
 	end
@@ -98,11 +101,7 @@ local function sdsj_url(video_url)
 end
 
 local function sxmsp_url(video_url)
-	local s = cURL.share_init()
-	s:setopt_share("COOKIE")
-	s:setopt_share("DNS")
-
-	local c2 = curl_init(s, video_url)
+	local c2 = curl_init(share, video_url)
 
 	--geturl
 	local ret = {}
@@ -117,15 +116,14 @@ local function sxmsp_url(video_url)
 end
 
 function get_video_url(video_url)
-	if string.find(video_url, 'http://www.wolidou.com/c/basic') then
+	if string.find(video_url, 'http://www.wolidou.com/c/basic_1') then
 		return basic_1(video_url)
-	elseif string.find(video_url, 'http://www.wolidou.com/s/sdsj.php') or
-		string.find(video_url, 'http://www.wolidou.com/s/dxcctv.php') or
-		string.find(video_url, 'http://www.wolidou.com/s/yu.php') then
+	elseif string.find(video_url, 'sdsj.php') or string.find(video_url, 'dxcctv.php') or string.find(video_url, 'yu.php') then
 		return sdsj_url(video_url)
-	elseif string.find(video_url, 'http://wolidou.gotoip3.com/sxmsp.php') or
-    string.find(video_url, 'http://wolidou.gotoip3.com/pptv.php') then
+	elseif string.find(video_url, 'sxmsp.php') or string.find(video_url, 'pptv.php') or string.find(video_url, 'moon.php') then
 		return sxmsp_url(video_url)
+	elseif string.find(video_url, 'jstv.com.wolidou.php') then
+		return jstv_url(video_url)
 	elseif string.find(video_url, 'rtmp://') then
 		return video_url
 	else

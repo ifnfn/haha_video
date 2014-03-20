@@ -9,6 +9,7 @@ class ParserHuNanLivetvWolidou(WolidouBaseParser):
         super().__init__(alubmName, url)
         self.tvName = '湖南电视台'
         self.area = '中国,湖南'
+        self.cmd['cache']   = False
 
 class HuNanLiveTV(WolidouBaseMenu):
     '''

@@ -12,6 +12,7 @@ end
 -- 攻取节目的播放地址
 function get_video_url(vid, aid)
 	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s&client=html5", vid)
+	print(url)
 	local text = kola.wget(url, false)
 	local video_url = ''
 	if text then

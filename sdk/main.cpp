@@ -90,7 +90,7 @@ void test_livetv()
 	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "zjw");
+	//m->FilterAdd("PinYin", "cctv");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();

@@ -240,8 +240,7 @@ bool KolaAlbum::GetPictureFile(FileResource& picture, enum PicType type)
 		string &fileName = GetPictureUrl(type);
 
 		if (not fileName.empty()) {
-			KolaClient &kola = KolaClient::Instance();
-			return kola.resManager->GetFile(picture, fileName);
+			return client->resManager->GetFile(picture, fileName);
 		}
 	}
 
@@ -295,7 +294,6 @@ IAlbum* AlbumPage::GetAlbum(size_t index)
 size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列，后台下载
 {
 	pictureCount = 0;
-	KolaClient &kola = KolaClient::Instance();
 
 	if (menu == NULL || menu->PictureCacheType == PIC_DISABLE)
 		return 0;
@@ -305,7 +303,7 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 	for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it)->GetPictureUrl(type);
 		if (not url.empty()) {
-			kola.resManager->GetResource(url);
+			client->resManager->GetResource(url);
 
 			pictureCount++;
 		}
@@ -317,7 +315,6 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 
 void AlbumPage::Clear()
 {
-	KolaClient &kola = KolaClient::Instance();
 	Task::Reset();
 
 	mutex.lock();
@@ -326,7 +323,7 @@ void AlbumPage::Clear()
 		for (vector<IAlbum*>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 			string &url = (*it)->GetPictureUrl(menu->PictureCacheType);
 			if (not url.empty())
-				kola.resManager->RemoveResource(url);
+				client->resManager->RemoveResource(url);
 		}
 	}
 

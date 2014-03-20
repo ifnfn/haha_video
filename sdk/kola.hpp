@@ -26,6 +26,7 @@ using namespace std;
 class IMenu;
 class IAlbum;
 class IVideo;
+class IClient;
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
@@ -258,8 +259,11 @@ private:
 
 class IObject {
 public:
+	IObject();
 	virtual ~IObject() {}
 	virtual void Parser(json_t *js) = 0; // 从 json_t 中解析对象
+protected:
+	IClient *client;
 };
 
 // 视频基类
@@ -283,8 +287,8 @@ public:
 	string pid;
 	string vid;
 	string name;
-	int order;
-	int isHigh;
+	int    order;
+	int    isHigh;
 	size_t videoPlayCount;
 	double videoScore;
 	double playLength;
@@ -396,6 +400,7 @@ public:
 	void UpdateCache();
 	int score;
 private:
+	IClient *client;
 	Mutex mutex;
 	vector<IAlbum*> albumList;
 	size_t pictureCount;
@@ -497,8 +502,6 @@ public:
 	bool Empty() {
 		return VideoSource.size() == 0 || Resolution.size() == 0;
 	}
-private:
-	friend class KolaClient;
 };
 
 class KolaArea {
@@ -563,7 +566,19 @@ private:
 	void Clear();
 };
 
-class KolaClient {
+class IClient {
+public:
+	ResourceManager *resManager;
+	ThreadPool *threadPool;
+	string DefaultResolution;
+	string DefaultVideoSource;
+
+	virtual bool UrlGet(string url, string &ret) = 0;
+	virtual bool UrlPost(string url, const char *body, string &ret) = 0;
+	virtual bool GetArea(KolaArea &area) = 0;
+};
+
+class KolaClient: public IClient {
 public:
 	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, int thread_num=0);
 	virtual ~KolaClient(void);
@@ -578,23 +593,20 @@ public:
 	IMenu* operator[] (const char *name);
 	IMenu* operator[] (int inx);
 	inline string GetFullUrl(string url);
-	bool UrlGet(string url, string &ret);
-	bool UrlPost(string url, const char *body, string &ret);
 	string& GetServer();
 	string GetArea();
-	bool GetArea(KolaArea &area);
 	time_t GetTime();
 	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
 	bool InternetReady();
 	void CleanResource();
 	int debug;
-	ResourceManager *resManager;
-	ThreadPool *threadPool;
 	KolaWeather weather;
 	UrlCache cache;
-	string DefaultResolution;
-	string DefaultVideoSource;
+
+	virtual bool GetArea(KolaArea &area);
+	virtual bool UrlGet(string url, string &ret);
+	virtual bool UrlPost(string url, const char *body, string &ret);
 private:
 	KolaClient(void);
 	void Login();

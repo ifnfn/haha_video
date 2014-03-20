@@ -595,7 +595,7 @@ class LoginHandler(BaseHandler):
     def check_user_id(self):
         status = 'NO'
 
-        if self.serial in ['000001', '000002', '000003', '000004', 'aaaaaaaaaaaaaa']:
+        if self.serial in ['000001', '000002', '000003', '000004']:
             status = 'YES'
         elif self.chipid and self.serial: # 默认的测试号
             json = self.user_table.find_one({'serial' : self.serial})

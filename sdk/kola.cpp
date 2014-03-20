@@ -213,7 +213,7 @@ KolaClient::KolaClient(void)
 {
 	signal(SIGPIPE, SIG_IGN);
 
-	nextLoginSec = 3;
+	nextLoginSec = 1;
 	running = true;
 	debug = 0;
 	connected = false;
@@ -672,4 +672,10 @@ void KolaClient::CleanResource()
 {
 	resManager->Clear();
 }
+
+IObject::IObject()
+{
+	client = &KolaClient::Instance();
+}
+
 

@@ -252,6 +252,7 @@ AlbumPage::AlbumPage()
 	pageId = -1;
 	pictureCount = 0;
 	menu = NULL;
+	client = &KolaClient::Instance();
 }
 
 AlbumPage::~AlbumPage(void)

@@ -308,7 +308,14 @@ class GetPlayerHandler(BaseHandler):
                     if not (new and url_tmp and duration):
                         continue
 
-                    start, _, _, key, _, _, _, _ = url_tmp.split('|')
+                    url_key = url_tmp.split('|')
+                    if len(url_key) < 4:
+                        continue
+
+                    start = url_key[0]
+                    key = url_key[3]
+
+                    #start, _, _, key, _, _, _, _,_ = url_tmp.split('|')
                     u_tmp = '%s%s?key=%s' % (start[:-1], new, key)
 
                     if video_count == 1:

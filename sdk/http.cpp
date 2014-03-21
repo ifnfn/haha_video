@@ -200,7 +200,10 @@ bool Http::Open(const char *url, const char *cookie, const char *referer)
 			curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
 			SetOpt(CURLOPT_URL, url);
 			SetCookie(cookie);
-			SetReferer(referer);
+			if (referer)
+				SetReferer(referer);
+			else
+				SetReferer(url);
 
 			return true;
 		}
@@ -218,7 +221,6 @@ void Http::Close()
 		curl = NULL;
 	}
 }
-
 
 size_t Http::curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {

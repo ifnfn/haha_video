@@ -51,7 +51,6 @@ class ParserJLntvLivetv(LivetvParser):
 
             playUrl  = 'http://live.jlntv.cn/' + u
             v.vid    = utils.getVidoId(playUrl)
-#            v.largePicUrl = x[0][2]
 
             v.SetVideoUrlScript('default', 'jlntv', [playUrl])
             v.info = utils.GetScript('jlntv', 'get_channel',[])

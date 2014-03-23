@@ -278,10 +278,10 @@ public:
 		playLength = 0.0;
 	}
 
-	int    width;
-	int    height;
-	int    fps;
-	size_t totalBytes;
+	int    width;          // 宽
+	int    height;         // 高
+	int    fps;            // 帧率
+	size_t totalBytes;     // 字节数
 
 	int    cid;
 	string pid;

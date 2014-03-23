@@ -215,6 +215,59 @@ void test_picture(const char *menuName)
 	}
 }
 
+void test_sort(const char *menuName)
+{
+#if 1
+	IMenu* m = NULL;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+	m = kola[menuName];
+	m->SetSort("日播放最多");
+	size_t count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album) {
+			StringList sources;
+			printf("[%d] %s\n", i, album->albumName.c_str());
+			cout << sources.ToString() << endl;
+		}
+
+		if (i == 20)
+			break;
+	}
+
+	m->SetSort("总播放最多");
+	count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album)
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		if (i == 20)
+			break;
+	}
+	m->SetSort("评分最高");
+	count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album)
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		if (i == 20)
+			break;
+	}
+	m->SetSort("最新发布");
+	count = m->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
+		if (album)
+			printf("[%d] %s\n", i, album->albumName.c_str());
+		if (i == 20)
+			break;
+	}
+#endif
+}
+
 void test_video(const char *menuName)
 {
 	IMenu* m = NULL;
@@ -250,52 +303,9 @@ void test_video(const char *menuName)
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
-#if 0
-	m->SetSort("日播放最多");
-	count = m->GetAlbumCount();
-	for (int i=0; i < count; i++) {
-		IAlbum *album = m->GetAlbum(i);
-		if (album) {
-			StringList sources;
-			printf("[%d] %s\n", i, album->albumName.c_str());
-			album->GetSource(StringList sources); // 获取节目的节目来源列表
-			cout << sources.ToString() << endl;
-
-		if (i == 20)
-			break;
-	}
-
-	m->SetSort("总播放最多");
-	count = m->GetAlbumCount();
-	for (int i=0; i < count; i++) {
-		IAlbum *album = m->GetAlbum(i);
-		if (album)
-			printf("[%d] %s\n", i, album->albumName.c_str());
-		if (i == 20)
-			break;
-	}
-	m->SetSort("评分最高");
-	count = m->GetAlbumCount();
-	for (int i=0; i < count; i++) {
-		IAlbum *album = m->GetAlbum(i);
-		if (album)
-			printf("[%d] %s\n", i, album->albumName.c_str());
-		if (i == 20)
-			break;
-	}
-	m->SetSort("最新发布");
-	count = m->GetAlbumCount();
-	for (int i=0; i < count; i++) {
-		IAlbum *album = m->GetAlbum(i);
-		if (album)
-			printf("[%d] %s\n", i, album->albumName.c_str());
-		if (i == 20)
-			break;
-	}
-#endif
-	AlbumPage &page = m->GetPage();
-#if 0
+#if 1
 	Player player;
+	AlbumPage &page = m->GetPage();
 
 	for (int i = 0; i < page.Count(); i++) {
 		IAlbum *album = page.GetAlbum(i);

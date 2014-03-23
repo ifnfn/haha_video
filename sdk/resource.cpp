@@ -3,8 +3,6 @@
 
 #include "resource.hpp"
 
-extern string MD5STR(const char *data);
-
 Resource::Resource(ResourceManager *manage)
 {
 	manager = manage;

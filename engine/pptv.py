@@ -320,21 +320,6 @@ class ParserAlbumList(KolaParser):
                 t, v, tb = sys.exc_info()
                 print("ProcessCommand playurl: %s, %s, %s" % (t, v, traceback.format_tb(tb)))
 
-# 节目列表
-class ParserAlbumPage(KolaParser):
-    alias = PPtvAlias()
-    def __init__(self, url=None, name=None, cid=0):
-        super().__init__()
-        if url and cid and name:
-            print(url)
-            self.cmd['source']  = url
-            self.cmd['regular'] = []
-            self.cmd['cid']     = cid
-            self.cmd['name']    = name
-
-    def CmdParser(self, js):
-        pass
-
 class PPtvVideoMenu(EngineVideoMenu):
     def __init__(self, name):
         super().__init__(name)
@@ -401,5 +386,4 @@ class PPtvEngine(VideoEngine):
         self.parserList = [
             ParserAlbumList(),
             ParserPlayCount(),
-            ParserAlbumPage(),
         ]

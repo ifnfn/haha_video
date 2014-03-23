@@ -21,7 +21,8 @@
 #include "resource.hpp"
 
 #if TEST
-#	define SERVER_HOST "192.168.56.1"
+//#	define SERVER_HOST "192.168.56.1"
+#	define SERVER_HOST "127.0.0.1"
 #	define PORT 9991
 #else
 #	define SERVER_HOST "www.kolatv.com"
@@ -70,7 +71,7 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 	return true;
 }
 
-static string GetChipKey(void)
+string GetChipKey(void)
 {
 	static string CPUID;
 	if (CPUID.empty()) {
@@ -81,7 +82,7 @@ static string GetChipKey(void)
 	return CPUID;
 }
 
-static string GetSerial(void)
+string GetSerial(void)
 {
 	return Serial;
 }

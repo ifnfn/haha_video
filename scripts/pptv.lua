@@ -1,66 +1,5 @@
---  获取节目集列表
-function get_videolist(channel_id, pageNo, pageSize)
-	--print(channel_id, pageNo, pageSize)
-	local url = string.format('http://svcdn.pptv.com/show/v2/playlist.json?psize=%s&sid=%s&pindex=%s', pageSize, channel_id, pageNo)
-	print(url)
-	local text = kola.wget(url, false)
-
-	if text == nil then
-		return '{}'
-	end
-
-	js = cjson.decode(text)
-
-	if js.err ~= 0 then
-		return '{}'
-	end
-
-	local ret = {}
-	ret.totalSet   = js.data.count
-	ret.updateSet  = #js.data.videos
-	ret.size       = 0
-	if js.sid == nil then
-		ret.totalSet = 1
-		ret.updateSet = 1
-	end
-	if tonumber(pageSize) == 0 and tonumber(pageNo) then
-		return cjson.encode(ret)
-	end
-
-	local videos = {}
-	for k,v in ipairs(js.data.videos) do
-		local video = {}
-		video.vid         = v.url
-		video.name        = v.title
-		video.showName    = v.title
-		video.order       = tonumber(v.eptitle)
-		video.smallPicUrl = string.format("http://s%d.pplive.cn/v/cap/%s/h120.jpg", v.sn, v.url)
-		video.playLength  = tonumber(v.duration)
-
-		video.resolution  = {}
-		video.resolution.script = 'pptv'
-		video.resolution['function'] = 'get_resolution'
-		video.resolution.parameters = {}
-		video.resolution.parameters[1] = v.cid
-		video.resolution.parameters[2] = v.sid
-
-		ret.size = ret.size + 1
-		videos[ret.size] = video
-		if ret.size >= ret.updateSet then
-			break
-		end
-	end
-
-	if #videos > 0 then
-		ret.videos = videos
-	end
-
-	print(cjson.encode(ret))
-	return cjson.encode(ret)
-end
-
-function find(var, tag, key, value)
-	-- check input
+local function find(var, tag, key, value)
+	-- check input:
 	if type(var)~="table" then return end
 	if type(tag)=="string" and #tag==0 then tag=nil end
 	if type(key)~="string" or #key==0 then key=nil end
@@ -86,8 +25,71 @@ function find(var, tag, key, value)
 	end
 end
 
-function get_resolution(cid, sid)
-	local function video_url_script(qvid, url_prefix, segments, stream_id, default)
+--  获取节目集列表
+function get_videolist(channel_id, pageNo, pageSize)
+	--print(channel_id, pageNo, pageSize)
+	--local url = string.format('http://svcdn.pptv.com/show/v2/playlist.json?psize=%s&sid=%s&pindex=%s', pageSize, channel_id, pageNo)
+	local url = string.format('http://svcdn.pptv.com/show/v1/playlist.json?psize=10000&cid=%s',channel_id)
+	local text = kola.wget(url, false)
+
+	print(url)
+	if text == nil then
+		return '{}'
+	end
+
+	js = cjson.decode(text)
+
+	if js.err ~= 0 then
+		return '{}'
+	end
+
+	local ret = {}
+	ret.totalSet   = js.data.count
+	ret.updateSet  = #js.data.videos
+	ret.size       = 0
+	if js.sid == nil then
+		ret.totalSet = 1
+		ret.updateSet = 1
+	end
+	if tonumber(pageSize) == 0 and tonumber(pageNo) then
+		return cjson.encode(ret)
+	end
+
+	local videos = {}
+	for k,v in ipairs(js.data.videos) do
+		local video = {}
+		if tonumber(v.cid) == tonumber(channel_id) then
+			video.vid         = v.url
+			video.name        = v.title
+			video.showName    = v.title
+			video.order       = tonumber(v.eptitle)
+			video.smallPicUrl = string.format("http://s%d.pplive.cn/v/cap/%s/h120.jpg", v.sn, v.url)
+			video.playLength  = tonumber(v.duration)
+
+			video.resolution  = {}
+			video.resolution.script = 'pptv'
+			video.resolution['function'] = 'get_resolution'
+			video.resolution.parameters = {}
+			video.resolution.parameters[1] = channel_id
+
+			ret.size = ret.size + 1
+			videos[ret.size] = video
+			if ret.size >= ret.updateSet then
+				break
+			end
+		end
+	end
+
+	if #videos > 0 then
+		ret.videos = videos
+	end
+
+	--print(cjson.encode(ret))
+	return cjson.encode(ret)
+end
+
+function get_resolution(cid)
+	local function video_url_script(cid, ft, rid, default)
 		res = {}
 		if default then
 			res.default = 1
@@ -95,10 +97,9 @@ function get_resolution(cid, sid)
 		res.script = 'pptv'
 		res['function'] = 'get_video_url'
 		res.parameters = {}
-		res.parameters[1] = url_prefix
-		res.parameters[2] = qvid
-		res.parameters[3] = cjson.encode(segments)
-		res.parameters[4] = stream_id
+		res.parameters[1] = cid
+		res.parameters[2] = ft
+		res.parameters[3] = rid
 
 		if default then
 			default = false
@@ -106,29 +107,59 @@ function get_resolution(cid, sid)
 		return res, default
 	end
 
-	local url = string.format('http://web-play.pptv.com/webplay3-0-%s.xml&version=4&type=web.fpp', channel_id)
+	local url = string.format('http://web-play.pptv.com/webplay3-0-%s.xml&version=4&type=web.fpp', cid)
 	local text = kola.wget(url, false)
 
 	ret = {}
 
-	default = 'hd'
-	if definition == 'hd' then
-		ret['高清'], Default = video_url_script(url_prefix, qvid, segments, stream_id, Default)
-	end
-	if definition == 'sd' then
-		ret['标清'], Default = video_url_script(url_prefix, qvid, segments, stream_id, Default)
-	end
-	if definition == 'shd' then
-		ret['超清'], Default = video_url_script(url_prefix, qvid, segments, stream_id, Default)
-	end
-	if definition == 'fhd' then
-		ret['原画质'], Default = video_url_script(url_prefix, qvid, segments, stream_id, Default)
+	local x = xml.eval(text)
+	local v = find(x, "file")
+	for a, b in pairs(v) do
+		if b.vip == "0" then
+			--print(a,b.bitrate, b.rid, b.vip)
+			if b.width < "720" then
+				ret['标清'], Default = video_url_script(cid, b.ft, b.rid, Default)
+			end
+			if b.width == "720" and b.width < "720" then
+				ret['高清'], Default = video_url_script(cid, b.ft, b.rid, Default)
+			end
+			if b.width == "1280" and b.width < "720" then
+				ret['超清'], Default = video_url_script(cid, b.ft, b.rid, Default)
+			end
+			if b.width >= "1920" then
+				ret['原画质'], Default = video_url_script(cid, b.ft, b.rid, Default)
+			end
+		end
 	end
 
 	return cjson.encode(ret)
 end
 
+function get_video_url(cid, ft, rid)
+	local url = string.format('http://web-play.pptv.com/webplay3-0-%s.xml&version=4&type=web.fpp', cid)
+	local text = kola.wget(url, false)
 
-function get_video_url(qvid, url_prefix, segments, stream_id)
-	return "http:/ddddd"
+	local x = xml.eval(text)
+	local v = find(x, "root")
+	for a, b in ipairs(v) do
+		if b[0] == 'dt' and b.ft == ft then
+			local sh=''
+			local key=''
+			local k=''
+
+			for i,j in ipairs(b) do
+				if j[0] == 'sh' then
+					sh = j[1]
+				elseif j[0] == 'id' then
+					key = j[1]
+				elseif j[0] == 'key' then
+					k = j[1]
+				end
+			end
+
+			return string.format("http://%s/%s/%s?k=%s&type=web.fpp", sh, ft, rid, k)
+		end
+	end
+
+	return ''
 end

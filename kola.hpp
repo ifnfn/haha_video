@@ -26,6 +26,7 @@ using namespace std;
 class IMenu;
 class IAlbum;
 class IVideo;
+class IClient;
 class KolaClient;
 class KolaMenu;
 class KolaAlbum;
@@ -258,8 +259,11 @@ private:
 
 class IObject {
 public:
+	IObject();
 	virtual ~IObject() {}
 	virtual void Parser(json_t *js) = 0; // 从 json_t 中解析对象
+protected:
+	IClient *client;
 };
 
 // 视频基类
@@ -274,17 +278,17 @@ public:
 		playLength = 0.0;
 	}
 
-	int    width;
-	int    height;
-	int    fps;
-	size_t totalBytes;
+	int    width;          // 宽
+	int    height;         // 高
+	int    fps;            // 帧率
+	size_t totalBytes;     // 字节数
 
 	int    cid;
 	string pid;
 	string vid;
 	string name;
-	int order;
-	int isHigh;
+	int    order;
+	int    isHigh;
 	size_t videoPlayCount;
 	double videoScore;
 	double playLength;
@@ -396,6 +400,7 @@ public:
 	void UpdateCache();
 	int score;
 private:
+	IClient *client;
 	Mutex mutex;
 	vector<IAlbum*> albumList;
 	size_t pictureCount;
@@ -426,7 +431,6 @@ public:
 	virtual int    SeekByAlbumName(string name);
 	virtual size_t GetAlbumCount();
 protected:
-	KolaClient *client;
 	int         PageSize;
 	int         PageId;
 	size_t      albumCount;
@@ -451,8 +455,8 @@ public:
 	void RemoveFailure();         // 移除失效的节目
 	void AlbumAdd(IAlbum *album);
 	void AlbumAdd(string vid);
-	void AlbumRemove(IAlbum *album);
-	void AlbumRemove(string vid);
+	void AlbumRemove(IAlbum *album,bool sync=false);
+	void AlbumRemove(string vid, bool sync=false);
 	bool SaveToFile(string otherFile = "");
 	virtual size_t GetAlbumCount();
 protected:
@@ -479,10 +483,10 @@ public:
 	KolaPlayer();
 	~KolaPlayer();
 	virtual bool Play(string name, string url) = 0;
+	void AddVideo(IVideo *video);
 	string curUrl;
 private:
 	bool DoPlay(string &name);
-	void AddVideo(IVideo *video);
 	virtual void Run();
 
 	list<VideoResolution> videoList;
@@ -497,8 +501,6 @@ public:
 	bool Empty() {
 		return VideoSource.size() == 0 || Resolution.size() == 0;
 	}
-private:
-	friend class KolaClient;
 };
 
 class KolaArea {
@@ -563,9 +565,21 @@ private:
 	void Clear();
 };
 
-class KolaClient {
+class IClient {
 public:
-	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, size_t thread_num=0);
+	ResourceManager *resManager;
+	ThreadPool *threadPool;
+	string DefaultResolution;
+	string DefaultVideoSource;
+
+	virtual bool UrlGet(string url, string &ret) = 0;
+	virtual bool UrlPost(string url, const char *body, string &ret) = 0;
+	virtual bool GetArea(KolaArea &area) = 0;
+};
+
+class KolaClient: public IClient {
+public:
+	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, int thread_num=0);
 	virtual ~KolaClient(void);
 
 	void Quit(void);
@@ -578,23 +592,20 @@ public:
 	IMenu* operator[] (const char *name);
 	IMenu* operator[] (int inx);
 	inline string GetFullUrl(string url);
-	bool UrlGet(string url, string &ret);
-	bool UrlPost(string url, const char *body, string &ret);
 	string& GetServer();
 	string GetArea();
-	bool GetArea(KolaArea &area);
 	time_t GetTime();
 	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
 	bool InternetReady();
 	void CleanResource();
 	int debug;
-	ResourceManager *resManager;
-	ThreadPool *threadPool;
 	KolaWeather weather;
 	UrlCache cache;
-	string DefaultResolution;
-	string DefaultVideoSource;
+
+	virtual bool GetArea(KolaArea &area);
+	virtual bool UrlGet(string url, string &ret);
+	virtual bool UrlPost(string url, const char *body, string &ret);
 private:
 	KolaClient(void);
 	void Login();

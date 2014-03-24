@@ -139,7 +139,7 @@ bool KolaEpg::Get(EPG &e, time_t t)
 
 UrlCache::UrlCache()
 {
-	timeout = 3600;
+	timeout = 60;
 }
 
 void UrlCache::SetTimeout(size_t sec)

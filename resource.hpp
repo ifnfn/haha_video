@@ -11,6 +11,9 @@
 
 class ResourceManager;
 
+string MD5STR(const char *data);
+
+
 class IDestructable {
 public:
 	virtual void Destroy() = 0;
@@ -18,9 +21,6 @@ public:
 
 class RefCountable {
 public:
-	RefCountable(): miRefCount(1){}
-	virtual ~RefCountable() {assert(miRefCount == 0);}
-
 	virtual int IncRefCount() {  return ++miRefCount; }
 	virtual int DecRefCount() {
 		miRefCount--;
@@ -38,13 +38,14 @@ public:
 		(dynamic_cast<IDestructable*>(this))->Destroy();
 	}
 protected:
+	RefCountable(): miRefCount(1){}
+	virtual ~RefCountable() {assert(miRefCount == 0);}
+
 	int miRefCount;
 };
 
-class Resource : public virtual RefCountable, public virtual IDestructable, public Task {
+class Resource: public virtual RefCountable, public virtual IDestructable, public Task {
 public:
-	Resource(ResourceManager *manage=NULL);
-	virtual ~Resource();
 	static Resource* Create(ResourceManager *manage) {
 		return dynamic_cast<Resource*>(new Resource(manage));
 	}
@@ -65,9 +66,10 @@ public:
 		time(&updateTime);
 	}
 
-	time_t ExpiryTime;
 	time_t updateTime;
 protected:
+	Resource(ResourceManager *manage=NULL);
+	virtual ~Resource();
 	size_t miDataSize;
 	string resName;
 	string md5Name;

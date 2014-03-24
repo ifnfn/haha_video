@@ -3,13 +3,10 @@
 
 #include "resource.hpp"
 
-extern string MD5STR(const char *data);
-
 Resource::Resource(ResourceManager *manage)
 {
 	manager = manage;
 	miDataSize = 0;
-	ExpiryTime = 0;
 	UpdateTime();
 	SetPool(manager->threadPool);
 }
@@ -60,7 +57,6 @@ void Resource::Run(void)
 	IncRefCount();
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
-		this->ExpiryTime = http.Headers.GetExpiryTime();
 		time(&this->updateTime);
 		if (miDataSize > 0 && manager) {
 			manager->GC(miDataSize);
@@ -304,20 +300,6 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	mResources.sort(compare_nocase);
 
 	list<Resource*>::iterator it;
-#if 0
-	// 清除所有过期的文件
-	time_t now = time(&now);
-
-	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
-		pRet = (*it);
-		if (pRet->ExpiryTime != 0 && pRet->ExpiryTime < now && pRet->GetStatus() == Task::StatusFinish) {
-			mResources.erase(it++);
-			pRet->DecRefCount();
-		}
-		else
-			it++;
-	}
-#endif
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		pRet = (*it);
 

@@ -40,7 +40,6 @@ Thread::~Thread()
 {
 	if (_state) {
 		this->cancel();
-		this->join();
 	}
 	delete _func;
 }
@@ -55,6 +54,7 @@ bool Thread::start()
 	if (this->_state == false) {
 		this->_state = true;
 		this->_state = static_cast<bool>(!pthread_create(&_tid, 0, &starter, static_cast<void*>(this)));
+		pthread_detach(_tid);
 	}
 
 	return (this->_state);
@@ -74,19 +74,6 @@ bool Thread::cancel()
 		return (false);
 }
 
-bool Thread::join(void **exit_value)
-{
-	bool ret;
-
-	if (_state != false) {
-		ret = static_cast<bool>(!pthread_join(_tid, exit_value));
-		_state = false;
-		return ret;
-	}
-	else
-		return false;
-}
-
 ThreadPool::ThreadPool(int num)
 {
 	if (num > 0)
@@ -100,7 +87,6 @@ ThreadPool::~ThreadPool()
 	for (it = _threadsList.begin(); it != _threadsList.end(); it++) {
 		Thread* th = *it;
 		th->cancel();
-		th->join();
 		delete th;
 	}
 

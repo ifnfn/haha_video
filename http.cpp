@@ -129,11 +129,12 @@ CURL *Curl::GetCurl() {
 
 	if ( curl ) {
 		curl_easy_setopt(curl, CURLOPT_NOSIGNAL         , 1L);
-		curl_easy_setopt(curl, CURLOPT_TIMEOUT          , NETWORK_TIMEOUT * 2);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT          , NETWORK_TIMEOUT);
 		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT   , NETWORK_TIMEOUT);
-		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "KolaClient");
+		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.149 Safari/537.36");
+
 		curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
-		curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
+		curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60);
 		curl_easy_setopt(curl, CURLOPT_BUFFERSIZE       , 1024 * 8);
 		if (curlinfo->features & CURL_VERSION_LIBZ)
 			curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING , "gzip,deflate");
@@ -199,7 +200,10 @@ bool Http::Open(const char *url, const char *cookie, const char *referer)
 			curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
 			SetOpt(CURLOPT_URL, url);
 			SetCookie(cookie);
-			SetReferer(referer);
+			if (referer)
+				SetReferer(referer);
+			else
+				SetReferer(url);
 
 			return true;
 		}
@@ -217,7 +221,6 @@ void Http::Close()
 		curl = NULL;
 	}
 }
-
 
 size_t Http::curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {

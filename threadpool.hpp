@@ -102,7 +102,6 @@ public:
 
 	bool start();
 	bool cancel(void);
-	bool join(void **exit_value = 0);
 	void run();
 	bool _state;
 private:

@@ -18,7 +18,6 @@ KolaPlayer::~KolaPlayer()
 {
 	thread->cancel();
 	_condvar->broadcast();
-	thread->join();
 	delete _condvar;
 }
 

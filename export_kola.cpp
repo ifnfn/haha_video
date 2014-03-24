@@ -13,6 +13,9 @@
 
 extern "C" {LUALIB_API int luaopen_kola(lua_State *L);}
 
+extern string GetChipKey(void);
+extern string GetSerial(void);
+
 static int lua_mwget(lua_State *L)
 {
 	double k;
@@ -243,18 +246,14 @@ static int StringToTime(const string &strDateStr,time_t &timeData)
 	int iSec=0;
 	pPos = strstr(pPos + 1," ");
 	//为了兼容有些没精确到时分秒的
-	if(pPos != NULL)
-	{
+	if(pPos != NULL) {
 		iHour=atoi(pPos + 1);
 		pPos = strstr(pPos + 1,":");
-		if(pPos != NULL)
-		{
+		if(pPos != NULL) {
 			iMin=atoi(pPos + 1);
 			pPos = strstr(pPos + 1,":");
 			if(pPos != NULL)
-			{
 				iSec=atoi(pPos + 1);
-			}
 		}
 	}
 
@@ -287,6 +286,31 @@ static int lua_date(lua_State *L)
 	return 0;
 }
 
+static int lua_md5(lua_State *L)
+{
+	const char *txt = lua_tostring(L, 1);
+	if (txt) {
+		lua_pushstring(L, MD5STR(txt).c_str());
+
+		return 1;
+	}
+
+	return 0;
+}
+
+static int lua_getchipid(lua_State *L)
+{
+	lua_pushstring(L, GetChipKey().c_str());
+	return 0;
+}
+
+
+static int lua_getserial(lua_State *L)
+{
+	lua_pushstring(L, GetSerial().c_str());
+	return 0;
+}
+
 static const struct luaL_Reg kola_lib[] = {
 	{"base64_encode" , lua_base64_encode},
 	{"base64_decode" , lua_base64_decode},
@@ -299,7 +323,10 @@ static const struct luaL_Reg kola_lib[] = {
 	{"getdate"       , lua_getdate},
 	{"urlencode"     , lua_urlencode},
 	{"urldecode"     , lua_urldecode},
+	{"md5"           , lua_md5},
 	{"date"          , lua_date},
+	{"chipid"        , lua_getchipid},
+	{"serial"        , lua_getserial},
 
 	{NULL            , NULL},
 };

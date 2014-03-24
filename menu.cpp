@@ -18,7 +18,6 @@ KolaMenu::KolaMenu()
 {
 	init();
 
-	client = &KolaClient::Instance();
 	cur = &pageCache[0];
 	for (int i=0; i < PAGE_CACHE; i++) {
 		pageCache[i].SetMenu(this);
@@ -142,8 +141,8 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 				json_t *value;
 				json_array_foreach(results, value) {
 					IAlbum *album = new KolaAlbum();
-					album->SetSource(client->DefaultVideoSource);
 					album->Parser(value);
+					album->SetSource(client->DefaultVideoSource);
 					page->PutAlbum(album);
 					cnt++;
 				}
@@ -339,8 +338,7 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 	if (vids.empty())
 		return;
 
-	KolaClient& kola = KolaClient::Instance();
-	if (kola.UrlPost("video/vidcheck", vids.c_str(), text) == true) {
+	if (client->UrlPost("video/vidcheck", vids.c_str(), text) == true) {
 		json_error_t error;
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 		if (js) {
@@ -370,17 +368,18 @@ void CustomMenu::AlbumAdd(string vid)
 	albumCount = albumIdList.size();
 }
 
-void CustomMenu::AlbumRemove(IAlbum *album)
+void CustomMenu::AlbumRemove(IAlbum *album, bool sync)
 {
 	if (album)
-		AlbumRemove(album->vid);
+		AlbumRemove(album->vid, sync);
 }
 
-void CustomMenu::AlbumRemove(string vid)
+void CustomMenu::AlbumRemove(string vid, bool sync)
 {
 	albumIdList.Remove(vid);
 	albumCount = albumIdList.size();
-	CleanPage();
+	if (sync)
+		CleanPage();
 }
 
 size_t CustomMenu::GetAlbumCount()

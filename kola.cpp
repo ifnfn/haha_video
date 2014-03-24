@@ -21,7 +21,8 @@
 #include "resource.hpp"
 
 #if TEST
-#	define SERVER_HOST "192.168.56.1"
+//#	define SERVER_HOST "192.168.56.1"
+#	define SERVER_HOST "127.0.0.1"
 #	define PORT 9991
 #else
 #	define SERVER_HOST "www.kolatv.com"
@@ -34,7 +35,7 @@ static string xsrf_cookie;
 static string Serial("000002");
 
 static size_t CacheSize = 1024 * 1024 * 1;
-static int    ThreadNum = 8;
+static int    ThreadNum = 10;
 
 /**
  * 功能:获取芯片的CPUID。
@@ -70,7 +71,7 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 	return true;
 }
 
-static string GetChipKey(void)
+string GetChipKey(void)
 {
 	static string CPUID;
 	if (CPUID.empty()) {
@@ -81,7 +82,7 @@ static string GetChipKey(void)
 	return CPUID;
 }
 
-static string GetSerial(void)
+string GetSerial(void)
 {
 	return Serial;
 }
@@ -106,19 +107,18 @@ string MD5STR(const char *data)
 
 static string GetIP(const char *hostp)
 {
-	char str[32] = "";
+	string ip;
 	struct hostent *host = gethostbyname(hostp);
 
-	if (host == NULL)
-		return NULL;
+	if (host) {
+		char str[64];
+		const char *p = inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
+		if (p)
+			ip = p;
+		//freehostent(host);
+	}
 
-	const char *p = inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
-
-	//freehostent(host);
-	if (!p)
-		memset(str, 0, 32);
-
-	return str;
+	return ip;
 }
 
 static char *ReadStringFile(FILE *fp)
@@ -214,7 +214,7 @@ KolaClient::KolaClient(void)
 {
 	signal(SIGPIPE, SIG_IGN);
 
-	nextLoginSec = 3;
+	nextLoginSec = 1;
 	running = true;
 	debug = 0;
 	connected = false;
@@ -392,19 +392,27 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	return 0;
 }
 
+static inline string stringlink(string key, string value) {
+	return "\""  + key + "\" : \"" + value + "\"";
+}
+
 bool KolaClient::LoginOne()
 {
 	json_error_t error;
 	string text;
-	string url("/login?chipid=");
+	string url("/login");
+	string params = "{";
 
-	url = url + GetChipKey() + "&serial=" + GetSerial();
-	if (connected)
-		url = url + "&cmd=1";
-	else
-		url = url + "&cmd=0";
+	if (connected) {
+		params += stringlink("area"  , GetArea()) + ",";
+		params += stringlink("cmd"   , connected ? "1" : "0")+ ",";
+	}
+	params += stringlink("chipid", GetChipKey()) + ",";
+	params += stringlink("serial", GetSerial());
 
-	if (UrlGet(url, text) == false) {
+	params += "}";
+
+	if (UrlPost(url, params.c_str(), text) == false) {
 		connected = false;
 		return false;
 	}
@@ -559,7 +567,7 @@ void KolaClient::Login()
 	pthread_exit(NULL);
 }
 
-KolaClient& KolaClient::Instance(const char *user_id, size_t cache_size, size_t thread_num)
+KolaClient& KolaClient::Instance(const char *user_id, size_t cache_size, int thread_num)
 {
 	if (user_id)
 		Serial = user_id;
@@ -582,11 +590,17 @@ void KolaClient::SetPicutureCacheSize(size_t size)
 
 string KolaClient::GetArea()
 {
-	LuaScript &lua = LuaScript::Instance();
-	vector<string> args;
-	args.push_back("");
+	static string local_area;
 
-	return lua.RunScript(args, "getip", "getip");
+	if (local_area.empty()) {
+		LuaScript &lua = LuaScript::Instance();
+		vector<string> args;
+		args.push_back("");
+
+		local_area = lua.RunScript(args, "getip", "getip");
+	}
+
+	return local_area;
 }
 
 bool KolaClient::GetArea(KolaArea &area)
@@ -659,4 +673,10 @@ void KolaClient::CleanResource()
 {
 	resManager->Clear();
 }
+
+IObject::IObject()
+{
+	client = &KolaClient::Instance();
+}
+
 

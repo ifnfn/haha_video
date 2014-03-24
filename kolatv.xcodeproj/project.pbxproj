@@ -75,16 +75,6 @@
 		44F2E43B187A99E200B05FDB /* resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44F2E439187A99E200B05FDB /* resource.cpp */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		44896C731890EC56004628FC /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4473FDC0186C5ACA00136610 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 4473FDC7186C5ACA00136610;
-			remoteInfo = kolatv;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		4473FDC6186C5ACA00136610 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -190,8 +180,6 @@
 		4473FE87186C5AF300136610 /* threadpool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = threadpool.cpp; sourceTree = "<group>"; };
 		4473FE88186C5AF300136610 /* threadpool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = threadpool.hpp; sourceTree = "<group>"; };
 		4473FE89186C5AF300136610 /* video.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video.cpp; sourceTree = "<group>"; };
-		448B8BA918D05AFA001706D4 /* kolabase.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = kolabase.hpp; sourceTree = "<group>"; };
-		44B61A4418C9A478001EF652 /* kolatv Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kolatv Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		44C557D418910E7300D3F5EC /* kolatv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = kolatv; sourceTree = BUILT_PRODUCTS_DIR; };
 		44E3229D188A5EBF00E9452E /* weather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = weather.cpp; sourceTree = "<group>"; };
 		44F12ACC18CDED1F00C87B7D /* Lua-cURL-callback.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-callback.c"; path = "src/Lua-cURL-callback.c"; sourceTree = "<group>"; };
@@ -211,13 +199,6 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		4473FDC5186C5ACA00136610 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		44896C631890EC56004628FC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -267,13 +248,11 @@
 				4473FDE0186C5AF300136610 /* http.hpp */,
 				4473FDE2186C5AF300136610 /* json.hpp */,
 				4473FDE4186C5AF300136610 /* kola.hpp */,
-				448B8BA918D05AFA001706D4 /* kolabase.hpp */,
 				4473FE81186C5AF300136610 /* pcre.hpp */,
 				44F2E43A187A99E200B05FDB /* resource.hpp */,
 				4473FE83186C5AF300136610 /* script.hpp */,
 				4473FE88186C5AF300136610 /* threadpool.hpp */,
 				44C557D418910E7300D3F5EC /* kolatv */,
-				44B61A4418C9A478001EF652 /* kolatv Tests.xctest */,
 			);
 			sourceTree = "<group>";
 		};
@@ -403,37 +382,14 @@
 			productReference = 44C557D418910E7300D3F5EC /* kolatv */;
 			productType = "com.apple.product-type.tool";
 		};
-		44896C651890EC56004628FC /* kolatv Tests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 44896C751890EC56004628FC /* Build configuration list for PBXNativeTarget "kolatv Tests" */;
-			buildPhases = (
-				44896C621890EC56004628FC /* Sources */,
-				44896C631890EC56004628FC /* Frameworks */,
-				44896C641890EC56004628FC /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				44896C741890EC56004628FC /* PBXTargetDependency */,
-			);
-			name = "kolatv Tests";
-			productName = "kolatv Tests";
-			productReference = 44B61A4418C9A478001EF652 /* kolatv Tests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		4473FDC0186C5ACA00136610 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = Silicon;
-				TargetAttributes = {
-					44896C651890EC56004628FC = {
-						TestTargetID = 4473FDC7186C5ACA00136610;
-					};
-				};
 			};
 			buildConfigurationList = 4473FDC3186C5ACA00136610 /* Build configuration list for PBXProject "kolatv" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -448,20 +404,9 @@
 			projectRoot = "";
 			targets = (
 				4473FDC7186C5ACA00136610 /* kolatv */,
-				44896C651890EC56004628FC /* kolatv Tests */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXResourcesBuildPhase section */
-		44896C641890EC56004628FC /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4473FDC4186C5ACA00136610 /* Sources */ = {
@@ -537,22 +482,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		44896C621890EC56004628FC /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		44896C741890EC56004628FC /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4473FDC7186C5ACA00136610 /* kolatv */;
-			targetProxy = 44896C731890EC56004628FC /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4473FDCF186C5ACA00136610 /* Debug */ = {
@@ -592,37 +522,6 @@
 			};
 			name = Debug;
 		};
-		4473FDD0186C5ACA00136610 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				SDKROOT = macosx;
-			};
-			name = Release;
-		};
 		4473FDD2186C5ACA00136610 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -640,7 +539,7 @@
 					/usr/local/opt/libxml2/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=0",
+					"-DTEST=1",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
@@ -655,7 +554,44 @@
 			};
 			name = Debug;
 		};
-		4473FDD3186C5ACA00136610 /* Release */ = {
+		44BA7CA718DBFDA200587C73 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		44BA7CA818DBFDA200587C73 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
@@ -668,12 +604,11 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/Users/silicon/works/kolatv/lib,
-					/Users/silicon/works/kolatv/lua,
 					/usr/local/lib,
+					/usr/local/opt/libxml2/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=0",
+					"-DTEST=1",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
@@ -688,40 +623,6 @@
 			};
 			name = Release;
 		};
-		44896C761890EC56004628FC /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
-					"$(inherited)",
-				);
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "kolatv Tests/kolatv Tests-Prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = "kolatv Tests/kolatv Tests-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_EXTENSION = xctest;
-			};
-			name = Debug;
-		};
-		44896C771890EC56004628FC /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
-					"$(inherited)",
-				);
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "kolatv Tests/kolatv Tests-Prefix.pch";
-				INFOPLIST_FILE = "kolatv Tests/kolatv Tests-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_EXTENSION = xctest;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -729,28 +630,19 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4473FDCF186C5ACA00136610 /* Debug */,
-				4473FDD0186C5ACA00136610 /* Release */,
+				44BA7CA718DBFDA200587C73 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		4473FDD1186C5ACA00136610 /* Build configuration list for PBXNativeTarget "kolatv" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4473FDD2186C5ACA00136610 /* Debug */,
-				4473FDD3186C5ACA00136610 /* Release */,
+				44BA7CA818DBFDA200587C73 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		44896C751890EC56004628FC /* Build configuration list for PBXNativeTarget "kolatv Tests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				44896C761890EC56004628FC /* Debug */,
-				44896C771890EC56004628FC /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

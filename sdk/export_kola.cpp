@@ -246,18 +246,14 @@ static int StringToTime(const string &strDateStr,time_t &timeData)
 	int iSec=0;
 	pPos = strstr(pPos + 1," ");
 	//为了兼容有些没精确到时分秒的
-	if(pPos != NULL)
-	{
+	if(pPos != NULL) {
 		iHour=atoi(pPos + 1);
 		pPos = strstr(pPos + 1,":");
-		if(pPos != NULL)
-		{
+		if(pPos != NULL) {
 			iMin=atoi(pPos + 1);
 			pPos = strstr(pPos + 1,":");
 			if(pPos != NULL)
-			{
 				iSec=atoi(pPos + 1);
-			}
 		}
 	}
 

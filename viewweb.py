@@ -847,6 +847,38 @@ class EncryptFileHandler(tornado.web.StaticFileHandler):
 
         self._write_buffer.append(chunk)
 
+class UploadFileHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('update.html')
+
+    def post(self):
+        ret = {}
+        upload_path=os.path.join(os.path.dirname(__file__),'files')  #文件的暂存路径
+        filename = self.get_argument('newfile', '')
+
+        ret['version'] = self.get_argument('version', '')
+
+        file_metas=self.request.files['file']    #提取表单中‘name’为‘file’的文件元数据
+        for meta in file_metas:
+            if not filename:
+                filename = meta['filename']
+            filepath=os.path.join(upload_path,filename)
+            with open(filepath,'wb') as up:      #有些文件需要已二进制的形式存储，实际中可以更改
+                up.write(meta['body'])
+
+            ret['md5'] = hashlib.md5(meta['body']).hexdigest()
+            ret['href'] = self.request.protocol + '://' + self.request.host  + '/files/' + filename
+
+            jsonfile, _ = os.path.splitext(filename)
+            filepath=os.path.join(upload_path,jsonfile) + '.json'
+            with open(filepath,'wb') as up:
+                up.write(json.dumps(ret, indent=4, ensure_ascii=False).encode())
+
+            self.redirect(self.request.protocol + '://' + self.request.host  + '/files/' + jsonfile + '.json')
+
+        else:
+            self.write("Error!")
+
 class ViewApplication(tornado.web.Application):
     def __init__(self):
         settings = dict(
@@ -879,7 +911,9 @@ class ViewApplication(tornado.web.Application):
 
             (r'/admin/userinfo',   UserInfoHandler),        # 用户信息
             (r'/admin/serial',     SerialHandler),          # 生成序列号
+            (r'/admin/update',     UploadFileHandler),
 
+            (r"/files/(.*)",       tornado.web.StaticFileHandler, {"path": "files"}),
             (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),
             (r"/images/(.*)",      tornado.web.StaticFileHandler, {"path": "images"}),
             (r"/scripts/(.*)",     EncryptFileHandler, {"path": "scripts"}),

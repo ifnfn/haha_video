@@ -313,7 +313,7 @@ class ParserAlbumList(KolaParser):
                 if 'channel_id' in a:
                     album.pptv.channel_id = a['channel_id']
 
-                album.pptv.videoListUrl = kola.GetScript('pptv', 'get_videolist', [album.pptv.channel_id])
+                album.pptv.videoListUrl = kola.GetScript('pptv', 'get_videolist', [album.cid, album.pptv.channel_id])
 
                 db.SaveAlbum(album)
             except:

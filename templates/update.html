@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>文件上传</title>
+    </head>
+  <body>
+    <div align="center">
+    <form name="update" enctype="multipart/form-data" method="post" action="update">
+    <table class="width50" cellspacing="1">
+    <tr>
+        <td class="form-title">
+                <input type="hidden" name="return" value="update" />
+                上传升级程序：</td>
+        <td class="right"></td>
+    </tr>
+    <tr class="row-1">
+        <td class="category">
+            版本号    </td>
+        <td>
+            <input type="text" name="version" size="32" maxlength="32" value="" />
+        </td>
+    </tr>
+    <tr class="row-2">
+        <td class="category">
+            文件名    </td>
+        <td>
+            <input type='file' name='file'/>
+        </td>
+    </tr>
+    <tr class="row-3">
+        <td class="category">
+            文件重命名    </td>
+        <td>
+            <input type="text" name="newfile" size="32" maxlength="32" value id="file" />
+        </td>
+    </tr>
+    <tr>
+        <td class="center" colspan="2">
+            <input type="submit" class="button" value="上传" />
+        </td>
+    </tr>
+    </table>
+    </form>
+    </div>
+  </body>
+</html>

@@ -26,10 +26,16 @@ local function find(var, tag, key, value)
 end
 
 --  获取节目集列表
-function get_videolist(channel_id, pageNo, pageSize)
+function get_videolist(cid, channel_id, pageNo, pageSize)
 	--print(channel_id, pageNo, pageSize)
 	--local url = string.format('http://svcdn.pptv.com/show/v2/playlist.json?psize=%s&sid=%s&pindex=%s', pageSize, channel_id, pageNo)
-	local url = string.format('http://svcdn.pptv.com/show/v1/playlist.json?psize=10000&cid=%s',channel_id)
+	local url = ''
+
+	if cid == '1' then -- 电影
+		url = string.format('http://svcdn.pptv.com/show/v1/playlist.json?psize=10000&cid=%s',channel_id)
+	else
+		url = string.format('http://svcdn.pptv.com/show/v2/playlist.json?psize=%s&sid=%s&pindex=%s', pageSize, channel_id, pageNo)
+	end
 	local text = kola.wget(url, false)
 
 	print(url)
@@ -141,11 +147,13 @@ function get_video_url(cid, ft, rid)
 
 	local x = xml.eval(text)
 	local v = find(x, "root")
+
+	local segments = {}
+	local sh=''
+	local key=''
+	local k=''
 	for a, b in ipairs(v) do
 		if b[0] == 'dt' and b.ft == ft then
-			local sh=''
-			local key=''
-			local k=''
 
 			for i,j in ipairs(b) do
 				if j[0] == 'sh' then
@@ -156,9 +164,28 @@ function get_video_url(cid, ft, rid)
 					k = j[1]
 				end
 			end
-
-			return string.format("http://%s/%s/%s?k=%s&type=web.fpp", sh, ft, rid, k)
+		elseif b[0] == 'dragdata' and b.ft == ft then
+			local idx = 1
+			for _,sgm in ipairs(b) do
+				if sgm[0] == 'sgm' then
+					segments[idx] = {}
+					segments[idx].url = string.format('%s/%s', sgm.no, rid)
+					segments[idx].time = tonumber(sgm.dur)
+					idx = idx + 1
+				end
+			end
 		end
+	end
+
+	if #segments > 1 then
+		for i, sgm in ipairs(segments) do
+			segments[i].url = string.format('http://%s/%s?k=%s&type=web.fpp', sh, segments[i].url, k)
+		end
+		local url = kola.getserver() .. "/video/getplayer?step=3"
+
+		return kola.wpost(url, cjson.encode(segments))
+	elseif #segments == 1 then
+			return string.format('http://%s/%s?k=%s&type=web.fpp', sh, segments[0].url, k)
 	end
 
 	return ''

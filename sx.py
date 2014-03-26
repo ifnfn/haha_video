@@ -1,29 +1,31 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+# NND，被逼成这样了
+
 import random, sys
 import time
 
-class A2:
+class Mathematical:
     def __init__(self, number=20):
         self.number = number
-        self.prev = 0
+        self.OnceTime = 0
         pass
 
     def Prompt(self):
-        v = time.time() - self.start_time
-        if self.prev >= 10:
-            return "(%3d) [%d:%2d \033[22;31m%3d\033[0m]\t\t\t\t" % (self.no, v / 60, v % 60, self.prev)
+        LostTime = time.time() - self.start_time
+        if self.OnceTime >= 10:
+            return "(%3d) [%d:%2d \033[22;31m%3d\033[0m]\t\t\t\t" % (self.no, LostTime / 60, LostTime % 60, self.OnceTime)
         else:
-            return "(%3d) [%d:%2d %3d]\t\t\t\t" % (self.no, v / 60, v % 60, self.prev)
+            return "(%3d) [%d:%2d %3d]\t\t\t\t" % (self.no, LostTime / 60, LostTime % 60, self.OnceTime)
 
     def GetValue(self, prompt):
         prompt = "%s%s" % (self.Prompt(), prompt)
         while True:
-            a = input(prompt)
-            if a:
+            text = input(prompt)
+            if text:
                 try:
-                    return int(a)
+                    return int(text)
                 except:
                     pass
 
@@ -82,7 +84,7 @@ class A2:
             else:
                 self.error += 1
                 errorList.append((x, y, a, v, prompt))
-            self.prev = time.time() - now
+            self.OnceTime = time.time() - now
 
             self.no += 1
 
@@ -101,7 +103,7 @@ def main():
     else:
         number = 25
 
-    a = A2(number)
+    a = Mathematical(number)
     a.Run()
 
 if __name__ == '__main__':

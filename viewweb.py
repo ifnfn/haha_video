@@ -853,31 +853,61 @@ class UploadFileHandler(tornado.web.RequestHandler):
 
     def post(self):
         ret = {}
-        upload_path=os.path.join(os.path.dirname(__file__),'files')  #文件的暂存路径
-        filename = self.get_argument('newfile', '')
+        check_pass = False
 
+        projectName = self.get_argument('projectname', '')
+        password = self.get_argument('password', '')
         ret['version'] = self.get_argument('version', '')
 
+        if not (projectName and password and ret['version'] and len(self.request.files['file'])):
+            self.write('项目名、密码、版本号不能加空，至少要上传一个文件！')
+            return
+
+        passwd_md5 = hashlib.md5(password.encode()).hexdigest()
+
+        upload_path=os.path.join(os.path.dirname(__file__), 'files')  #文件的暂存路径
+        upload_path=os.path.join(upload_path, projectName)
+
+        if not os.path.exists(upload_path):
+            os.mkdir(upload_path)
+
+        pwdfile = os.path.join(upload_path, 'passwd')
+
+        if not os.path.isfile(pwdfile):
+            with open(pwdfile,'wb') as up:
+                up.write(passwd_md5.encode())
+
+            check_pass = True
+        else:
+            with open(pwdfile) as up:
+                if up.read() == passwd_md5:
+                    check_pass = True
+
+        if check_pass == False:
+            self.write('密码与项目不符，请重新上传！')
+            return
+
         file_metas=self.request.files['file']    #提取表单中‘name’为‘file’的文件元数据
+        ret['files'] = []
         for meta in file_metas:
-            if not filename:
-                filename = meta['filename']
+            segment = {}
+            filename = meta['filename']
+            jsonfile = os.path.basename(filename)
+
+            segment['name'] = jsonfile
+            segment['md5']  = hashlib.md5(meta['body']).hexdigest()
+            segment['href'] = self.request.protocol + '://' + self.request.host  + '/files/' + projectName + '/' + filename
+            ret['files'].append(segment)
+
             filepath=os.path.join(upload_path,filename)
             with open(filepath,'wb') as up:      #有些文件需要已二进制的形式存储，实际中可以更改
                 up.write(meta['body'])
 
-            ret['md5'] = hashlib.md5(meta['body']).hexdigest()
-            ret['href'] = self.request.protocol + '://' + self.request.host  + '/files/' + filename
+        infofile = os.path.join(upload_path, 'info.json')
+        with open(infofile,'wb') as up:
+            up.write(json.dumps(ret, indent=4, ensure_ascii=False).encode())
 
-            jsonfile, _ = os.path.splitext(filename)
-            filepath=os.path.join(upload_path,jsonfile) + '.json'
-            with open(filepath,'wb') as up:
-                up.write(json.dumps(ret, indent=4, ensure_ascii=False).encode())
-
-            self.redirect(self.request.protocol + '://' + self.request.host  + '/files/' + jsonfile + '.json')
-
-        else:
-            self.write("Error!")
+        self.redirect(self.request.protocol + '://' + self.request.host  + '/files/' +  projectName + '/info.json')
 
 class ViewApplication(tornado.web.Application):
     def __init__(self):

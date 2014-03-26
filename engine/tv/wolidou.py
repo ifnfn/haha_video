@@ -178,6 +178,9 @@ class WolidouBaseMenu(LivetvMenu):
         self.AlbumPage = []
 
     def UpdateAlbumList(self):
+        for p in self.parserClassList:
+            p().Execute()
+
         for albumName, url in self.AlbumPage:
             if type(url) == list:
                 for u in url:

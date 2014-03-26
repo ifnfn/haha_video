@@ -847,6 +847,10 @@ class EncryptFileHandler(tornado.web.StaticFileHandler):
 
         self._write_buffer.append(chunk)
 
+class DownloadFileHandler(tornado.web.StaticFileHandler):
+    def should_return_304(self):
+        return False
+
 class UploadFileHandler(tornado.web.RequestHandler):
     def get(self):
         self.render('update.html')
@@ -943,7 +947,7 @@ class ViewApplication(tornado.web.Application):
             (r'/admin/serial',     SerialHandler),          # 生成序列号
             (r'/admin/update',     UploadFileHandler),
 
-            (r"/files/(.*)",       tornado.web.StaticFileHandler, {"path": "files"}),
+            (r"/files/(.*)",       DownloadFileHandler, {"path": "files"}),
             (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),
             (r"/images/(.*)",      tornado.web.StaticFileHandler, {"path": "images"}),
             (r"/scripts/(.*)",     EncryptFileHandler, {"path": "scripts"}),

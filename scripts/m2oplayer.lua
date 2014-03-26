@@ -84,8 +84,7 @@ function get_channel(url)
 			ret[k].time_string = os.date("%H:%M", s)
 			ret[k].time = s
 			ret[k].duration = tonumber(b['duration'])
-			ret[k].title = b['name']EPG
-			--print("HZTV:", k, ret[k].time_string, ret[k].duration, ret[k].title)
+			ret[k].title = b['name']
 		end
 	end
 

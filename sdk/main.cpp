@@ -90,7 +90,7 @@ void test_livetv()
 	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "jx");
+	m->FilterAdd("PinYin", "fh");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
@@ -475,7 +475,7 @@ int main(int argc, char **argv)
 #endif
 //	test_picture("电影"); return 0;
 	//test_custommenu();
-	//printf("Test LiveTV\n"); test_livetv(); return 0;
+	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

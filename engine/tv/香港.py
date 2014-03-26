@@ -25,7 +25,8 @@ class HongKongLiveTV(WolidouBaseMenu):
                            'http://www.wolidou.com/tvp/201/play201_1_1.html'
                            ]),
             ('凤凰卫视-资讯台', ['http://www.wolidou.com/tvp/202/play202_2_1.html']),
+            ('凤凰卫视-香港台', ['http://www.wolidou.com/tvp/201/play201_0_1.html']),
             ('星空卫视', ['http://www.wolidou.com/tvp/222/play222_2_0.html']),
             ('华娱卫视', ['http://www.wolidou.com/tvp/891/play891_0_0.html']),
-            ('香港卫视', ['http://www.wolidou.com/tvp/337/play337_0_0.html'])
+            ('香港卫视', ['http://www.wolidou.com/tvp/337/play337_0_0.html']),
         ]

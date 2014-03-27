@@ -576,6 +576,9 @@ class KolaUpdate {
 public:
 	KolaUpdate(const string name);
 	~KolaUpdate();
+	string Version;
+	string ProjectName;
+
 	bool CheckVersion(const string oldVersion);
 
 	bool GetSegment(const string name, UpdateSegment &segment);
@@ -584,10 +587,7 @@ public:
 private:
 	json_t *js;
 	vector<UpdateSegment> Segments;
-	string ProjectName;
-	string Version;
 };
-
 
 class IClient {
 public:

@@ -31,6 +31,8 @@ ADD_GX_LIBRARY(kolatv
 	weather.cpp
 	player.cpp
 	resolution.cpp
+	update.cpp
+	common.cpp
 )
 
 SET(CMAKE_BUILD_TYPE "Debug")

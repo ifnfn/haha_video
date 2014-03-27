@@ -149,32 +149,32 @@ void Http::SetOpt(CURLoption option, int value)
 
 bool Http::Open(const char *url, const char *cookie, const char *referer)
 {
-	if (url && strlen(url) > 0) {
-		this->url = url;
-		if (curl == NULL)
-			curl = Curl::Instance()->GetCurl();
+	if (curl == NULL)
+		curl = Curl::Instance()->GetCurl();
 
-		if ( curl) {
-			curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
-			curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
+	if ( curl) {
+		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
+		curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
 
-			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION   , curlWriteCallback);
-			curl_easy_setopt(curl, CURLOPT_WRITEDATA       , (void*)this);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION   , curlWriteCallback);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA       , (void*)this);
 
-			curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION  , curlHeaderCallbck);
-			curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION  , curlHeaderCallbck);
+		curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
+		SetCookie(cookie);
+		if (url && strlen(url) > 0) {
+			this->url = url;
 			SetOpt(CURLOPT_URL, url);
-			SetCookie(cookie);
-			if (referer)
-				SetReferer(referer);
-			else
-				SetReferer(url);
-
-			return true;
 		}
-		else
-			syslog(LOG_ERR, "wget: cant initialize curl!");
+		if (referer)
+			SetReferer(referer);
+		else if (url)
+			SetReferer(url);
+
+		return true;
 	}
+	else
+		syslog(LOG_ERR, "wget: cant initialize curl!");
 
 	return false;
 }

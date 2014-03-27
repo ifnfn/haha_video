@@ -4,64 +4,11 @@
 #include <pthread.h>
 #include <openssl/md5.h>
 
+#include "common.hpp"
 #include "http.hpp"
 
 #define NETWORK_TIMEOUT 15
 #define TRY_TIME 1
-typedef unsigned char BYTE;
-
-inline static unsigned char toHex(unsigned char x) {
-	return x > 9 ? x + 55 : x + 48;
-}
-
-inline BYTE fromHex(const BYTE &x)
-{
-        return isdigit(x) ? x-'0' : x-'A'+10;
-}
-
-string UrlEncode(const string & sIn)
-{
-	string sOut;
-
-	for(size_t i=0; i < sIn.size(); ++i) {
-		unsigned char buf[4];
-		memset(buf, 0, 4);
-		if(isalnum((unsigned char)sIn[i]))
-			buf[0] = sIn[i];
-		else if(isspace((unsigned char)sIn[i]))
-			buf[0] = '+';
-		else {
-			buf[0] = '%';
-			buf[1] = toHex((unsigned char)sIn[i] >> 4);
-			buf[2] = toHex((unsigned char)sIn[i] % 16);
-		}
-		sOut += (char *)buf;
-	}
-
-	return sOut;
-}
-
-string UrlDecode(const string &sIn)
-{
-	string sOut;
-
-	for( size_t ix = 0; ix < sIn.size(); ix++ ) {
-		BYTE ch = 0;
-		if(sIn[ix]=='%') {
-			ch = (fromHex(sIn[ix+1])<<4);
-			ch |= fromHex(sIn[ix+2]);
-			ix += 2;
-		}
-		else if(sIn[ix] == '+')
-			ch = ' ';
-		else
-			ch = sIn[ix];
-
-		sOut += (char)ch;
-	}
-
-	return sOut;
-}
 
 static void *curlRealloc(void *ptr, size_t size)
 {
@@ -108,21 +55,9 @@ bool HttpBuffer::SaveToFile(const string filename) {
 	return false;
 }
 
-string HttpBuffer::GetMD5() {
-	MD5_CTX ctx;
-	unsigned char md[16];
-
-	MD5_Init(&ctx);
-	MD5_Update(&ctx, mem, size);
-	MD5_Final(md, &ctx);
-
-	char buf[33]={'\0'};
-
-	for(int i=0; i<16; i++ ){
-		sprintf(buf+ i * 2,"%02x", md[i]);
-	}
-
-	return string(buf);
+string HttpBuffer::GetMD5()
+{
+	return MD5(mem, size);
 }
 
 Curl* Curl::Instance(void)

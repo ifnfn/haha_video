@@ -3,12 +3,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <sstream>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <zlib.h>
 #include <openssl/md5.h>
 #include <signal.h>
+#include <netdb.h>
 
 #include "json.hpp"
 #include "base64.hpp"
@@ -19,6 +17,7 @@
 
 #include "http.hpp"
 #include "resource.hpp"
+#include "common.hpp"
 
 #if TEST
 //#	define SERVER_HOST "192.168.56.1"
@@ -37,88 +36,9 @@ static string Serial("000002");
 static size_t CacheSize = 1024 * 1024 * 1;
 static int    ThreadNum = 10;
 
-/**
- * 功能:获取芯片的CPUID。
- * 参数:
- *    pbyCPUID:       芯片提供的CPUID，最多128个字节
- *    pLen:           输出CPUID的实际长度
- * 返回值:
- *    0:              获取CPUID成功
- *    其他值: 获取CPUID失败
- */
-static bool GetCPUID(string &CPUID, ssize_t len)
-{
-	int fd;
-	uint8_t *data;
-
-	fd = open("/proc/gx_otp", O_RDWR);
-	if (fd < 0){
-		//printf("open otp err!!!\n");
-		return false;
-	}
-	data =(uint8_t*)malloc(len);
-	memset(data, 0 ,len);
-	len = read(fd, data, len);
-	close(fd);
-
-	for (int i = 0; i < len; i++) {
-		char buffer[8];
-		sprintf(buffer, "%02X", data[i]);
-		CPUID += buffer;
-	}
-	free(data);
-
-	return true;
-}
-
-string GetChipKey(void)
-{
-	static string CPUID;
-	if (CPUID.empty()) {
-		if (GetCPUID(CPUID, 8) == false)
-			CPUID = "000002";
-	}
-
-	return CPUID;
-}
-
 string GetSerial(void)
 {
 	return Serial;
-}
-
-
-string MD5STR(const char *data)
-{
-	MD5_CTX ctx;
-	unsigned char md[16];
-	char buf[33]={'\0'};
-
-	MD5_Init(&ctx);
-	MD5_Update(&ctx, data,strlen(data));
-	MD5_Final(md,&ctx);
-
-	for(int i=0; i<16; i++ ){
-		sprintf(buf+ i * 2,"%02X", md[i]);
-	}
-
-	return string(buf);
-}
-
-static string GetIP(const char *hostp)
-{
-	string ip;
-	struct hostent *host = gethostbyname(hostp);
-
-	if (host) {
-		char str[64];
-		const char *p = inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
-		if (p)
-			ip = p;
-		//freehostent(host);
-	}
-
-	return ip;
 }
 
 static char *ReadStringFile(FILE *fp)
@@ -217,7 +137,7 @@ KolaClient::KolaClient(void)
 	nextLoginSec = 1;
 	running = true;
 	debug = 0;
-	connected = false;
+	authorized = false;
 
 	Curl::Instance();
 
@@ -403,9 +323,9 @@ bool KolaClient::LoginOne()
 	string url("/login");
 	string params = "{";
 
-	if (connected) {
+	if (authorized) {
 		params += stringlink("area"  , GetArea()) + ",";
-		params += stringlink("cmd"   , connected ? "1" : "0")+ ",";
+		params += stringlink("cmd"   , authorized ? "1" : "0")+ ",";
 	}
 	params += stringlink("chipid", GetChipKey()) + ",";
 	params += stringlink("serial", GetSerial());
@@ -413,7 +333,7 @@ bool KolaClient::LoginOne()
 	params += "}";
 
 	if (UrlPost(url, params.c_str(), text) == false) {
-		connected = false;
+		authorized = false;
 		return false;
 	}
 
@@ -427,7 +347,7 @@ bool KolaClient::LoginOne()
 
 		base_url = json_gets(js, "server", base_url.c_str());
 
-		if (connected) {
+		if (authorized) {
 			json_t *cmd = json_geto(js, "command");
 			if (cmd) {
 				const char *dest = json_gets(js, "dest", NULL);
@@ -446,7 +366,7 @@ bool KolaClient::LoginOne()
 		nextLoginSec = (int)json_geti(js, "next", nextLoginSec);
 		json_delete(js);
 
-		connected = true;
+		authorized = true;
 	}
 
 	return true;
@@ -551,6 +471,11 @@ bool KolaClient::GetInfo(KolaInfo &info) {
 static void cancel(void *any)
 {
 	printf("Login thread canceled!!\n");
+}
+
+bool KolaClient::GetAuthorized(void)
+{
+	return authorized;
 }
 
 void KolaClient::Login()

@@ -10,11 +10,9 @@
 #include "kola.hpp"
 #include "base64.hpp"
 #include "resource.hpp"
+#include "common.hpp"
 
 extern "C" {LUALIB_API int luaopen_kola(lua_State *L);}
-
-extern string GetChipKey(void);
-extern string GetSerial(void);
 
 static int lua_mwget(lua_State *L)
 {
@@ -290,7 +288,7 @@ static int lua_md5(lua_State *L)
 {
 	const char *txt = lua_tostring(L, 1);
 	if (txt) {
-		lua_pushstring(L, MD5STR(txt).c_str());
+		lua_pushstring(L, MD5(txt, strlen(txt)).c_str());
 
 		return 1;
 	}

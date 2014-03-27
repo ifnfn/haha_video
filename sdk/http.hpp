@@ -13,9 +13,6 @@
 #include "kola.hpp"
 #include "threadpool.hpp"
 
-string UrlEncode(const string& url);
-string UrlDecode(const string& sIn);
-
 class Curl {
 public:
 	~Curl();

@@ -11,9 +11,6 @@
 
 class ResourceManager;
 
-string MD5STR(const char *data);
-
-
 class IDestructable {
 public:
 	virtual void Destroy() = 0;

@@ -42,8 +42,6 @@ class ResourceManager;
 class ConditionVar;
 class Thread;
 
-extern void split(const string& src, const string& separator, vector<string>& dest);
-
 enum PicType {
 	PIC_LARGE,      // 大图片网址
 	PIC_SMALL,      // 小图片网址
@@ -627,6 +625,7 @@ public:
 	KolaWeather weather;
 	UrlCache cache;
 
+	bool GetAuthorized();
 	virtual bool GetArea(KolaArea &area);
 	virtual bool UrlGet(string url, string &ret);
 	virtual bool UrlPost(string url, const char *body, string &ret);
@@ -646,7 +645,7 @@ private:
 	Thread* thread;
 	Mutex mutex;
 	KolaInfo Info;
-	bool connected;
+	bool authorized;
 };
 
 #endif

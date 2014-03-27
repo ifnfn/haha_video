@@ -6,12 +6,14 @@
 //  Copyright (c) 2014年 Silicon. All rights reserved.
 //
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
-#include <syslog.h>
-#include <ctype.h>
-#include <pthread.h>
+#include <sstream>
+#include <zlib.h>
 #include <openssl/md5.h>
-#include <sys/socket.h>
+#include <signal.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 

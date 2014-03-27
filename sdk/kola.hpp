@@ -578,6 +578,7 @@ public:
 	~KolaUpdate();
 	bool CheckVersion(const string oldVersion);
 
+	bool GetSegment(const string name, UpdateSegment &segment);
 	bool Download(const string name, const string filename);
 	virtual bool VersionCompr(const string newVersion, const string oldVersion);
 private:

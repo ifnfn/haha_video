@@ -44,22 +44,34 @@ bool KolaUpdate::CheckVersion(string oldVersion)
 	return VersionCompr(Version, oldVersion);
 }
 
-bool KolaUpdate::Download(const string name, const string filename)
+bool KolaUpdate::GetSegment(const string name, UpdateSegment &sgm)
 {
 	vector<UpdateSegment>::iterator it;
 
 	for (it = Segments.begin(); it != Segments.end(); it++) {
 		if (it->name == name) {
-			Http http;
+			sgm = *it;
+			return true;
+		}
+	}
 
-			if (http.Get(it->href.c_str())) {
-				HttpBuffer &data = http.Data();
+	return false;
+}
 
-				if (data.GetMD5() == it->md5) {
-					http.Data().SaveToFile(filename.c_str());
+bool KolaUpdate::Download(const string name, const string filename)
+{
+	UpdateSegment sgm;
 
-					return true;
-				}
+	if (GetSegment(name, sgm) ) {
+		Http http;
+
+		if (http.Get(sgm.href.c_str())) {
+			HttpBuffer &data = http.Data();
+
+			if (data.GetMD5() == sgm.md5) {
+				http.Data().SaveToFile(filename.c_str());
+
+				return true;
 			}
 		}
 	}

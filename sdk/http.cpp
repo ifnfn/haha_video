@@ -2,6 +2,7 @@
 #include <syslog.h>
 #include <ctype.h>
 #include <pthread.h>
+#include <openssl/md5.h>
 
 #include "http.hpp"
 
@@ -93,6 +94,35 @@ size_t HttpBuffer::write(void *ptr, size_t s, size_t nmemb)
 	}
 
 	return realsize;
+}
+
+bool HttpBuffer::SaveToFile(const string filename) {
+	FILE *fp = fopen(filename.c_str(), "wb");
+	if (fp) {
+		fwrite(mem, 1, size, fp);
+		fclose(fp);
+
+		return true;
+	}
+
+	return false;
+}
+
+string HttpBuffer::GetMD5() {
+	MD5_CTX ctx;
+	unsigned char md[16];
+
+	MD5_Init(&ctx);
+	MD5_Update(&ctx, mem, size);
+	MD5_Final(md, &ctx);
+
+	char buf[33]={'\0'};
+
+	for(int i=0; i<16; i++ ){
+		sprintf(buf+ i * 2,"%02x", md[i]);
+	}
+
+	return string(buf);
 }
 
 Curl* Curl::Instance(void)

@@ -90,7 +90,7 @@ void test_livetv()
 	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	m->FilterAdd("PinYin", "fh");
+	m->FilterAdd("PinYin", "hz");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
@@ -464,6 +464,14 @@ void test_weather(KolaClient &kola)
 	}
 }
 
+void test_update(KolaClient &kola)
+{
+	KolaUpdate update("zhuzhg");
+
+	update.CheckVersion("v1111");
+	update.Download("ppt2854.rar", "/tmp/ppt2854.rar");
+}
+
 int main(int argc, char **argv)
 {
 #if 0
@@ -472,6 +480,7 @@ int main(int argc, char **argv)
 	test_info(kola);
 	test_area(kola);
 	test_weather(kola);
+	test_update(kola);
 #endif
 //	test_picture("电影"); return 0;
 	//test_custommenu();

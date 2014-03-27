@@ -565,6 +565,29 @@ private:
 	void Clear();
 };
 
+class UpdateSegment {
+public:
+	string name;
+	string md5;
+	string href;
+};
+
+class KolaUpdate {
+public:
+	KolaUpdate(const string name);
+	~KolaUpdate();
+	bool CheckVersion(const string oldVersion);
+
+	bool Download(const string name, const string filename);
+	virtual bool VersionCompr(const string newVersion, const string oldVersion);
+private:
+	json_t *js;
+	vector<UpdateSegment> Segments;
+	string ProjectName;
+	string Version;
+};
+
+
 class IClient {
 public:
 	ResourceManager *resManager;

@@ -53,6 +53,9 @@ public:
 		mem = NULL;
 		size  = 0;
 	}
+	bool SaveToFile(const string filename);
+	string GetMD5();
+
 	size_t write(void *ptr, size_t size, size_t nmemb);
 	char *mem;
 	size_t size;

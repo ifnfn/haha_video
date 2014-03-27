@@ -28,8 +28,6 @@
 #	define PORT 80
 #endif
 
-static string loginKey;
-static string loginKeyCookie;
 static string xsrf_cookie;
 static string Serial("000002");
 
@@ -155,18 +153,25 @@ bool KolaClient::InternetReady()
 	return gethostbyname(SERVER_HOST) != NULL;
 }
 
-string& KolaClient::GetServer() {
-	if (base_url.empty()) {
+string KolaClient::GetServer()
+{
+	string ret;
+
+	mutex.lock();
+	if (BaseUrl.empty()) {
 		char buffer[512];
 		string ip = GetIP(SERVER_HOST);
 
 		if (not ip.empty()) {
 			sprintf(buffer, "http://%s:%d", ip.c_str(), PORT);
-			base_url = buffer;
+			BaseUrl = buffer;
 		}
 	}
 
-	return base_url;
+	ret = BaseUrl;
+	mutex.unlock();
+
+	return ret;
 }
 
 void KolaClient::Quit(void)
@@ -187,17 +192,11 @@ KolaClient::~KolaClient(void)
 
 bool KolaClient::UrlGet(string url, string &ret)
 {
-	const char *cookie = NULL;
-
-	if (url.compare(0, strlen("http://"), "http://") != 0) {
-		mutex.lock();
-		cookie = loginKeyCookie.c_str();
+	if (url.compare(0, strlen("http://"), "http://") != 0)
 		url = GetFullUrl(url);
-		mutex.unlock();
-	}
 
 	Http http;
-	http.Open(url.c_str(), cookie);
+	http.Open(url.c_str(), GetCookie().c_str());
 	if (http.Get() != NULL) {
 		ret.assign(http.Data().mem);
 
@@ -212,20 +211,14 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	if (body == NULL)
 		return false;
 
-	const char *cookie = NULL;
-
-	if (url.compare(0, strlen("http://"), "http://") != 0) {
-		mutex.lock();
-		cookie = loginKeyCookie.c_str();
+	if (url.compare(0, strlen("http://"), "http://") != 0)
 		url = GetFullUrl(url);
-		mutex.unlock();
-	}
 
 	string new_body = gzip_base64(body, strlen(body));
 	new_body = UrlEncode(new_body);
 
 	Http http;
-	http.Open(NULL, cookie);
+	http.Open(NULL, GetCookie().c_str());
 
 	if (http.Post(url.c_str(), new_body.c_str()) != NULL) {
 		ret = http.buffer.mem;
@@ -312,8 +305,18 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	return 0;
 }
 
-static inline string stringlink(string key, string value) {
-	return "\""  + key + "\" : \"" + value + "\"";
+bool KolaClient::GetAuthorized(const char *serial)
+{
+	string text;
+	string url("/login");
+	string params = "{";
+
+	if (serial) {
+		Serial = serial;
+		authorized = false;
+	}
+
+	return LoginOne();
 }
 
 bool KolaClient::LoginOne()
@@ -340,12 +343,12 @@ bool KolaClient::LoginOne()
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	if (js) {
-		mutex.lock();
-		loginKey = json_gets(js, "key", "");
-		loginKeyCookie = "key=" + loginKey;
-		mutex.unlock();
+		string loginKey = json_gets(js, "key", "");
+		SetCookie("key=" + loginKey);
 
-		base_url = json_gets(js, "server", base_url.c_str());
+		const char *p = json_gets(js, "server", NULL);
+		if (p)
+			this->SetServer(p);
 
 		if (authorized) {
 			json_t *cmd = json_geto(js, "command");
@@ -473,11 +476,6 @@ static void cancel(void *any)
 	printf("Login thread canceled!!\n");
 }
 
-bool KolaClient::GetAuthorized(void)
-{
-	return authorized;
-}
-
 void KolaClient::Login()
 {
 	pthread_cleanup_push(cancel, NULL);
@@ -492,10 +490,10 @@ void KolaClient::Login()
 	pthread_exit(NULL);
 }
 
-KolaClient& KolaClient::Instance(const char *user_id, size_t cache_size, int thread_num)
+KolaClient& KolaClient::Instance(const char *serial, size_t cache_size, int thread_num)
 {
-	if (user_id)
-		Serial = user_id;
+	if (serial)
+		Serial = serial;
 
 	if (cache_size)
 		CacheSize = cache_size;
@@ -597,6 +595,31 @@ string KolaClient::GetFullUrl(string url)
 void KolaClient::CleanResource()
 {
 	resManager->Clear();
+}
+
+void KolaClient::SetServer(string server)
+{
+	mutex.lock();
+	BaseUrl = server;
+	mutex.unlock();
+}
+
+void KolaClient::SetCookie(string cookie)
+{
+	mutex.lock();
+	this->Cookie = Cookie;
+	mutex.unlock();
+}
+
+string KolaClient::GetCookie()
+{
+	string ret;
+
+	mutex.lock();
+	ret = this->Cookie;
+	mutex.unlock();
+
+	return ret;
 }
 
 IObject::IObject()

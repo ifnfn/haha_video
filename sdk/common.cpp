@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sstream>
 #include <zlib.h>
 #include <openssl/md5.h>
 #include <signal.h>
@@ -172,6 +171,12 @@ void split(const string& src, const string& separator, vector<string>& dest)
 	substring = str.substr(start);
 	dest.push_back(substring);
 }
+
+string stringlink(string key, string value)
+{
+	return "\""  + key + "\" : \"" + value + "\"";
+}
+
 
 
 

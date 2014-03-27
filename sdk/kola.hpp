@@ -603,6 +603,7 @@ class KolaClient: public IClient {
 public:
 	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, int thread_num=0);
 	virtual ~KolaClient(void);
+	bool GetAuthorized(const char *serial=NULL);
 
 	void Quit(void);
 	void ClearMenu();
@@ -614,7 +615,7 @@ public:
 	IMenu* operator[] (const char *name);
 	IMenu* operator[] (int inx);
 	inline string GetFullUrl(string url);
-	string& GetServer();
+	string GetServer();
 	string GetArea();
 	time_t GetTime();
 	bool GetInfo(KolaInfo &info);
@@ -625,7 +626,6 @@ public:
 	KolaWeather weather;
 	UrlCache cache;
 
-	bool GetAuthorized();
 	virtual bool GetArea(KolaArea &area);
 	virtual bool UrlGet(string url, string &ret);
 	virtual bool UrlPost(string url, const char *body, string &ret);
@@ -633,7 +633,7 @@ private:
 	KolaClient(void);
 	void Login();
 
-	string base_url;
+	string BaseUrl;
 	map<string, IMenu*> menuMap;
 
 	int nextLoginSec;
@@ -641,11 +641,17 @@ private:
 	bool LoginOne();
 	char *Run(const char *cmd);
 	bool ProcessCommand(json_t *cmd, const char *dest);
-	bool running;
+
+	void SetServer(string server);
+	void SetCookie(string cookie);
+	string GetCookie();
+
 	Thread* thread;
 	Mutex mutex;
 	KolaInfo Info;
+	string Cookie;
 	bool authorized;
+	bool running;
 };
 
 #endif

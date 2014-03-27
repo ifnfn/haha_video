@@ -252,6 +252,9 @@ class GetVideoHandler(BaseHandler):
         self.Finish(args, pid, full)
 
 class GetPlayerHandler(BaseHandler):
+    def initialize(self):
+        pass
+
     def get(self):
         pass
 
@@ -341,6 +344,9 @@ class GetPlayerHandler(BaseHandler):
 # http://xxxxx/video/getmenu?name=电影,电视剧
 # http://xxxxx/video/getmenu?name=
 class GetMenuHandler(BaseHandler):
+    def initialize(self):
+        super().initialize()
+
     def get(self):
         ret = []
         cid = self.get_argument('cid', '')

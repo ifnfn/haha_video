@@ -12,10 +12,10 @@ UpdateScore() {
 
 
 Update() {
-    UpdateAlbum Livetv
+    #UpdateAlbum Livetv
     #UpdateAlbum Qiyi
     #UpdateAlbum QQ
-    #UpdateAlbum Sohu
+    UpdateAlbum Sohu
     #UpdateAlbum PPtv
     #UpdateAlbum Letv
 }

@@ -35,6 +35,7 @@ build() {
         mkdir -p libs
         cp $GX_PREFIX/$ARCH-linux/lib/libkolatv.a \
                 $GX_PREFIX/$ARCH-linux/include/kola.hpp \
+                $GX_PREFIX/$ARCH-linux/include/http.hpp \
                 sdk/lib/* libs/
         cp sdk/main.cpp libs/demo.cpp
     else

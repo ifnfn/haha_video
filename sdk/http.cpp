@@ -6,6 +6,7 @@
 
 #include "common.hpp"
 #include "http.hpp"
+#include "kola.hpp"
 
 #define NETWORK_TIMEOUT 15
 #define TRY_TIME 1
@@ -295,26 +296,28 @@ void Http::Cancel()
 
 MultiHttp::MultiHttp()
 {
+	mutex = new Mutex();
 	multi_handle = curl_multi_init();
 }
 
 MultiHttp::~MultiHttp()
 {
 	curl_multi_cleanup(multi_handle);
+	delete mutex;
 }
 
 void MultiHttp::Add(Http *http)
 {
-	mutex.lock();
+	mutex->lock();
 	curl_multi_add_handle(multi_handle, http->curl);
-	mutex.unlock();
+	mutex->unlock();
 }
 
 void MultiHttp::Remove(Http *http)
 {
-	mutex.lock();
+	mutex->lock();
 	curl_multi_remove_handle(multi_handle, http->curl);
-	mutex.unlock();
+	mutex->unlock();
 }
 
 void MultiHttp::Exec()
@@ -331,7 +334,7 @@ void MultiHttp::Exec()
 		FD_ZERO(&fdread);
 		FD_ZERO(&fdwrite);
 		FD_ZERO(&fdexcep);
-		mutex.lock();
+		mutex->lock();
 		curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
 
 		timeout.tv_sec = 3;
@@ -349,13 +352,13 @@ void MultiHttp::Exec()
 		int rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
 
 		if (rc < 0) {
-			mutex.unlock();
+			mutex->unlock();
 			continue;
 		}
 
 		int still_running = this->work();
 
-		mutex.unlock();
+		mutex->unlock();
 
 		if (still_running == 0)
 			break;

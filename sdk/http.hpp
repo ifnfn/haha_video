@@ -9,8 +9,11 @@
 #include <curl/easy.h>
 #include <string>
 #include <deque>
+#include <pthread.h>
 
-#include "kola.hpp"
+using namespace std;
+
+class Mutex;
 
 class Curl {
 public:
@@ -118,7 +121,7 @@ public:
 	void Exec();
 private:
 	CURLM *multi_handle;
-	Mutex mutex;
+	Mutex *mutex;
 	int work();
 };
 

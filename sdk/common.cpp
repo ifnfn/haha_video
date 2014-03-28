@@ -116,7 +116,7 @@ string GetChipKey(void)
 	static string CPUID;
 	if (CPUID.empty()) {
 		if (GetCPUID(CPUID, 8) == false)
-			CPUID = "000002";
+			CPUID = "00000000";
 	}
 
 	return CPUID;

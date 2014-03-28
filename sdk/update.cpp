@@ -3,22 +3,12 @@
 #include "json.hpp"
 #include "script.hpp"
 
-KolaUpdate::KolaUpdate(string name) {
-	js = NULL;
-	ProjectName = name;
-}
-
-KolaUpdate::~KolaUpdate() {
-	if (js)
-		json_delete(js);
-}
-
 bool KolaUpdate::VersionCompr(const string newVersion, const string oldVersion)
 {
 	return Version != oldVersion;
 }
 
-bool KolaUpdate::CheckVersion(string oldVersion)
+bool KolaUpdate::CheckVersion(const string ProjectName, string oldVersion)
 {
 	string text;
 	string url = "files/" + ProjectName + "/info.json";

@@ -28,7 +28,7 @@
 #	define PORT 80
 #endif
 
-static string Serial("000002");
+static string Serial;
 static size_t CacheSize = 1024 * 1024 * 1;
 static int    ThreadNum = 10;
 

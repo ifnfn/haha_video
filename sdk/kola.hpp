@@ -579,6 +579,9 @@ public:
 	bool GetSegment(const string name, UpdateSegment &segment);
 	bool Download(const string name, const string filename);
 	virtual bool VersionCompr(const string newVersion, const string oldVersion);
+	virtual void Progress(int64_t dltotal, int64_t dlnow) {
+		//printf("%lld / %lld (%g %%)\n", dlnow, dltotal, dlnow * 100.0 / dltotal);
+	}
 private:
 	vector<UpdateSegment> Segments;
 };

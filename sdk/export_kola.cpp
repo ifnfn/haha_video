@@ -85,7 +85,7 @@ static int lua_wget(lua_State *L)
 		}
 		else {
 			Http http;
-			const char * text = http.Get(url);
+			const char *text = http.Get(url);
 			if (text) {
 				lua_pushstring(L, text);
 				return 1;

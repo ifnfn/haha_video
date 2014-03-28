@@ -11,7 +11,6 @@
 #include <deque>
 
 #include "kola.hpp"
-#include "threadpool.hpp"
 
 class Curl {
 public:
@@ -87,21 +86,26 @@ public:
 	void SetOpt(CURLoption option, const char *value);
 	void SetOpt(CURLoption option, int value);
 
+	virtual void Progress(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+//		printf("HTTP: %lld / %lld (%g %%)\n", dlnow, dltotal, dlnow * 100.0 / dltotal);
+	}
+
 	HttpBuffer& Data() { return buffer; }
 	HttpBuffer buffer;
 	void Cancel();
-	int download_cancel;
-	CURLMSG msg;
-	long status;
+	int        cancel;
+	CURLMSG    msg;
+	long       status;
 	HttpHeader Headers;
-	string url;
-	int httpcode;
+	string     url;
+	int        httpcode;
 private:
 	CURL *curl;
 	const char *curlGetCurlURL(int times=0);
 	char errormsg[CURL_ERROR_SIZE];
-	static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data);
-	static size_t curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data);
+	static size_t curlWriteCallback   (void *ptr, size_t size, size_t nmemb, void *data);
+	static size_t curlHeaderCallbck   (void *ptr, size_t size, size_t nmemb, void *data);
+	static int    curlProgressCallback(void *data, double dltotal, double dlnow, double ultotal, double ulnow);
 	friend class MultiHttp;
 };
 

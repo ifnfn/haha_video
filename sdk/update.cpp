@@ -50,10 +50,22 @@ bool KolaUpdate::GetSegment(const string name, UpdateSegment &sgm)
 
 bool KolaUpdate::Download(const string name, const string filename)
 {
+	class UpdateHttp: public Http {
+	public:
+		UpdateHttp(KolaUpdate *u) {
+			 update = u;
+		}
+		virtual void Progress(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+			update->Progress(dltotal, dlnow);
+		}
+	private:
+		KolaUpdate *update;
+	};
+
 	UpdateSegment sgm;
 
 	if (GetSegment(name, sgm) ) {
-		Http http;
+		UpdateHttp http(this);
 
 		if (http.Get(sgm.href.c_str())) {
 			HttpBuffer &data = http.Data();

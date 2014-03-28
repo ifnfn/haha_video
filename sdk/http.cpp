@@ -110,7 +110,7 @@ CURL *Curl::GetCurl() {
 
 Http::Http()
 {
-	download_cancel = 0;
+	cancel = 0;
 	msg = CURLMSG_NONE;
 	status = 0;
 	httpcode = 0;
@@ -161,6 +161,10 @@ bool Http::Open(const char *url, const char *cookie, const char *referer)
 
 		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION  , curlHeaderCallbck);
 		curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
+
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS      , 0L);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curlProgressCallback);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA    , (void*)this);
 		SetCookie(cookie);
 		if (url && strlen(url) > 0) {
 			this->url = url;
@@ -187,11 +191,20 @@ void Http::Close()
 	}
 }
 
+int Http::curlProgressCallback(void *data, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+	Http *http = (Http*)data;
+
+	http->Progress((curl_off_t)dltotal, (curl_off_t)dlnow, (curl_off_t)ultotal, (curl_off_t)ulnow);
+
+	return 0;
+}
+
 size_t Http::curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	Http *http = (Http*)data;
 
-	if (http->download_cancel == 1)
+	if (http->cancel == 1)
 		return 0;
 
 	return http->buffer.write(ptr, size, nmemb);
@@ -228,12 +241,12 @@ const char *Http::curlGetCurlURL(int times)
 	res = curl_easy_perform(curl);
 	if ( res ) {
 		printf("curlGetCurlURL: %s, cant perform curl: %s\n", url.c_str(), errormsg);
-		if (download_cancel == 1)
+		if (cancel == 1)
 			goto end;
 		return curlGetCurlURL(times + 1);
 	}
 
-	if (download_cancel == 1) {
+	if (cancel == 1) {
 		goto end;
 	}
 
@@ -265,6 +278,7 @@ const char *Http::Post(const char *url, const char *postdata)
 {
 	const char *data;
 	Open(url);
+
 	SetOpt(CURLOPT_POST, 1);
 	SetOpt(CURLOPT_POSTFIELDS, postdata);
 
@@ -276,7 +290,7 @@ const char *Http::Post(const char *url, const char *postdata)
 
 void Http::Cancel()
 {
-	download_cancel = 1;
+	cancel = 1;
 }
 
 MultiHttp::MultiHttp()

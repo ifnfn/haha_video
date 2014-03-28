@@ -3,6 +3,7 @@
 
 #include "resource.hpp"
 #include "common.hpp"
+#include "threadpool.hpp"
 
 Resource::Resource(ResourceManager *manage)
 {

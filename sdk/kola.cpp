@@ -28,36 +28,13 @@
 #	define PORT 80
 #endif
 
-static string xsrf_cookie;
 static string Serial("000002");
-
 static size_t CacheSize = 1024 * 1024 * 1;
 static int    ThreadNum = 10;
 
 string GetSerial(void)
 {
 	return Serial;
-}
-
-static char *ReadStringFile(FILE *fp)
-{
-#define LEN 2048
-	char *s = NULL;
-
-	if (fp) {
-		long size = 0;
-		size_t len;
-		while (1) {
-			s = (char *)realloc(s, size + LEN);
-			len = fread(s + size, 1, LEN, fp);
-			if (len > 0)
-				size += len;
-			else
-				break;
-		}
-	}
-
-	return s;
 }
 
 /* Compress gzip data */
@@ -133,9 +110,8 @@ KolaClient::KolaClient(void)
 	signal(SIGPIPE, SIG_IGN);
 
 	nextLoginSec = 1;
-	running = true;
-	debug = 0;
-	authorized = false;
+	debug        = 0;
+	authorized   = false;
 
 	Curl::Instance();
 
@@ -176,7 +152,6 @@ string KolaClient::GetServer()
 
 void KolaClient::Quit(void)
 {
-	running = false;
 	delete thread;
 
 	printf("KolaClient Quit: %p\n", this);
@@ -192,8 +167,7 @@ KolaClient::~KolaClient(void)
 
 bool KolaClient::UrlGet(string url, string &ret)
 {
-	if (url.compare(0, strlen("http://"), "http://") != 0)
-		url = GetFullUrl(url);
+	url = GetFullUrl(url);
 
 	Http http;
 	http.Open(url.c_str(), GetCookie().c_str());
@@ -227,16 +201,6 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	}
 
 	return false;
-}
-
-char *KolaClient::Run(const char *cmd)
-{
-	FILE *fp = popen(cmd, "r");
-	char *s = ReadStringFile(fp);
-
-	fclose(fp);
-
-	return s;
 }
 
 bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
@@ -305,18 +269,15 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	return 0;
 }
 
-bool KolaClient::GetAuthorized(const char *serial)
+bool KolaClient::Verify(const char *serial)
 {
-	string text;
-	string url("/login");
-	string params = "{";
-
 	if (serial) {
 		Serial = serial;
 		authorized = false;
+		return LoginOne();
 	}
 
-	return LoginOne();
+	return authorized;
 }
 
 bool KolaClient::LoginOne()
@@ -586,10 +547,10 @@ time_t KolaClient::GetTime()
 
 string KolaClient::GetFullUrl(string url)
 {
-	if (!url.empty() && url.at(0) != '/')
-		return GetServer() + '/' + url;
+	if (url.compare(0, strlen("http://"), "http://") != 0)
+		return UrlLink(GetServer(), url);
 	else
-		return GetServer() + url;
+		return url;
 }
 
 void KolaClient::CleanResource()
@@ -607,7 +568,7 @@ void KolaClient::SetServer(string server)
 void KolaClient::SetCookie(string cookie)
 {
 	mutex.lock();
-	this->Cookie = Cookie;
+	this->Cookie = cookie;
 	mutex.unlock();
 }
 

@@ -139,6 +139,27 @@ static int lua_pcre(lua_State *L)
 	return 1;
 }
 
+static int lua_geturl(lua_State *L)
+{
+	string Url;
+	int argc = lua_gettop(L);
+
+	for (int i=0; i < argc; i++) {
+		if (argc >= 1 && lua_type(L, 1) == LUA_TSTRING)
+			Url = UrlLink(Url, lua_tostring(L, 1));
+	}
+
+	if (not Url.empty()) {
+		Url = KolaClient::Instance().GetFullUrl(Url);
+
+		lua_pushstring(L, Url.c_str());
+
+		return 1;
+	}
+
+	return 0;
+}
+
 static int lua_getserver(lua_State *L)
 {
 	lua_pushstring(L, KolaClient::Instance().GetServer().c_str());
@@ -316,6 +337,7 @@ static const struct luaL_Reg kola_lib[] = {
 	{"mwget"         , lua_mwget},
 	{"wpost"         , lua_wpost},
 	{"pcre"          , lua_pcre},
+	{"geturl"        , lua_geturl},
 	{"getserver"     , lua_getserver},
 	{"gettime"       , lua_gettime},
 	{"getdate"       , lua_getdate},

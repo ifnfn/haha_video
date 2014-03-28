@@ -177,6 +177,12 @@ string stringlink(string key, string value)
 	return "\""  + key + "\" : \"" + value + "\"";
 }
 
-
+string UrlLink(string a, string b)
+{
+	if (!b.empty() && b.at(0) != '/')
+		return a + "/" + b;
+	else
+		return a + b;
+}
 
 

@@ -74,8 +74,7 @@ bool StringList::SaveToFile(string fileName)
 	FILE *fp = fopen(fileName.c_str(), "w");
 	if (fp) {
 		for (int i = 0; i < size(); i++) {
-			const char *p = at(i).c_str();
-			fprintf(fp, "%s\n", p);
+			fprintf(fp, "%s\n", at(i).c_str());
 		}
 		fclose(fp);
 

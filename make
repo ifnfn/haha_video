@@ -6,6 +6,7 @@ fi
 export GX_PREFIX
 
 CURRENT_PATH=$(cd `dirname $0`; pwd)
+J="-j4"
 
 function _build_busbase() {
     BUILD_PATH=build_x

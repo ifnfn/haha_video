@@ -10,12 +10,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <zlib.h>
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <openssl/md5.h>
-#include <signal.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include "kola.hpp"
 #include "common.hpp"
 
 typedef unsigned char BYTE;

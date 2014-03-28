@@ -466,16 +466,17 @@ void test_weather(KolaClient &kola)
 
 void test_update(KolaClient &kola)
 {
-	KolaUpdate update("zhuzhg");
+	KolaUpdate update;
 
-	update.CheckVersion("v1111");
+	update.CheckVersion("zhuzhg", "v1111");
 	update.Download("ppt2854.rar", "/tmp/ppt2854.rar");
 }
 
 int main(int argc, char **argv)
 {
+	KolaClient &kola = KolaClient::Instance("000002");
+
 #if 0
-	KolaClient &kola = KolaClient::Instance();
 
 	test_info(kola);
 	test_area(kola);

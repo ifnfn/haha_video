@@ -1,7 +1,8 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from .utils import GetPinYin
+from kola import GetPinYin
+
 TVOrder = [
     "CCTV-1 综合",
     "CCTV-2 财经",
@@ -96,3 +97,11 @@ def GetOrder(name):
         return '9' + pinyin
 
     return '9999'
+
+def GetNumber(name):
+    i = 0
+    for n in TVOrder:
+        if n == name:
+            return '%d' % i
+        i += 1
+    return ''

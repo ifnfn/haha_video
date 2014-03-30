@@ -80,3 +80,6 @@ class LiveEngine(VideoEngine):
     def AddMenu(self, menu):
         self.menu.append(menu)
         menu.RegisterParser(self.parserList)
+
+    def Update(self):
+        pass

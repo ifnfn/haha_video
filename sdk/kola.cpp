@@ -304,33 +304,36 @@ bool KolaClient::LoginOne()
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	if (js) {
-		string loginKey = json_gets(js, "key", "");
-		SetCookie("key=" + loginKey);
-
 		const char *p = json_gets(js, "server", NULL);
 		if (p)
-			this->SetServer(p);
-
-		if (authorized) {
-			json_t *cmd = json_geto(js, "command");
-			if (cmd) {
-				const char *dest = json_gets(js, "dest", NULL);
-				if (dest && json_is_array(cmd)) {
-					json_t *value;
-					json_array_foreach(cmd, value)
-						ProcessCommand(value, dest);
-				}
-			}
-
-			ScriptCommand script;
-			if (json_get_variant(js, "script", &script))
-				script.Run();
-		}
+			SetServer(p);
 
 		nextLoginSec = (int)json_geti(js, "next", nextLoginSec);
-		json_delete(js);
+
+		string loginKey = json_gets(js, "key", "");
+
+		if (loginKey.empty()) {
+			json_delete(js);
+			return false;
+		}
+
+		SetCookie("key=" + loginKey);
 
 		authorized = true;
+		json_t *cmd = json_geto(js, "command");
+		if (cmd) {
+			const char *dest = json_gets(js, "dest", NULL);
+			if (dest && json_is_array(cmd)) {
+				json_t *value;
+				json_array_foreach(cmd, value)
+				ProcessCommand(value, dest);
+			}
+		}
+
+		ScriptCommand script;
+		if (json_get_variant(js, "script", &script))
+			script.Run();
+		json_delete(js);
 	}
 
 	return true;

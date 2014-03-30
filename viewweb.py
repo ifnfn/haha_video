@@ -616,22 +616,23 @@ class LoginHandler(BaseHandler):
                 status = 'YES'
                 self.user_table.update({'serial' : self.serial}, {'$set' : {'chipid': self.chipid, 'updateTime' : time.time()}})
 
-        if status == 'NO':
-            raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.chipid)
+        if status == 'YES':
+            # 登录检查，生成随机 KEY
+            if not self.redis_db.exists(self.chipid):
+                key = (self.chipid + uuid.uuid4().__str__() + self.request.remote_ip).encode()
+                key = hashlib.md5(key).hexdigest().upper()
+                self.redis_db.set(self.chipid, key)
+                self.redis_db.set(key, self.request.remote_ip)
+            else:
+                key = self.redis_db.get(self.chipid).decode()
+                self.redis_db.set(key, self.request.remote_ip)
+            self.redis_db.expire(self.chipid, 60) # 一分钟过期
+            self.redis_db.expire(key, 60) # 一分钟过期
 
-        # 登录检查，生成随机 KEY
-        if not self.redis_db.exists(self.chipid):
-            key = (self.chipid + uuid.uuid4().__str__() + self.request.remote_ip).encode()
-            key = hashlib.md5(key).hexdigest().upper()
-            self.redis_db.set(self.chipid, key)
-            self.redis_db.set(key, self.request.remote_ip)
+            return key
         else:
-            key = self.redis_db.get(self.chipid).decode()
-            self.redis_db.set(key, self.request.remote_ip)
-        self.redis_db.expire(self.chipid, 60) # 一分钟过期
-        self.redis_db.expire(key, 60) # 一分钟过期
-
-        return key
+            return ''
+            raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.chipid)
 
     def get(self):
         print("GET: [%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))

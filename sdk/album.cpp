@@ -142,6 +142,7 @@ void KolaAlbum::Parser(json_t *js)
 	dailyPlayNum = (int)json_geti   (js, "dailyPlayNum", 0);   // 日播放次数
 	totalPlayNum = (int)json_geti   (js, "totalPlayNum", 0);   // 总播放次数
 	Score        = json_getreal     (js, "Score" , 0.0);       // 得分
+	Number       = (int)json_geti   (js, "number", 0);
 
 	json_get_stringlist(js, "mainActors", &mainActors);
 	json_get_stringlist(js, "directors", &directors);

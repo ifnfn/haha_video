@@ -34,12 +34,12 @@ class Mathematical:
                     pass
 
     def Calc1(self):
-            x = random.randint(1, 19)
+            x = random.randint(1, 18)
 
             if x < 10:
                 y = random.randint(1, 9)
             else:
-                y = random.randint(1, 10 - int(x % 10))
+                y = random.randint(1, 9 - int(x % 10))
 
             prompt = "%2d + %d = " % (x, y)
             v = self.GetValue(prompt)
@@ -55,8 +55,11 @@ class Mathematical:
             return x, y, v, x - y, prompt
 
     def Calc3(self):
-            x = random.randint(2, 10)
-            y = random.randint(0, x)
+            x = random.randint(3, 8)
+            if x > 5:
+                y = random.randint(1, x)
+            else:
+                y = random.randint(5, 9)
 
             prompt = "%2d - %d = " % (x, y)
             v = self.GetValue(prompt)
@@ -76,6 +79,7 @@ class Mathematical:
         self.ok = 0
         self.error = 0
         errorList = []
+        timeoutList = []
 
         self.start_time = time.time()
 
@@ -94,7 +98,7 @@ class Mathematical:
                 elif _type == 1:
                     x, y, a, v, prompt = self.Calc2()
                 elif _type == 2:
-                    x, y, a, v, prompt = self.Calc2()
+                    x, y, a, v, prompt = self.Review()
 
             if a == v:
                 self.ok += 1
@@ -103,6 +107,8 @@ class Mathematical:
                 errorList.append((x, y, a, v, prompt))
 
             self.OnceTime = time.time() - now
+            if self.OnceTime > 5:
+                timeoutList.append((x, y, a, v, prompt, self.OnceTime))
 
             self.no += 1
 
@@ -112,7 +118,6 @@ class Mathematical:
         print("结束时间：%s, 耗时 %d 分 %d 秒" % (time.strftime('%H:%M:%S', time.localtime(end_time)), int(diff_time / 60), int(diff_time % 60)) )
 
         print("错误列表：")
-
         for (x, y, a, v, prompt) in errorList:
             print("\t%s\033[22;31m%2d\033[0m ( %2d )" %  (prompt, a, v))
             p = {}
@@ -124,6 +129,10 @@ class Mathematical:
 
             self.db.update({'prompt': prompt}, {'$set': p}, upsert=True, multi=True)
             self.db.update({'prompt': prompt}, {'$inc':{'count' : 1}}, upsert=True)
+
+        print("超时列表：")
+        for (x, y, a, v, prompt, t) in timeoutList:
+            print("\t%s\033[22;31m%2d\033[0m ( %2d ) [%d]" %  (prompt, a, v, t))
 
 def main():
     re = False

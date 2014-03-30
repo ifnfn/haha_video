@@ -116,7 +116,24 @@ int KolaMenu::SeekByAlbumName(string name)
 
 	for (int i=0; i<count; i++) {
 		IAlbum *album = cur->GetAlbum(i);
-		if (album && album->vid == name)
+		if (album && album->albumName == name)
+			return i;
+	}
+
+	return -1;
+}
+
+int KolaMenu::SeekByAlbumNumber(int number)
+{
+	CleanPage();
+	cur = &this->pageCache[0];
+	int count = SeekGetPage(cur, "albumName", name, PageSize);
+
+	PageId = cur->pageId;
+
+	for (int i=0; i<count; i++) {
+		IAlbum *album = cur->GetAlbum(i);
+		if (album && album->Number == number)
 			return i;
 	}
 

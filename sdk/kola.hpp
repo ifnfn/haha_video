@@ -162,6 +162,9 @@ public:
 	size_t duration;
 	string title;
 	string timeString;
+	bool empty() {
+		return startTime == 0 && title == "" && timeString == "";
+	}
 };
 
 class KolaEpg: public Task {
@@ -311,7 +314,8 @@ public:
 	virtual void SetResolution(string &res) = 0;
 	virtual string GetVideoUrl() = 0;
 	virtual string GetSubtitle(const char *lang) = 0;
-	virtual KolaEpg *GetEPG(bool sync=false);
+
+	KolaEpg *GetEPG(bool sync=false) const;
 };
 
 // 节目基类

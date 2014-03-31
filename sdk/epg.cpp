@@ -51,14 +51,7 @@ bool KolaEpg::LoadFromJson(json_t *js)
 
 bool KolaEpg::GetCurrent(EPG &e)
 {
-	bool ret = Get(e, KolaClient::Instance().GetTime());
-
-	if (ret == false) {
-		Clear();
-		Update();
-	}
-
-	return ret;
+	return Get(e, KolaClient::Instance().GetTime());
 }
 
 bool KolaEpg::GetNext(EPG &e)
@@ -77,6 +70,7 @@ bool KolaEpg::GetNext(EPG &e)
 		if (x.startTime > t && x.startTime < time) {
 			time = x.startTime;
 			e = x;
+			break;
 		}
 	}
 	mutex.unlock();
@@ -135,6 +129,7 @@ void KolaEpg::Clear()
 	finished = false;
 	status = Task::StatusInit;
 	epgList.clear();
+	Update();
 	mutex.unlock();
 }
 

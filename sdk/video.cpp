@@ -23,7 +23,7 @@ IVideo::~IVideo() {
 		delete epg;
 }
 
-KolaEpg *IVideo::GetEPG(bool sync)
+KolaEpg *IVideo::GetEPG(bool sync) const
 {
 	if (epg) {
 		if (sync) {

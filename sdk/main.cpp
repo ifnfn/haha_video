@@ -118,12 +118,19 @@ void test_livetv()
 
 					if (epg) {
 						EPG e1, e2;
-						if (epg->GetCurrent(e1)) {
+						epg->GetCurrent(e1);
+						epg->GetNext(e2);
+
+						if (not e1.empty()) {
 							printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
-							if (epg->GetNext(e2))
-								printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
-							printf("\n\n");
 						}
+
+						if (not e2.empty()) {
+							printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+						}
+						printf("\n\n");
+
+						epg->Clear();
 						break;
 					}
 				}

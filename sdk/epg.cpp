@@ -11,6 +11,7 @@
 #include "json.hpp"
 
 KolaEpg::KolaEpg(json_t *js) {
+	finished = false;
 	json_to_variant(js, &scInfo);
 }
 
@@ -50,7 +51,14 @@ bool KolaEpg::LoadFromJson(json_t *js)
 
 bool KolaEpg::GetCurrent(EPG &e)
 {
-	return Get(e, KolaClient::Instance().GetTime());
+	bool ret = Get(e, KolaClient::Instance().GetTime());
+
+	if (ret == false) {
+		Clear();
+		Update();
+	}
+
+	return ret;
 }
 
 bool KolaEpg::GetNext(EPG &e)
@@ -104,26 +112,28 @@ void KolaEpg::Run(void)
 	if (not text.empty()) {
 		LoadFromText(text);
 	}
+	finished = true;
 }
 
 void KolaEpg::Update()
 {
-	if (status != Task::StatusDownloading) {
-		mutex.lock();
-		Clear();
-		mutex.unlock();
-		status = Task::StatusInit;
+	if (finished == false && status == Task::StatusInit) {
 		Start();
 	}
 }
 
 bool KolaEpg::UpdateFinish()
 {
-	return status == Task::StatusFinish;
+	Update();
+	return status == Task::StatusFinish && finished;
 }
 
 void KolaEpg::Clear()
 {
+	mutex.lock();
+	finished = false;
+	status = Task::StatusInit;
 	epgList.clear();
+	mutex.unlock();
 }
 

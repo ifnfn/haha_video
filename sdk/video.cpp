@@ -26,12 +26,15 @@ IVideo::~IVideo() {
 KolaEpg *IVideo::GetEPG(bool sync)
 {
 	if (epg) {
-		epg->Update();
-		if (sync)
+		if (sync) {
+			epg->Update();
 			epg->Wait();
+		}
+		if (epg->UpdateFinish())
+			return epg;
 	}
 
-	return epg;
+	return NULL;
 }
 
 void KolaVideo::Parser(json_t *js)

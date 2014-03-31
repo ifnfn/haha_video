@@ -171,19 +171,21 @@ public:
 	bool GetCurrent(EPG &e);
 	bool GetNext(EPG &e);
 	bool Get(EPG &e, time_t time);
-
-	void Update();
-	bool UpdateFinish();
+	void Clear();
 private:
 	virtual void Run(void);
 
 	bool LoadFromText(string text);
 	bool LoadFromJson(json_t *js);
-	void Clear();
+	void Update();
+	bool UpdateFinish();
 
 	vector<EPG> epgList;
 	Mutex mutex;
 	Variant scInfo;
+	bool finished;
+
+	friend class IVideo;
 };
 
 class CacheUrl {

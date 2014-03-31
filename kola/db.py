@@ -222,7 +222,7 @@ class AlbumBase:
         if self.monthlyPlayNum  : ret['monthlyPlayNum']  = self.monthlyPlayNum   # 每月播放次数
         if self.totalPlayNum    : ret['totalPlayNum']    = self.totalPlayNum     # 总播放资料
         if self.Score           : ret['Score']           = self.Score
-        if self.Number          : ret['Number']          = self.Number
+        ret['Number']          = self.Number
 
         if self.sources         : ret['sources']         = self.sources
 

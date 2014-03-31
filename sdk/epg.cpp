@@ -98,6 +98,7 @@ bool KolaEpg::Get(EPG &e, time_t t)
 		if (t >= x.startTime) {
 			e = x;
 			ret = true;
+			break;
 		}
 	}
 	mutex.unlock();

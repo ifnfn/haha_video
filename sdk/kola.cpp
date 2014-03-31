@@ -298,6 +298,7 @@ bool KolaClient::LoginOne()
 
 	if (UrlPost(url, params.c_str(), text) == false) {
 		authorized = false;
+
 		return false;
 	}
 
@@ -314,12 +315,12 @@ bool KolaClient::LoginOne()
 
 		if (loginKey.empty()) {
 			json_delete(js);
+
 			return false;
 		}
 
 		SetCookie("key=" + loginKey);
 
-		authorized = true;
 		json_t *cmd = json_geto(js, "command");
 		if (cmd) {
 			const char *dest = json_gets(js, "dest", NULL);
@@ -333,7 +334,9 @@ bool KolaClient::LoginOne()
 		ScriptCommand script;
 		if (json_get_variant(js, "script", &script))
 			script.Run();
+
 		json_delete(js);
+		authorized = true;
 	}
 
 	return true;

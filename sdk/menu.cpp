@@ -123,11 +123,11 @@ int KolaMenu::SeekByAlbumName(string name)
 	return -1;
 }
 
-int KolaMenu::SeekByAlbumNumber(int number)
+int KolaMenu::SeekByAlbumNumber(string number)
 {
 	CleanPage();
 	cur = &this->pageCache[0];
-	int count = SeekGetPage(cur, "albumName", name, PageSize);
+	int count = SeekGetPage(cur, "Number", number, PageSize);
 
 	PageId = cur->pageId;
 

@@ -94,8 +94,9 @@ void test_livetv()
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
+	int pos = m->SeekByAlbumNumber("4");
 #if 1
-	for (size_t i=0; i < count; i++) {
+	for (size_t i=pos; i < count; i++) {
 		IAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
 			continue;
@@ -485,7 +486,7 @@ int main(int argc, char **argv)
 #endif
 //	test_picture("电影"); return 0;
 	//test_custommenu();
-	//printf("Test LiveTV\n"); test_livetv(); return 0;
+	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

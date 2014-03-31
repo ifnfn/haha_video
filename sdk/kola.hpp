@@ -316,7 +316,6 @@ public:
 		Score = 0.0;
 		order = 0;
 		updateTime = 0;
-		Number = 0;
 	}
 
 	string vid;                  // Album ID
@@ -335,7 +334,7 @@ public:
 	int totalPlayNum;            // 总播放次数
 	double Score;                // 得分
 
-	int Number;
+	string Number;               // 节目号
 
 	IMenu *menu;
 
@@ -377,7 +376,7 @@ public:
 
 	virtual int    SeekByAlbumId(string vid) = 0;
 	virtual int    SeekByAlbumName(string name) = 0;
-	virtual int    SeekByAlbumNumber(int number) = 0;
+	virtual int    SeekByAlbumNumber(string number) = 0;
 
 	virtual size_t GetAlbumCount() = 0;
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize) = 0;
@@ -434,7 +433,7 @@ public:
 
 	virtual int    SeekByAlbumId(string vid);
 	virtual int    SeekByAlbumName(string name);
-	virtual int    SeekByAlbumNumber(int number);
+	virtual int    SeekByAlbumNumber(string number);
 
 	virtual size_t GetAlbumCount();
 protected:

@@ -1,7 +1,8 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from kola import GetPinYin
+from kola import GetPinYin, autostr
+import pymongo
 
 TVOrder = [
     "CCTV-1 综合",
@@ -85,6 +86,11 @@ TVOrder = [
     '浙江卫视-高清',
 ]
 
+con = pymongo.Connection('localhost', 27017)
+mongodb = con.kola
+tv_table  = mongodb.tvnumber
+tv_table.create_index([('id', pymongo.ASCENDING)])
+
 def GetOrder(name):
     i = 0
     for n in TVOrder:
@@ -105,4 +111,12 @@ def GetNumber(name):
             return '%d' % i
         i += 1
 
-    return ''
+    ret = tv_table.find_one({'name' : name})
+    if ret:
+        return ret['number']
+    else:
+        count = tv_table.find().count()
+        number = autostr(count + 1)
+        tv_table.insert({"name" : name, "number" : number})
+
+        return number

@@ -98,7 +98,7 @@ class LivetvParser(KolaParser):
         if albumName:
             album  = LivetvAlbum()
             album.albumName = albumName
-            self.number     = GetNumber(album.albumName)
+            album.Number    = GetNumber(album.albumName)
             vid   = utils.genAlbumId(album.albumName)
             order = GetOrder(album.albumName)
 

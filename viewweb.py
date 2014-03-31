@@ -478,6 +478,9 @@ class ShowHandler(BaseHandler):
         self.render("show.html", alubm=album)
 
 class RandomVideoUrlHandle(BaseHandler):
+    def initialize(self):
+        pass
+
     def get(self, name):
         self.finish(tv.db.GetVideoCache(name))
 

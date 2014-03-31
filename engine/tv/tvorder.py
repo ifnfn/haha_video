@@ -99,9 +99,10 @@ def GetOrder(name):
     return '9999'
 
 def GetNumber(name):
-    i = 0
+    i = 1
     for n in TVOrder:
         if n == name:
             return '%d' % i
         i += 1
+
     return ''

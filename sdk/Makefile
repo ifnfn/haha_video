@@ -5,5 +5,5 @@ all:
 		$(LUA) weather.cpp player.cpp resolution.cpp json.cpp http.cpp \
 		base64.cpp threadpool.cpp resource.cpp menu.cpp stringlist.cpp \
 		video.cpp task.cpp pcre.cpp kola.cpp album.cpp filter.cpp \
-		update.cpp common.cpp main.cpp \
+		update.cpp common.cpp epg.cpp main.cpp \
 		-ljansson -D_DEBUG -lpcre -lcrypto -pthread -lz -lcurl

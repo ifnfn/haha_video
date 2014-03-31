@@ -164,14 +164,26 @@ public:
 	string timeString;
 };
 
-class KolaEpg:public vector<EPG> {
+class KolaEpg: public Task {
 public:
-	KolaEpg() {}
-	bool LoadFromText(string text);
-	bool LoadFromJson(json_t *js);
+	KolaEpg(json_t *js);
+
 	bool GetCurrent(EPG &e);
 	bool GetNext(EPG &e);
 	bool Get(EPG &e, time_t time);
+
+	void Update();
+	bool UpdateFinish();
+private:
+	virtual void Run(void);
+
+	bool LoadFromText(string text);
+	bool LoadFromJson(json_t *js);
+	void Clear();
+
+	vector<EPG> epgList;
+	Mutex mutex;
+	Variant scInfo;
 };
 
 class CacheUrl {
@@ -267,14 +279,8 @@ protected:
 // 视频基类
 class IVideo: public IObject {
 public:
-	IVideo() {
-		width = height = fps = totalBytes = 0;
-		order = 0;
-		isHigh = 0;
-		videoPlayCount = 0;
-		videoScore = 0.0;
-		playLength = 0.0;
-	}
+	IVideo();
+	~IVideo();
 
 	int    width;          // 宽
 	int    height;         // 高
@@ -291,6 +297,7 @@ public:
 	double videoScore;
 	double playLength;
 
+	KolaEpg *epg;
 	string showName;
 	string publishTime;
 	string videoDesc;
@@ -302,7 +309,7 @@ public:
 	virtual void SetResolution(string &res) = 0;
 	virtual string GetVideoUrl() = 0;
 	virtual string GetSubtitle(const char *lang) = 0;
-	virtual bool GetEPG(KolaEpg &epg) = 0;
+	virtual KolaEpg *GetEPG(bool sync=false);
 };
 
 // 节目基类

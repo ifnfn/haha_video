@@ -17,10 +17,8 @@ public:
 	virtual void SetResolution(string &res);
 	virtual string GetVideoUrl();
 	virtual string GetSubtitle(const char *lang) {return "";}
-	virtual bool GetEPG(KolaEpg &epg);
 private:
 	string directPlayUrl;
-	Variant scInfo;
 };
 
 class KolaAlbum: public IAlbum {

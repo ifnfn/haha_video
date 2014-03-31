@@ -33,6 +33,7 @@ ADD_GX_LIBRARY(kolatv
 	resolution.cpp
 	update.cpp
 	common.cpp
+	epg.cpp
 )
 
 SET(CMAKE_BUILD_TYPE "Debug")

@@ -113,16 +113,16 @@ void test_livetv()
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 #if 1
-				KolaEpg epg;
+				KolaEpg *epg = video->GetEPG(true);
 
-				video->GetEPG(epg);
-
-				EPG e1, e2;
-				if (epg.GetCurrent(e1)) {
-					printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
-					if (epg.GetNext(e2))
-						printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
-					printf("\n\n");
+				if (epg) {
+					EPG e1, e2;
+					if (epg->GetCurrent(e1)) {
+						printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+						if (epg->GetNext(e2))
+							printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+						printf("\n\n");
+					}
 				}
 #endif
 			}

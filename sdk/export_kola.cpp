@@ -330,6 +330,102 @@ static int lua_getserial(lua_State *L)
 	return 0;
 }
 
+static int lua_strtrim(lua_State *L)
+{
+	int front = 0, back;
+	const char *str = luaL_checklstring(L, 1, (size_t *)(&back));
+	const char *del = luaL_optstring(L, 2, "\t\n\r ");
+	--back;
+
+	while (front <= back && strchr(del, str[front]))
+		++front;
+	while (back > front && strchr(del, str[back]))
+		--back;
+
+	lua_pushlstring(L, &str[front], back - front + 1);
+	return 1;
+}
+
+/* strsplit & strjoin adapted from code by Norganna */
+static int lua_strsplit(lua_State *L)
+{
+	const char *sep = luaL_checkstring(L, 1);
+	const char *str = luaL_checkstring(L, 2);
+	int limit = luaL_optint(L, 3, 0);
+	int count = 0;
+	/* Set the stack to a predictable size */
+	lua_settop(L, 0);
+	/* Initialize the result count */
+	/* Tokenize the string */
+	if(!limit || limit > 1) {
+		const char *end = str;
+		while(*end) {
+			int issep = 0;
+			const char *s = sep;
+			for(; *s; ++s) {
+				if(*s == *end) {
+					issep = 1;
+					break;
+				}
+			}
+			if(issep) {
+				luaL_checkstack(L, count+1, "too many results");
+				lua_pushlstring(L, str, (end-str));
+				++count;
+				str = end+1;
+				if(count == (limit-1)) {
+					break;
+				}
+			}
+			++end;
+		}
+	}
+	/* Add the remainder */
+	luaL_checkstack(L, count+1, "too many results");
+	lua_pushstring(L, str);
+	++count;
+	/* Return with the number of values found */
+	return count;
+}
+
+static int lua_strjoin(lua_State *L)
+{
+	size_t seplen;
+	int entries;
+	const char *sep = luaL_checklstring(L, 1, &seplen);
+
+	/* Guarantee we have 1 stack slot free */
+	lua_remove(L, 1);
+
+	entries = lua_gettop(L);
+
+	if (seplen == 0) /* If there's no seperator, then this is the same as a concat */
+		lua_concat(L, entries);
+	else if (entries == 0) /* If there are no entries then we can't concatenate anything */
+		lua_pushstring(L, "");
+	else if (entries == 1) /* If there's only one entry, just return it */
+		;
+	else {
+		luaL_Buffer b;
+		int i;
+
+		/* Set up buffer to store resulting string */
+		luaL_buffinit(L, &b);
+		for(i = 1; i <= entries; ++i) {
+			/* Push the current entry and add it to the buffer */
+			lua_pushvalue(L, i);
+			luaL_addvalue(&b);
+			/* Add the separator to the buffer */
+			if (i < entries) {
+				luaL_addlstring(&b, sep, seplen);
+			}
+		}
+		luaL_pushresult(&b);
+	}
+
+	return 1;
+}
+
 static const struct luaL_Reg kola_lib[] = {
 	{"base64_encode" , lua_base64_encode},
 	{"base64_decode" , lua_base64_decode},
@@ -347,6 +443,9 @@ static const struct luaL_Reg kola_lib[] = {
 	{"date"          , lua_date},
 	{"chipid"        , lua_getchipid},
 	{"serial"        , lua_getserial},
+	{"strtrim"       , lua_strtrim},
+	{"strsplit"      , lua_strsplit},
+	{"strjoin"       , lua_strjoin},
 
 	{NULL            , NULL},
 };

@@ -170,6 +170,9 @@ public:
 class KolaEpg: public Task {
 public:
 	KolaEpg(json_t *js);
+	virtual ~KolaEpg() {
+		Wait();
+	}
 
 	bool GetCurrent(EPG &e);
 	bool GetNext(EPG &e);

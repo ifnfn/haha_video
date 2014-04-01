@@ -58,24 +58,24 @@ bool KolaEpg::GetNext(EPG &e)
 {
 	EPG ok;
 	int count;
+	bool ret = false;
 	time_t t = KolaClient::Instance().GetTime();
 
 	mutex.lock();
 	count = (int)epgList.size();
 
-	time_t time = 0xffffffff;
 	for (int i=0; i < count; i++) {
 		EPG x = epgList.at(i);
 
-		if (x.startTime > t && x.startTime < time) {
-			time = x.startTime;
+		if (x.startTime > t) {
 			e = x;
+			ret = true;
 			break;
 		}
 	}
 	mutex.unlock();
 
-	return time != 0xffffffff;
+	return ret;
 }
 
 bool KolaEpg::Get(EPG &e, time_t t)

@@ -540,8 +540,12 @@ time_t KolaClient::GetTime()
 
 		string ret = lua.RunScript(args, "getip", "gettime");
 
-		init_time = atol(ret.c_str());
-		hw_time = time(NULL);
+		if (not ret.empty()) {
+			init_time = atol(ret.c_str());
+			hw_time = time(NULL);
+		}
+		else
+			hw_time = 0;
 	}
 
 	size_t offset = time(NULL) - hw_time;

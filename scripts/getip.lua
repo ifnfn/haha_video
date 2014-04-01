@@ -39,12 +39,10 @@ function gettime()
 	local text = kola.wget(url, false)
 	if text ~= nil then
 		local js = cjson.decode(text)
-		time = js.stime
-	else
-		time = os.time()
+		return tostring(js.stime)
 	end
 
-	return tostring(time)
+	return ''
 end
 
 function kola_main(url)

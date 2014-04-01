@@ -969,7 +969,8 @@ def main():
     db = redis.Redis(host='127.0.0.1', port=6379, db=4)
     db.flushdb()
 
-    tornado.options.options.logging = "warning"
+    # debug|info|warning|error|none
+    tornado.options.options.logging = "none"
     tornado.options.parse_command_line()
     ViewApplication().listen(9991, xheaders = True)
     tornado.ioloop.IOLoop.instance().start()

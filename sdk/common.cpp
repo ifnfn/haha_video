@@ -155,7 +155,7 @@ string GetIP(const char *hostp)
 	return ip;
 }
 
-void split(const string& src, const string& separator, vector<string>& dest)
+void Split(const string& src, const string& separator, vector<string>& dest)
 {
 	string str = src;
 	string substring;

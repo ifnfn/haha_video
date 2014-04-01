@@ -66,7 +66,7 @@ string StringList::ToString(string s, string e, string split)
 void StringList::Split(const string items, string sp)
 {
 	clear();
-	split(items, sp, *this);
+	::Split(items, sp, *this);
 }
 
 bool StringList::SaveToFile(string fileName)

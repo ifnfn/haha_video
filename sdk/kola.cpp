@@ -245,7 +245,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 			vector<string> vlist;
 			string v = json_string_value(value);
 
-			split(v, ".", vlist);
+			Split(v, ".", vlist);
 			foreach(vlist, i) {
 				key = *i;
 				p_js = json_geto(p_js, key.c_str());
@@ -274,6 +274,7 @@ bool KolaClient::Verify(const char *serial)
 	if (serial) {
 		Serial = serial;
 		authorized = false;
+		SetCookie("");
 		return LoginOne();
 	}
 
@@ -296,6 +297,7 @@ bool KolaClient::LoginOne()
 
 	params += "}";
 
+	SetCookie("");
 	if (UrlPost(url, params.c_str(), text) == false) {
 		authorized = false;
 

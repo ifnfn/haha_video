@@ -16,6 +16,7 @@ class ParserHeBeiLivetv(ParserTVIELivetv):
 
         self.Alias = {
             '河北卫视-标清' : '河北卫视',
+            '河北卫视-高清' : '河北卫视',
             '河北经视' : '河北-经济频道',
             '河北都市' : '河北-都市频道',
             '河北影视' : '河北-影视频道',

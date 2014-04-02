@@ -128,6 +128,9 @@ class AlbumVidCheckHandler(BaseHandler):
             self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
 class AlbumListHandler(BaseHandler):
+    def initialize(self):
+        super().initialize()
+
     def argument(self):
         args = {}
         cid = self.get_argument('cid', '')

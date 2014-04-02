@@ -399,7 +399,6 @@ void test_info(KolaClient &kola)
 
 void test_area(KolaClient &kola)
 {
-	cout << kola.GetArea() << endl;
 	cout << kola.GetTime() << endl;
 
 	KolaArea area;

@@ -28,10 +28,10 @@ public:
 class LuaScript {
 public:
 	static LuaScript& Instance();
-	string RunScript(vector<string> &args, const char *name, const char *fname="kola_main");
+	string RunScript(string name, string fname, vector<string> &args);
 private:
 	map<string, Script> scripts;
-	bool GetScript(const char *name, string &text);
+	bool GetScript(const string &name, string &text);
 	string lua_runscript(lua_State* L, const char *filename,
 			     const char *fn, const char *func, vector<string> &args);
 };

@@ -274,7 +274,6 @@ bool KolaClient::Verify(const char *serial)
 	if (serial) {
 		Serial = serial;
 		authorized = false;
-		SetCookie("");
 		return LoginOne();
 	}
 
@@ -289,7 +288,10 @@ bool KolaClient::LoginOne()
 	string params = "{";
 
 	if (authorized) {
-		params += stringlink("area"  , GetArea()) + ",";
+		KolaArea area;
+		if (GetArea(area))
+			params += stringlink("area"  , area.toString()) + ",";
+
 		params += stringlink("cmd"   , authorized ? "1" : "0")+ ",";
 	}
 	params += stringlink("chipid", GetChipKey()) + ",";
@@ -297,9 +299,9 @@ bool KolaClient::LoginOne()
 
 	params += "}";
 
-	SetCookie("");
 	if (UrlPost(url, params.c_str(), text) == false) {
 		authorized = false;
+		SetCookie("");
 
 		return false;
 	}
@@ -316,6 +318,7 @@ bool KolaClient::LoginOne()
 		string loginKey = json_gets(js, "key", "");
 
 		if (loginKey.empty()) {
+			SetCookie("");
 			json_delete(js);
 
 			return false;
@@ -480,21 +483,6 @@ void KolaClient::SetPicutureCacheSize(size_t size)
 	this->resManager->SetCacheSize(size);
 }
 
-string KolaClient::GetArea()
-{
-	static string local_area;
-
-	if (local_area.empty()) {
-		LuaScript &lua = LuaScript::Instance();
-		vector<string> args;
-		args.push_back("");
-
-		local_area = lua.RunScript(args, "getip", "getip");
-	}
-
-	return local_area;
-}
-
 bool KolaClient::GetArea(KolaArea &area)
 {
 	static KolaArea local_area;
@@ -505,7 +493,7 @@ bool KolaClient::GetArea(KolaArea &area)
 		vector<string> args;
 		args.push_back("");
 
-		string text = lua.RunScript(args, "getip", "getip_detail");
+		string text = lua.RunScript("getip", "getip_detail", args);
 
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
@@ -538,7 +526,7 @@ time_t KolaClient::GetTime()
 		vector<string> args;
 		args.push_back("");
 
-		string ret = lua.RunScript(args, "getip", "gettime");
+		string ret = lua.RunScript("getip", "gettime", args);
 
 		if (not ret.empty()) {
 			init_time = atol(ret.c_str());

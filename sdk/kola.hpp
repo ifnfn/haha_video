@@ -544,6 +544,10 @@ public:
 
 		return ret;
 	}
+
+	string toString() {
+		return country + "," + province + "," + city + "," + isp;
+	}
 };
 
 class WeatherData {
@@ -638,7 +642,6 @@ public:
 	IMenu* operator[] (const char *name);
 	IMenu* operator[] (int inx);
 	string GetFullUrl(string url);
-	string GetArea();
 	time_t GetTime();
 	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);

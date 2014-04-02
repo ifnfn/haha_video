@@ -175,7 +175,7 @@ LuaScript& LuaScript::Instance()
 	return _lua;
 }
 
-string LuaScript::RunScript(vector<string> &args, const char *name, const char *fname)
+string LuaScript::RunScript(string name, string fname, vector<string> &args)
 {
 	string code, ret;
 
@@ -183,7 +183,7 @@ string LuaScript::RunScript(vector<string> &args, const char *name, const char *
 		lua_State *L = luaL_newstate();
 		if (L) {
 			luaL_openmini(L);
-			ret = lua_runscript(L, name, code.c_str(), fname, args);
+			ret = lua_runscript(L, name.c_str(), code.c_str(), fname.c_str(), args);
 			lua_close(L);
 		}
 	}
@@ -200,7 +200,7 @@ bool script_decrypt(string& text)
 	return true;
 }
 
-bool LuaScript::GetScript(const char *name, string &text)
+bool LuaScript::GetScript(const string &name, string &text)
 {
 	map<string ,Script>::iterator it = scripts.find(name);
 	if (it != scripts.end()) {
@@ -222,7 +222,7 @@ bool LuaScript::GetScript(const char *name, string &text)
 		return true;
 	}
 
-	printf("Not found script %s\n", name);
+	printf("Not found script %s\n", name.c_str());
 	return false;
 }
 
@@ -321,7 +321,7 @@ string ScriptCommand::Run()
 	string ret;
 	if (Exists()) {
 		LuaScript& lua = LuaScript::Instance();
-		ret = lua.RunScript(args, script_name.c_str(), func_name.c_str());
+		ret = lua.RunScript(script_name, func_name, args);
 	}
 
 	return ret;

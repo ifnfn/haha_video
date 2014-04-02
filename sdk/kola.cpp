@@ -290,14 +290,13 @@ bool KolaClient::LoginOne()
 	if (authorized) {
 		KolaArea area;
 		if (GetArea(area))
-			params += stringlink("area"  , area.toString()) + ",";
+			params += stringlink("area"  , area.toString(), "", ",");
 
-		params += stringlink("cmd"   , authorized ? "1" : "0")+ ",";
+		params += stringlink("cmd", authorized ? "1" : "0", "", ",");
 	}
-	params += stringlink("chipid", GetChipKey()) + ",";
-	params += stringlink("serial", GetSerial());
-
-	params += "}";
+	params += stringlink("chipid",  GetChipKey(), "", ", ");
+	params += stringlink("serial",  GetSerial() , "", ", ");
+	params += stringlink("version", KOLA_VERSION, "", " }");
 
 	if (UrlPost(url, params.c_str(), text) == false) {
 		authorized = false;

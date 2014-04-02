@@ -606,10 +606,11 @@ class LoginHandler(BaseHandler):
     redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
     def initialize(self):
-        self.chipid = self.get_argument('chipid', '')
-        self.serial = self.get_argument('serial', '')
-        self.area   = self.get_argument('area', '')
-        self.cmd    = self.get_argument('cmd', '0')
+        self.chipid  = self.get_argument('chipid', '')
+        self.serial  = self.get_argument('serial', '')
+        self.area    = self.get_argument('area', '')
+        self.cmd     = self.get_argument('cmd', '0')
+        self.version = self.get_argument('version', '')
 
     def check_user_id(self):
         status = 'NO'
@@ -679,10 +680,11 @@ class LoginHandler(BaseHandler):
     def post(self):
         js = tornado.escape.json_decode(self.request.body)
         if js:
-            if 'cmd'    in js: self.cmd    = js['cmd']
-            if 'chipid' in js: self.chipid = js['chipid']
-            if 'serial' in js: self.serial = js['serial']
-            if 'area'   in js: self.area   = js['area']
+            if 'cmd'     in js: self.cmd     = js['cmd']
+            if 'chipid'  in js: self.chipid  = js['chipid']
+            if 'serial'  in js: self.serial  = js['serial']
+            if 'area'    in js: self.area    = js['area']
+            if 'version' in js: self.version = js['version']
 
         print("POST: [%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
         ret = {

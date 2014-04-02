@@ -167,9 +167,9 @@ void Split(const string& src, const string& separator, vector<string>& dest)
 	dest.push_back(substring);
 }
 
-string stringlink(string key, string value)
+string stringlink(string key, string value, string start, string end)
 {
-	return "\""  + key + "\" : \"" + value + "\"";
+	return start + "\""  + key + "\" : \"" + value + "\"" + end;
 }
 
 string UrlLink(string a, string b)

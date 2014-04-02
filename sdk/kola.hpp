@@ -13,6 +13,9 @@
 #include <jansson.h>
 #include <semaphore.h>
 
+
+#define KOLA_VERSION "1"
+
 using namespace std;
 
 #define foreach(container,i) \

@@ -90,11 +90,12 @@ void test_livetv()
 	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	m->FilterAdd("PinYin", "hz");
+	//m->FilterAdd("PinYin", "hz");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
 	int pos = m->SeekByAlbumNumber("4");
+	pos = 0;
 #if 1
 	for (size_t i=pos; i < count; i++) {
 		IAlbum *album = m->GetAlbum(i);

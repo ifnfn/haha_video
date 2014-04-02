@@ -13,6 +13,7 @@ from .sohutv import SohuLiveTV
 from .textv import TextLiveTV
 from .tvielivetv import ParserTVIELivetv
 from .wolidou import WolidouLiveTV
+from .wasu import WasuLiveTV
 
 
 from .安徽 import AnHuiLiveTV
@@ -49,6 +50,7 @@ class LiveEngine(VideoEngine):
             'CNTV'  : CntvLiveTV,
             'Sohu'  : SohuLiveTV,
             'PPTV'  : PPtvLiveTV,
+            '华数'   : WasuLiveTV,
             '黑龙江' : HeiLongJiangLiveTV,
             '浙江'  : ZheJianLiveTV,
             '安徽'  : AnHuiLiveTV,

@@ -1,11 +1,3 @@
-//
-//  common.cpp
-//  kolatv
-//
-//  Created by Silicon on 14-3-27.
-//  Copyright (c) 2014年 Silicon. All rights reserved.
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -171,7 +163,6 @@ void Split(const string& src, const string& separator, vector<string>& dest)
 		}
 	}while(index != string::npos);
 
-	//the last token
 	substring = str.substr(start);
 	dest.push_back(substring);
 }

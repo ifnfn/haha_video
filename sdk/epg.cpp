@@ -1,16 +1,10 @@
-//
-//  epg.cpp
-//  kolatv
-//
-//  Created by Silicon on 14-3-31.
-//  Copyright (c) 2014年 Silicon. All rights reserved.
-//
-
 #include <stdio.h>
+
 #include "kola.hpp"
 #include "json.hpp"
 
-KolaEpg::KolaEpg(json_t *js) {
+KolaEpg::KolaEpg(json_t *js)
+{
 	finished = false;
 	json_to_variant(js, &scInfo);
 }

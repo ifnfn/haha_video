@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <map>
 #include <string>
-#include <iostream>
 #include <lua.hpp>
 #include <signal.h>
 #include <unistd.h>

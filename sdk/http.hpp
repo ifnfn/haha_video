@@ -42,16 +42,9 @@ public:
 	HttpBuffer():mem(NULL), size(0) {}
 	HttpBuffer(HttpBuffer &buf);
 
-	~HttpBuffer() {
-		if (mem) free(mem);
-	}
+	~HttpBuffer();
 
-	void reset() {
-		if (mem) free(mem);
-
-		mem = NULL;
-		size  = 0;
-	}
+	void reset();
 	bool SaveToFile(const string filename);
 	string GetMD5();
 

@@ -1,11 +1,3 @@
-//
-//  common.h
-//  kolatv
-//
-//  Created by Silicon on 14-3-27.
-//  Copyright (c) 2014年 Silicon. All rights reserved.
-//
-
 #ifndef __kolatv__common__
 #define __kolatv__common__
 

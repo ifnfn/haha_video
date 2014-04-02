@@ -19,6 +19,19 @@ static void *curlRealloc(void *ptr, size_t size)
 		return malloc(size);
 }
 
+HttpBuffer::~HttpBuffer()
+{
+	if (mem) free(mem);
+}
+
+void HttpBuffer::reset()
+{
+	if (mem) free(mem);
+
+	mem = NULL;
+	size  = 0;
+}
+
 HttpBuffer::HttpBuffer(HttpBuffer &buf)
 {
 	mem = NULL;

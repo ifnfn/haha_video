@@ -355,7 +355,7 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 	if (vids.empty())
 		return;
 
-	if (client->UrlPost("video/vidcheck", vids.c_str(), text) == true) {
+	if (client->UrlPost("/video/vidcheck", vids.c_str(), text) == true) {
 		json_error_t error;
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 		if (js) {
@@ -420,7 +420,7 @@ int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 		char buf[128];
 		string url;
 
-		sprintf(buf, "video/list?full=0&page=%ld&size=%ld", pageId, pageSize);
+		sprintf(buf, "/video/list?full=0&page=%ld&size=%ld", pageId, pageSize);
 		url = buf;
 
 		basePosData = "\"vid\" : \"" + text + "\"";

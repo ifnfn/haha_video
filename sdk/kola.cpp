@@ -170,7 +170,7 @@ bool KolaClient::UrlGet(string url, string &ret)
 	url = GetFullUrl(url);
 
 	Http http;
-	http.Open(url.c_str(), GetCookie().c_str());
+	http.Open(url.c_str());
 	if (http.Get() != NULL) {
 		ret.assign(http.Data().mem);
 
@@ -192,7 +192,6 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	new_body = UrlEncode(new_body);
 
 	Http http;
-	http.Open(NULL, GetCookie().c_str());
 
 	if (http.Post(url.c_str(), new_body.c_str()) != NULL) {
 		ret = http.buffer.mem;
@@ -300,7 +299,6 @@ bool KolaClient::LoginOne()
 
 	if (UrlPost(url, params.c_str(), text) == false) {
 		authorized = false;
-		SetCookie("");
 
 		return false;
 	}
@@ -317,13 +315,10 @@ bool KolaClient::LoginOne()
 		string loginKey = json_gets(js, "key", "");
 
 		if (loginKey.empty()) {
-			SetCookie("");
 			json_delete(js);
 
 			return false;
 		}
-
-		SetCookie("key=" + loginKey);
 
 		json_t *cmd = json_geto(js, "command");
 		if (cmd) {
@@ -562,24 +557,6 @@ void KolaClient::SetServer(string server)
 	mutex.lock();
 	BaseUrl = server;
 	mutex.unlock();
-}
-
-void KolaClient::SetCookie(string cookie)
-{
-	mutex.lock();
-	this->Cookie = cookie;
-	mutex.unlock();
-}
-
-string KolaClient::GetCookie()
-{
-	string ret;
-
-	mutex.lock();
-	ret = this->Cookie;
-	mutex.unlock();
-
-	return ret;
 }
 
 IObject::IObject()

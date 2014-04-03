@@ -669,13 +669,10 @@ private:
 	bool ProcessCommand(json_t *cmd, const char *dest);
 
 	void SetServer(string server);
-	void SetCookie(string cookie);
-	string GetCookie();
 
 	Thread*  thread;
 	Mutex    mutex;
 	KolaInfo Info;
-	string   Cookie;
 	bool     authorized;
 	int      nextLoginSec;
 };

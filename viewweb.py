@@ -128,9 +128,6 @@ class AlbumVidCheckHandler(BaseHandler):
             self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
 class AlbumListHandler(BaseHandler):
-    def initialize(self):
-        super().initialize()
-
     def argument(self):
         args = {}
         cid = self.get_argument('cid', '')
@@ -153,6 +150,7 @@ class AlbumListHandler(BaseHandler):
 
         return args, self.get_argument('menu', ''), cid, self.get_argument('vid', '')
 
+    @tornado.web.authenticated
     def get(self):
         args, menu, cid, vid = self.argument()
 
@@ -167,6 +165,7 @@ class AlbumListHandler(BaseHandler):
 
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
+    @tornado.web.authenticated
     def post(self):
         args, menu, cid, vid = self.argument()
 
@@ -193,6 +192,7 @@ class AlbumListHandler(BaseHandler):
         self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
 class GetVideoPlayerUrlHandle(BaseHandler):
+    @tornado.web.authenticated
     def get(self):
         ret = []
         vid = self.get_argument('vid', '')
@@ -255,12 +255,6 @@ class GetVideoHandler(BaseHandler):
         self.Finish(args, pid, full)
 
 class GetPlayerHandler(BaseHandler):
-    def initialize(self):
-        pass
-
-    def get(self):
-        pass
-
     def post(self):
         body = self.request.body.decode()
         url = self.request.protocol + '://' + self.request.host  + '/video/urls'
@@ -350,6 +344,7 @@ class GetMenuHandler(BaseHandler):
     def initialize(self):
         super().initialize()
 
+    @tornado.web.authenticated
     def get(self):
         ret = []
         cid = self.get_argument('cid', '')
@@ -376,6 +371,7 @@ class UploadHandler(BaseHandler):
         print('Upload get')
         pass
 
+    @tornado.web.authenticated
     def post(self):
         try:
             if type(self.request.body) == bytes:
@@ -588,6 +584,7 @@ class SerialHandler(BaseHandler):
         if start == 0:
             start = self.GetClientMaxNumber(client_id) + 1
             skip = True
+
         for i in range(start, start + number):
             s = self.Serial(client_id, i, skip, image=='0')
             codes.append(s)
@@ -611,6 +608,9 @@ class LoginHandler(BaseHandler):
         self.area    = self.get_argument('area', '')
         self.cmd     = self.get_argument('cmd', '0')
         self.version = self.get_argument('version', '')
+
+    def check_xsrf_cookie(self):
+        pass
 
     def check_user_id(self):
         status = 'NO'
@@ -687,14 +687,18 @@ class LoginHandler(BaseHandler):
             if 'version' in js: self.version = js['version']
 
         print("POST: [%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
+        user_id = self.check_user_id()
         ret = {
-            'key'    : self.check_user_id(),
+            'key'    : user_id,
             'server' : self.request.protocol + '://' + self.request.host,
             'next'   : 60,   # 下次登录时间
             'image'  : {
                 'wallpaper' : '',
             }
         }
+
+        #self.xsrf_token
+        self.set_secure_cookie("user_id", user_id, 1)
 
         self.finish(json.dumps(ret))
 

@@ -90,6 +90,7 @@ Curl::Curl() {
 		curlinfo = curl_version_info(CURLVERSION_NOW);
 
 		curl_share_setopt(share_handle, CURLSHOPT_SHARE     , CURL_LOCK_DATA_DNS);
+		curl_share_setopt(share_handle, CURLSHOPT_SHARE     , CURL_LOCK_DATA_COOKIE);
 		curl_share_setopt(share_handle, CURLSHOPT_LOCKFUNC  , my_lock);
 		curl_share_setopt(share_handle, CURLSHOPT_UNLOCKFUNC, my_unlock);
 		curl_share_setopt(share_handle, CURLSHOPT_USERDATA  , this);

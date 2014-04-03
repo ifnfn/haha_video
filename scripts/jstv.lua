@@ -22,15 +22,27 @@ function get_video_url(url)
 end
 
 local function to_epg(time, title)
+	local function strtotime(t)
+		local d = os.date("*t", kola.gettime())
+
+		d.sec  = 0
+		if kola.strsplit then
+			d.hour, d.min = kola.strsplit(":", time, 2)
+			d.hour = tonumber(d.hour)
+			d.min  = tonumber(d.min)
+		else
+			d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
+			d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
+		end
+
+		return os.time(d)
+	end
+
 	local epg = {}
-	local d = os.date("*t", kola.gettime())
-	d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
-	d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
-	d.sec  = 0
 
 	epg.time_string = time
 	epg.title       = string.gsub(title, "_$", "") -- strip, trim, 去头尾空格
-	epg.time        = os.time(d)
+	epg.time        = strtotime(time)
 	epg.duration    = 0
 
 	return epg

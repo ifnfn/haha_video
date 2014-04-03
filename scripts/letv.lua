@@ -57,7 +57,7 @@ function get_videolist(pid, vid, pageNo, pageSize)
 		return '{}'
 	end
 
-	text = string.sub(text, 2, -2)
+	text = kola.strtrim(text)
 
 	if text == nil then
 		return '{}'

@@ -4,9 +4,7 @@ function get_video_url(url)
 
 	local text = kola.wget(url, false)
 	text = kola.pcre("<video>(.*)</video>", text)
-	text = string.sub(text, 1, -2)
-
-	return text
+	return kola.strtrim(text)
 end
 
 -- 获取节目的EPG

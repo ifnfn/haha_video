@@ -696,8 +696,16 @@ class LoginHandler(BaseHandler):
                 'wallpaper' : '',
             }
         }
+        #if self.cmd == '1':
+        #    timeout = 0.3
+        #    cmd = tv.command.GetCommand(timeout, 1)
+        #    if cmd:
+        #        ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
+        #        ret['command'] = cmd
+        #        if self.serial == '000001':
+        #            ret['next'] = 0
+        #        ret['script'] = utils.GetScript('command', 'test', [json.dumps(cmd), ''])
 
-        #self.xsrf_token
         self.set_secure_cookie("user_id", user_id, 1)
 
         self.finish(json.dumps(ret))

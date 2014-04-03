@@ -52,7 +52,7 @@ function get_video_url(vid, cid)
 	ret.superVid      = data.superVid
 	ret.relativeId    = data.relativeId
 
-	url = kola.getserver() .. "/video/getplayer?step=3&cid=" .. cid
+	url = kola.geturl("/video/getplayer?step=3&cid=" .. cid)
 
 	return kola.wpost(url, cjson.encode(ret))
 end

@@ -181,7 +181,7 @@ function get_video_url(cid, ft, rid)
 		for i, sgm in ipairs(segments) do
 			segments[i].url = string.format('http://%s/%s?k=%s&type=web.fpp', sh, segments[i].url, k)
 		end
-		local url = kola.getserver() .. "/video/getplayer?step=3"
+		local url = kola.geturl("/video/getplayer?step=3")
 
 		return kola.wpost(url, cjson.encode(segments))
 	elseif #segments == 1 then

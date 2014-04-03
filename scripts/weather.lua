@@ -2,7 +2,7 @@ function kola_main(city)
 	local url = "http://weather.hao.360.cn/api_weather_info.php?app=hao360"
 
 	if city ~= nil and city ~= '' then
-		url = kola.getserver() .. "/city?cid=1&name=" .. city
+		url = kola.geturl("/city?cid=1&name=" .. city)
 		local areaCode = kola.wget(url)
 
 		if areaCode ~= nil and areaCode ~= '' then

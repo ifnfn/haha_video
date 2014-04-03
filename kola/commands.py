@@ -31,4 +31,3 @@ class KolaCommand(Singleton):
             KolaCommand.mutex.release()
 
             return ret
-        return None

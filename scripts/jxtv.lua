@@ -3,7 +3,7 @@ function get_video_url(url)
 	local text = kola.wget(url)
 	if text ~= nil then
 		text = kola.pcre('streamer: "(.*)"', text)
-		return string.sub(text, 1, -2) ..  '/livestream.flv'
+		return kola.strtrim(text) ..  '/livestream.flv'
 	end
 
 	return ""

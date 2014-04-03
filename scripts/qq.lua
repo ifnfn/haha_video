@@ -110,7 +110,7 @@ function get_video_url(qvid, url_prefix, segments, stream_id)
 	if #urls_list == 1 then
 		return urls_list[1].url
 	else
-		url = kola.getserver() .. "/video/getplayer?step=3"
+		url = kola.geturl("/video/getplayer?step=3")
 		return kola.wpost(url, cjson.encode(urls_list))
 	end
 end

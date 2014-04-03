@@ -3,7 +3,7 @@ function get_video_url(url, id)
 	local text = kola.wget(url, false)
 	if text ~= nil then
 		text = kola.pcre("file: '(.*)'", text)
-		return string.sub(text, 1, -2) .. id
+		return kola.strtrim(text) .. id
 	end
 
 	return ""

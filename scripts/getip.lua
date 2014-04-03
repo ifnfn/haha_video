@@ -35,6 +35,9 @@ function getip(url)
 end
 
 function gettime()
+	--a = io.popen("ls /etc")
+	--print(a:read("*all"))
+	--a.close()
 	local url ="http://api.letv.com/time"
 	local text = kola.wget(url, false)
 	if text ~= nil then

@@ -5,7 +5,7 @@ function get_video_url(pid)
 
 	if text ~= nil then
 		text = kola.pcre('\\[CDATA\\[(.*)\\]\\]></channel>', text)
-		return string.sub(text, 1, -2)
+		return kola.strtrim(text)
 	end
 
 	return ""

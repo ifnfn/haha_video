@@ -87,7 +87,7 @@ void KolaWeather::Run(void)
 	vector<string> args;
 
 	args.push_back(Area);
-	string text = lua.RunScript(args, "weather");
+	string text = lua.RunScript("weather", "kola_main", args);
 
 	if (not text.empty()) {
 		json_error_t error;

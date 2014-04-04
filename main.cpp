@@ -12,11 +12,27 @@ void test_custommenu()
 	count = menu->GetAlbumCount();
 	printf("count=%ld\n", count);
 
+	for (int i=0; i < count; i++) {
+		IAlbum *album = menu->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		printf("[%d] [%s] %s\n", i, album->vid.c_str(), album->albumName.c_str());
+	}
+
+	menu->AlbumRemove("19a7fac9aa", true);
+	count = menu->GetAlbumCount();
+	for (int i=0; i < count; i++) {
+		IAlbum *album = menu->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		printf("[%d] [%s] %s\n", i, album->vid.c_str(), album->albumName.c_str());
+	}
 	while(1) {
 		for (int i=0; i < count; i++) {
 			IAlbum *album = menu->GetAlbum(i);
 			if (album == NULL)
 				continue;
+			printf("[%d] [%s] %s\n", i, album->vid.c_str(), album->albumName.c_str());
 #if 0
 			size_t video_count = album->GetVideoCount();
 			printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
@@ -34,6 +50,7 @@ void test_custommenu()
 	}
 
 	int pos = menu->SeekByAlbumId("4419eb4d34");
+	pos = 0;
 	for (int i=pos; i < count; i++) {
 		IAlbum *album = menu->GetAlbum(i);
 		if (album == NULL)
@@ -90,12 +107,15 @@ void test_livetv()
 	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "btv");
+	m->FilterAdd("PinYin", "ln");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
+	int pos = m->SeekByAlbumNumber("4");
+
+	pos = 0;
 #if 1
-	for (size_t i=0; i < count; i++) {
+	for (size_t i=pos; i < count; i++) {
 		IAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
 			continue;
@@ -112,16 +132,27 @@ void test_livetv()
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 #if 1
-				KolaEpg epg;
+				while (1) {
+					KolaEpg *epg = video->GetEPG();
 
-				video->GetEPG(epg);
+					if (epg) {
+						EPG e1, e2;
+						epg->GetCurrent(e1);
+						epg->GetNext(e2);
 
-				EPG e1, e2;
-				if (epg.GetCurrent(e1)) {
-					printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
-					if (epg.GetNext(e2))
-						printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
-					printf("\n\n");
+						if (not e1.empty()) {
+							printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+						}
+
+						if (not e2.empty()) {
+							printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+						}
+						printf("\n\n");
+
+						epg->Clear();
+						break;
+					}
+					//break;
 				}
 #endif
 			}
@@ -388,7 +419,6 @@ void test_info(KolaClient &kola)
 
 void test_area(KolaClient &kola)
 {
-	cout << kola.GetArea() << endl;
 	cout << kola.GetTime() << endl;
 
 	KolaArea area;
@@ -464,18 +494,28 @@ void test_weather(KolaClient &kola)
 	}
 }
 
+void test_update(KolaClient &kola)
+{
+	KolaUpdate update;
+
+	update.CheckVersion("zhuzhg", "v1111");
+	update.Download("ppt2854.rar", "/tmp/ppt2854.rar");
+}
+
 int main(int argc, char **argv)
 {
+	KolaClient &kola = KolaClient::Instance("000002");
+
 #if 0
-	KolaClient &kola = KolaClient::Instance();
 
 	test_info(kola);
 	test_area(kola);
 	test_weather(kola);
+	test_update(kola);
 #endif
-	//test_picture("电影");
-	//test_custommenu();
-	//printf("Test LiveTV\n"); test_livetv(); return 0;
+//	test_picture("电影"); return 0;
+//	test_custommenu(); return 0;
+	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

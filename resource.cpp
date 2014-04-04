@@ -2,6 +2,8 @@
 #include <time.h>
 
 #include "resource.hpp"
+#include "common.hpp"
+#include "threadpool.hpp"
 
 Resource::Resource(ResourceManager *manage)
 {
@@ -39,7 +41,7 @@ void Resource::Load(const string &url)
 	resName = url;
 	string extname = StringGetFileExt(url);
 	md5Name = "";
-	md5Name.assign(MD5STR(resName.c_str()), 0, 15);
+	md5Name.assign(MD5(resName.c_str(), resName.size()), 0, 15);
 
 	md5Name = "/tmp/" + md5Name + extname;
 }

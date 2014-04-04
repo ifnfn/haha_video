@@ -3,27 +3,7 @@
 #include <string.h>
 
 #include "kola.hpp"
-
-void split(const string& src, const string& separator, vector<string>& dest)
-{
-	string str = src;
-	string substring;
-	string::size_type start = 0, index;
-
-	do {
-		index = str.find_first_of(separator,start);
-		if (index != string::npos) {
-			substring = str.substr(start,index-start);
-			dest.push_back(substring);
-			start = str.find_first_not_of(separator,index);
-			if (start == string::npos) return;
-		}
-	}while(index != string::npos);
-
-	//the last token
-	substring = str.substr(start);
-	dest.push_back(substring);
-}
+#include "common.hpp"
 
 void StringList::Add(string v)
 {
@@ -86,7 +66,7 @@ string StringList::ToString(string s, string e, string split)
 void StringList::Split(const string items, string sp)
 {
 	clear();
-	split(items, sp, *this);
+	::Split(items, sp, *this);
 }
 
 bool StringList::SaveToFile(string fileName)
@@ -94,8 +74,7 @@ bool StringList::SaveToFile(string fileName)
 	FILE *fp = fopen(fileName.c_str(), "w");
 	if (fp) {
 		for (int i = 0; i < size(); i++) {
-			const char *p = at(i).c_str();
-			fprintf(fp, "%s\n", p);
+			fprintf(fp, "%s\n", at(i).c_str());
 		}
 		fclose(fp);
 

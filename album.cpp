@@ -129,6 +129,8 @@ void KolaAlbum::Parser(json_t *js)
 	json_gets(js, "smallHorPicUrl", smallHorPicUrl);
 	json_gets(js, "largeVerPicUrl", largeVerPicUrl);
 	json_gets(js, "smallVerPicUrl", smallVerPicUrl);
+	json_gets(js, "Number"        , Number);
+
 #if 0
 	cout << "largePicUrl: " << largePicUrl << endl;
 	cout << "smallPicUrl: " << smallPicUrl << endl;

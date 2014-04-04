@@ -31,6 +31,9 @@ ADD_GX_LIBRARY(kolatv
 	weather.cpp
 	player.cpp
 	resolution.cpp
+	update.cpp
+	common.cpp
+	epg.cpp
 )
 
 SET(CMAKE_BUILD_TYPE "Debug")
@@ -46,4 +49,4 @@ SET(CMAKE_EXE_LINKER_FLAGS "--static")
 ADD_EXECUTABLE(kola main.cpp)
 TARGET_LINK_LIBRARIES(kola kolatv jansson pcre crypto z ${GXCORE_LIB} dl pthread curl z)
 
-INSTALL(FILES kola.hpp DESTINATION ${GOXCEED_PATH}/include)
+INSTALL(FILES kola.hpp http.hpp DESTINATION ${GOXCEED_PATH}/include)

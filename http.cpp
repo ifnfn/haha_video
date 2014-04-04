@@ -2,65 +2,14 @@
 #include <syslog.h>
 #include <ctype.h>
 #include <pthread.h>
+#include <openssl/md5.h>
 
+#include "common.hpp"
 #include "http.hpp"
+#include "kola.hpp"
 
 #define NETWORK_TIMEOUT 15
 #define TRY_TIME 1
-typedef unsigned char BYTE;
-
-inline static unsigned char toHex(unsigned char x) {
-	return x > 9 ? x + 55 : x + 48;
-}
-
-inline BYTE fromHex(const BYTE &x)
-{
-        return isdigit(x) ? x-'0' : x-'A'+10;
-}
-
-string UrlEncode(const string & sIn)
-{
-	string sOut;
-
-	for(size_t i=0; i < sIn.size(); ++i) {
-		unsigned char buf[4];
-		memset(buf, 0, 4);
-		if(isalnum((unsigned char)sIn[i]))
-			buf[0] = sIn[i];
-		else if(isspace((unsigned char)sIn[i]))
-			buf[0] = '+';
-		else {
-			buf[0] = '%';
-			buf[1] = toHex((unsigned char)sIn[i] >> 4);
-			buf[2] = toHex((unsigned char)sIn[i] % 16);
-		}
-		sOut += (char *)buf;
-	}
-
-	return sOut;
-}
-
-string UrlDecode(const string &sIn)
-{
-	string sOut;
-
-	for( size_t ix = 0; ix < sIn.size(); ix++ ) {
-		BYTE ch = 0;
-		if(sIn[ix]=='%') {
-			ch = (fromHex(sIn[ix+1])<<4);
-			ch |= fromHex(sIn[ix+2]);
-			ix += 2;
-		}
-		else if(sIn[ix] == '+')
-			ch = ' ';
-		else
-			ch = sIn[ix];
-
-		sOut += (char)ch;
-	}
-
-	return sOut;
-}
 
 static void *curlRealloc(void *ptr, size_t size)
 {
@@ -68,6 +17,19 @@ static void *curlRealloc(void *ptr, size_t size)
 		return realloc(ptr, size);
 	else
 		return malloc(size);
+}
+
+HttpBuffer::~HttpBuffer()
+{
+	if (mem) free(mem);
+}
+
+void HttpBuffer::reset()
+{
+	if (mem) free(mem);
+
+	mem = NULL;
+	size  = 0;
 }
 
 HttpBuffer::HttpBuffer(HttpBuffer &buf)
@@ -95,6 +57,23 @@ size_t HttpBuffer::write(void *ptr, size_t s, size_t nmemb)
 	return realsize;
 }
 
+bool HttpBuffer::SaveToFile(const string filename) {
+	FILE *fp = fopen(filename.c_str(), "wb");
+	if (fp) {
+		fwrite(mem, 1, size, fp);
+		fclose(fp);
+
+		return true;
+	}
+
+	return false;
+}
+
+string HttpBuffer::GetMD5()
+{
+	return MD5(mem, size);
+}
+
 Curl* Curl::Instance(void)
 {
 	static Curl _curl;
@@ -111,6 +90,7 @@ Curl::Curl() {
 		curlinfo = curl_version_info(CURLVERSION_NOW);
 
 		curl_share_setopt(share_handle, CURLSHOPT_SHARE     , CURL_LOCK_DATA_DNS);
+		curl_share_setopt(share_handle, CURLSHOPT_SHARE     , CURL_LOCK_DATA_COOKIE);
 		curl_share_setopt(share_handle, CURLSHOPT_LOCKFUNC  , my_lock);
 		curl_share_setopt(share_handle, CURLSHOPT_UNLOCKFUNC, my_unlock);
 		curl_share_setopt(share_handle, CURLSHOPT_USERDATA  , this);
@@ -145,7 +125,7 @@ CURL *Curl::GetCurl() {
 
 Http::Http()
 {
-	download_cancel = 0;
+	cancel = 0;
 	msg = CURLMSG_NONE;
 	status = 0;
 	httpcode = 0;
@@ -184,32 +164,36 @@ void Http::SetOpt(CURLoption option, int value)
 
 bool Http::Open(const char *url, const char *cookie, const char *referer)
 {
-	if (url && strlen(url) > 0) {
-		this->url = url;
-		if (curl == NULL)
-			curl = Curl::Instance()->GetCurl();
+	if (curl == NULL)
+		curl = Curl::Instance()->GetCurl();
 
-		if ( curl) {
-			curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
-			curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
+	if ( curl) {
+		curl_easy_setopt(curl, CURLOPT_ERRORBUFFER     , errormsg);
+		curl_easy_setopt(curl, CURLOPT_PRIVATE         , this);
 
-			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION   , curlWriteCallback);
-			curl_easy_setopt(curl, CURLOPT_WRITEDATA       , (void*)this);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION   , curlWriteCallback);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA       , (void*)this);
 
-			curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION  , curlHeaderCallbck);
-			curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION  , curlHeaderCallbck);
+		curl_easy_setopt(curl, CURLOPT_HEADERDATA      , (void*)this);
+
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS      , 0L);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curlProgressCallback);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA    , (void*)this);
+		SetCookie(cookie);
+		if (url && strlen(url) > 0) {
+			this->url = url;
 			SetOpt(CURLOPT_URL, url);
-			SetCookie(cookie);
-			if (referer)
-				SetReferer(referer);
-			else
-				SetReferer(url);
-
-			return true;
 		}
-		else
-			syslog(LOG_ERR, "wget: cant initialize curl!");
+		if (referer)
+			SetReferer(referer);
+		else if (url)
+			SetReferer(url);
+
+		return true;
 	}
+	else
+		syslog(LOG_ERR, "wget: cant initialize curl!");
 
 	return false;
 }
@@ -222,11 +206,20 @@ void Http::Close()
 	}
 }
 
+int Http::curlProgressCallback(void *data, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+	Http *http = (Http*)data;
+
+	http->Progress((curl_off_t)dltotal, (curl_off_t)dlnow, (curl_off_t)ultotal, (curl_off_t)ulnow);
+
+	return 0;
+}
+
 size_t Http::curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	Http *http = (Http*)data;
 
-	if (http->download_cancel == 1)
+	if (http->cancel == 1)
 		return 0;
 
 	return http->buffer.write(ptr, size, nmemb);
@@ -263,12 +256,12 @@ const char *Http::curlGetCurlURL(int times)
 	res = curl_easy_perform(curl);
 	if ( res ) {
 		printf("curlGetCurlURL: %s, cant perform curl: %s\n", url.c_str(), errormsg);
-		if (download_cancel == 1)
+		if (cancel == 1)
 			goto end;
 		return curlGetCurlURL(times + 1);
 	}
 
-	if (download_cancel == 1) {
+	if (cancel == 1) {
 		goto end;
 	}
 
@@ -300,6 +293,7 @@ const char *Http::Post(const char *url, const char *postdata)
 {
 	const char *data;
 	Open(url);
+
 	SetOpt(CURLOPT_POST, 1);
 	SetOpt(CURLOPT_POSTFIELDS, postdata);
 
@@ -311,31 +305,33 @@ const char *Http::Post(const char *url, const char *postdata)
 
 void Http::Cancel()
 {
-	download_cancel = 1;
+	cancel = 1;
 }
 
 MultiHttp::MultiHttp()
 {
+	mutex = new Mutex();
 	multi_handle = curl_multi_init();
 }
 
 MultiHttp::~MultiHttp()
 {
 	curl_multi_cleanup(multi_handle);
+	delete mutex;
 }
 
 void MultiHttp::Add(Http *http)
 {
-	mutex.lock();
+	mutex->lock();
 	curl_multi_add_handle(multi_handle, http->curl);
-	mutex.unlock();
+	mutex->unlock();
 }
 
 void MultiHttp::Remove(Http *http)
 {
-	mutex.lock();
+	mutex->lock();
 	curl_multi_remove_handle(multi_handle, http->curl);
-	mutex.unlock();
+	mutex->unlock();
 }
 
 void MultiHttp::Exec()
@@ -352,7 +348,7 @@ void MultiHttp::Exec()
 		FD_ZERO(&fdread);
 		FD_ZERO(&fdwrite);
 		FD_ZERO(&fdexcep);
-		mutex.lock();
+		mutex->lock();
 		curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
 
 		timeout.tv_sec = 3;
@@ -370,13 +366,13 @@ void MultiHttp::Exec()
 		int rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
 
 		if (rc < 0) {
-			mutex.unlock();
+			mutex->unlock();
 			continue;
 		}
 
 		int still_running = this->work();
 
-		mutex.unlock();
+		mutex->unlock();
 
 		if (still_running == 0)
 			break;

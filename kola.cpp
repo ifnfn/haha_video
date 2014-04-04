@@ -3,12 +3,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <sstream>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <zlib.h>
 #include <openssl/md5.h>
 #include <signal.h>
+#include <netdb.h>
 
 #include "json.hpp"
 #include "base64.hpp"
@@ -19,6 +17,7 @@
 
 #include "http.hpp"
 #include "resource.hpp"
+#include "common.hpp"
 
 #if TEST
 //#	define SERVER_HOST "192.168.56.1"
@@ -29,117 +28,13 @@
 #	define PORT 80
 #endif
 
-static string loginKey;
-static string loginKeyCookie;
-static string xsrf_cookie;
-static string Serial("000002");
-
+static string Serial;
 static size_t CacheSize = 1024 * 1024 * 1;
 static int    ThreadNum = 10;
-
-/**
- * 功能:获取芯片的CPUID。
- * 参数:
- *    pbyCPUID:       芯片提供的CPUID，最多128个字节
- *    pLen:           输出CPUID的实际长度
- * 返回值:
- *    0:              获取CPUID成功
- *    其他值: 获取CPUID失败
- */
-static bool GetCPUID(string &CPUID, ssize_t len)
-{
-	int fd;
-	uint8_t *data;
-
-	fd = open("/proc/gx_otp", O_RDWR);
-	if (fd < 0){
-		//printf("open otp err!!!\n");
-		return false;
-	}
-	data =(uint8_t*)malloc(len);
-	memset(data, 0 ,len);
-	len = read(fd, data, len);
-	close(fd);
-
-	for (int i = 0; i < len; i++) {
-		char buffer[8];
-		sprintf(buffer, "%02X", data[i]);
-		CPUID += buffer;
-	}
-	free(data);
-
-	return true;
-}
-
-string GetChipKey(void)
-{
-	static string CPUID;
-	if (CPUID.empty()) {
-		if (GetCPUID(CPUID, 8) == false)
-			CPUID = "000002";
-	}
-
-	return CPUID;
-}
 
 string GetSerial(void)
 {
 	return Serial;
-}
-
-
-string MD5STR(const char *data)
-{
-	MD5_CTX ctx;
-	unsigned char md[16];
-	char buf[33]={'\0'};
-
-	MD5_Init(&ctx);
-	MD5_Update(&ctx, data,strlen(data));
-	MD5_Final(md,&ctx);
-
-	for(int i=0; i<16; i++ ){
-		sprintf(buf+ i * 2,"%02X", md[i]);
-	}
-
-	return string(buf);
-}
-
-static string GetIP(const char *hostp)
-{
-	string ip;
-	struct hostent *host = gethostbyname(hostp);
-
-	if (host) {
-		char str[64];
-		const char *p = inet_ntop(host->h_addrtype, host->h_addr, str, sizeof(str));
-		if (p)
-			ip = p;
-		//freehostent(host);
-	}
-
-	return ip;
-}
-
-static char *ReadStringFile(FILE *fp)
-{
-#define LEN 2048
-	char *s = NULL;
-
-	if (fp) {
-		long size = 0;
-		size_t len;
-		while (1) {
-			s = (char *)realloc(s, size + LEN);
-			len = fread(s + size, 1, LEN, fp);
-			if (len > 0)
-				size += len;
-			else
-				break;
-		}
-	}
-
-	return s;
 }
 
 /* Compress gzip data */
@@ -215,9 +110,8 @@ KolaClient::KolaClient(void)
 	signal(SIGPIPE, SIG_IGN);
 
 	nextLoginSec = 1;
-	running = true;
-	debug = 0;
-	connected = false;
+	debug        = 0;
+	authorized   = false;
 
 	Curl::Instance();
 
@@ -235,23 +129,29 @@ bool KolaClient::InternetReady()
 	return gethostbyname(SERVER_HOST) != NULL;
 }
 
-string& KolaClient::GetServer() {
-	if (base_url.empty()) {
+string KolaClient::GetServer()
+{
+	string ret;
+
+	mutex.lock();
+	if (BaseUrl.empty()) {
 		char buffer[512];
 		string ip = GetIP(SERVER_HOST);
 
 		if (not ip.empty()) {
 			sprintf(buffer, "http://%s:%d", ip.c_str(), PORT);
-			base_url = buffer;
+			BaseUrl = buffer;
 		}
 	}
 
-	return base_url;
+	ret = BaseUrl;
+	mutex.unlock();
+
+	return ret;
 }
 
 void KolaClient::Quit(void)
 {
-	running = false;
 	delete thread;
 
 	printf("KolaClient Quit: %p\n", this);
@@ -267,17 +167,10 @@ KolaClient::~KolaClient(void)
 
 bool KolaClient::UrlGet(string url, string &ret)
 {
-	const char *cookie = NULL;
-
-	if (url.compare(0, strlen("http://"), "http://") != 0) {
-		mutex.lock();
-		cookie = loginKeyCookie.c_str();
-		url = GetFullUrl(url);
-		mutex.unlock();
-	}
+	url = GetFullUrl(url);
 
 	Http http;
-	http.Open(url.c_str(), cookie);
+	http.Open(url.c_str());
 	if (http.Get() != NULL) {
 		ret.assign(http.Data().mem);
 
@@ -292,20 +185,13 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	if (body == NULL)
 		return false;
 
-	const char *cookie = NULL;
-
-	if (url.compare(0, strlen("http://"), "http://") != 0) {
-		mutex.lock();
-		cookie = loginKeyCookie.c_str();
+	if (url.compare(0, strlen("http://"), "http://") != 0)
 		url = GetFullUrl(url);
-		mutex.unlock();
-	}
 
 	string new_body = gzip_base64(body, strlen(body));
 	new_body = UrlEncode(new_body);
 
 	Http http;
-	http.Open(NULL, cookie);
 
 	if (http.Post(url.c_str(), new_body.c_str()) != NULL) {
 		ret = http.buffer.mem;
@@ -314,16 +200,6 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	}
 
 	return false;
-}
-
-char *KolaClient::Run(const char *cmd)
-{
-	FILE *fp = popen(cmd, "r");
-	char *s = ReadStringFile(fp);
-
-	fclose(fp);
-
-	return s;
 }
 
 bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
@@ -368,7 +244,7 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 			vector<string> vlist;
 			string v = json_string_value(value);
 
-			split(v, ".", vlist);
+			Split(v, ".", vlist);
 			foreach(vlist, i) {
 				key = *i;
 				p_js = json_geto(p_js, key.c_str());
@@ -392,8 +268,15 @@ bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
 	return 0;
 }
 
-static inline string stringlink(string key, string value) {
-	return "\""  + key + "\" : \"" + value + "\"";
+bool KolaClient::Verify(const char *serial)
+{
+	if (serial) {
+		Serial = serial;
+		authorized = false;
+		return LoginOne();
+	}
+
+	return authorized;
 }
 
 bool KolaClient::LoginOne()
@@ -403,50 +286,56 @@ bool KolaClient::LoginOne()
 	string url("/login");
 	string params = "{";
 
-	if (connected) {
-		params += stringlink("area"  , GetArea()) + ",";
-		params += stringlink("cmd"   , connected ? "1" : "0")+ ",";
-	}
-	params += stringlink("chipid", GetChipKey()) + ",";
-	params += stringlink("serial", GetSerial());
+	if (authorized) {
+		KolaArea area;
+		if (GetArea(area))
+			params += stringlink("area"  , area.toString(), "", ",");
 
-	params += "}";
+		params += stringlink("cmd", authorized ? "1" : "0", "", ",");
+	}
+	params += stringlink("chipid",  GetChipKey(), "", ", ");
+	params += stringlink("serial",  GetSerial() , "", ", ");
+	params += stringlink("version", KOLA_VERSION, "", " }");
 
 	if (UrlPost(url, params.c_str(), text) == false) {
-		connected = false;
+		authorized = false;
+
 		return false;
 	}
 
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	if (js) {
-		mutex.lock();
-		loginKey = json_gets(js, "key", "");
-		loginKeyCookie = "key=" + loginKey;
-		mutex.unlock();
-
-		base_url = json_gets(js, "server", base_url.c_str());
-
-		if (connected) {
-			json_t *cmd = json_geto(js, "command");
-			if (cmd) {
-				const char *dest = json_gets(js, "dest", NULL);
-				if (dest && json_is_array(cmd)) {
-					json_t *value;
-					json_array_foreach(cmd, value)
-						ProcessCommand(value, dest);
-				}
-			}
-
-			ScriptCommand script;
-			if (json_get_variant(js, "script", &script))
-				script.Run();
-		}
+		const char *p = json_gets(js, "server", NULL);
+		if (p)
+			SetServer(p);
 
 		nextLoginSec = (int)json_geti(js, "next", nextLoginSec);
-		json_delete(js);
 
-		connected = true;
+		string loginKey = json_gets(js, "key", "");
+
+		if (loginKey.empty()) {
+			json_delete(js);
+
+			return false;
+		}
+
+		json_t *cmd = json_geto(js, "command");
+		if (cmd) {
+			const char *dest = json_gets(js, "dest", NULL);
+			if (dest && json_is_array(cmd)) {
+				json_t *value;
+				json_array_foreach(cmd, value)
+				ProcessCommand(value, dest);
+			}
+		}
+
+		ScriptCommand script;
+		if (json_get_variant(js, "script", &script))
+			script.Run();
+
+		json_delete(js);
+		authorized = true;
 	}
 
 	return true;
@@ -567,10 +456,10 @@ void KolaClient::Login()
 	pthread_exit(NULL);
 }
 
-KolaClient& KolaClient::Instance(const char *user_id, size_t cache_size, int thread_num)
+KolaClient& KolaClient::Instance(const char *serial, size_t cache_size, int thread_num)
 {
-	if (user_id)
-		Serial = user_id;
+	if (serial)
+		Serial = serial;
 
 	if (cache_size)
 		CacheSize = cache_size;
@@ -588,21 +477,6 @@ void KolaClient::SetPicutureCacheSize(size_t size)
 	this->resManager->SetCacheSize(size);
 }
 
-string KolaClient::GetArea()
-{
-	static string local_area;
-
-	if (local_area.empty()) {
-		LuaScript &lua = LuaScript::Instance();
-		vector<string> args;
-		args.push_back("");
-
-		local_area = lua.RunScript(args, "getip", "getip");
-	}
-
-	return local_area;
-}
-
 bool KolaClient::GetArea(KolaArea &area)
 {
 	static KolaArea local_area;
@@ -613,7 +487,7 @@ bool KolaClient::GetArea(KolaArea &area)
 		vector<string> args;
 		args.push_back("");
 
-		string text = lua.RunScript(args, "getip", "getip_detail");
+		string text = lua.RunScript("getip", "getip_detail", args);
 
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
@@ -646,10 +520,14 @@ time_t KolaClient::GetTime()
 		vector<string> args;
 		args.push_back("");
 
-		string ret = lua.RunScript(args, "getip", "gettime");
+		string ret = lua.RunScript("getip", "gettime", args);
 
-		init_time = atol(ret.c_str());
-		hw_time = time(NULL);
+		if (not ret.empty()) {
+			init_time = atol(ret.c_str());
+			hw_time = time(NULL);
+		}
+		else
+			hw_time = 0;
 	}
 
 	size_t offset = time(NULL) - hw_time;
@@ -663,15 +541,22 @@ time_t KolaClient::GetTime()
 
 string KolaClient::GetFullUrl(string url)
 {
-	if (!url.empty() && url.at(0) != '/')
-		return GetServer() + '/' + url;
+	if (url.compare(0, strlen("http://"), "http://") != 0)
+		return UrlLink(GetServer(), url);
 	else
-		return GetServer() + url;
+		return url;
 }
 
 void KolaClient::CleanResource()
 {
 	resManager->Clear();
+}
+
+void KolaClient::SetServer(string server)
+{
+	mutex.lock();
+	BaseUrl = server;
+	mutex.unlock();
 }
 
 IObject::IObject()

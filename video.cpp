@@ -8,6 +8,35 @@
 #include "threadpool.hpp"
 #include "kolabase.hpp"
 
+IVideo::IVideo() {
+	width = height = fps = totalBytes = 0;
+	order = 0;
+	isHigh = 0;
+	videoPlayCount = 0;
+	videoScore = 0.0;
+	playLength = 0.0;
+	epg = NULL;
+}
+
+IVideo::~IVideo() {
+	if (epg)
+		delete epg;
+}
+
+KolaEpg *IVideo::GetEPG(bool sync) const
+{
+	if (epg) {
+		if (sync) {
+			epg->Update();
+			epg->Wait();
+		}
+		if (epg->UpdateFinish())
+			return epg;
+	}
+
+	return NULL;
+}
+
 void KolaVideo::Parser(json_t *js)
 {
 	json_gets(js   , "name"         , name);
@@ -33,7 +62,10 @@ void KolaVideo::Parser(json_t *js)
 	totalBytes     = (int)json_geti(js, "totalBytes", 0);
 	fps            = (int)json_geti(js, "fps"       , 0);
 
-	json_get_variant(js, "info", &scInfo);
+	if (json_t *info = json_object_get(js, "info")) {
+		epg = new KolaEpg(info);
+		epg->SetPool(client->threadPool);
+	}
 
 	json_get_variant(js, "resolution", &Resolution);
 	Resolution.vid = vid;
@@ -52,89 +84,6 @@ void KolaVideo::SetResolution(string &res)
 string KolaVideo::GetVideoUrl()
 {
 	return Resolution.GetVideoUrl();
-}
-
-bool KolaVideo::GetEPG(KolaEpg &epg)
-{
-	string text = scInfo.GetString();
-
-	if (not text.empty()) {
-		epg.LoadFromText(text);
-		return true;
-	}
-
-	return false;
-}
-
-bool KolaEpg::LoadFromText(string text)
-{
-	bool ret = false;
-
-	json_error_t error;
-	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-
-	if (js)
-		ret = LoadFromJson(js);
-
-	json_delete(js);
-
-	return ret;
-}
-
-bool KolaEpg::LoadFromJson(json_t *js)
-{
-	json_t *v;
-	json_array_foreach(js, v) {
-		EPG e;
-		e.startTime = json_geti(v, "time", 0);
-		e.duration = json_geti(v, "duration", 0);
-		json_gets(v, "title", e.title);
-		json_gets(v, "time_string", e.timeString);
-
-		push_back(e);
-	}
-
-	return true;
-}
-
-bool KolaEpg::GetCurrent(EPG &e)
-{
-	return Get(e, KolaClient::Instance().GetTime());
-}
-
-bool KolaEpg::GetNext(EPG &e)
-{
-	EPG ok;
-	time_t t = KolaClient::Instance().GetTime();
-	int count = (int)size();
-
-	time_t time = 0xffffffff;
-	for (int i=0; i < count; i++) {
-		EPG x = at(i);
-
-		if (x.startTime > t && x.startTime < time) {
-			time = x.startTime;
-			e = x;
-		}
-	}
-
-	return time != 0xffffffff;
-}
-
-bool KolaEpg::Get(EPG &e, time_t t)
-{
-	int count = (int)size();
-
-	for (int i = count - 1; i >= 0; i--) {
-		EPG x = at(i);
-
-		if (t >= x.startTime) {
-			e = x;
-			return true;
-		}
-	}
-
-	return false;
 }
 
 UrlCache::UrlCache()

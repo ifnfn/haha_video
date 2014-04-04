@@ -10,6 +10,8 @@
 		445169E118C97387003D671D /* lpcre_f.c in Sources */ = {isa = PBXBuildFile; fileRef = 445169DF18C97387003D671D /* lpcre_f.c */; };
 		445169E218C97387003D671D /* lpcre.c in Sources */ = {isa = PBXBuildFile; fileRef = 445169E018C97387003D671D /* lpcre.c */; };
 		445169E618C97843003D671D /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 445169E418C97843003D671D /* common.c */; };
+		445400BF18E40DA9005F784E /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 445400BD18E40DA9005F784E /* common.cpp */; };
+		4459C22A18E175690022CC19 /* update.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4459C22818E175690022CC19 /* update.cpp */; };
 		446A5EA9188D01600046E0E3 /* player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 446A5EA8188D01600046E0E3 /* player.cpp */; };
 		446A5EAB188D024F0046E0E3 /* resolution.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 446A5EAA188D024F0046E0E3 /* resolution.cpp */; };
 		4473FE8A186C5AF300136610 /* album.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FDD7186C5AF300136610 /* album.cpp */; };
@@ -63,6 +65,7 @@
 		4473FEF4186C5AF300136610 /* task.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE86186C5AF300136610 /* task.cpp */; };
 		4473FEF5186C5AF300136610 /* threadpool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE87186C5AF300136610 /* threadpool.cpp */; };
 		4473FEF6186C5AF300136610 /* video.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4473FE89186C5AF300136610 /* video.cpp */; };
+		44D9391718E908DF00C44928 /* epg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44D9391618E908DF00C44928 /* epg.cpp */; };
 		44E3229E188A5EBF00E9452E /* weather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 44E3229D188A5EBF00E9452E /* weather.cpp */; };
 		44F12AD718CDED1F00C87B7D /* Lua-cURL-callback.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12ACC18CDED1F00C87B7D /* Lua-cURL-callback.c */; };
 		44F12AD818CDED1F00C87B7D /* Lua-cURL-getinfo.c in Sources */ = {isa = PBXBuildFile; fileRef = 44F12ACD18CDED1F00C87B7D /* Lua-cURL-getinfo.c */; };
@@ -93,6 +96,9 @@
 		445169E318C97843003D671D /* algo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = algo.h; sourceTree = "<group>"; };
 		445169E418C97843003D671D /* common.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
 		445169E518C97843003D671D /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		445400BD18E40DA9005F784E /* common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common.cpp; sourceTree = "<group>"; };
+		445400BE18E40DA9005F784E /* common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = common.hpp; sourceTree = "<group>"; };
+		4459C22818E175690022CC19 /* update.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = update.cpp; sourceTree = "<group>"; };
 		446A5EA8188D01600046E0E3 /* player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = player.cpp; sourceTree = "<group>"; };
 		446A5EAA188D024F0046E0E3 /* resolution.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = resolution.cpp; sourceTree = "<group>"; };
 		4473FDD7186C5AF300136610 /* album.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = album.cpp; sourceTree = "<group>"; };
@@ -181,6 +187,7 @@
 		4473FE88186C5AF300136610 /* threadpool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = threadpool.hpp; sourceTree = "<group>"; };
 		4473FE89186C5AF300136610 /* video.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = video.cpp; sourceTree = "<group>"; };
 		44C557D418910E7300D3F5EC /* kolatv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = kolatv; sourceTree = BUILT_PRODUCTS_DIR; };
+		44D9391618E908DF00C44928 /* epg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = epg.cpp; sourceTree = "<group>"; };
 		44E3229D188A5EBF00E9452E /* weather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = weather.cpp; sourceTree = "<group>"; };
 		44F12ACC18CDED1F00C87B7D /* Lua-cURL-callback.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-callback.c"; path = "src/Lua-cURL-callback.c"; sourceTree = "<group>"; };
 		44F12ACD18CDED1F00C87B7D /* Lua-cURL-getinfo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "Lua-cURL-getinfo.c"; path = "src/Lua-cURL-getinfo.c"; sourceTree = "<group>"; };
@@ -227,6 +234,9 @@
 				4473FDE7186C5AF300136610 /* lua */,
 				4473FDD7186C5AF300136610 /* album.cpp */,
 				4473FDD8186C5AF300136610 /* base64.cpp */,
+				445400BD18E40DA9005F784E /* common.cpp */,
+				445400BE18E40DA9005F784E /* common.hpp */,
+				44D9391618E908DF00C44928 /* epg.cpp */,
 				4473FDDD186C5AF300136610 /* export_kola.cpp */,
 				4473FDDE186C5AF300136610 /* filter.cpp */,
 				4473FDDF186C5AF300136610 /* http.cpp */,
@@ -248,6 +258,7 @@
 				4473FDE0186C5AF300136610 /* http.hpp */,
 				4473FDE2186C5AF300136610 /* json.hpp */,
 				4473FDE4186C5AF300136610 /* kola.hpp */,
+				4459C22818E175690022CC19 /* update.cpp */,
 				4473FE81186C5AF300136610 /* pcre.hpp */,
 				44F2E43A187A99E200B05FDB /* resource.hpp */,
 				4473FE83186C5AF300136610 /* script.hpp */,
@@ -434,9 +445,11 @@
 				44F12AD918CDED1F00C87B7D /* Lua-cURL-multi.c in Sources */,
 				4473FEEB186C5AF300136610 /* lzio.c in Sources */,
 				4473FEE6186C5AF300136610 /* ltable.c in Sources */,
+				44D9391718E908DF00C44928 /* epg.cpp in Sources */,
 				4473FED6186C5AF300136610 /* ldump.c in Sources */,
 				44F12AD718CDED1F00C87B7D /* Lua-cURL-callback.c in Sources */,
 				4473FED5186C5AF300136610 /* ldo.c in Sources */,
+				445400BF18E40DA9005F784E /* common.cpp in Sources */,
 				4473FEE4186C5AF300136610 /* lstring.c in Sources */,
 				4473FEDB186C5AF300136610 /* llex.c in Sources */,
 				4473FEDF186C5AF300136610 /* lobject.c in Sources */,
@@ -462,6 +475,7 @@
 				4473FEEA186C5AF300136610 /* lvm.c in Sources */,
 				44F2E43B187A99E200B05FDB /* resource.cpp in Sources */,
 				4473FE8C186C5AF300136610 /* export_kola.cpp in Sources */,
+				4459C22A18E175690022CC19 /* update.cpp in Sources */,
 				4473FEDA186C5AF300136610 /* liolib.c in Sources */,
 				4473FE93186C5AF300136610 /* fpconv.c in Sources */,
 				4473FECE186C5AF300136610 /* lbaselib.c in Sources */,
@@ -539,7 +553,7 @@
 					/usr/local/opt/libxml2/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=1",
+					"-DTEST=0",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
@@ -608,7 +622,7 @@
 					/usr/local/opt/libxml2/lib,
 				);
 				OTHER_CFLAGS = (
-					"-DTEST=1",
+					"-DTEST=0",
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (

@@ -116,7 +116,24 @@ int KolaMenu::SeekByAlbumName(string name)
 
 	for (int i=0; i<count; i++) {
 		IAlbum *album = cur->GetAlbum(i);
-		if (album && album->vid == name)
+		if (album && album->albumName == name)
+			return i;
+	}
+
+	return -1;
+}
+
+int KolaMenu::SeekByAlbumNumber(string number)
+{
+	CleanPage();
+	cur = &this->pageCache[0];
+	int count = SeekGetPage(cur, "Number", number, PageSize);
+
+	PageId = cur->pageId;
+
+	for (int i=0; i<count; i++) {
+		IAlbum *album = cur->GetAlbum(i);
+		if (album && album->Number == number)
 			return i;
 	}
 
@@ -338,7 +355,7 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 	if (vids.empty())
 		return;
 
-	if (client->UrlPost("video/vidcheck", vids.c_str(), text) == true) {
+	if (client->UrlPost("/video/vidcheck", vids.c_str(), text) == true) {
 		json_error_t error;
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 		if (js) {
@@ -403,7 +420,7 @@ int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 		char buf[128];
 		string url;
 
-		sprintf(buf, "video/list?full=0&page=%ld&size=%ld", pageId, pageSize);
+		sprintf(buf, "/video/list?full=0&page=%ld&size=%ld", pageId, pageSize);
 		url = buf;
 
 		basePosData = "\"vid\" : \"" + text + "\"";

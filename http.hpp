@@ -9,12 +9,11 @@
 #include <curl/easy.h>
 #include <string>
 #include <deque>
+#include <pthread.h>
 
-#include "kola.hpp"
-#include "threadpool.hpp"
+using namespace std;
 
-string UrlEncode(const string& url);
-string UrlDecode(const string& sIn);
+class Mutex;
 
 class Curl {
 public:
@@ -43,16 +42,12 @@ public:
 	HttpBuffer():mem(NULL), size(0) {}
 	HttpBuffer(HttpBuffer &buf);
 
-	~HttpBuffer() {
-		if (mem) free(mem);
-	}
+	~HttpBuffer();
 
-	void reset() {
-		if (mem) free(mem);
+	void reset();
+	bool SaveToFile(const string filename);
+	string GetMD5();
 
-		mem = NULL;
-		size  = 0;
-	}
 	size_t write(void *ptr, size_t size, size_t nmemb);
 	char *mem;
 	size_t size;
@@ -87,21 +82,26 @@ public:
 	void SetOpt(CURLoption option, const char *value);
 	void SetOpt(CURLoption option, int value);
 
+	virtual void Progress(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+//		printf("HTTP: %lld / %lld (%g %%)\n", dlnow, dltotal, dlnow * 100.0 / dltotal);
+	}
+
 	HttpBuffer& Data() { return buffer; }
 	HttpBuffer buffer;
 	void Cancel();
-	int download_cancel;
-	CURLMSG msg;
-	long status;
+	int        cancel;
+	CURLMSG    msg;
+	long       status;
 	HttpHeader Headers;
-	string url;
-	int httpcode;
+	string     url;
+	int        httpcode;
 private:
 	CURL *curl;
 	const char *curlGetCurlURL(int times=0);
 	char errormsg[CURL_ERROR_SIZE];
-	static size_t curlWriteCallback(void *ptr, size_t size, size_t nmemb, void *data);
-	static size_t curlHeaderCallbck(void *ptr, size_t size, size_t nmemb, void *data);
+	static size_t curlWriteCallback   (void *ptr, size_t size, size_t nmemb, void *data);
+	static size_t curlHeaderCallbck   (void *ptr, size_t size, size_t nmemb, void *data);
+	static int    curlProgressCallback(void *data, double dltotal, double dlnow, double ultotal, double ulnow);
 	friend class MultiHttp;
 };
 
@@ -114,7 +114,7 @@ public:
 	void Exec();
 private:
 	CURLM *multi_handle;
-	Mutex mutex;
+	Mutex *mutex;
 	int work();
 };
 

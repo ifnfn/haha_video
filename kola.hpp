@@ -13,6 +13,9 @@
 #include <jansson.h>
 #include <semaphore.h>
 
+
+#define KOLA_VERSION "1"
+
 using namespace std;
 
 #define foreach(container,i) \
@@ -41,8 +44,6 @@ class Resource;
 class ResourceManager;
 class ConditionVar;
 class Thread;
-
-extern void split(const string& src, const string& separator, vector<string>& dest);
 
 enum PicType {
 	PIC_LARGE,      // 大图片网址
@@ -164,16 +165,36 @@ public:
 	size_t duration;
 	string title;
 	string timeString;
+	bool empty() {
+		return startTime == 0 && title == "" && timeString == "";
+	}
 };
 
-class KolaEpg:public vector<EPG> {
+class KolaEpg: public Task {
 public:
-	KolaEpg() {}
-	bool LoadFromText(string text);
-	bool LoadFromJson(json_t *js);
+	KolaEpg(json_t *js);
+	virtual ~KolaEpg() {
+		Wait();
+	}
+
 	bool GetCurrent(EPG &e);
 	bool GetNext(EPG &e);
 	bool Get(EPG &e, time_t time);
+	void Clear();
+private:
+	virtual void Run(void);
+
+	bool LoadFromText(string text);
+	bool LoadFromJson(json_t *js);
+	void Update();
+	bool UpdateFinish();
+
+	vector<EPG> epgList;
+	Mutex mutex;
+	Variant scInfo;
+	bool finished;
+
+	friend class IVideo;
 };
 
 class CacheUrl {
@@ -269,14 +290,8 @@ protected:
 // 视频基类
 class IVideo: public IObject {
 public:
-	IVideo() {
-		width = height = fps = totalBytes = 0;
-		order = 0;
-		isHigh = 0;
-		videoPlayCount = 0;
-		videoScore = 0.0;
-		playLength = 0.0;
-	}
+	IVideo();
+	~IVideo();
 
 	int    width;          // 宽
 	int    height;         // 高
@@ -293,6 +308,7 @@ public:
 	double videoScore;
 	double playLength;
 
+	KolaEpg *epg;
 	string showName;
 	string publishTime;
 	string videoDesc;
@@ -304,7 +320,8 @@ public:
 	virtual void SetResolution(string &res) = 0;
 	virtual string GetVideoUrl() = 0;
 	virtual string GetSubtitle(const char *lang) = 0;
-	virtual bool GetEPG(KolaEpg &epg) = 0;
+
+	KolaEpg *GetEPG(bool sync=false) const;
 };
 
 // 节目基类
@@ -335,6 +352,8 @@ public:
 	int dailyPlayNum;            // 日播放次数
 	int totalPlayNum;            // 总播放次数
 	double Score;                // 得分
+
+	string Number;               // 节目号
 
 	IMenu *menu;
 
@@ -373,8 +392,11 @@ public:
 	virtual AlbumPage &GetPage(int pageNo = -1) = 0;
 	virtual void   SetPageSize(int size) = 0;
 	virtual size_t GetPageSize() = 0;
+
 	virtual int    SeekByAlbumId(string vid) = 0;
 	virtual int    SeekByAlbumName(string name) = 0;
+	virtual int    SeekByAlbumNumber(string number) = 0;
+
 	virtual size_t GetAlbumCount() = 0;
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize) = 0;
 	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
@@ -427,8 +449,11 @@ public:
 	virtual AlbumPage &GetPage(int pageNo = -1);
 	virtual void   SetPageSize(int size);
 	virtual size_t GetPageSize() { return PageSize;}
+
 	virtual int    SeekByAlbumId(string vid);
 	virtual int    SeekByAlbumName(string name);
+	virtual int    SeekByAlbumNumber(string number);
+
 	virtual size_t GetAlbumCount();
 protected:
 	int         PageSize;
@@ -522,6 +547,10 @@ public:
 
 		return ret;
 	}
+
+	string toString() {
+		return country + "," + province + "," + city + "," + isp;
+	}
 };
 
 class WeatherData {
@@ -565,6 +594,29 @@ private:
 	void Clear();
 };
 
+class UpdateSegment {
+public:
+	string name;
+	string md5;
+	string href;
+};
+
+class KolaUpdate {
+public:
+	string Version;
+
+	bool CheckVersion(const string ProjectName, const string oldVersion);
+
+	bool GetSegment(const string name, UpdateSegment &segment);
+	bool Download(const string name, const string filename);
+	virtual bool VersionCompr(const string newVersion, const string oldVersion);
+	virtual void Progress(int64_t dltotal, int64_t dlnow) {
+		//printf("%lld / %lld (%g %%)\n", dlnow, dltotal, dlnow * 100.0 / dltotal);
+	}
+private:
+	vector<UpdateSegment> Segments;
+};
+
 class IClient {
 public:
 	ResourceManager *resManager;
@@ -581,6 +633,7 @@ class KolaClient: public IClient {
 public:
 	static KolaClient& Instance(const char *serial = NULL, size_t cache_size=0, int thread_num=0);
 	virtual ~KolaClient(void);
+	bool Verify(const char *serial=NULL);
 
 	void Quit(void);
 	void ClearMenu();
@@ -591,9 +644,7 @@ public:
 	inline size_t MenuCount() { return menuMap.size(); };
 	IMenu* operator[] (const char *name);
 	IMenu* operator[] (int inx);
-	inline string GetFullUrl(string url);
-	string& GetServer();
-	string GetArea();
+	string GetFullUrl(string url);
 	time_t GetTime();
 	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
@@ -603,6 +654,7 @@ public:
 	KolaWeather weather;
 	UrlCache cache;
 
+	string GetServer(); // 过期的
 	virtual bool GetArea(KolaArea &area);
 	virtual bool UrlGet(string url, string &ret);
 	virtual bool UrlPost(string url, const char *body, string &ret);
@@ -610,19 +662,19 @@ private:
 	KolaClient(void);
 	void Login();
 
-	string base_url;
+	string BaseUrl;
 	map<string, IMenu*> menuMap;
 
-	int nextLoginSec;
-
 	bool LoginOne();
-	char *Run(const char *cmd);
 	bool ProcessCommand(json_t *cmd, const char *dest);
-	bool running;
-	Thread* thread;
-	Mutex mutex;
+
+	void SetServer(string server);
+
+	Thread*  thread;
+	Mutex    mutex;
 	KolaInfo Info;
-	bool connected;
+	bool     authorized;
+	int      nextLoginSec;
 };
 
 #endif

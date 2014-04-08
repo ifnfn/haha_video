@@ -617,7 +617,7 @@ class LoginHandler(BaseHandler):
 
         if self.serial in ['000001', '000002', '000003', '000004']:
             status = 'YES'
-        elif self.chipid and self.serial: # 默认的测试号
+        elif self.chipid and self.serial and self.chipid not in ['0000000000000000']: # 默认的测试号
             json = self.user_table.find_one({'serial' : self.serial})
             if json and (json['chipid'] == '' or json['chipid'] == self.chipid):
                 status = 'YES'

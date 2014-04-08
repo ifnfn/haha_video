@@ -13,6 +13,7 @@ end
 function get_video_url(vid, aid)
 	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s&client=html5", vid)
 	local text = kola.wget(url, false)
+	print(text)
 	local video_url = ''
 	if text then
 		local hls_vod_url = ''
@@ -37,7 +38,7 @@ function get_video_url(vid, aid)
 		-- 如果有 hds
 		if js['hds_url'] then
 			video_url = js['hds_url']['hds2']
-			if string.find(video_url, "http://") and string.find(video_url, "channel") then
+			if string.find(video_url, 'http://') and string.find(video_url, 'channel') then
 				return video_url
 			end
 		end
@@ -50,15 +51,10 @@ local function to_epg(time, title)
 	local function strtotime(t)
 		local d = os.date("*t", kola.gettime())
 
+		d.hour, d.min = kola.strsplit(":", time, 2)
+		d.hour = tonumber(d.hour)
+		d.min  = tonumber(d.min)
 		d.sec  = 0
-		if kola.strsplit then
-			d.hour, d.min = kola.strsplit(":", time, 2)
-			d.hour = tonumber(d.hour)
-			d.min  = tonumber(d.min)
-		else
-			d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
-			d.min  = tonumber(string.sub(time,    string.find(time, ":") + 1))
-		end
 
 		return os.time(d)
 	end

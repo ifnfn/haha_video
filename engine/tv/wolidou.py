@@ -149,27 +149,6 @@ class ParserWeishiAlbumList(ParserAlbumList):
     def __init__(self, url='http://www.wolidou.com/tvl/weishi/2_1.html'):
         super().__init__(url)
 
-# 省台
-class ParserShengshiAlbumList(ParserAlbumList):
-    def __init__(self, url='http://www.wolidou.com/tvl/shengshi/3_1.html'):
-        super().__init__(url)
-
-# 国内
-class ParserGuoleiAlbumList(ParserAlbumList):
-    def __init__(self, url='http://www.wolidou.com/tvl/guonei/10_1.html'):
-        super().__init__(url)
-
-# 港澳
-class ParserGanaoAlbumList(ParserAlbumList):
-    def __init__(self, url='http://www.wolidou.com/tvl/gangao/4_1.html'):
-        super().__init__(url)
-
-# 体育
-class ParserSportAlbumList(ParserAlbumList):
-    def __init__(self, url='http://www.wolidou.com/tvl/tiyu/6_1.html'):
-        super().__init__(url)
-
-
 class WolidouBaseMenu(LivetvMenu):
     def __init__(self, name):
         super().__init__(name)

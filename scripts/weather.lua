@@ -9,8 +9,8 @@ function kola_main(city)
 			url = string.format("http://weather.hao.360.cn/api_weather_info.php?app=hao360&city_code=%s", areaCode)
 		end
 	end
-	--print(url)
 	local text = kola.wget(url, false)
+	--print(text)
 
 	local ret = {}
 	if text ~= nil then
@@ -33,27 +33,31 @@ function kola_main(city)
 		end
 
 		ret.weather = {}
+		local idx = 1
 		for i, w in pairs(js.weather) do
 			info = {}
-			info.date = w.date
 
-			info.day = {}
-			info.day.picture       = string.format("http://p2.qhimg.com/d/_hao360/weather/big/%s.png",  w.info.day[1])
-			info.day.code          = w.info.day[1]
-			info.day.weather       = w.info.day[2]
-			info.day.temp          = w.info.day[3]
-			info.day.windDirection = w.info.day[4]
-			info.day.windPower     = w.info.day[5]
+			if w.info ~= "" then
+				info.date = w.date
 
-			info.night = {}
-			info.night.picture       = string.format("http://p2.qhimg.com/d/_hao360/weather/big/%s.png",  w.info.night[1])
-			info.night.code          = w.info.night[1]
-			info.night.weather       = w.info.night[2]
-			info.night.temp          = w.info.night[3]
-			info.night.windDirection = w.info.night[4]
-			info.night.windPower     = w.info.night[5]
+				info.day = {}
+				info.day.picture       = string.format("http://p2.qhimg.com/d/_hao360/weather/big/%s.png",  w.info.day[1])
+				info.day.code          = w.info.day[1]
+				info.day.weather       = w.info.day[2]
+				info.day.temp          = w.info.day[3]
+				info.day.windDirection = w.info.day[4]
+				info.day.windPower     = w.info.day[5]
 
-			ret.weather[i] = info
+				info.night = {}
+				info.night.picture       = string.format("http://p2.qhimg.com/d/_hao360/weather/big/%s.png",  w.info.night[1])
+				info.night.code          = w.info.night[1]
+				info.night.weather       = w.info.night[2]
+				info.night.temp          = w.info.night[3]
+				info.night.windDirection = w.info.night[4]
+				info.night.windPower     = w.info.night[5]
+				ret.weather[idx] = info
+				idx = idx + 1
+			end
 		end
 		if js.pm25 and js.pm25.pm25 then
 			ret.pm25 = tostring(js.pm25.pm25[1])

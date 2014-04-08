@@ -19,7 +19,6 @@ bool KolaUpdate::CheckVersion(const string ProjectName, string oldVersion)
 
 	json_t *files = json_geto(js, "files");
 
-
 	if (files) {
 		json_t *v;
 		json_array_foreach(files, v) {

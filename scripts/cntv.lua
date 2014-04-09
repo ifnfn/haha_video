@@ -1,7 +1,16 @@
 local function check_m3u8(url)
 	if string.find(url, "m3u8") then
-		local text = kola.wget(url, false)
+		local text = ''
+		c = cURL.easy_init()
+		c:setopt_useragent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36")
+		-- setup url
+		c:setopt_url(url)
+		-- perform, invokes callbacks
+		c:perform({writefunction = function(str) text = text .. str end})
+
+		--local text = kola.wget(url, false)
 		if text and string.find(text, "EXTM3U") then
+			print(url, " ", text)
 			return url
 		end
 	end

@@ -90,7 +90,7 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 
 	updateSet = json_geti(js, "count", updateSet);
 	updateSet = json_geti(js, "updateSet", updateSet);
-	totalSet = json_geti(js, "totalSet", totalSet);
+	totalSet  = json_geti(js, "totalSet", totalSet);
 
 	videoPageId = pageNo;
 	videoPageSize = pageSize;

@@ -13,7 +13,7 @@ end
 function get_video_url(vid, aid)
 	local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=pa://cctv_p2p_hd%s&client=html5", vid)
 	local text = kola.wget(url, false)
-	print(text)
+	--print(text)
 	local video_url = ''
 	if text then
 		local hls_vod_url = ''

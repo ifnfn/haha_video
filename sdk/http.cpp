@@ -81,7 +81,8 @@ Curl* Curl::Instance(void)
 	return &_curl;
 }
 
-Curl::Curl() {
+Curl::Curl()
+{
 	static int curl_init = 0;
 	if (curl_init == 0) {
 		pthread_mutex_init(&lock, NULL);
@@ -98,7 +99,8 @@ Curl::Curl() {
 	}
 }
 
-Curl::~Curl() {
+Curl::~Curl()
+{
 	curl_share_cleanup(share_handle);
 	curl_global_cleanup();
 	pthread_mutex_destroy(&lock);
@@ -111,7 +113,7 @@ CURL *Curl::GetCurl() {
 		curl_easy_setopt(curl, CURLOPT_NOSIGNAL         , 1L);
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT          , NETWORK_TIMEOUT);
 		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT   , NETWORK_TIMEOUT);
-		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.149 Safari/537.36");
+		curl_easy_setopt(curl, CURLOPT_USERAGENT        , "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36");
 
 		curl_easy_setopt(curl, CURLOPT_SHARE            , share_handle);
 		curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 60);
@@ -180,6 +182,7 @@ bool Http::Open(const char *url, const char *cookie, const char *referer)
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS      , 0L);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curlProgressCallback);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA    , (void*)this);
+
 		SetCookie(cookie);
 		if (url && strlen(url) > 0) {
 			this->url = url;
@@ -192,8 +195,6 @@ bool Http::Open(const char *url, const char *cookie, const char *referer)
 
 		return true;
 	}
-	else
-		syslog(LOG_ERR, "wget: cant initialize curl!");
 
 	return false;
 }

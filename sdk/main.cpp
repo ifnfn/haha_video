@@ -34,6 +34,7 @@ void test_custommenu()
 	}
 
 	int pos = menu->SeekByAlbumId("4419eb4d34");
+	pos = 0;
 	for (int i=pos; i < count; i++) {
 		IAlbum *album = menu->GetAlbum(i);
 		if (album == NULL)
@@ -90,11 +91,12 @@ void test_livetv()
 	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "hz");
+	m->FilterAdd("PinYin", "ws");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
 	int pos = m->SeekByAlbumNumber("4");
+
 	pos = 0;
 #if 1
 	for (size_t i=pos; i < count; i++) {
@@ -134,6 +136,7 @@ void test_livetv()
 						epg->Clear();
 						break;
 					}
+					//break;
 				}
 #endif
 			}
@@ -410,6 +413,8 @@ void test_area(KolaClient &kola)
 		       area.country.c_str(),
 		       area.province.c_str(),
 		       area.city.c_str());
+
+		printf("json: %s\n", area.toJson().c_str());
 	}
 }
 
@@ -430,7 +435,7 @@ void test_weather(KolaClient &kola)
 	cout << data.ToString() << endl;
 #endif
 	while (true) {
-		kola.weather.SetArea("安徽-安庆-枞阳");
+		kola.weather.SetArea("钓鱼岛");
 		kola.weather.Update();
 		kola.weather.Update();
 
@@ -495,7 +500,7 @@ int main(int argc, char **argv)
 	test_update(kola);
 #endif
 //	test_picture("电影"); return 0;
-	//test_custommenu();
+//	test_custommenu(); return 0;
 	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;

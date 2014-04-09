@@ -48,7 +48,7 @@ class ParserQQLivetv(LivetvParser):
             playUrl = 'http://zb.v.qq.com:1863/?progid=%s&redirect=0&apptype=live&pla=ios' % ch['data-playid']
             v.vid   = utils.getVidoId(playUrl)
 
-            v.SetVideoUrlScript('default', 'qqtv', [playUrl])
+            v.SetVideoUrlScript('default', 'qqtv', [ch['data-playid']])
             v.info = utils.GetScript('qqtv', 'get_channel', [ch['data-key']])
 
             album.videos.append(v)

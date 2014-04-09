@@ -376,7 +376,7 @@ public:
 
 	size_t     cid;
 	string     name;
-	enum PicType PictureCacheType;
+	PicType    PictureCacheType;
 	StringList quickFilters;
 	KolaFilter Filter;
 	KolaSort   Sort;
@@ -398,8 +398,8 @@ public:
 	virtual int    SeekByAlbumNumber(string number) = 0;
 
 	virtual size_t GetAlbumCount() = 0;
-	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize) = 0;
-	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
+	virtual int    LowGetPage (AlbumPage *page, size_t pageId, size_t pageSize) = 0;
+	virtual int    SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize) = 0;
 };
 
 class AlbumPage: public Task {
@@ -536,21 +536,10 @@ public:
 	string province;
 	string city;
 
-	bool Empty() {
-		return ip.empty() && province.empty() && city.empty();
-	}
-	string toJson() {
-		string ret = "\"area\" : {";
-		ret = ret + "\"country\" : \"" + country + "\", ";
-		ret = ret + "\"province\" : \"" + province + "\", ";
-		ret = ret + "\"city\" : \"" + city + "\"}";
+	bool Empty();
+	string toJson();
 
-		return ret;
-	}
-
-	string toString() {
-		return country + "," + province + "," + city + "," + isp;
-	}
+	string toString();
 };
 
 class WeatherData {
@@ -654,7 +643,6 @@ public:
 	KolaWeather weather;
 	UrlCache cache;
 
-	string GetServer(); // 过期的
 	virtual bool GetArea(KolaArea &area);
 	virtual bool UrlGet(string url, string &ret);
 	virtual bool UrlPost(string url, const char *body, string &ret);
@@ -666,8 +654,8 @@ private:
 	map<string, IMenu*> menuMap;
 
 	bool LoginOne();
-	bool ProcessCommand(json_t *cmd, const char *dest);
 
+	string GetServer(); // 过期的
 	void SetServer(string server);
 
 	Thread*  thread;

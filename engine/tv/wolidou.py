@@ -176,9 +176,4 @@ class WolidouLiveTV(LivetvMenu):
         self.parserClassList = [
             ParserCctvAlbumList,
             ParserWeishiAlbumList,
-            #ParserShengshiAlbumList,
-            #ParserGuoleiAlbumList,
-            ParserGanaoAlbumList,
-            ParserSportAlbumList,
             PaserAlbumPage, WolidouBaseParser]
-

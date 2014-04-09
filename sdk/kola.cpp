@@ -202,72 +202,6 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	return false;
 }
 
-bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
-{
-	string text;
-	KolaPcre pcre;
-	const char *source = json_gets(cmd, "source", NULL);
-
-	text = json_gets(cmd, "text", "");
-	if (source) {
-		if (UrlGet(source, text) == false)
-			return false;
-	}
-
-	if (text.size() == 0)
-		return false;
-
-	json_t *regular = json_geto(cmd, "regular");
-	if (regular && json_is_array(regular)) {
-		json_t *value;
-
-		json_array_foreach(regular, value) {
-			const char *r = json_string_value(value);
-			pcre.AddRule(r);
-			text = pcre.MatchAll(text.c_str());
-			pcre.ClearRules();
-		}
-
-		//text = pcre.MatchAll(text.c_str());
-	}
-
-	json_t *json_filter = json_geto(cmd, "json");
-	if (json_filter && json_is_array(json_filter)) {
-		json_error_t error;
-		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-		json_t *newjs = json_object();
-		json_t *value;
-
-		json_array_foreach(json_filter, value) {
-			json_t *p_js = js;
-			string key;
-			vector<string> vlist;
-			string v = json_string_value(value);
-
-			Split(v, ".", vlist);
-			foreach(vlist, i) {
-				key = *i;
-				p_js = json_geto(p_js, key.c_str());
-				if (p_js == NULL)
-					break;
-			}
-			if (p_js)
-				json_seto(newjs, key.c_str(), p_js);
-		}
-		json_dump_str(newjs, text);
-		json_delete(newjs);
-		json_delete(js);
-	}
-
-	json_sets(cmd, "data", text.c_str());
-
-	char *body = json_dumps(cmd, 2);
-	UrlPost(dest, body, text);
-	free(body);
-
-	return 0;
-}
-
 bool KolaClient::Verify(const char *serial)
 {
 	if (serial) {
@@ -318,16 +252,6 @@ bool KolaClient::LoginOne()
 			json_delete(js);
 
 			return false;
-		}
-
-		json_t *cmd = json_geto(js, "command");
-		if (cmd) {
-			const char *dest = json_gets(js, "dest", NULL);
-			if (dest && json_is_array(cmd)) {
-				json_t *value;
-				json_array_foreach(cmd, value)
-				ProcessCommand(value, dest);
-			}
 		}
 
 		ScriptCommand script;
@@ -564,4 +488,19 @@ IObject::IObject()
 	client = &KolaClient::Instance();
 }
 
+bool KolaArea::Empty() {
+	return ip.empty() && province.empty() && city.empty();
+}
+string KolaArea::toJson() {
+	string ret = "\"area\" : {";
 
+	ret += stringlink("country" , country , "", ",");
+	ret += stringlink("province", province, "", ",");
+	ret += stringlink("city"    , city    , "", "}");
+
+	return ret;
+}
+
+string KolaArea::toString() {
+	return country + "," + province + "," + city + "," + isp;
+}

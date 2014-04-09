@@ -160,13 +160,6 @@ static int lua_geturl(lua_State *L)
 	return 0;
 }
 
-static int lua_getserver(lua_State *L)
-{
-	lua_pushstring(L, KolaClient::Instance().GetServer().c_str());
-
-	return 1;
-}
-
 static int lua_gettime(lua_State *L)
 {
 	lua_pushnumber(L, KolaClient::Instance().GetTime());
@@ -434,7 +427,6 @@ static const struct luaL_Reg kola_lib[] = {
 	{"wpost"         , lua_wpost},
 	{"pcre"          , lua_pcre},
 	{"geturl"        , lua_geturl},
-	{"getserver"     , lua_getserver},
 	{"gettime"       , lua_gettime},
 	{"getdate"       , lua_getdate},
 	{"urlencode"     , lua_urlencode},

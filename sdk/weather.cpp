@@ -159,6 +159,7 @@ Weather *KolaWeather::Today()
 Weather *KolaWeather::Tomorrow()
 {
 	Weather *w = NULL;
+
 	mutex.lock();
 	if (weatherList.size() > 1)
 		w = weatherList[1];

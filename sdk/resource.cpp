@@ -247,49 +247,52 @@ Resource* ResourceManager::FindResource(const string &url)
 	return pRet;
 }
 
-void ResourceManager::MemoryInc(size_t size) {
+void ResourceManager::MemoryInc(size_t size)
+{
 	UseMemory += size;
 }
 
-void ResourceManager::MemoryDec(size_t size) {
+void ResourceManager::MemoryDec(size_t size)
+{
 	UseMemory -= size;
 }
 
 void ResourceManager::RemoveResource(Resource* res)
 {
 	Lock();
-	list<Resource*>::iterator it = mResources.begin();
-	for (; it != mResources.end(); it++) {
+
+	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end(); it++) {
 		if (*it == res) {
 			mResources.erase(it++);
 			res->DecRefCount();
 			break;
 		}
 	}
+
 	Unlock();
 }
 
 void ResourceManager::Clear()
 {
-	list<Resource*>::iterator it;
 	Lock();
-	for (it = mResources.begin(); it != mResources.end();) {
+
+	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end();) {
 		Resource* pRet = (*it);
 
 		mResources.erase(it++);
 		pRet->DecRefCount();
 	}
+
 	Unlock();
 }
 
-static bool compare_nocase(const Resource* first, const Resource* second)
+static bool compare_resource(const Resource* first, const Resource* second)
 {
 	return first->updateTime < second->updateTime;
 }
 
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
-	Resource* pRet = NULL;
 	bool ret = true;
 
 	Lock();
@@ -299,11 +302,11 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 		return ret;
 	}
 
-	mResources.sort(compare_nocase);
+	mResources.sort(compare_resource);
 
 	list<Resource*>::iterator it;
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
-		pRet = (*it);
+		Resource* pRet = (*it);
 
 		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
 			mResources.erase(it++);
@@ -314,6 +317,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	}
 
 	ret = UseMemory + memsize <= MaxMemory;
+
 	Unlock();
 
 	return ret;

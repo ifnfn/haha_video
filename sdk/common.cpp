@@ -16,11 +16,11 @@
 
 typedef unsigned char BYTE;
 
-inline static unsigned char toHex(unsigned char x) {
+inline static BYTE toHex(const BYTE &x) {
 	return x > 9 ? x + 55 : x + 48;
 }
 
-inline BYTE fromHex(const BYTE &x)
+inline static BYTE fromHex(const BYTE &x)
 {
         return isdigit(x) ? x-'0' : x-'A'+10;
 }

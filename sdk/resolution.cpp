@@ -77,13 +77,13 @@ string VideoResolution::GetVideoUrl()
 {
 	string url;
 	string key;
+	bool find;
 
 	if (Empty())
 		Calc();
 
 	key = vid + defaultKey;
 
-	bool find = false;
 	UrlCache &cache = KolaClient::Instance().cache;
 
 	find = cache.FindByVid(key, url);

@@ -1,6 +1,9 @@
 -- 攻取节目的播放地址
 local function get_video_url1(playid)
-	local url = string.format('http://zb.v.qq.com:1863/?progid=%s&redirect=0&apptype=live&pla=ios', playid)
+	local url = playid
+	if string.find(playid, "http://") == nil then
+		url = string.format('http://zb.v.qq.com:1863/?progid=%s&redirect=0&apptype=live&pla=ios', playid)
+	end
 	local text = kola.wget(url, false)
 
 	if text ~= nil then

@@ -3,7 +3,7 @@ function get_video_url(vid, cid)
 	--vid = '1623625'
 	local url = vid
 	if string.find(vid, "http://") == nil then
-		url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=' .. vid
+		url = string.format('http://hot.vrs.sohu.com/vrs_flash.action?vid=%s', vid)
 	end
 
 	local text = kola.wget(url, false)

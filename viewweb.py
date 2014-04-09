@@ -19,8 +19,7 @@ try:
 except ImportError:
     ImageWriter = None
 
-from kola import BaseHandler, log, utils, KolaCommand, element, DB, City
-
+from kola import BaseHandler, key_db, log, utils, KolaCommand, element, DB, City
 
 class KolatvServer:
     def __init__(self):
@@ -600,7 +599,6 @@ class SerialHandler(BaseHandler):
 
 class LoginHandler(BaseHandler):
     user_table = DB().user_table
-    redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
     def initialize(self):
         self.chipid  = self.get_argument('chipid', '')
@@ -608,9 +606,6 @@ class LoginHandler(BaseHandler):
         self.area    = self.get_argument('area', '')
         self.cmd     = self.get_argument('cmd', '0')
         self.version = self.get_argument('version', '')
-
-    def check_xsrf_cookie(self):
-        pass
 
     def check_user_id(self):
         status = 'NO'
@@ -625,16 +620,16 @@ class LoginHandler(BaseHandler):
 
         if status == 'YES':
             # 登录检查，生成随机 KEY
-            if not self.redis_db.exists(self.chipid):
+            if not key_db.exists(self.chipid):
                 key = (self.chipid + uuid.uuid4().__str__() + self.request.remote_ip).encode()
                 key = hashlib.md5(key).hexdigest().upper()
-                self.redis_db.set(self.chipid, key)
-                self.redis_db.set(key, self.request.remote_ip)
+                key_db.set(self.chipid, key)
+                key_db.set(key, self.request.remote_ip)
             else:
-                key = self.redis_db.get(self.chipid).decode()
-                self.redis_db.set(key, self.request.remote_ip)
-            self.redis_db.expire(self.chipid, 60) # 一分钟过期
-            self.redis_db.expire(key, 60) # 一分钟过期
+                key = key_db.get(self.chipid).decode()
+                key_db.set(key, self.request.remote_ip)
+            key_db.expire(self.chipid, 120) # 一分钟过期
+            key_db.expire(key, 120)         # 一分钟过期
 
             return key
         else:

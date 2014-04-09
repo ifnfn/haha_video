@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .ThreadPool import ThreadPool
-from .basehandle import BaseHandler
+from .basehandle import BaseHandler, key_db
 from .city import City
 from .commands import KolaCommand
 from .db import VideoBase, AlbumBase, VideoMenuBase, DB

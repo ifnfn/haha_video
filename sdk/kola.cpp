@@ -207,7 +207,7 @@ bool KolaClient::Verify(const char *serial)
 	if (serial) {
 		Serial = serial;
 		authorized = false;
-		return LoginOne();
+		LoginOne();
 	}
 
 	return authorized;
@@ -248,18 +248,16 @@ bool KolaClient::LoginOne()
 
 		string loginKey = json_gets(js, "key", "");
 
-		if (loginKey.empty()) {
-			json_delete(js);
+		authorized = not loginKey.empty();
 
-			return false;
+		if (authorized) {
+			authorized = true;
+			ScriptCommand script;
+			if (json_get_variant(js, "script", &script))
+				script.Run();
 		}
 
-		ScriptCommand script;
-		if (json_get_variant(js, "script", &script))
-			script.Run();
-
 		json_delete(js);
-		authorized = true;
 	}
 
 	return true;
@@ -368,12 +366,16 @@ static void cancel(void *any)
 
 void KolaClient::Login()
 {
+	bool ret;
+
 	pthread_cleanup_push(cancel, NULL);
 	while (thread->_state) {
 		pthread_testcancel();
-		LoginOne();
+		ret = LoginOne();
 		pthread_testcancel();
-		sleep(nextLoginSec);
+
+		if (ret) // 成功后延时，不成功，则网络问题，立即重试
+			sleep(nextLoginSec);
 	}
 	pthread_cleanup_pop(0);
 

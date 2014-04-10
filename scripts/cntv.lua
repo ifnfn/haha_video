@@ -10,7 +10,6 @@ local function check_m3u8(url)
 
 		--local text = kola.wget(url, false)
 		if text and string.find(text, "EXTM3U") then
-			print(url, " ", text)
 			return url
 		end
 	end

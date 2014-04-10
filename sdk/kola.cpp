@@ -233,6 +233,7 @@ bool KolaClient::LoginOne()
 
 	if (UrlPost(url, params.c_str(), text) == false) {
 		authorized = false;
+		nextLoginSec = 1;
 
 		return false;
 	}
@@ -366,16 +367,13 @@ static void cancel(void *any)
 
 void KolaClient::Login()
 {
-	bool ret;
-
 	pthread_cleanup_push(cancel, NULL);
 	while (thread->_state) {
 		pthread_testcancel();
-		ret = LoginOne();
+		LoginOne();
 		pthread_testcancel();
 
-		if (ret) // 成功后延时，不成功，则网络问题，立即重试
-			sleep(nextLoginSec);
+		sleep(nextLoginSec);
 	}
 	pthread_cleanup_pop(0);
 

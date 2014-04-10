@@ -74,7 +74,7 @@ class ParserKksmgLivetv(ParserTVIELivetv):
             "纪实频道" : "上海-纪实频道",
         }
         self.ExcludeName = ['.*电台', '东广新闻', '动感101', '经典947', 'LoveRadio', 
-                            '第一财经音频', 'Sport'
+                            '第一财经音频', 'Sport', '.*广播'
         ]
 
 

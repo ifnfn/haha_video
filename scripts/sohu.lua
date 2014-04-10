@@ -31,7 +31,7 @@ function get_video_url(vid, cid)
 	end
 
 	local x = kola.mwget(urls, false)
-	if x ~= nil then
+	if x then
 		for i, url in ipairs(x) do
 			ret.sets[i].url = url
 		end

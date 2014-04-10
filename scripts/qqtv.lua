@@ -6,7 +6,7 @@ local function get_video_url1(playid)
 	end
 	local text = kola.wget(url, false)
 
-	if text ~= nil then
+	if text then
 		text = kola.pcre('location url="(.*?)"', text)
 		return kola.strtrim(text)
 	end
@@ -72,7 +72,7 @@ function get_channel(vid)
 	local text = kola.wget(url, false)
 
 	local ret = {}
-	if text ~= nil then
+	if text then
 		local i = 1
 		for x in rex.gmatch(text, '(<div class=".*sta_unlive j_wanthover">[\\s\\S]*?</div>)') do
 			for time, title in rex.gmatch(x, '<span class="time">(.*)</span>\\s*<span title="(.*)" class') do

@@ -3,7 +3,7 @@ function get_video_url(pid)
 	local url = string.format('http://l.smgbb.cn/channelurl.ashx?starttime=0&endtime=0&channelcode=%s', pid)
 	local text = kola.wget(url, false)
 
-	if text ~= nil then
+	if text then
 		text = kola.pcre('\\[CDATA\\[(.*)\\]\\]></channel>', text)
 		return kola.strtrim(text)
 	end
@@ -19,7 +19,7 @@ function get_channel(pid)
 	print(url)
 	local text = kola.wget(url, false)
 
-	if text ~= nil then
+	if text then
 		local js = cjson.decode(text)
 		for k, v in ipairs(js.schedule) do
 			ret[k] = {}

@@ -12,7 +12,7 @@ function get_resolution(vid)
 
 	local text = kola.wget(url, false)
 	
-	if text ~= nil then
+	if text then
 		ret['默认'] = get(vid, 'iptv')
 		ret['默认'].default = 1
 

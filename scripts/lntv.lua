@@ -6,7 +6,7 @@ function get_video_url(url)
 
 	u = kola.wget(url)
 
-	if u ~= nil then
+	if u then
 		return kola.urldecode(u)
 	end
 

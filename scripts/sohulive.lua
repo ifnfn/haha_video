@@ -44,7 +44,7 @@ function get_channel(vid)
 	--print(url)
 	local ret = {}
 	local text = kola.wget(url, false)
-	if text ~= nil then
+	if text then
 		local js = cjson.decode(text)
 		for k,v in ipairs(js.attachment[1].MENU_LIST) do
 			ret[k] = to_epg(v.START_TIME, v.NAME)

@@ -30,6 +30,9 @@ function get_video_url(vid, aid)
 		--print(text)
 		local js = cjson.decode(text)
 
+		if not js then
+			return ''
+		end
 		-- 如果有 hls
 		if js.hls_url then
 			if check_m3u8(js.hls_url.hls1) then
@@ -88,7 +91,7 @@ function get_channel(vid)
 		ret[idx] = to_epg(time, title)
 
 		if idx > 1 then
-			ret[idx-1].duration = os.difftime(ret[idx].time, ret[idx - 1].time)
+			ret[idx - 1].duration = os.difftime(ret[idx].time, ret[idx - 1].time)
 		end
 		idx = idx + 1
 	end

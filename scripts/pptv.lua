@@ -50,9 +50,9 @@ function get_videolist(cid, channel_id, pageNo, pageSize)
 	end
 
 	local ret = {}
-	ret.totalSet   = js.data.count
-	ret.updateSet  = #js.data.videos
-	ret.size       = 0
+	ret.totalSet  = js.data.count
+	ret.updateSet = #js.data.videos
+	ret.size      = 0
 	if js.sid == nil then
 		ret.totalSet = 1
 		ret.updateSet = 1

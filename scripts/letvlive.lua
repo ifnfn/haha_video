@@ -4,7 +4,7 @@ function get_video_url(url)
 	local text = kola.wget(url, false)
 	print(url)
 
-	if text ~= nil and string.find(text, "<html>") ~= nil then
+	if text and string.find(text, "<html>") then
 		local js = cjson.decode(text)
 		if js ~= nil then
 			return js.location
@@ -37,7 +37,7 @@ function get_channel(vid)
 
 	local ret = {}
 	text = kola.wget(url, false)
-	if text ~= nil then
+	if text then
 		local js = cjson.decode(text)
 		for k,v in ipairs(js.content) do
 			--print(k,v.playtime, v.duration, v.title)

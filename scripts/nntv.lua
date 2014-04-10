@@ -5,7 +5,7 @@ function get_channel(vid)
 	local ret = {}
 
 	text = kola.wget(url, false)
-	if text ~= nil then
+	if text then
 		text = kola.pcre("jsonp_program\\((.*)\\)", text)
 		local js = cjson.decode(text)
 

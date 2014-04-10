@@ -55,7 +55,7 @@ function get_channel(vid)
 	local ret = {}
 
 	text = kola.wget(url, false)
-	if text ~= nil then
+	if text then
 		local js = cjson.decode(text)
 
 		for id, ch in ipairs(js.paramz.channels) do

@@ -16,7 +16,7 @@ function get_channel(vid)
 
 	local ret = {}
 	local text = kola.wget(url, false)
-	if text ~= nil then
+	if text then
 		text = rex.match(text, 'kola\\((.*)\\)')
 
 		local js = cjson.decode(text)

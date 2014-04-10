@@ -2,7 +2,7 @@ function get_info()
 	local desc = ""
 	local url = "http://g3.letv.cn/recommend"
 	local text = kola.wget(url, false)
-	if text ~= nil then
+	if text then
 		local js = cjson.decode(text)
 		desc = js.desc
 		time = js.curtime
@@ -14,7 +14,7 @@ end
 function getip_detail()
 	local url = "http://iplocation.geo.qiyi.com/cityjson"
 	local text = kola.wget(url, false)
-	if text ~= nil then
+	if text then
 		text = kola.pcre("var returnIpCity =(.*);", text)
 		local js = cjson.decode(text)
 
@@ -40,7 +40,7 @@ function gettime()
 	--a.close()
 	local url ="http://api.letv.com/time"
 	local text = kola.wget(url, false)
-	if text ~= nil then
+	if text then
 		local js = cjson.decode(text)
 		return tostring(js.stime)
 	end

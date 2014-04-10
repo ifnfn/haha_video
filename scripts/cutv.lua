@@ -66,11 +66,11 @@ function get_channel(vid)
 	local ret = {}
 
 	--print(url)
-	if text ~= nil then
+	if text then
 		text = kola.pcre("callTslEpg\\((.*)\\)", text)
 		local js = cjson.decode(text)
 
-		if js ~= nil and js.list ~= nil then
+		if js and js.list then
 			for id, ch in ipairs(js.list) do
 				local date = ch.daytime / 1000
 				if date == kola.getdate() then

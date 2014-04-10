@@ -6,12 +6,12 @@
     </head>
     <body>
         <h1>KolaTV Serial system</h1>
-        {% for name,filename in barcodes %}
+        {% for number,name,filename in barcodes %}
             {% if image %}
                 <p><h2>{{name}}</h2><br />
                 <object data="{{filename}}" type="image/svg+xml"><param name="src" value="{{filename}}" /></object>
             {% else %}
-                {{name}}<br />
+                {{number}} {{name}}<br />
             {% end %}
         {% end %}
     </body>

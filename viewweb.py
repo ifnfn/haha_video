@@ -561,7 +561,7 @@ class SerialHandler(BaseHandler):
                 else:
                     break
 
-        return key
+        return key, sid
 
     def get(self):
         path = os.path.dirname(os.path.abspath(__file__))
@@ -577,6 +577,7 @@ class SerialHandler(BaseHandler):
         number    = utils.autoint(self.get_argument('number', 0))
         start     = utils.autoint(self.get_argument('start', 0))
         image     = self.get_argument('image', '0')
+        type      = self.get_argument('type', '')
 
         codes = []
         skip = False
@@ -585,17 +586,21 @@ class SerialHandler(BaseHandler):
             skip = True
 
         for i in range(start, start + number):
-            s = self.Serial(client_id, i, skip, image=='0')
-            codes.append(s)
+            s,sid = self.Serial(client_id, i, skip, image=='0')
+            codes.append((sid, s))
 
         enableImage = image=='1'
         if enableImage:
             ret  = self.GenBarcode(path, codes)
         else:
             ret = []
-            for v in codes:
-                ret.append((v, ''))
-        self.render("barcode.html", barcodes=ret, image=enableImage)
+            for num, v in codes:
+                ret.append((num, v, ''))
+        if type == 'text':
+            for num, v in codes:
+                self.write("%s %s\n" % (num, v))
+        else:
+            self.render("barcode.html", barcodes=ret, image=enableImage)
 
 class LoginHandler(BaseHandler):
     user_table = DB().user_table

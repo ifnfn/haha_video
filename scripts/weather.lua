@@ -13,7 +13,7 @@ function kola_main(city)
 	--print(text)
 
 	local ret = {}
-	if text ~= nil then
+	if text then
 		text = kola.pcre("callback\\((.*)\\);", text)
 		local js = cjson.decode(text)
 

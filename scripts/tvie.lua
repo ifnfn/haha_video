@@ -7,7 +7,7 @@ function get_video_url(url, id)
 	--print(url)
 	local text = kola.wget(url, false)
 
-	if text ~= nil and text ~= "TVie Exception: No streams." then
+	if text and text ~= "TVie Exception: No streams." then
 		local d = os.date("*t", kola.gettime())
 		local data_obj = cjson.decode(text)
 		if data_obj == nil then
@@ -54,7 +54,7 @@ function get_channel(vid, id)
 
 	local ret = {}
 	text = kola.wget(url, false)
-	if text ~= nil and text ~= "TVie Exception: No streams." then
+	if text and text ~= "TVie Exception: No streams." then
 		local d = os.date("*t", kola.gettime())
 		local prev_d = d
 		local js = cjson.decode(text)

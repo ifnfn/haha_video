@@ -126,7 +126,14 @@ KolaClient::KolaClient(void)
 
 bool KolaClient::InternetReady()
 {
-	return gethostbyname(SERVER_HOST) != NULL;
+	string ret;
+	if (this->UrlGet("/static/info", ret)) {
+		printf("%s\n", ret.c_str());
+
+		return ret == "OK";
+	}
+
+	return false;
 }
 
 string KolaClient::GetServer()

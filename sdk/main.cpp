@@ -490,8 +490,18 @@ void test_update(KolaClient &kola)
 
 int main(int argc, char **argv)
 {
+	char m[32];
+	memset(m, 'a', 32);
+	strncpy(m, "abc", 4);
+
+	printf("%s, %c\n", m, m[31]);
+	for(int i=0;i <32; i++)
+		printf("%x ", m[i]);
+	printf("\n");
+	return 0;
 	KolaClient &kola = KolaClient::Instance("000002");
 
+	kola.InternetReady();
 #if 0
 
 	test_info(kola);

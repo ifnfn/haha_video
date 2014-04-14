@@ -30,6 +30,10 @@ function get_videolist(url, qvid, pageNo, pageSize)
 	local videos = {}
 	local offset = 0
 
+	if not js.list then
+		return '{}'
+	end
+
 	for k,v in ipairs(js.list) do
 		if v.ID == qvid then
 			if #v.src_list.vsrcarray > 0 then
@@ -89,7 +93,7 @@ function get_video_url(qvid, url_prefix, segments, stream_id)
 
 	for i=1,seg_num do
 		key_urls[i] = string.format("http://vv.video.qq.com/getkey?vid=%s&format=%d&filename=%s.%s.%d.mp4&otype=json",
-										qvid, stream_id, qvid, name_prefix, i)
+					qvid, stream_id, qvid, name_prefix, i)
 	end
 	local keys = kola.mwget(key_urls)
 	for k,v in pairs(keys) do

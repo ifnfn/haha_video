@@ -7,6 +7,7 @@ import random, sys
 import time
 import pymongo
 
+prompt_time = 6
 class Mathematical:
     def __init__(self, number=20):
         self.number = number
@@ -18,7 +19,7 @@ class Mathematical:
 
     def Prompt(self):
         LostTime = time.time() - self.start_time
-        if self.OnceTime > 6:
+        if self.OnceTime > prompt_time:
             return "(%3d) [%d:%2d \033[22;31m%3d\033[0m]\t\t\t\t" % (self.no, LostTime / 60, LostTime % 60, self.OnceTime)
         else:
             return "(%3d) [%d:%2d %3d]\t\t\t\t" % (self.no, LostTime / 60, LostTime % 60, self.OnceTime)
@@ -107,7 +108,7 @@ class Mathematical:
                 errorList.append((x, y, a, v, prompt))
 
             self.OnceTime = time.time() - now
-            if self.OnceTime > 5:
+            if self.OnceTime > prompt_time:
                 timeoutList.append((x, y, a, v, prompt, self.OnceTime))
 
             self.no += 1

@@ -128,7 +128,6 @@ bool KolaClient::InternetReady()
 {
 	string ret;
 	if (this->UrlGet("/static/info", ret)) {
-		printf("%s\n", ret.c_str());
 
 		return ret == "OK";
 	}
@@ -182,6 +181,9 @@ bool KolaClient::UrlGet(string url, string &ret)
 		ret.assign(http.Data().mem);
 
 		return true;
+	}
+	if (http.httpcode == 302) {
+		printf("[Kolatv] Error unauthorized, error cdoe: %d\n", http.httpcode);
 	}
 
 	return false;

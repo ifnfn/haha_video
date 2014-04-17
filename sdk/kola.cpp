@@ -129,7 +129,7 @@ bool KolaClient::InternetReady()
 	string ret;
 	if (this->UrlGet("/static/info", ret)) {
 
-		return ret == "OK";
+		return ret.compare(0, 2, "OK") == 0;
 	}
 
 	return false;

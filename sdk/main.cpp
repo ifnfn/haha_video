@@ -91,7 +91,7 @@ void test_livetv()
 	//m->FilterAdd("类型", "央视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "ws");
+	m->FilterAdd("PinYin", "ws");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
@@ -490,15 +490,6 @@ void test_update(KolaClient &kola)
 
 int main(int argc, char **argv)
 {
-	char m[32];
-	memset(m, 'a', 32);
-	strncpy(m, "abc", 4);
-
-	printf("%s, %c\n", m, m[31]);
-	for(int i=0;i <32; i++)
-		printf("%x ", m[i]);
-	printf("\n");
-	return 0;
 	KolaClient &kola = KolaClient::Instance("000002");
 
 	kola.InternetReady();

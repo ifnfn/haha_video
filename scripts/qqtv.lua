@@ -18,7 +18,7 @@ local function get_video_url2( playid )
 	-- stream:
 	--	1 : flv
 	-- 	2 : m3u8
-	local url = string.format('http://info.zb.qq.com/?stream=1&cnlid=%s&cmd=2&pla=0&flvtype=1', playid)
+	local url = string.format('http://info.zb.qq.com/?stream=1&sdtfrom=003&cnlid=%s&cmd=2&pla=0&flvtype=1', playid)
 
 	local text = kola.wget(url, false)
 	if text then

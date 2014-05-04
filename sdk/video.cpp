@@ -88,7 +88,7 @@ string KolaVideo::GetVideoUrl()
 
 UrlCache::UrlCache()
 {
-	timeout = 60;
+	timeout = 20;
 }
 
 void UrlCache::SetTimeout(size_t sec)

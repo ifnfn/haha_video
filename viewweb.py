@@ -1,8 +1,9 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import hashlib
 import json
+import hashlib
+
 import sys, os, time
 import traceback
 import uuid
@@ -118,6 +119,7 @@ class AlbumVidCheckHandler(BaseHandler):
     def get(self):
         vids = self.get_argument('vid', '')
         ret = tv.GetAlbumFailure(vids)
+
         self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
 
     def post(self):

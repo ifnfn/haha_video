@@ -413,7 +413,7 @@ class ParserAlbumList(KolaParser):
         if cid and page and url:
             self.cmd['baseurl'] = url
             self.cmd['source']  = url % page
-            self.cmd['regular'] = ['(<a  class="pic_list imgBg1"[\s\S]*?</a>)']
+            self.cmd['regular'] = ['(<a[\s\S]*?class="pic_list imgBg1"[\s\S]*?</a>)']
             self.cmd['cid']     = cid
             self.cmd['page']    = page
             self.cmd['cache']   = False
@@ -463,7 +463,7 @@ class ParserShowAlbumList(KolaParser):
             self.cmd['baseurl'] = url
             self.cmd['source']  = url % page
             #<a rseat="list_lm" href="http://www.iqiyi.com/zongyi/fsdby.html">风尚东北亚</a>
-            self.cmd['regular'] = ['(<a rseat="list_lm" href=([\s\S]*?)</a>)']
+            self.cmd['regular'] = ['(<a rseat="list_js" href=([\s\S]*?)</a>)']
             #self.cmd['regular'] = ['(<a  class="pic_list imgBg1"[\s\S]*?</a>)']
             self.cmd['cid']     = cid
             self.cmd['page']    = page

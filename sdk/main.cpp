@@ -291,6 +291,7 @@ void test_video(const char *menuName)
 
 	kola.UpdateMenu();
 	m = kola[menuName];
+	//m->PictureCacheType = PIC_DISABLE;
 
 	if (m == NULL)
 		return;
@@ -314,17 +315,23 @@ void test_video(const char *menuName)
 	//m->SetSort("评分最高");
 	//m->SetSort("最新发布");
 	//m->SetSort("名称");
-	//m->FilterAdd("PinYin", "fhjr");
+	//m->FilterAdd("PinYin", "dsn");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
+	size_t count = m->GetAlbumCount();
 #if 1
 	Player player;
 	AlbumPage &page = m->GetPage();
 
-	for (int i = 0; i < page.Count(); i++) {
-		IAlbum *album = page.GetAlbum(i);
+	for (int i = 0; i < count; i++) {
+		IAlbum *album = m->GetAlbum(i);
 
+		if (album == NULL)
+			continue;
+
+		printf("[%d]: albumName: %s\n", i, album->albumName.c_str());
+#if 0
 		StringList sources;
 		album->GetSource(sources); // 获取节目的节目来源列表
 		cout << sources.ToString() << endl;
@@ -333,8 +340,9 @@ void test_video(const char *menuName)
 		size_t video_count = album->GetVideoCount();
 		printf("[%d]: albumName: %s(%d) Video:Count %ld\n",
 		       i, album->albumName.c_str(), album->dailyPlayNum, video_count);
+#endif
 
-#if 1
+#if 0
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 			IVideo *video = album->GetVideo(j);
@@ -502,12 +510,12 @@ int main(int argc, char **argv)
 #endif
 //	test_picture("电影"); return 0;
 //	test_custommenu(); return 0;
-	printf("Test LiveTV\n"); test_livetv(); return 0;
+//	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
-	printf("Test Video\n"); test_video("电影"); return 0;
-	//printf("Test TV\n");    test_video("电视剧"); return 0;
+	//printf("Test Video\n"); test_video("电影"); return 0;
+	printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");
 	//test_task();

@@ -38,7 +38,6 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 	ret.size = 0
 	repeat
 		local url = string.format('http://cache.video.qiyi.com/avlist/%s/%d/', aid, page)
-		--print(url)
 		local text = kola.wget(url, false)
 
 		text = kola.pcre("var videoListC=([\\s\\S]*)", text)
@@ -102,8 +101,36 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 	return cjson.encode(ret)
 end
 
+function get_video_url(tvid, vid)
+	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
+	local text = kola.wget(url, false)
+
+	if not text then
+		return '{}'
+	end
+
+	local js = cjson.decode(text)
+
+	if js.code ~= 'A00000' then
+		return ''
+	end
+
+	return js.data.m3u
+end
+
+
 -- 攻取节目视频清晰度
 function get_resolution(tvid, vid)
+	local function get_url(tvid, vid)
+		res = {}
+		res.script = 'qiyi'
+		res['function'] = 'get_video_url'
+		res.parameters = {}
+		res.parameters[1] = tvid
+		res.parameters[2] = vid
+
+		return res
+	end
 	local function get_name(k)
 		if k == 96 then
 			return '流畅'
@@ -123,11 +150,10 @@ function get_resolution(tvid, vid)
 		end
 	end
 
-	local url = string.format('http://cache.video.qiyi.com/m/%s/%s/', tvid, vid)
+	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
 	local text = kola.wget(url, false)
 
-	text = kola.pcre("var ipadUrl=([\\s\\S]*)", text)
-	if text == nil then
+	if not text then
 		return '{}'
 	end
 
@@ -138,23 +164,15 @@ function get_resolution(tvid, vid)
 	end
 
 	local rx = {}
-	for _,v in pairs(js.data.mtl) do
+	for _,v in pairs(js.data.vidl) do
 		local key = get_name(v.vd)
 		if key ~= '' then
-			if rx[key] == nil or (rx[key] and v.fle > rx[key].fle) then
-				rx[key] = v
+			rx[key] = get_url(tvid, v.vid)
+			if js.data.vid == v.vid then
+				rx[key].default = 1
 			end
 		end
 	end
 
-	local ret = {}
-	for k,v in pairs(rx) do
-		ret[k] = {}
-		ret[k].text = v.m3u
-		if v.m3u == js.data.url then
-			ret[k].default = 1
-		end
-	end
-
-	return cjson.encode(ret)
+	return cjson.encode(rx)
 end

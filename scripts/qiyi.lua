@@ -1,8 +1,4 @@
 local function get_videolist_tv(tvid, vid, cid, name)
-	--local url = string.format('http://cache.video.qiyi.com/vi/%s/%s/', tvid, vid)
-	--local text = kola.wget(url, false)
-	--local js = cjson.decode(text)
-	--print(js.vu)
 	local ret = {}
 	ret.videos = {}
 	ret.videos[1] = {}
@@ -11,13 +7,6 @@ local function get_videolist_tv(tvid, vid, cid, name)
 	ret.videos[1].vid = vid
 	ret.videos[1].resolution = get_resolution(tvid, vid)
 	ret.videos[1].name = name
-	--ret.videos[1].name = js['an']
-	--ret.videos[1].resolution = {}
-	--ret.videos[1].resolution.script = 'qiyi'
-	--ret.videos[1].resolution['function'] = 'get_resolution'
-	--ret.videos[1].resolution.parameters = {}
-	--ret.videos[1].resolution.parameters[1] = tvid
-	--ret.videos[1].resolution.parameters[2] = vid
 
 	ret.totalSet   = 1
 	ret.updateSet  = 1
@@ -38,6 +27,7 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 	ret.size = 0
 	repeat
 		local url = string.format('http://cache.video.qiyi.com/avlist/%s/%d/', aid, page)
+
 		local text = kola.wget(url, false)
 
 		text = kola.pcre("var videoListC=([\\s\\S]*)", text)
@@ -46,7 +36,10 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 		end
 
 		local js = cjson.decode(text)
-		if js.code ~= 'A00000' then
+
+		if js.code == 'A00004' then
+			return get_videolist_tv(tvid, vid, cid, name)
+		elseif js.code ~= 'A00000' then
 			return cjson.encode(ret)
 		end
 
@@ -101,9 +94,20 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 	return cjson.encode(ret)
 end
 
+local function get_tmts(url)
+	for i=1,10 do
+		local text = kola.wget(url, false)
+		if text then
+			return text
+		end
+	end
+
+	return nil
+end
+
 function get_video_url(tvid, vid)
 	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
-	local text = kola.wget(url, false)
+	local text = get_tmts(url)
 
 	if not text then
 		return '{}'
@@ -151,7 +155,7 @@ function get_resolution(tvid, vid)
 	end
 
 	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
-	local text = kola.wget(url, false)
+	local text = get_tmts(url)
 
 	if not text then
 		return '{}'

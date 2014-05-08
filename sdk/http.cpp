@@ -255,8 +255,8 @@ const char *Http::curlGetCurlURL(int times)
 	buffer.reset();
 
 	res = curl_easy_perform(curl);
-	if ( res ) {
-		printf("curlGetCurlURL: %s, cant perform curl: %s\n", url.c_str(), errormsg);
+	if ( res != CURLE_OK) {
+		printf("curlGetCurlURL: %s, cant perform curl: %s, (%d) %s\n", url.c_str(), errormsg, res, curl_easy_strerror(res));
 		if (cancel == 1)
 			goto end;
 		return curlGetCurlURL(times + 1);

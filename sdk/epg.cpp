@@ -3,10 +3,10 @@
 #include "kola.hpp"
 #include "json.hpp"
 
-KolaEpg::KolaEpg(json_t *js)
+KolaEpg::KolaEpg(Variant epg)
 {
 	finished = false;
-	json_to_variant(js, &scInfo);
+	scInfo = epg;
 }
 
 bool KolaEpg::LoadFromText(string text)

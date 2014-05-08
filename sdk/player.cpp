@@ -9,6 +9,8 @@
 
 KolaPlayer::KolaPlayer()
 {
+	epg = NULL;
+	doNext = false;
 	_condvar = new ConditionVar();
 	thread = new Thread(this, &KolaPlayer::Run);
 	thread->start();
@@ -18,46 +20,55 @@ KolaPlayer::~KolaPlayer()
 {
 	thread->cancel();
 	_condvar->broadcast();
+	NextSem.free();
 	delete _condvar;
-}
-
-bool KolaPlayer::DoPlay(string &name)
-{
-	return Play(name, curUrl);
 }
 
 void KolaPlayer::Run()
 {
 	while (thread->_state == true) {
 		_condvar->lock();
-		if (videoList.empty()) {
+		if (albumList.empty()) {
 			_condvar->wait();
 			_condvar->unlock();
 		}
 		else {
-			VideoResolution resolution = this->videoList.front();
-			videoList.clear();
+			KolaAlbum album = this->albumList.front();
+			albumList.clear();
 			_condvar->unlock();
 
-//			KolaClient &kola = KolaClient::Instance();
-//			url = kola.GetFullUrl("/ad?vid=" + resolution.vid + "&chipid=");
-//			if (not url.empty())
-//				DoPlay(resolution.defaultKey, url);
+			size_t video_count = album.GetVideoCount();
+			printf("[%s] %s: Video Count %ld\n", album.vid.c_str(), album.albumName.c_str(), video_count);
 
-			curUrl = resolution.GetVideoUrl();
-
-			DoPlay(resolution.defaultKey);
+			doNext = false;
+			for (size_t i = 0; i < video_count; i++) {
+				string player_url;
+				KolaVideo *video = album.GetVideo(i);
+				if (video) {
+					Lock.lock();
+					curVideo = *video;
+					Lock.unlock();
+					Play(curVideo);
+					NextSem.wait();
+					if (not doNext)
+						break;
+				}
+			}
 		}
 	}
 }
 
-void KolaPlayer::AddVideo(IVideo *video)
+void KolaPlayer::PlayNext(bool doNext)
 {
-	if (video) {
-		_condvar->lock();
-		videoList.clear();
-		videoList.push_back(video->Resolution);
-		_condvar->broadcast();
-		_condvar->unlock();
-	}
+	this->doNext = doNext;
+	NextSem.free();
+}
+
+void KolaPlayer::AddAlbum(KolaAlbum album)
+{
+	_condvar->lock();
+	albumList.clear();
+	albumList.push_back(album);
+	_condvar->broadcast();
+	_condvar->unlock();
 }

@@ -8,30 +8,32 @@
 #include "threadpool.hpp"
 #include "kolabase.hpp"
 
-IVideo::IVideo() {
+KolaVideo::KolaVideo() {
 	width = height = fps = totalBytes = 0;
 	order = 0;
 	isHigh = 0;
 	videoPlayCount = 0;
 	videoScore = 0.0;
 	playLength = 0.0;
-	epg = NULL;
+	haveEpg = false;
 }
 
-IVideo::~IVideo() {
-	if (epg)
-		delete epg;
+KolaVideo::~KolaVideo() {
 }
 
-KolaEpg *IVideo::GetEPG(bool sync) const
+KolaEpg *KolaVideo::NewEPG(bool sync) const
 {
-	if (epg) {
-		if (sync) {
-			epg->Update();
-			epg->Wait();
+	if (haveEpg) {
+		KolaEpg *epg = new KolaEpg(EpgInfo);
+		epg->SetPool(client->threadPool);
+		if (epg) {
+			if (sync) {
+				epg->Update();
+				epg->Wait();
+			}
+			if (epg->UpdateFinish())
+				return epg;
 		}
-		if (epg->UpdateFinish())
-			return epg;
 	}
 
 	return NULL;
@@ -62,11 +64,7 @@ void KolaVideo::Parser(json_t *js)
 	totalBytes     = (int)json_geti(js, "totalBytes", 0);
 	fps            = (int)json_geti(js, "fps"       , 0);
 
-	if (json_t *info = json_object_get(js, "info")) {
-		epg = new KolaEpg(info);
-		epg->SetPool(client->threadPool);
-	}
-
+	haveEpg = json_get_variant(js, "info", &EpgInfo);
 	json_get_variant(js, "resolution", &Resolution);
 	Resolution.vid = vid;
 }

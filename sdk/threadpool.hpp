@@ -34,7 +34,6 @@ private:
 	pthread_cond_t _cond;
 };
 
-
 class IThreadSubscriber {
 public:
 	virtual ~IThreadSubscriber(){}

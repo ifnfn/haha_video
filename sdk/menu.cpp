@@ -98,7 +98,7 @@ int KolaMenu::SeekByAlbumId(string vid)
 	PageId = cur->pageId;
 
 	for (int i=0; i<count; i++) {
-		IAlbum *album = cur->GetAlbum(i);
+		KolaAlbum *album = cur->GetAlbum(i);
 		if (album && album->vid == vid)
 			return PageId * PageSize + i;
 	}
@@ -115,7 +115,7 @@ int KolaMenu::SeekByAlbumName(string name)
 	PageId = cur->pageId;
 
 	for (int i=0; i<count; i++) {
-		IAlbum *album = cur->GetAlbum(i);
+		KolaAlbum *album = cur->GetAlbum(i);
 		if (album && album->albumName == name)
 			return i;
 	}
@@ -132,7 +132,7 @@ int KolaMenu::SeekByAlbumNumber(string number)
 	PageId = cur->pageId;
 
 	for (int i=0; i<count; i++) {
-		IAlbum *album = cur->GetAlbum(i);
+		KolaAlbum *album = cur->GetAlbum(i);
 		if (album && album->Number == number)
 			return i;
 	}
@@ -157,9 +157,9 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 			if (json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value) {
-					IAlbum *album = new KolaAlbum();
-					album->Parser(value);
-					album->SetSource(client->DefaultVideoSource);
+					KolaAlbum album;
+					album.Parser(value);
+					album.SetSource(client->DefaultVideoSource);
 					page->PutAlbum(album);
 					cnt++;
 				}
@@ -321,7 +321,7 @@ AlbumPage &KolaMenu::GetPage(int pageNo)
 	return *updateCache(pageNo);
 }
 
-IAlbum* KolaMenu::GetAlbum(size_t position)
+KolaAlbum* KolaMenu::GetAlbum(size_t position)
 {
 	int pos = (int)position / PageSize;
 
@@ -372,7 +372,7 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 	}
 }
 
-void CustomMenu::AlbumAdd(IAlbum *album)
+void CustomMenu::AlbumAdd(KolaAlbum *album)
 {
 	if (album)
 		AlbumAdd(album->vid);
@@ -385,7 +385,7 @@ void CustomMenu::AlbumAdd(string vid)
 	albumCount = albumIdList.size();
 }
 
-void CustomMenu::AlbumRemove(IAlbum *album, bool sync)
+void CustomMenu::AlbumRemove(KolaAlbum *album, bool sync)
 {
 	if (album)
 		AlbumRemove(album->vid, sync);

@@ -3,17 +3,17 @@
 URL="http://127.0.0.1:9992"
 
 UpdateAlbum() {
-    curl "$URL/manage/update?cmd=list&engine=$1Engine" && ./super_client.py
+    curl "$URL/manage/update?cmd=list&engine=$1Engine" && python3 ./super_client.py
 }
 
 UpdateScore() {
-    curl "$URL/manage/update?cmd=score&engine=$1Engine" && ./super_client.py
+    curl "$URL/manage/update?cmd=score&engine=$1Engine" && python3 ./super_client.py
 }
 
 
 Update() {
-    #UpdateAlbum Livetv
-    UpdateAlbum Qiyi
+    UpdateAlbum Livetv
+    #UpdateAlbum Qiyi
     #UpdateAlbum QQ
     #UpdateAlbum Sohu
     #UpdateAlbum PPtv

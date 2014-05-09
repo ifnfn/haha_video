@@ -56,11 +56,13 @@ void test_custommenu()
 }
 
 class Player: public KolaPlayer {
-	virtual bool Play(KolaVideo &video) {
-		string player_url = video.GetVideoUrl();
-		printf("\t%s %s [%s] -> %s\n", video.vid.c_str(), video.name.c_str(), video.publishTime.c_str(), player_url.c_str());
+	virtual bool Play(KolaVideo *video) {
+		if (video) {
+			string player_url = video->GetVideoUrl();
+			printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), \
+			       video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
+		}
 
-		PlayNext(false);
 		return true;
 	}
 };

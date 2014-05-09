@@ -375,6 +375,8 @@ public:
 	size_t GetVideoCount();
 	size_t GetSource(StringList &sources); // 获取节目的节目来源列表
 	bool SetSource(string source);         // 设置节目来源，为""时，使用默认来源
+	void SetPlayIndex(int index) { playIndex = index; }
+	int  GetPlayIndex()          { return playIndex; }
 	bool GetPictureFile(FileResource& picture, enum PicType type);
 	KolaVideo *GetVideo(size_t id);
 	string &GetPictureUrl(enum PicType type=PIC_AUTO);
@@ -401,6 +403,8 @@ private:
 	size_t videoPageId;
 	map<string, Variant> SourceList;
 	string CurrentSource;   // 设置节目来源
+
+	int playIndex;
 };
 
 class AlbumPage: public Task {
@@ -516,32 +520,27 @@ class KolaPlayer {
 public:
 	KolaPlayer();
 	~KolaPlayer();
-	virtual bool Play(KolaVideo &video) = 0;
+	virtual bool Play(KolaVideo *video) = 0;
 
-	void PlayNext(bool doNext = true);
 	void AddAlbum(KolaAlbum album);
 	KolaEpg *NewEpg() {
 		KolaEpg *epg = NULL;
 		Lock.lock();
-		epg = curVideo.NewEPG();
+		if (curVideo)
+			epg = curVideo->NewEPG();
 		Lock.unlock();
 
 		return epg;
 	}
 private:
-	bool DoPlay(string &name);
 	virtual void Run();
 
 	ConditionVar *_condvar;
 	Mutex Lock;
-	Semaphore NextSem;
 	Thread* thread;
 
 	list<KolaAlbum> albumList;
-	KolaVideo curVideo;
-	bool doNext;
-
-	KolaEpg *epg;
+	KolaVideo *curVideo;
 };
 
 class KolaInfo {

@@ -21,6 +21,7 @@ KolaAlbum::KolaAlbum()
 	directVideos = false;
 	videoPageSize = VIDEO_COUNT;
 	videoPageId = -1;
+	playIndex = 0;
 }
 
 KolaAlbum::~KolaAlbum() {

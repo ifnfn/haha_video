@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! env python3
 # -*- coding: utf-8 -*-
 
 # NND，被逼成这样了

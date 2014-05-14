@@ -523,15 +523,7 @@ public:
 	virtual bool Play(KolaVideo *video) = 0;
 
 	void AddAlbum(KolaAlbum album);
-	KolaEpg *NewEpg() {
-		KolaEpg *epg = NULL;
-		Lock.lock();
-		if (curVideo)
-			epg = curVideo->NewEPG();
-		Lock.unlock();
-
-		return epg;
-	}
+	KolaEpg *GetEPG(bool sync=false);
 private:
 	virtual void Run();
 
@@ -541,6 +533,7 @@ private:
 
 	list<KolaAlbum> albumList;
 	KolaVideo *curVideo;
+	KolaEpg *epg;
 };
 
 class KolaInfo {

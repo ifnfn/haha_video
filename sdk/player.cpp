@@ -10,6 +10,7 @@
 KolaPlayer::KolaPlayer()
 {
 	curVideo = NULL;
+	epg = NULL;
 	_condvar = new ConditionVar();
 	thread = new Thread(this, &KolaPlayer::Run);
 	thread->start();
@@ -35,6 +36,11 @@ void KolaPlayer::Run()
 			albumList.clear();
 			_condvar->unlock();
 
+			if (epg) {
+				delete epg;
+				epg = NULL;
+			}
+
 			size_t video_count = album.GetVideoCount();
 			printf("[%s] %s: Video Count %ld\n", album.vid.c_str(), album.albumName.c_str(), video_count);
 
@@ -59,3 +65,16 @@ void KolaPlayer::AddAlbum(KolaAlbum album)
 	_condvar->broadcast();
 	_condvar->unlock();
 }
+
+KolaEpg *KolaPlayer::GetEPG(bool sync)
+{
+	Lock.lock();
+	if (epg)
+		return epg;
+	else if (curVideo)
+		epg = curVideo->NewEPG(sync);
+	Lock.unlock();
+
+	return epg;
+}
+

@@ -92,7 +92,7 @@ void test_livetv()
 	}
 	//m->FilterAdd("类型", "本省台");
 	//m->FilterAdd("类型", "央视台");
-	m->FilterAdd("类型", "卫视台");
+	//m->FilterAdd("类型", "卫视台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
 	//m->FilterAdd("PinYin", "hz");
@@ -110,7 +110,23 @@ void test_livetv()
 		size_t video_count = album->GetVideoCount();
 		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 		player.AddAlbum(*album);
-		sleep(5);
+		sleep(3);
+		KolaEpg *epg = player.GetEPG(true);
+
+		if (epg) {
+			EPG e1, e2;
+			epg->GetCurrent(e1);
+			epg->GetNext(e2);
+
+			if (not e1.empty()) {
+				printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+			}
+
+			if (not e2.empty()) {
+				printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+			}
+			printf("\n\n");
+		}
 #if 0
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
@@ -517,7 +533,7 @@ int main(int argc, char **argv)
 #endif
 //	test_picture("电影"); return 0;
 //	test_custommenu(); return 0;
-	printf("Test LiveTV\n"); test_livetv(); return 0;
+//	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 	//printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

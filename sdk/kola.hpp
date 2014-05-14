@@ -524,16 +524,17 @@ public:
 
 	void AddAlbum(KolaAlbum album);
 	KolaEpg *GetEPG(bool sync=false);
+protected:
+	KolaVideo *curVideo;
+	KolaEpg *epg;
+	Mutex Lock;
 private:
 	virtual void Run();
 
 	ConditionVar *_condvar;
-	Mutex Lock;
 	Thread* thread;
 
 	list<KolaAlbum> albumList;
-	KolaVideo *curVideo;
-	KolaEpg *epg;
 };
 
 class KolaInfo {

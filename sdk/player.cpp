@@ -36,8 +36,14 @@ void KolaPlayer::Run()
 			albumList.clear();
 			_condvar->unlock();
 
-			if (epg) {
-				delete epg;
+			Lock.lock();
+			KolaEpg *tmp_epg = epg;
+			epg = NULL;
+			curVideo = NULL;
+			Lock.unlock();
+
+			if (tmp_epg) {
+				delete tmp_epg;
 				epg = NULL;
 			}
 
@@ -69,9 +75,7 @@ void KolaPlayer::AddAlbum(KolaAlbum album)
 KolaEpg *KolaPlayer::GetEPG(bool sync)
 {
 	Lock.lock();
-	if (epg)
-		return epg;
-	else if (curVideo)
+	if (epg == NULL &&curVideo)
 		epg = curVideo->NewEPG(sync);
 	Lock.unlock();
 

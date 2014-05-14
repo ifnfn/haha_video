@@ -522,17 +522,17 @@ public:
 
 	void AddAlbum(KolaAlbum album);
 	KolaEpg *GetEPG(bool sync=false);
+	KolaVideo *GetCurrentVideo();
 protected:
-	KolaVideo *curVideo;
 	KolaEpg *epg;
 	Mutex Lock;
-	size_t videoCount;
 private:
 	virtual void Run();
 
 	ConditionVar *_condvar;
 	Thread* thread;
 	KolaVideo tmpCurrentVideo;
+	KolaVideo *curVideo;
 
 	list<KolaAlbum> albumList;
 };

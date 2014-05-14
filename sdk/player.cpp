@@ -9,7 +9,6 @@
 
 KolaPlayer::KolaPlayer()
 {
-	videoCount = 0;
 	curVideo = NULL;
 	epg = NULL;
 	_condvar = new ConditionVar();
@@ -34,7 +33,6 @@ void KolaPlayer::Run()
 		}
 		else {
 			KolaAlbum album = this->albumList.front();
-			size_t count; 
 			albumList.clear();
 			_condvar->unlock();
 
@@ -42,7 +40,6 @@ void KolaPlayer::Run()
 			KolaEpg *tmp_epg = epg;
 			epg = NULL;
 			curVideo = NULL;
-			videoCount = 0;
 			Lock.unlock();
 
 			if (tmp_epg) {
@@ -50,20 +47,19 @@ void KolaPlayer::Run()
 				epg = NULL;
 			}
 
-			count = album.GetVideoCount();
-			printf("[%s] %s: Video Count %ld\n", album.vid.c_str(), album.albumName.c_str(), count);
+			size_t video_count = album.GetVideoCount();
+			printf("[%s] %s: Video Count %ld\n", album.vid.c_str(), album.albumName.c_str(), video_count);
 
 			KolaVideo *video = NULL;
 			int index = album.GetPlayIndex();
 
-			if (index < count)
+			if (index < video_count)
 				video = album.GetVideo(index);
 
 			if (video) {
 				Lock.lock();
 				tmpCurrentVideo = *video;
 				curVideo = &tmpCurrentVideo;
-				videoCount = count;
 				Lock.unlock();
 			}
 
@@ -100,5 +96,15 @@ KolaEpg *KolaPlayer::GetEPG(bool sync)
 	Lock.unlock();
 
 	return tmp;
+}
+
+KolaVideo *KolaPlayer::GetCurrentVideo()
+{
+	KolaVideo *p;
+	Lock.lock();
+	p = curVideo;
+	Lock.unlock();
+
+	return p;
 }
 

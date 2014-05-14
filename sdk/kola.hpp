@@ -533,6 +533,7 @@ private:
 
 	ConditionVar *_condvar;
 	Thread* thread;
+	KolaVideo tmpCurrentVideo;
 
 	list<KolaAlbum> albumList;
 };

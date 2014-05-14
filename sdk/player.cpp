@@ -56,7 +56,8 @@ void KolaPlayer::Run()
 			if (index < video_count)
 				video = album.GetVideo(index);
 			Lock.lock();
-			curVideo = video;
+			tmpCurrentVideo = *video;
+			curVideo = &tmpCurrentVideo;
 			Lock.unlock();
 			Play(curVideo);
 		}
@@ -75,7 +76,7 @@ void KolaPlayer::AddAlbum(KolaAlbum album)
 KolaEpg *KolaPlayer::GetEPG(bool sync)
 {
 	Lock.lock();
-	if (epg == NULL &&curVideo)
+	if (epg == NULL && curVideo)
 		epg = curVideo->NewEPG(sync);
 	Lock.unlock();
 

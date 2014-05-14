@@ -21,19 +21,13 @@ KolaVideo::KolaVideo() {
 KolaVideo::~KolaVideo() {
 }
 
-KolaEpg *KolaVideo::NewEPG(bool sync) const
+KolaEpg *KolaVideo::NewEPG() const
 {
 	if (haveEpg) {
 		KolaEpg *epg = new KolaEpg(EpgInfo);
 		epg->SetPool(client->threadPool);
-		if (epg) {
-			if (sync) {
-				epg->Update();
-				epg->Wait();
-			}
-			if (epg->UpdateFinish())
-				return epg;
-		}
+
+		return epg;
 	}
 
 	return NULL;

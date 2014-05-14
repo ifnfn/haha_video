@@ -193,20 +193,18 @@ public:
 	bool GetNext(EPG &e);
 	bool Get(EPG &e, time_t time);
 	void Clear();
+	void Update();
+	bool UpdateFinish();
 private:
 	virtual void Run(void);
 
 	bool LoadFromText(string text);
 	bool LoadFromJson(json_t *js);
-	void Update();
-	bool UpdateFinish();
 
 	vector<EPG> epgList;
 	Mutex mutex;
 	Variant scInfo;
 	bool finished;
-
-	friend class KolaVideo;
 };
 
 class CacheUrl {
@@ -337,7 +335,7 @@ public:
 	string GetVideoUrl();
 	string GetSubtitle(const char *lang) {return "";}
 
-	KolaEpg *NewEPG(bool sync=false) const;
+	KolaEpg *NewEPG() const;
 private:
 	string directPlayUrl;
 };
@@ -528,6 +526,7 @@ protected:
 	KolaVideo *curVideo;
 	KolaEpg *epg;
 	Mutex Lock;
+	size_t videoCount;
 private:
 	virtual void Run();
 

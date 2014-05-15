@@ -144,6 +144,8 @@ string KolaClient::GetServer()
 		char buffer[512];
 		string ip = GetIP(SERVER_HOST);
 
+		printf("GetServer IP: %s\n", ip.c_str());
+
 		if (not ip.empty()) {
 			sprintf(buffer, "http://%s:%d", ip.c_str(), PORT);
 			BaseUrl = buffer;
@@ -465,10 +467,15 @@ time_t KolaClient::GetTime()
 
 string KolaClient::GetFullUrl(string url)
 {
+	string full_url;
+
 	if (url.compare(0, strlen("http://"), "http://") != 0)
-		return UrlLink(GetServer(), url);
+		full_url = UrlLink(GetServer(), url);
 	else
-		return url;
+		full_url = url;
+	//printf("FullUrl: %s\n", full_url.c_str());
+
+	return full_url;
 }
 
 void KolaClient::CleanResource()

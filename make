@@ -58,12 +58,11 @@ build_py() {
     #mv engine/tv/*.pyc pyclib/engine/tv/
 
     cp -af scripts templates static pyclib/
-    scp -r pyclib root@114.215.174.227:~/
+    scp -r pyclib root@114.215.174.227:~/kolatv
 }
 
 if [ $# -le 1 ]; then
     if [ "$1" = "all" ]; then
-#        build csky
         build_py
     elif [ "$1" = "clean" ]; then
         rm -rf build

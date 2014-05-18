@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!env python3
 # -*- coding: utf-8 -*-
 
 import json
@@ -120,7 +120,7 @@ class AlbumVidCheckHandler(BaseHandler):
         vids = self.get_argument('vid', '')
         ret = tv.GetAlbumFailure(vids)
 
-        self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+        self.finish(json.dumps(ret, indent=4, ensure_ascii=False, sort_keys=True))
 
     def post(self):
         if self.request.body:

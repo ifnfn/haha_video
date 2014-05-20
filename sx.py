@@ -16,6 +16,10 @@ class Mathematical:
         self.db = self.con.sx.errors
 
         self.index = 0
+        self.Calcs = [ self.Review,
+                      self.Calc1, self.Calc2, self.Calc3,
+                      self.Calc4, self.Calc5, self.Calc6, self.Calc7
+                     ]
 
     def Prompt(self):
         LostTime = time.time() - self.start_time
@@ -35,37 +39,95 @@ class Mathematical:
                     pass
 
     def Calc1(self):
-            x = random.randint(1, 18)
+        x = random.randint(1, 18)
 
-            if x < 10:
-                y = random.randint(1, 9)
-            else:
-                y = random.randint(1, 9 - int(x % 10))
+        if x < 10:
+            y = random.randint(1, 9)
+        else:
+            y = random.randint(1, 9 - int(x % 10))
 
-            prompt = "%2d + %d = " % (x, y)
-            v = self.GetValue(prompt)
+        prompt = "%2d + %d = " % (x, y)
+        v = self.GetValue(prompt)
 
-            return x, y, v, x + y, prompt
+        return x, y, v, x + y, prompt
 
     def Calc2(self):
-            x = random.randint(11, 19)
-            y = random.randint(int(x % 10), 9)
-            prompt = "%2d - %d = " % (x, y)
-            v = self.GetValue(prompt)
+        x = random.randint(11, 19)
+        y = random.randint(int(x % 10), 9)
+        prompt = "%2d - %d = " % (x, y)
+        v = self.GetValue(prompt)
 
-            return x, y, v, x - y, prompt
+        return x, y, v, x - y, prompt
 
     def Calc3(self):
-            x = random.randint(3, 8)
-            if x > 5:
-                y = random.randint(1, x)
-            else:
-                y = random.randint(5, 9)
+        x = random.randint(3, 8)
+        if x > 5:
+            y = random.randint(1, x)
+        else:
+            y = random.randint(5, 9)
 
-            prompt = "%2d - %d = " % (x, y)
-            v = self.GetValue(prompt)
+        prompt = "%2d - %d = " % (x, y)
+        v = self.GetValue(prompt)
 
-            return x, y, v, x - y, prompt
+        return x, y, v, x - y, prompt
+
+    # 两位数加一位数(进位)
+    def Calc4(self):
+        x = random.randint(1, 89)
+        m = x % 10
+        if m == 0:
+            m = random.randint(1, 9)
+        x = x // 10 * 10 + m
+        y = random.randint(11 - m, 9)
+        if x < 10:
+            a = random.randint(1, 8)
+            y = a * 10 + y
+
+        prompt = "%2d + %d = " % (x, y)
+        v = self.GetValue(prompt)
+
+        return x, y, v, x + y, prompt
+
+    # 两位数减一位数（退位）
+    def Calc5(self):
+        x = random.randint(10, 99)
+        m = x % 10
+        if m in [0, 9]:
+            m = random.randint(1, 8)
+        x = x // 10 * 10 + m
+
+        y = random.randint(m + 1, 9)
+        prompt = "%2d - %d = " % (x, y)
+        v = self.GetValue(prompt)
+
+        return x, y, v, x - y, prompt
+
+    # 两位数加整十位数
+    def Calc6(self):
+        x = random.randint(10, 89)
+        m = x % 10
+        if m in [0, 9]:
+            m = random.randint(1, 8)
+        x = x // 10 * 10 + m
+        print (x)
+        y = random.randint(1, 9 - x // 10) * 10
+        prompt = "%2d + %d = " % (x, y)
+        v = self.GetValue(prompt)
+
+        return x, y, v, x + y, prompt
+
+    # 两位数减整十位数
+    def Calc7(self):
+        x = random.randint(20, 99)
+        m = x % 10
+        if m in [0, 9]:
+            m = random.randint(1, 8)
+        x = x // 10 * 10 + m
+        y = random.randint(1, x // 10) * 10
+        prompt = "%2d - %d = " % (x, y)
+        v = self.GetValue(prompt)
+
+        return x, y, v, x - y, prompt
 
     def Review(self):
         cursor = self.db.find({}).skip(self.index).limit(1)
@@ -93,13 +155,9 @@ class Mathematical:
             if re:
                 x, y, a, v, prompt = self.Review()
             else:
-                _type = random.randint(100,200) % 3
-                if _type == 0:
-                    x, y, a, v, prompt = self.Calc1()
-                elif _type == 1:
-                    x, y, a, v, prompt = self.Calc2()
-                elif _type == 2:
-                    x, y, a, v, prompt = self.Review()
+                _type = random.randint(100,200) % len(self.Calcs)
+                _type = 7
+                x, y, a, v, prompt = self.Calcs[_type]()
 
             if a == v:
                 self.ok += 1

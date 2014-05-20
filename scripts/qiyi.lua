@@ -118,6 +118,10 @@ function get_video_url(tvid, vid)
 	end
 	local js = cjson.decode(text)
 
+	if js.data.m3utx then
+		return js.data.m3utx
+	end
+
 	return js.data.m3u
 end
 

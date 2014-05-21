@@ -19,7 +19,7 @@ class M2OLivetvParser(LivetvParser):
 
     def Execute(self):
         for i in self.channelIds:
-            self.cmd['source'] = 'http://%s/m2o/player/channel_xml.php?id=%d' % (self.baseUrl, i)
+            self.cmd['source'] = 'http://%s/m2o/player/channel_xml.php?id=%d&url=%s' % (self.baseUrl, i, self.baseUrl)
             self.cmd['channel_id'] = i
             self.command.AddCommand(self.cmd)
 

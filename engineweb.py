@@ -139,7 +139,7 @@ class EngineApplication(tornado.web.Application):
             cookie_secret = 'z1DAVh+WTvyqpWGmOtJCQLETQYUznEuYskSF062J0To=',
             #xsrf_cookies = True,
             autoescape = None,
-            autoreload = True
+            #autoreload = True
         )
 
         handlers = [

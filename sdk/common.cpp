@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <resolv.h>
 
 #include <openssl/md5.h>
 #include <arpa/inet.h>
@@ -134,6 +135,8 @@ string MD5(const char *data, size_t size)
 string GetIP(const char *hostp)
 {
 	string ip;
+
+	res_init();
 	struct hostent *host = gethostbyname(hostp);
 
 	if (host) {

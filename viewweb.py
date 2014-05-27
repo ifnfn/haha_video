@@ -15,7 +15,7 @@ import tornado.options
 import tornado.web
 from barcode import get_barcode
 
-import pycurl, urllib, random
+import pycurl, urllib, random, re
 
 try:
     from barcode.writer import ImageWriter
@@ -950,24 +950,39 @@ share = pycurl.CurlShare()
 share.setopt(pycurl.SH_SHARE, pycurl.LOCK_DATA_COOKIE)
 share.setopt(pycurl.SH_SHARE, pycurl.LOCK_DATA_DNS)
 
-class VoteHandler(BaseHandler):
+
+def Curl(url, ofile):
+    curl = pycurl.Curl()
+    curl.setopt(pycurl.SHARE, share)
+    curl.setopt(pycurl.URL, url)
+    curl.setopt(curl.USERAGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36");
+    curl.setopt(curl.VERBOSE, 1)
+    curl.setopt(pycurl.WRITEDATA, ofile)
+    curl.setopt(pycurl.FOLLOWLOCATION, 1)
+    curl.setopt(pycurl.MAXREDIRS, 5)
+    curl.setopt(pycurl.NOSIGNAL, 1)
+    curl.perform()
+    curl.close()
+
+class VoteHandler(tornado.web.RequestHandler):
     def get(self):
         #http://money.aqnews.com.cn/index.php?m=vote&c=index&a=show&show_type=1&subjectid=15&siteid=1
         ofile = open(str("files/v.png"), "wb")
-        curl = pycurl.Curl()
-        curl.setopt(pycurl.SHARE, share)
-        curl.setopt(pycurl.URL, 'http://money.aqnews.com.cn/api.php?op=checkcode&code_len=1&font_size=14&width=130&height=30&font_color=&background=')
-        curl.setopt(curl.USERAGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36");
-        curl.setopt(curl.VERBOSE, 1)
-        curl.setopt(pycurl.WRITEDATA, ofile)
-        curl.setopt(pycurl.FOLLOWLOCATION, 1)
-        curl.setopt(pycurl.MAXREDIRS, 5)
-        curl.setopt(pycurl.NOSIGNAL, 1)
-        curl.perform()
-        curl.close()
+        Curl('http://money.aqnews.com.cn/api.php?op=checkcode&code_len=1&font_size=14&width=130&height=30&font_color=&background=', ofile)
         ofile.close()
 
-        self.render("vote.html")
+        ofile = open(str("files/v.png"), "rb")
+        data = ofile.read()
+        ofile.close()
+        try:
+            x = re.findall('self.location="(.*)";}', data.decode("GBK"))
+            if x:
+                ofile = open(str('/tmp/aaa'), "wb")
+                url = 'http://money.aqnews.com.cn' + x[0]
+                Curl(url, ofile)
+                ofile.close()
+        finally:
+            self.render("vote.html")
 
     def post(self):
         pf = {
@@ -977,7 +992,6 @@ class VoteHandler(BaseHandler):
         }
         ip = "%d.%d.%d.%d" % (random.randint(1, 255), random.randint(1, 255),
                               random.randint(1, 255), random.randint(1, 255))
-
 
 
         curl = pycurl.Curl()

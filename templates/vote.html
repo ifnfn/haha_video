@@ -4,12 +4,13 @@
 
 </head>
 
-<body>
+<body onLoad="document.forms.myform.code.focus()">
 
 <form name="myform" id="myform"  action="/vote" method="post">
+<img id='code_img' onclick='this.src=this.src+"&"+Math.random()' src='files/v.png'>
+<input name="code" type="text" id="code" size="10"  class="input-text"/>
 <input type="hidden" name="subjectid" value="15">
-<input name="code" type="text" id="code" size="10"  class="input-text"/> <img id='code_img' onclick='this.src=this.src+"&"+Math.random()' src='files/v.png'>
-<button type="submit" style=""></button>
+<input type="submit" name="b1" value="GO">
 </form>
 
 

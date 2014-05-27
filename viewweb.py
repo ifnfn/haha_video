@@ -15,6 +15,8 @@ import tornado.options
 import tornado.web
 from barcode import get_barcode
 
+import pycurl, urllib, random
+
 try:
     from barcode.writer import ImageWriter
 except ImportError:
@@ -492,6 +494,7 @@ class RandomVideoUrlHandle(BaseHandler):
             self.db.expire(name, 60) # 1 分钟有效
             self.finish(name)
 
+# / userinfo?client_id=100&number=10&serial=sssssss
 class UserInfoHandler(BaseHandler):
     user_table = DB().user_table
 
@@ -565,6 +568,7 @@ class SerialHandler(BaseHandler):
 
         return key, sid
 
+    # /serial?client_id=1&number=1&start=1
     def get(self):
         path = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(path, 'images')
@@ -942,6 +946,52 @@ class UploadFileHandler(tornado.web.RequestHandler):
 
         self.redirect(self.request.protocol + '://' + self.request.host  + '/files/' +  projectName + '/info.json')
 
+share = pycurl.CurlShare()
+share.setopt(pycurl.SH_SHARE, pycurl.LOCK_DATA_COOKIE)
+share.setopt(pycurl.SH_SHARE, pycurl.LOCK_DATA_DNS)
+
+class VoteHandler(BaseHandler):
+    def get(self):
+        #http://money.aqnews.com.cn/index.php?m=vote&c=index&a=show&show_type=1&subjectid=15&siteid=1
+        ofile = open(str("files/v.png"), "wb")
+        curl = pycurl.Curl()
+        curl.setopt(pycurl.SHARE, share)
+        curl.setopt(pycurl.URL, 'http://money.aqnews.com.cn/api.php?op=checkcode&code_len=1&font_size=14&width=130&height=30&font_color=&background=')
+        curl.setopt(curl.USERAGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36");
+        curl.setopt(curl.VERBOSE, 1)
+        curl.setopt(pycurl.WRITEDATA, ofile)
+        curl.setopt(pycurl.FOLLOWLOCATION, 1)
+        curl.setopt(pycurl.MAXREDIRS, 5)
+        curl.setopt(pycurl.NOSIGNAL, 1)
+        curl.perform()
+        curl.close()
+        ofile.close()
+
+        self.render("vote.html")
+
+    def post(self):
+        pf = {
+            'radio[]' : 164,
+            'subjectid': 15,
+            'code': self.get_argument('code')
+        }
+        ip = "%d.%d.%d.%d" % (random.randint(1, 255), random.randint(1, 255),
+                              random.randint(1, 255), random.randint(1, 255))
+
+
+
+        curl = pycurl.Curl()
+        curl.setopt(curl.HTTPHEADER, ['CLIENT-IP:' + ip,
+                                        'X-FORWARDED-FOR:' + ip,
+                                        ])
+        curl.setopt(curl.SHARE, share)
+        curl.setopt(curl.URL, 'http://money.aqnews.com.cn/index.php?m=vote&c=index&a=post&subjectid=15&siteid=1')
+        curl.setopt(curl.POSTFIELDS, urllib.parse.urlencode(pf))
+        curl.setopt(curl.VERBOSE, 1)
+        curl.perform()
+        curl.close()
+        self.redirect('/vote')
+
 class ViewApplication(tornado.web.Application):
     def __init__(self):
         settings = dict(
@@ -971,6 +1021,7 @@ class ViewApplication(tornado.web.Application):
             (r'/show',             ShowHandler),
             (r'/ad',               ADHandler),              # 广告
             (r'/city',             CityHandler),            # 城市编码
+            (r'/vote',             VoteHandler),
 
             (r'/admin/userinfo',   UserInfoHandler),        # 用户信息
             (r'/admin/serial',     SerialHandler),          # 生成序列号

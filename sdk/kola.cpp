@@ -144,8 +144,6 @@ string KolaClient::GetServer()
 		char buffer[512];
 		string ip = GetIP(SERVER_HOST);
 
-		printf("GetServer IP: %s\n", ip.c_str());
-
 		if (not ip.empty()) {
 			sprintf(buffer, "http://%s:%d", ip.c_str(), PORT);
 			BaseUrl = buffer;

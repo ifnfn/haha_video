@@ -78,7 +78,7 @@ class Mathematical:
         if m == 0:
             m = random.randint(1, 9)
         x = x // 10 * 10 + m
-        y = random.randint(11 - m, 9)
+        y = random.randint(9 - m, 9)
         if x < 10:
             a = random.randint(1, 8)
             y = a * 10 + y
@@ -109,7 +109,6 @@ class Mathematical:
         if m in [0, 9]:
             m = random.randint(1, 8)
         x = x // 10 * 10 + m
-        print (x)
         y = random.randint(1, 9 - x // 10) * 10
         prompt = "%2d + %d = " % (x, y)
         v = self.GetValue(prompt)
@@ -156,7 +155,8 @@ class Mathematical:
                 x, y, a, v, prompt = self.Review()
             else:
                 _type = random.randint(100,200) % len(self.Calcs)
-                _type = 7
+                _type = random.randint(100,200) % 4 + 4
+                _type = 5
                 x, y, a, v, prompt = self.Calcs[_type]()
 
             if a == v:

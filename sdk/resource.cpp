@@ -108,7 +108,9 @@ FileResource::~FileResource()
 void FileResource::Clear()
 {
 	if (res) {
-		res->DecRefCount();
+		KolaClient &kola = KolaClient::Instance();
+		kola.resManager->ResDecRef(res);
+//		res->DecRefCount();
 		res = NULL;
 	}
 }

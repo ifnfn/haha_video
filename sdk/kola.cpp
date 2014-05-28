@@ -275,6 +275,11 @@ bool KolaClient::LoginOne()
 
 void KolaClient::ClearMenu()
 {
+	map<string, KolaMenu*>::iterator it;
+	for(it = menuMap.begin(); it != menuMap.end(); it++) {
+		delete it->second;
+	}
+
 	menuMap.clear();
 }
 

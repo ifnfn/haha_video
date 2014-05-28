@@ -77,7 +77,8 @@ static int lua_wget(lua_State *L)
 			Resource* res = kola.resManager->GetResource(url);
 			res->Wait();
 			string text = res->ToString();
-			res->DecRefCount();
+			kola.resManager->ResIncRef(res);
+//			res->DecRefCount();
 			if (not text.empty()) {
 				lua_pushstring(L, text.c_str());
 				return 1;

@@ -57,7 +57,7 @@ void Resource::Cancel()
 void Resource::Run(void)
 {
 	manager->ResIncRef(this);
-//	IncRefCount();
+
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		time(&this->updateTime);
@@ -74,8 +74,6 @@ void Resource::Run(void)
 	}
 
 	manager->ResDecRef(this);
-
-//	DecRefCount();
 }
 
 string Resource::ToString()
@@ -208,9 +206,6 @@ Resource* ResourceManager::GetResource(const string &url)
 	if (pResource == NULL)
 		pResource = AddResource(url);
 
-//	if (pResource)
-//		pResource->IncRefCount();
-
 	return pResource;
 }
 
@@ -219,14 +214,12 @@ bool ResourceManager::RemoveResource(const string &url)
 	Resource *res = FindResource(url);
 	if (res) {
 		this->ResDecRef(res);
-//		res->DecRefCount();
 		if (threadPool->removeTask(res))
 			RemoveResource(res);
 		else
 			res->Cancel();
 
-//		this->ResDecRef(res);
-//		res->DecRefCount();
+		this->ResDecRef(res);
 
 		return true;
 	}
@@ -309,6 +302,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 
 	if (UseMemory + memsize <= MaxMemory) {
 		Unlock();
+
 		return ret;
 	}
 

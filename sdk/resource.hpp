@@ -80,7 +80,6 @@ public:
 	ResourceManager(int thread_num = 1, size_t memory = 1024 * 1024 * 2);
 	virtual ~ResourceManager();
 
-	bool GetFile(FileResource& picture, const string &url);
 	Resource* GetResource(const string &url);
 	bool RemoveResource(const string &url);
 
@@ -106,7 +105,6 @@ public:
 		Unlock();
 	}
 protected:
-	Resource* AddResource(const string &url);
 	void RemoveResource(Resource* res);
 	Resource* FindResource(const string &url);
 	list<Resource*> mResources;

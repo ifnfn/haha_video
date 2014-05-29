@@ -29,7 +29,7 @@
 #endif
 
 static string Serial;
-static size_t CacheSize = 1024 * 1024 * 1;
+static size_t CacheSize = 1024 * 512;
 static int    ThreadNum = 10;
 
 string GetSerial(void)

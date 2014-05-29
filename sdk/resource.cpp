@@ -108,7 +108,6 @@ void FileResource::Clear()
 	if (res) {
 		KolaClient &kola = KolaClient::Instance();
 		kola.resManager->ResDecRef(res);
-//		res->DecRefCount();
 		res = NULL;
 	}
 }
@@ -179,52 +178,45 @@ void ResourceManager::Unlock()
 	pthread_mutex_unlock(&lock);
 }
 
-bool ResourceManager::GetFile(FileResource& picture, const string &url)
-{
-	picture.Clear();
-	picture.GetResource(this, url);
-
-	return true;
-}
-
-Resource* ResourceManager::AddResource(const string &url)
-{
-	Resource* pResource = Resource::Create(this);
-	pResource->Load(url);
-	Lock();
-	mResources.insert(mResources.end(), pResource);
-	pResource->IncRefCountx();
-	Unlock();
-	pResource->Start(false);
-
-	return pResource;
-}
-
 Resource* ResourceManager::GetResource(const string &url)
 {
-	Resource* pResource = dynamic_cast<Resource*>(FindResource(url));
-	if (pResource == NULL)
-		pResource = AddResource(url);
+	Resource* pResource = NULL;
+
+	Lock();
+	pResource = dynamic_cast<Resource*>(FindResource(url));
+	if (pResource == NULL) {
+		pResource = Resource::Create(this);
+		pResource->Load(url);
+		mResources.insert(mResources.end(), pResource);
+		pResource->Start(false);
+	}
+	pResource->IncRefCountx();
+	Unlock();
 
 	return pResource;
 }
 
 bool ResourceManager::RemoveResource(const string &url)
 {
-	Resource *res = FindResource(url);
+	Resource *res = NULL;
+	bool ret = false;
+
+	Lock();
+	res = FindResource(url);
 	if (res) {
-		this->ResDecRef(res);
 		if (threadPool->removeTask(res))
 			RemoveResource(res);
 		else
 			res->Cancel();
 
-		this->ResDecRef(res);
+		res->DecRefCountx();
 
-		return true;
+		ret = true;
 	}
 
-	return false;
+	Unlock();
+
+	return ret;
 }
 
 Resource* ResourceManager::FindResource(const string &url)
@@ -232,22 +224,17 @@ Resource* ResourceManager::FindResource(const string &url)
 	Resource* pRet = NULL;
 	list<Resource*>::iterator it;
 
-	Lock();
 	for (it = mResources.begin(); (it != mResources.end()); it++) {
 		pRet = (*it);
 
 		if (pRet->GetName() == url) {
 			pRet->UpdateTime();
-			pRet->IncRefCountx();
-			break;
-		}
 
-		pRet = NULL;
+			return  pRet;
+		}
 	}
 
-	Unlock();
-
-	return pRet;
+	return NULL;
 }
 
 void ResourceManager::MemoryInc(size_t size)

@@ -109,6 +109,7 @@ function get_video_url(tvid, vid)
 	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
 	local text = get_tmts(url)
 
+	text = kola.pcre("var tvInfo.*=([\\s\\S]*)", text)
 	if not text then
 		return '{}'
 	end
@@ -158,7 +159,10 @@ function get_resolution(tvid, vid)
 	end
 
 	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
+
 	local text = get_tmts(url)
+
+	text = kola.pcre("var tvInfo.*=([\\s\\S]*)", text)
 
 	if not text then
 		return '{}'

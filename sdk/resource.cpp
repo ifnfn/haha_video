@@ -56,7 +56,8 @@ void Resource::Cancel()
 
 void Resource::Run(void)
 {
-	IncRefCount();
+	manager->ResIncRef(this);
+//	IncRefCount();
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		time(&this->updateTime);
@@ -72,7 +73,9 @@ void Resource::Run(void)
 		}
 	}
 
-	DecRefCount();
+	manager->ResDecRef(this);
+
+//	DecRefCount();
 }
 
 string Resource::ToString()
@@ -105,7 +108,9 @@ FileResource::~FileResource()
 void FileResource::Clear()
 {
 	if (res) {
-		res->DecRefCount();
+		KolaClient &kola = KolaClient::Instance();
+		kola.resManager->ResDecRef(res);
+//		res->DecRefCount();
 		res = NULL;
 	}
 }
@@ -158,7 +163,7 @@ ResourceManager::~ResourceManager()
 	Lock();
 	for (it = mResources.begin(); it != mResources.end(); it++) {
 		Resource* pRes = *it;
-		pRes->DecRefCount();
+		pRes->DecRefCountx();
 	}
 	mResources.clear();
 	Unlock();
@@ -190,6 +195,7 @@ Resource* ResourceManager::AddResource(const string &url)
 	pResource->Load(url);
 	Lock();
 	mResources.insert(mResources.end(), pResource);
+	pResource->IncRefCountx();
 	Unlock();
 	pResource->Start(false);
 
@@ -202,8 +208,8 @@ Resource* ResourceManager::GetResource(const string &url)
 	if (pResource == NULL)
 		pResource = AddResource(url);
 
-	if (pResource)
-		pResource->IncRefCount();
+//	if (pResource)
+//		pResource->IncRefCount();
 
 	return pResource;
 }
@@ -212,12 +218,15 @@ bool ResourceManager::RemoveResource(const string &url)
 {
 	Resource *res = FindResource(url);
 	if (res) {
+		this->ResDecRef(res);
+//		res->DecRefCount();
 		if (threadPool->removeTask(res))
 			RemoveResource(res);
 		else
 			res->Cancel();
 
-		res->DecRefCount();
+//		this->ResDecRef(res);
+//		res->DecRefCount();
 
 		return true;
 	}
@@ -236,6 +245,7 @@ Resource* ResourceManager::FindResource(const string &url)
 
 		if (pRet->GetName() == url) {
 			pRet->UpdateTime();
+			pRet->IncRefCountx();
 			break;
 		}
 
@@ -264,7 +274,7 @@ void ResourceManager::RemoveResource(Resource* res)
 	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end(); it++) {
 		if (*it == res) {
 			mResources.erase(it++);
-			res->DecRefCount();
+			res->DecRefCountx();
 			break;
 		}
 	}
@@ -280,7 +290,7 @@ void ResourceManager::Clear()
 		Resource* pRet = (*it);
 
 		mResources.erase(it++);
-		pRet->DecRefCount();
+		pRet->DecRefCountx();
 	}
 
 	Unlock();
@@ -310,7 +320,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 
 		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
 			mResources.erase(it++);
-			pRet->DecRefCount();
+			pRet->DecRefCountx();
 		}
 		else
 			it++;

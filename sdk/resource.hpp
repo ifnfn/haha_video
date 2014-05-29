@@ -18,8 +18,8 @@ public:
 
 class RefCountable {
 public:
-	virtual int IncRefCount() {  return ++miRefCount; }
-	virtual int DecRefCount() {
+	virtual int IncRefCountx() {  return ++miRefCount; }
+	virtual int DecRefCountx() {
 		miRefCount--;
 		int iRet = miRefCount;
 		if (miRefCount == 0) {
@@ -35,7 +35,7 @@ public:
 		(dynamic_cast<IDestructable*>(this))->Destroy();
 	}
 protected:
-	RefCountable(): miRefCount(1){}
+	RefCountable(): miRefCount(1) { }
 	virtual ~RefCountable() {assert(miRefCount == 0);}
 
 	int miRefCount;
@@ -92,6 +92,18 @@ public:
 	void Unlock();
 	void SetCacheSize(size_t size) {
 		MaxMemory = size;
+	}
+
+	void ResIncRef(Resource *res) {
+		Lock();
+		res->IncRefCountx();
+		Unlock();
+	}
+
+	void ResDecRef(Resource *res) {
+		Lock();
+		res->DecRefCountx();
+		Unlock();
 	}
 protected:
 	Resource* AddResource(const string &url);

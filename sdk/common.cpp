@@ -138,6 +138,7 @@ string GetIP(const char *hostp)
 
 	res_init();
 	struct hostent *host = gethostbyname(hostp);
+	res_close();
 
 	if (host) {
 		char str[64];

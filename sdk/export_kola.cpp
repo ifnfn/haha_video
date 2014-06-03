@@ -420,25 +420,59 @@ static int lua_strjoin(lua_State *L)
 	return 1;
 }
 
+static int lua_area(lua_State *L)
+{
+	KolaArea area;
+
+	KolaClient &kola = KolaClient::Instance();
+	if (kola.GetArea(area)) {
+		lua_newtable(L);
+		lua_pushstring(L, "ip");
+		lua_pushstring(L, area.ip.c_str());
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "isp");
+		lua_pushstring(L, area.isp.c_str());
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "country");
+		lua_pushstring(L, area.country.c_str());
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "city");
+		lua_pushstring(L, area.city.c_str());
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "province");
+		lua_pushstring(L, area.province.c_str());
+		lua_settable(L, -3);
+
+		return 1;
+	}
+
+	return 0;
+}
+
 static const struct luaL_Reg kola_lib[] = {
-	{"base64_encode" , lua_base64_encode},
-	{"base64_decode" , lua_base64_decode},
-	{"wget"          , lua_wget},
-	{"mwget"         , lua_mwget},
-	{"wpost"         , lua_wpost},
-	{"pcre"          , lua_pcre},
-	{"geturl"        , lua_geturl},
-	{"gettime"       , lua_gettime},
-	{"getdate"       , lua_getdate},
-	{"urlencode"     , lua_urlencode},
-	{"urldecode"     , lua_urldecode},
-	{"md5"           , lua_md5},
-	{"date"          , lua_date},
-	{"chipid"        , lua_getchipid},
-	{"serial"        , lua_getserial},
-	{"strtrim"       , lua_strtrim},
-	{"strsplit"      , lua_strsplit},
-	{"strjoin"       , lua_strjoin},
+	{"base64_encode" , lua_base64_encode },
+	{"base64_decode" , lua_base64_decode },
+	{"wget"          , lua_wget          },
+	{"mwget"         , lua_mwget         },
+	{"wpost"         , lua_wpost         },
+	{"pcre"          , lua_pcre          },
+	{"geturl"        , lua_geturl        },
+	{"gettime"       , lua_gettime       },
+	{"getdate"       , lua_getdate       },
+	{"urlencode"     , lua_urlencode     },
+	{"urldecode"     , lua_urldecode     },
+	{"md5"           , lua_md5           },
+	{"date"          , lua_date          },
+	{"chipid"        , lua_getchipid     },
+	{"serial"        , lua_getserial     },
+	{"strtrim"       , lua_strtrim       },
+	{"strsplit"      , lua_strsplit      },
+	{"strjoin"       , lua_strjoin       },
+	{"getarea"       , lua_area          },
 
 	{NULL            , NULL},
 };

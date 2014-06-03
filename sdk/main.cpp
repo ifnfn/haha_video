@@ -82,7 +82,13 @@ void test_livetv()
 	}
 #endif
 
-	m = kola.GetMenu(200);
+#if 0
+	while (1) {
+		KolaClient &kola = KolaClient::Instance();
+		kola.UpdateMenu();
+		m = kola.GetMenu(200);
+	}
+#endif
 	if (m == NULL)
 		return;
 	foreach(m->Filter.filterKey, i) {
@@ -96,7 +102,7 @@ void test_livetv()
 	m->FilterAdd("类型", "地方台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "ah");
+	m->FilterAdd("PinYin", "hz");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
@@ -278,28 +284,40 @@ void test_video(const char *menuName)
 	m->SetPageSize(40);
 #if 1
 	Player player;
-	AlbumPage &page = m->GetPage();
 	size_t count = m->GetAlbumCount();
 
 	for (int i = 0; i < count; i++) {
 		KolaAlbum *album = m->GetAlbum(i);
+		FileResource picture;
 
 		if (album == NULL)
 			continue;
 
-		printf("[%d]: albumName: %s\n", i, album->albumName.c_str());
-#if 1
+#if 0
 		StringList sources;
 		album->GetSource(sources); // 获取节目的节目来源列表
 		cout << sources.ToString() << endl;
 		album->SetSource("爱奇艺");
-
-		size_t video_count = album->GetVideoCount();
-		printf("[%d]: albumName: %s(%d) Video:Count %ld\n",
-		       i, album->albumName.c_str(), album->dailyPlayNum, video_count);
 #endif
 
-#if 1
+		if (i == 6)
+			printf("a\n");
+		size_t video_count = album->GetVideoCount();
+		printf("[%d]: albumName: %s[%s], PlayNum:%ld, VideoCount: %ld, TotalCount: %ld\n",
+		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet());
+
+#if 0
+		if (album->GetPictureFile(picture, PIC_LARGE) == true) {
+			picture.Wait();
+			if (picture.isCached()) {
+				printf("[%d] %s: size=%ld\n", i,
+				       picture.GetName().c_str(),
+				       picture.GetSize());
+				count--;
+			}
+		}
+#endif
+#if 0
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 			KolaVideo *video = album->GetVideo(j);
@@ -311,8 +329,6 @@ void test_video(const char *menuName)
 						video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
 				video->GetResolution(res);
 				printf("Resolution: %s\n", res.ToString().c_str());
-
-//				player.AddVideo(video);
 			}
 			else
 				printf("video ============== NULL\n");
@@ -400,8 +416,8 @@ void test_weather(KolaClient &kola)
 	cout << data.ToString() << endl;
 #endif
 	while (true) {
-		kola.weather.SetArea("钓鱼岛");
-		kola.weather.Update();
+		//kola.weather.SetArea("钓鱼岛");
+		//kola.weather.Update();
 		kola.weather.Update();
 
 		while (not kola.weather.UpdateFinish()) {
@@ -459,7 +475,6 @@ int main(int argc, char **argv)
 
 	kola.InternetReady();
 #if 0
-
 	test_info(kola);
 	test_area(kola);
 	test_weather(kola);
@@ -467,11 +482,11 @@ int main(int argc, char **argv)
 #endif
 //	test_picture("电影"); return 0;
 //	test_custommenu(); return 0;
-	printf("Test LiveTV\n"); test_livetv(); return 0;
+//	printf("Test LiveTV\n"); test_livetv(); return 0;
 
-	//printf("Test Video\n"); test_video("综艺"); return 0;
+//	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
-	//printf("Test Video\n"); test_video("电影"); return 0;
+//	printf("Test Video\n"); test_video("电影"); return 0;
 	printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");

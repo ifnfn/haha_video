@@ -156,14 +156,8 @@ ResourceManager::ResourceManager(int thread_num, size_t memory) : MaxMemory(memo
 
 ResourceManager::~ResourceManager()
 {
-	list<Resource*>::iterator it;
-	Lock();
-	for (it = mResources.begin(); it != mResources.end(); it++) {
-		Resource* pRes = *it;
-		pRes->DecRefCount();
-	}
-	mResources.clear();
-	Unlock();
+	Clear();
+
 	delete threadPool;
 	pthread_mutex_destroy(&lock);
 }
@@ -180,59 +174,60 @@ void ResourceManager::Unlock()
 
 Resource* ResourceManager::GetResource(const string &url)
 {
-	Resource* pResource = NULL;
+	Resource *res = NULL;
 
-	Lock();
-	pResource = dynamic_cast<Resource*>(FindResource(url));
-	if (pResource == NULL) {
-		pResource = Resource::Create(this);
-		pResource->Load(url);
-		mResources.insert(mResources.end(), pResource);
-		pResource->IncRefCount();
-		pResource->Start(false);
+	res = dynamic_cast<Resource*>(FindResource(url));
+	if (res == NULL) {
+		res = Resource::Create(this);
+		res->Load(url);
+		res->IncRefCount();
+		Lock();
+		mResources.insert(mResources.end(), res);
+		Unlock();
+		res->Start(false);
 	}
-	Unlock();
 
-	return pResource;
+	return res;
 }
 
 bool ResourceManager::RemoveResource(const string &url)
 {
 	Resource *res = NULL;
-	bool ret = false;
 
-	Lock();
 	res = FindResource(url);
-	Unlock();
 	if (res) {
 		if (!threadPool->removeTask(res))
 			res->Cancel();
 
-		RemoveResource(res);
-		res->DecRefCount();
+		this->ResDecRef(res);
 
-		ret = true;
+		RemoveResource(res);
+
+		return true;
 	}
 
-	return ret;
+	return false;
 }
 
 Resource* ResourceManager::FindResource(const string &url)
 {
-	Resource* pRet = NULL;
+	Resource *res = NULL;
 	list<Resource*>::iterator it;
 
+	Lock();
 	for (it = mResources.begin(); (it != mResources.end()); it++) {
-		pRet = (*it);
+		res = *it;
 
-		if (pRet->GetName() == url) {
-			pRet->UpdateTime();
-
-			return  pRet;
+		if (res->GetName() == url) {
+			res->UpdateTime();
+			break;
 		}
+		res = NULL;
 	}
 
-	return NULL;
+	Unlock();
+
+	return res;
 }
 
 void ResourceManager::MemoryInc(size_t size)
@@ -248,28 +243,20 @@ void ResourceManager::MemoryDec(size_t size)
 void ResourceManager::RemoveResource(Resource* res)
 {
 	Lock();
-
-	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end(); it++) {
-		if (*it == res) {
-			mResources.erase(it++);
-			res->DecRefCount();
-			break;
-		}
-	}
-
+	mResources.remove(res);
 	Unlock();
+
+	res->DecRefCount();
 }
 
 void ResourceManager::Clear()
 {
 	Lock();
 
-	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end();) {
-		Resource* pRet = (*it);
+	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end(); it++)
+		(*it)->DecRefCount();
 
-		mResources.erase(it++);
-		pRet->DecRefCount();
-	}
+	mResources.clear();
 
 	Unlock();
 }
@@ -283,23 +270,18 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	bool ret = true;
 
-	Lock();
-
-	if (UseMemory + memsize <= MaxMemory) {
-		Unlock();
-
+	if (UseMemory + memsize <= MaxMemory)
 		return ret;
-	}
 
 	mResources.sort(compare_resource);
 
 	list<Resource*>::iterator it;
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
-		Resource* pRet = (*it);
+		Resource* &res = *it;
 
-		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
+		if (res->GetRefCount() == 1 && res->GetStatus() == Task::StatusFinish) {// 无人使用
 			mResources.erase(it++);
-			pRet->DecRefCount();
+			res->DecRefCount();
 		}
 		else
 			it++;

@@ -156,7 +156,8 @@ void ThreadPool::handleTask()
 			this->_tasksList.pop_front();
 			mutex.unlock();
 			this->_condvar.unlock();
-			(*task)();
+			if (task)
+				(*task)();
 		}
 	}
 }

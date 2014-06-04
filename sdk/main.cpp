@@ -254,7 +254,7 @@ void test_video(const char *menuName)
 
 	kola.UpdateMenu();
 	m = kola.GetMenu(menuName);
-	m->PictureCacheType = PIC_DISABLE;
+	//m->PictureCacheType = PIC_DISABLE;
 
 	if (m == NULL)
 		return;
@@ -293,6 +293,8 @@ void test_video(const char *menuName)
 		if (album == NULL)
 			continue;
 
+		printf("[%d]: albumName: %s[%s]\n",
+			i, album->albumName.c_str(), album->vid.c_str());
 #if 0
 		StringList sources;
 		album->GetSource(sources); // 获取节目的节目来源列表
@@ -300,13 +302,14 @@ void test_video(const char *menuName)
 		album->SetSource("爱奇艺");
 #endif
 
+#if 0
 		size_t video_count = album->GetVideoCount();
 		printf("[%d]: albumName: %s[%s], PlayNum:%ld, VideoCount: %ld, TotalCount: %ld\n",
 		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet());
-
+#endif
 #if 0
 		if (album->GetPictureFile(picture, PIC_LARGE) == true) {
-			picture.Wait();
+//			picture.Wait();
 			if (picture.isCached()) {
 				printf("[%d] %s: size=%ld\n", i,
 				       picture.GetName().c_str(),
@@ -484,8 +487,8 @@ int main(int argc, char **argv)
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;
-//	printf("Test Video\n"); test_video("电影"); return 0;
-	printf("Test TV\n");    test_video("电视剧"); return 0;
+	printf("Test Video\n"); test_video("电影"); return 0;
+//	printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");
 	//test_task();

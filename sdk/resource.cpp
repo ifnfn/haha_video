@@ -56,6 +56,7 @@ void Resource::Cancel()
 
 void Resource::Run(void)
 {
+#if 1
 	manager->ResIncRef(this);
 
 	if (http.Get(resName.c_str()) != NULL) {
@@ -74,6 +75,7 @@ void Resource::Run(void)
 	}
 
 	manager->ResDecRef(this);
+#endif
 }
 
 string Resource::ToString()
@@ -180,7 +182,8 @@ Resource* ResourceManager::GetResource(const string &url)
 	if (res == NULL) {
 		res = Resource::Create(this);
 		res->Load(url);
-		res->IncRefCount();
+		this->ResIncRef(res);
+
 		Lock();
 		mResources.insert(mResources.end(), res);
 		Unlock();
@@ -196,12 +199,9 @@ bool ResourceManager::RemoveResource(const string &url)
 
 	res = FindResource(url);
 	if (res) {
-		if (!threadPool->removeTask(res))
-			res->Cancel();
-
-		this->ResDecRef(res);
-
+		threadPool->removeTask(res);
 		RemoveResource(res);
+		this->ResDecRef(res);
 
 		return true;
 	}

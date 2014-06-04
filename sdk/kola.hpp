@@ -88,6 +88,7 @@ public:
 	};
 	Task(ThreadPool *pool=NULL);
 	virtual ~Task();
+	virtual void PrepareRun(void) {};
 	virtual void Run(void) = 0;
 	virtual void operator()();
 	int  GetStatus() {return status; }

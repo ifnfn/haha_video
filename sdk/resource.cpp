@@ -9,6 +9,7 @@ Resource::Resource(ResourceManager *manage)
 {
 	manager = manage;
 	miDataSize = 0;
+	overdue = false;
 	UpdateTime();
 	SetPool(manager->threadPool);
 }
@@ -18,7 +19,7 @@ Resource::~Resource()
 	if (manager && miDataSize > 0)
 		manager->MemoryDec(miDataSize);
 
-	printf("Remove %s -> %s\n", md5Name.c_str(), resName.c_str());
+	printf("Remove (%p) %s -> %s\n", this, md5Name.c_str(), resName.c_str());
 	unlink(md5Name.c_str());
 }
 
@@ -54,10 +55,15 @@ void Resource::Cancel()
 	}
 }
 
+void Resource::PrepareRun(void)
+{
+	manager->ResIncRef(this);
+}
+
 void Resource::Run(void)
 {
 #if 1
-	manager->ResIncRef(this);
+//	manager->ResIncRef(this);
 
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
@@ -202,7 +208,8 @@ bool ResourceManager::RemoveResource(const string &url)
 	res = FindResource(url);
 	if (res) {
 		threadPool->removeTask(res);
-		RemoveResource(res);
+		res->overdue = true;
+
 		this->ResDecRef(res);
 
 		return true;
@@ -232,6 +239,15 @@ Resource* ResourceManager::FindResource(const string &url)
 	return res;
 }
 
+void ResourceManager::RemoveResource(Resource* res)
+{
+	Lock();
+	mResources.remove(res);
+	Unlock();
+
+	res->DecRefCount();
+}
+
 void ResourceManager::MemoryInc(size_t size)
 {
 	UseMemory += size;
@@ -240,15 +256,6 @@ void ResourceManager::MemoryInc(size_t size)
 void ResourceManager::MemoryDec(size_t size)
 {
 	UseMemory -= size;
-}
-
-void ResourceManager::RemoveResource(Resource* res)
-{
-	Lock();
-	mResources.remove(res);
-	Unlock();
-
-	res->DecRefCount();
 }
 
 void ResourceManager::Clear()
@@ -271,14 +278,30 @@ static bool compare_resource(const Resource* first, const Resource* second)
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	bool ret = true;
+	list<Resource*>::iterator it;
 
+	Lock();
+	// 删除所过期的
+	for (it = mResources.begin(); it != mResources.end();) {
+		Resource* res = *it;
+
+		// 无人使用
+		if (res->GetRefCount() == 1 && res->overdue && res->GetStatus() == Task::StatusFinish) {
+			mResources.erase(it++);
+			res->DecRefCount();
+			delete res;
+		}
+		else
+			it++;
+	}
+
+	Unlock();
 	if (UseMemory + memsize <= MaxMemory)
 		return ret;
 
 	Lock();
 	mResources.sort(compare_resource);
 
-	list<Resource*>::iterator it;
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		Resource* &res = *it;
 

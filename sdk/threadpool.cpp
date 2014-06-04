@@ -129,7 +129,7 @@ bool ThreadPool::removeTask(Task *task)
 		for (deque<Task*>::iterator it = _tasksList.begin(); it != _tasksList.end(); it++) {
 			if (*it == task) {
 				_tasksList.erase(it);
-				pr_debug("cur_queue_size = %d\n", taskList.size());
+				pr_debug("cur_queue_size = %ld\n", _tasksList.size());
 				ret = true;
 				break;
 			}
@@ -153,7 +153,11 @@ void ThreadPool::handleTask()
 		else {
 			mutex.lock();
 			task = this->_tasksList.front();
-			this->_tasksList.pop_front();
+			if (task) {
+				task->PrepareRun();
+				this->_tasksList.pop_front();
+			}
+
 			mutex.unlock();
 			this->_condvar.unlock();
 			if (task)

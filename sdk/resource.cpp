@@ -9,7 +9,6 @@ Resource::Resource(ResourceManager *manage)
 {
 	manager = manage;
 	miDataSize = 0;
-	overdue = false;
 	UpdateTime();
 	SetPool(manager->threadPool);
 }
@@ -207,7 +206,6 @@ bool ResourceManager::RemoveResource(const string &url)
 
 		if (res->GetRefCount() == 1) {
 			threadPool->removeTask(res);
-			res->overdue = true;
 		}
 
 		return true;
@@ -278,22 +276,6 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	bool ret = true;
 	list<Resource*>::iterator it;
 
-	Lock();
-	// 删除所过期的
-	for (it = mResources.begin(); it != mResources.end();) {
-		Resource* res = *it;
-
-		// 无人使用
-		if (res->GetRefCount() == 1 && res->overdue && res->GetStatus() == Task::StatusFinish) {
-			mResources.erase(it++);
-			res->DecRefCount();
-			delete res;
-		}
-		else
-			it++;
-	}
-
-	Unlock();
 	if (UseMemory + memsize <= MaxMemory)
 		return ret;
 

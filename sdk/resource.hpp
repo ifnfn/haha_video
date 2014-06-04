@@ -11,17 +11,28 @@
 
 class ResourceManager;
 
+class IDestructable {
+public:
+	virtual void Destroy() = 0;
+};
+
 class RefCountable {
 public:
 	virtual int IncRefCount() {  return ++miRefCount; }
 	virtual int DecRefCount() {
 		miRefCount--;
 		int iRet = miRefCount;
+		if (miRefCount == 0) {
+			OnRefCountZero();
+		}
 
 		return iRet;
 	}
 	virtual int GetRefCount() const {
 		return miRefCount;
+	}
+	virtual void OnRefCountZero() {
+		(dynamic_cast<IDestructable*>(this))->Destroy();
 	}
 protected:
 	RefCountable(): miRefCount(1) { }
@@ -30,12 +41,15 @@ protected:
 	int miRefCount;
 };
 
-class Resource: public virtual RefCountable, public Task {
+class Resource: public virtual RefCountable, public virtual IDestructable, public Task {
 public:
-	virtual ~Resource();
 	static Resource* Create(ResourceManager *manage) {
 		return dynamic_cast<Resource*>(new Resource(manage));
 	}
+	virtual void Destroy() {
+		delete dynamic_cast<Resource*>(this);
+	}
+
 	void Load(const string &url);
 	virtual void Run(void);
 
@@ -50,9 +64,9 @@ public:
 	}
 
 	time_t updateTime;
-	bool overdue;
 protected:
 	Resource(ResourceManager *manage=NULL);
+	virtual ~Resource();
 	size_t miDataSize;
 	string resName;
 	string md5Name;

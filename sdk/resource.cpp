@@ -160,7 +160,7 @@ ResourceManager::~ResourceManager()
 	Lock();
 	for (it = mResources.begin(); it != mResources.end(); it++) {
 		Resource* pRes = *it;
-		pRes->DecRefCountx();
+		pRes->DecRefCount();
 	}
 	mResources.clear();
 	Unlock();
@@ -188,9 +188,9 @@ Resource* ResourceManager::GetResource(const string &url)
 		pResource = Resource::Create(this);
 		pResource->Load(url);
 		mResources.insert(mResources.end(), pResource);
+		pResource->IncRefCount();
 		pResource->Start(false);
 	}
-	pResource->IncRefCountx();
 	Unlock();
 
 	return pResource;
@@ -203,17 +203,16 @@ bool ResourceManager::RemoveResource(const string &url)
 
 	Lock();
 	res = FindResource(url);
+	Unlock();
 	if (res) {
 		if (!threadPool->removeTask(res))
 			res->Cancel();
 
 		RemoveResource(res);
-		res->DecRefCountx();
+		res->DecRefCount();
 
 		ret = true;
 	}
-
-	Unlock();
 
 	return ret;
 }
@@ -253,7 +252,7 @@ void ResourceManager::RemoveResource(Resource* res)
 	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end(); it++) {
 		if (*it == res) {
 			mResources.erase(it++);
-			res->DecRefCountx();
+			res->DecRefCount();
 			break;
 		}
 	}
@@ -269,7 +268,7 @@ void ResourceManager::Clear()
 		Resource* pRet = (*it);
 
 		mResources.erase(it++);
-		pRet->DecRefCountx();
+		pRet->DecRefCount();
 	}
 
 	Unlock();
@@ -300,7 +299,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 
 		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
 			mResources.erase(it++);
-			pRet->DecRefCountx();
+			pRet->DecRefCount();
 		}
 		else
 			it++;

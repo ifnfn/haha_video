@@ -18,8 +18,8 @@ public:
 
 class RefCountable {
 public:
-	virtual int IncRefCountx() {  return ++miRefCount; }
-	virtual int DecRefCountx() {
+	virtual int IncRefCount() {  return ++miRefCount; }
+	virtual int DecRefCount() {
 		miRefCount--;
 		int iRet = miRefCount;
 		if (miRefCount == 0) {
@@ -95,13 +95,13 @@ public:
 
 	void ResIncRef(Resource *res) {
 		Lock();
-		res->IncRefCountx();
+		res->IncRefCount();
 		Unlock();
 	}
 
 	void ResDecRef(Resource *res) {
 		Lock();
-		res->DecRefCountx();
+		res->DecRefCount();
 		Unlock();
 	}
 protected:

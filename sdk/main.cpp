@@ -300,8 +300,6 @@ void test_video(const char *menuName)
 		album->SetSource("爱奇艺");
 #endif
 
-		if (i == 6)
-			printf("a\n");
 		size_t video_count = album->GetVideoCount();
 		printf("[%d]: albumName: %s[%s], PlayNum:%ld, VideoCount: %ld, TotalCount: %ld\n",
 		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet());

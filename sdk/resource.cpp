@@ -204,11 +204,10 @@ bool ResourceManager::RemoveResource(const string &url)
 	Lock();
 	res = FindResource(url);
 	if (res) {
-		if (threadPool->removeTask(res))
-			RemoveResource(res);
-		else
+		if (!threadPool->removeTask(res))
 			res->Cancel();
 
+		RemoveResource(res);
 		res->DecRefCountx();
 
 		ret = true;

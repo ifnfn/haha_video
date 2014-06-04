@@ -109,7 +109,8 @@ void FileResource::Clear()
 {
 	if (res) {
 		KolaClient &kola = KolaClient::Instance();
-		kola.resManager->ResDecRef(res);
+
+		kola.resManager->RemoveResource(res->GetName());
 		res = NULL;
 	}
 }
@@ -200,9 +201,8 @@ bool ResourceManager::RemoveResource(const string &url)
 
 	res = FindResource(url);
 	if (res) {
-		if (threadPool->removeTask(res)) {
-			RemoveResource(res);
-		}
+		threadPool->removeTask(res);
+		RemoveResource(res);
 		this->ResDecRef(res);
 
 		return true;

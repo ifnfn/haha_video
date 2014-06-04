@@ -161,6 +161,76 @@ void test_picture(const char *menuName)
 {
 	KolaMenu* m = NULL;
 
+	//KolaClient &kola = KolaClient::Instance();
+	KolaClient &kola = KolaClient::Instance("000002");
+
+	kola.UpdateMenu();
+	m = kola.GetMenu(menuName);
+
+	if (m == NULL)
+		return;
+
+	m->SetQuickFilter("热门电影");
+	//m->SetQuickFilter("推荐电影");
+	int nPerPageCount=10;
+	//m->PictureCacheType = PIC_DISABLE;
+	m->PictureCacheType = PIC_LARGE_VER;
+	m->SetPageSize(nPerPageCount);
+	size_t count = m->GetAlbumCount();
+	printf("%ld album in menu!\n", m->GetAlbumCount());
+	int i=0;
+	vector<KolaAlbum*> vAlbum;
+	KolaAlbum *album=NULL;
+	while(1){
+		album = m->GetAlbum(i++);
+		FileResource picture;
+		if(NULL==album)
+		{
+			printf("album is null\n");
+			continue;
+		}else{
+			if(vAlbum.size()>=nPerPageCount){
+				m->PictureCacheType = PIC_LARGE_VER;
+				vAlbum.clear();
+				continue;
+			}else{
+				vAlbum.push_back(album);
+				if(vAlbum.size()==nPerPageCount)
+				{
+					int nSleepCount=30;//1s=50*20 
+					while(nSleepCount--){
+						for(int j=0;j<vAlbum.size();j++)
+						{
+							if (vAlbum[j]->GetPictureFile(picture, PIC_LARGE_VER) == true) {
+								if (picture.isCached()) {
+									printf("[%ld] %s: size=%ld\n", i*nPerPageCount-vAlbum.size()+j,
+											picture.GetName().c_str(),
+											picture.GetSize());
+								}
+							}
+						}
+						usleep(50000);
+					}
+				}else{
+					if(i>=count){
+						i=0;
+						int nTmp=10;
+						while(nTmp--)
+						printf("#######page is return#######\n");
+					}
+					continue;
+				}
+			}
+		}
+		//system("/dvb/meminfo.sh");
+	}
+	printf("%s End!!!\n", __func__);
+}
+
+void test_picture1(const char *menuName)
+{
+	KolaMenu* m = NULL;
+
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();

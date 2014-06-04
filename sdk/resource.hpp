@@ -37,8 +37,6 @@ public:
 		return dynamic_cast<Resource*>(new Resource(manage));
 	}
 	void Load(const string &url);
-	virtual void PrepareRun(void);
-
 	virtual void Run(void);
 
 	void Cancel();

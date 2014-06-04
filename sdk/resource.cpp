@@ -55,15 +55,10 @@ void Resource::Cancel()
 	}
 }
 
-void Resource::PrepareRun(void)
-{
-	manager->ResIncRef(this);
-}
-
 void Resource::Run(void)
 {
 #if 1
-//	manager->ResIncRef(this);
+	manager->ResIncRef(this);
 
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
@@ -189,7 +184,6 @@ Resource* ResourceManager::GetResource(const string &url)
 	if (res == NULL) {
 		res = Resource::Create(this);
 		res->Load(url);
-		this->ResIncRef(res);
 
 		Lock();
 		mResources.insert(mResources.end(), res);
@@ -198,6 +192,8 @@ Resource* ResourceManager::GetResource(const string &url)
 		res->Start(false);
 	}
 
+	if (res)
+		this->ResIncRef(res);
 	return res;
 }
 
@@ -207,10 +203,12 @@ bool ResourceManager::RemoveResource(const string &url)
 
 	res = FindResource(url);
 	if (res) {
-		threadPool->removeTask(res);
-		res->overdue = true;
-
 		this->ResDecRef(res);
+
+		if (res->GetRefCount() == 1) {
+			threadPool->removeTask(res);
+			res->overdue = true;
+		}
 
 		return true;
 	}

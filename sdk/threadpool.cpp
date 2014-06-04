@@ -153,10 +153,8 @@ void ThreadPool::handleTask()
 		else {
 			mutex.lock();
 			task = this->_tasksList.front();
-			if (task) {
-				task->PrepareRun();
+			if (task)
 				this->_tasksList.pop_front();
-			}
 
 			mutex.unlock();
 			this->_condvar.unlock();

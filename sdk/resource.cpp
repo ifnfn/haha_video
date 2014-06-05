@@ -179,39 +179,45 @@ Resource* ResourceManager::GetResource(const string &url)
 {
 	Resource *res = NULL;
 
+	Lock();
 	res = dynamic_cast<Resource*>(FindResource(url));
 	if (res == NULL) {
 		res = Resource::Create(this);
 		res->Load(url);
 
-		Lock();
 		mResources.insert(mResources.end(), res);
-		Unlock();
 
 		res->Start(false);
 	}
 
-	if (res)
-		this->ResIncRef(res);
+	res->IncRefCount();
+
+	Unlock();
+
 	return res;
 }
 
 bool ResourceManager::RemoveResource(const string &url)
 {
 	Resource *res = NULL;
+	bool ret = false;
 
+	Lock();
 	res = FindResource(url);
 	if (res) {
-		this->ResDecRef(res);
+		res->DecRefCount();
 
 		if (res->GetRefCount() == 1) {
 			threadPool->removeTask(res);
+			mResources.remove(res);
 		}
 
-		return true;
+		ret = true;
 	}
 
-	return false;
+	Unlock();
+
+	return ret;
 }
 
 Resource* ResourceManager::FindResource(const string &url)
@@ -219,7 +225,6 @@ Resource* ResourceManager::FindResource(const string &url)
 	Resource *res = NULL;
 	list<Resource*>::iterator it;
 
-	Lock();
 	for (it = mResources.begin(); (it != mResources.end()); it++) {
 		res = *it;
 
@@ -230,18 +235,7 @@ Resource* ResourceManager::FindResource(const string &url)
 		res = NULL;
 	}
 
-	Unlock();
-
 	return res;
-}
-
-void ResourceManager::RemoveResource(Resource* res)
-{
-	Lock();
-	mResources.remove(res);
-	Unlock();
-
-	res->DecRefCount();
 }
 
 void ResourceManager::MemoryInc(size_t size)
@@ -283,7 +277,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	mResources.sort(compare_resource);
 
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
-		Resource* &res = *it;
+		Resource *res = *it;
 
 		if (res->GetRefCount() == 1 && res->GetStatus() == Task::StatusFinish) {// 无人使用
 			mResources.erase(it++);

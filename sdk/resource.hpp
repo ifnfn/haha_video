@@ -104,7 +104,7 @@ protected:
 		res->DecRefCount();
 		Unlock();
 	}
-	void RemoveResource(Resource* res);
+
 	Resource* FindResource(const string &url);
 	list<Resource*> mResources;
 	size_t MaxMemory;

@@ -124,7 +124,7 @@ KolaClient::KolaClient(void)
 	thread->start();
 }
 
-bool KolaClient::InternetReady()
+bool KolaClient::KolaReady()
 {
 	string ret;
 	if (this->UrlGet("/static/info", ret)) {
@@ -133,6 +133,13 @@ bool KolaClient::InternetReady()
 	}
 
 	return false;
+}
+
+bool KolaClient::InternetReady()
+{
+	string ip = GetIP(SERVER_HOST);
+
+	return not ip.empty();
 }
 
 string KolaClient::GetServer()

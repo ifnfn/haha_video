@@ -209,7 +209,8 @@ bool ResourceManager::RemoveResource(const string &url)
 
 		if (res->GetRefCount() == 1) {
 			threadPool->removeTask(res);
-			mResources.remove(res);
+			//mResources.remove(res);
+			//res->DecRefCount();
 		}
 
 		ret = true;

@@ -551,7 +551,7 @@ int main(int argc, char **argv)
 	test_weather(kola);
 	test_update(kola);
 #endif
-//	test_picture("电影"); return 0;
+	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
 //	printf("Test LiveTV\n"); test_livetv(); return 0;
 

@@ -653,6 +653,7 @@ public:
 	time_t GetTime();
 	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
+	bool KolaReady();
 	bool InternetReady();
 	void CleanResource();
 	int debug;

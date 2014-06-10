@@ -364,7 +364,7 @@ public:
 	string Number;               // 节目号
 
 	KolaMenu *menu;
-
+	Variant EpgInfo;             // EPG
 public:
 	virtual void Parser(json_t *js);
 
@@ -377,6 +377,7 @@ public:
 	bool GetPictureFile(FileResource& picture, enum PicType type);
 	KolaVideo *GetVideo(size_t id);
 	string &GetPictureUrl(enum PicType type=PIC_AUTO);
+	KolaEpg *NewEPG() const;
 private:
 	void VideosClear();
 	bool LowVideoGetPage(size_t pageNo, size_t pageSize);
@@ -402,6 +403,7 @@ private:
 	string CurrentSource;   // 设置节目来源
 
 	int playIndex;
+	bool haveEpg;
 };
 
 class AlbumPage: public Task {

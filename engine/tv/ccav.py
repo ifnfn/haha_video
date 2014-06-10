@@ -26,7 +26,10 @@ class ParserCCTVLivetvWolidou(LivetvParser):
         albumName = js['albumName']
         if albumName[-2:] == '直播':
             albumName = albumName[:-2]
-        album  = self.NewAlbum(js['albumName'])
+
+        epgInfo = utils.GetScript('epg', 'get_channel_cntv', [albumName])
+
+        album  = self.NewAlbum(js['albumName'], epgInfo)
         if album == None:
             return
 
@@ -38,7 +41,7 @@ class ParserCCTVLivetvWolidou(LivetvParser):
         v.vid   = utils.getVidoId(playUrl)
 
         v.SetVideoUrlScript('default', 'wolidou', [playUrl])
-        v.info = utils.GetScript('wolidou', 'get_channel', [])
+        v.info = epgInfo
 
         album.videos.append(v)
         db.SaveAlbum(album)

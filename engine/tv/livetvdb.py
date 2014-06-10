@@ -92,7 +92,7 @@ class LivetvParser(KolaParser):
         self.order = PRIOR_COMMON
         self.area = ''
 
-    def NewAlbum(self, name):
+    def NewAlbum(self, name, epgInfo=None):
         album = None
         albumName = self.GetAliasName(name)
         if albumName:
@@ -106,8 +106,10 @@ class LivetvParser(KolaParser):
             album.categories  = self.tvCate.GetCategories(album.albumName)
 
             album.enAlbumName = self.tvName
+            if epgInfo:
+                album.epgInfo = epgInfo
             if self.area:
-                album.area        = self.area
+                album.area = self.area
             else:
                 album.area = self.city.GetCity(album.albumName)
 

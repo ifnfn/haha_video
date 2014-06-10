@@ -175,5 +175,5 @@ class WolidouLiveTV(LivetvMenu):
         super().__init__(name)
         self.parserClassList = [
             ParserCctvAlbumList,
-            ParserWeishiAlbumList,
+            #ParserWeishiAlbumList,
             PaserAlbumPage, WolidouBaseParser]

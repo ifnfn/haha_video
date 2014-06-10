@@ -62,6 +62,31 @@ local function jstv_url(video_url)
 end
 
 
+local function GetUrl(url)
+	local c2 = curl_init(share, url)
+	local ret = {}
+	ret.headers = {}
+
+	local text = ''
+	c2:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) text = text .. str end })
+
+	if ret.headers.Location and ret.headers.Location ~= 'http://www.wolidou.com/live.mp4' then
+		return get_video_url(ret.headers.Location)
+	end
+
+	local data_obj = cjson.decode(text)
+
+	if data_obj == nil then
+		return get_video_url(text)
+	end
+
+	if data_obj.u then
+		return get_video_url(data_obj.u)
+	elseif data_obj.wolidou then
+		return get_video_url(data_obj.wolidou)
+	end
+end
+
 local function basic_1(video_url)
 	text = kola.wget(video_url, false)
 	if text == nil then
@@ -116,16 +141,24 @@ local function sxmsp_url(video_url)
 end
 
 function get_video_url(video_url)
+	-- print(string.format("get_video_url(%s)", video_url))
 	if string.find(video_url, 'http://www.wolidou.com/c/basic_1') then
 		return basic_1(video_url)
+	elseif string.find(video_url, 'http://www.wolidou.com/c/basic_2') then
+		return GetUrl(video_url)
 	elseif string.find(video_url, 'sdsj.php') or string.find(video_url, 'dxcctv.php') or string.find(video_url, 'yu.php') then
 		return sdsj_url(video_url)
 	elseif string.find(video_url, 'sxmsp.php') or string.find(video_url, 'pptv.php') or string.find(video_url, 'moon.php') then
 		return sxmsp_url(video_url)
+	elseif string.find(video_url, 'http://www.wolidou.com/x') then
+		return GetUrl(video_url)
+
 	elseif string.find(video_url, 'jstv.com.wolidou.php') then
 		return jstv_url(video_url)
 	elseif string.find(video_url, 'rtmp://') then
 		return video_url
+	elseif string.find(video_url, 'live.mp4') then
+		return ""
 	else
 		return video_url
 	end

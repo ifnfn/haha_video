@@ -14,7 +14,7 @@ from .textv import TextLiveTV
 from .tvielivetv import ParserTVIELivetv
 from .wolidou import WolidouLiveTV
 from .wasu import WasuLiveTV
-
+from .ccav import CCTVLiveTV
 
 from .安徽 import AnHuiLiveTV
 from .北京 import BtvLiveTV
@@ -46,6 +46,7 @@ class LiveEngine(VideoEngine):
         self.parserList = []
 
         self.LiveEngines = {
+            'CCTV' : CCTVLiveTV,
             #'CuTV'  : CuLiveTV,
             'CNTV'  : CntvLiveTV,
             'Sohu'  : SohuLiveTV,

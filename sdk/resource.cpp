@@ -18,7 +18,7 @@ Resource::~Resource()
 	if (manager && miDataSize > 0)
 		manager->MemoryDec(miDataSize);
 
-	printf("Remove %s -> %s\n", md5Name.c_str(), resName.c_str());
+	printf("Remove (%p) %s -> %s\n", this, md5Name.c_str(), resName.c_str());
 	unlink(md5Name.c_str());
 }
 
@@ -56,6 +56,7 @@ void Resource::Cancel()
 
 void Resource::Run(void)
 {
+#if 1
 	manager->ResIncRef(this);
 
 	if (http.Get(resName.c_str()) != NULL) {
@@ -74,6 +75,7 @@ void Resource::Run(void)
 	}
 
 	manager->ResDecRef(this);
+#endif
 }
 
 string Resource::ToString()
@@ -107,8 +109,8 @@ void FileResource::Clear()
 {
 	if (res) {
 		KolaClient &kola = KolaClient::Instance();
-		kola.resManager->ResDecRef(res);
-//		res->DecRefCount();
+
+		kola.resManager->RemoveResource(res->GetName());
 		res = NULL;
 	}
 }
@@ -157,14 +159,8 @@ ResourceManager::ResourceManager(int thread_num, size_t memory) : MaxMemory(memo
 
 ResourceManager::~ResourceManager()
 {
-	list<Resource*>::iterator it;
-	Lock();
-	for (it = mResources.begin(); it != mResources.end(); it++) {
-		Resource* pRes = *it;
-		pRes->DecRefCountx();
-	}
-	mResources.clear();
-	Unlock();
+	Clear();
+
 	delete threadPool;
 	pthread_mutex_destroy(&lock);
 }
@@ -179,75 +175,68 @@ void ResourceManager::Unlock()
 	pthread_mutex_unlock(&lock);
 }
 
-bool ResourceManager::GetFile(FileResource& picture, const string &url)
-{
-	picture.Clear();
-	picture.GetResource(this, url);
-
-	return true;
-}
-
-Resource* ResourceManager::AddResource(const string &url)
-{
-	Resource* pResource = Resource::Create(this);
-	pResource->Load(url);
-	Lock();
-	mResources.insert(mResources.end(), pResource);
-	pResource->IncRefCountx();
-	Unlock();
-	pResource->Start(false);
-
-	return pResource;
-}
-
 Resource* ResourceManager::GetResource(const string &url)
 {
-	Resource* pResource = dynamic_cast<Resource*>(FindResource(url));
-	if (pResource == NULL)
-		pResource = AddResource(url);
+	Resource *res = NULL;
 
-	return pResource;
+	Lock();
+	res = dynamic_cast<Resource*>(FindResource(url));
+	if (res == NULL) {
+		res = Resource::Create(this);
+		res->Load(url);
+
+		mResources.insert(mResources.end(), res);
+
+		res->Start(false);
+	}
+
+	res->IncRefCount();
+
+	Unlock();
+
+	return res;
 }
 
 bool ResourceManager::RemoveResource(const string &url)
 {
-	Resource *res = FindResource(url);
-	if (res) {
-		this->ResDecRef(res);
-		if (threadPool->removeTask(res))
-			RemoveResource(res);
-		else
-			res->Cancel();
-
-		this->ResDecRef(res);
-
-		return true;
-	}
-
-	return false;
-}
-
-Resource* ResourceManager::FindResource(const string &url)
-{
-	Resource* pRet = NULL;
-	list<Resource*>::iterator it;
+	Resource *res = NULL;
+	bool ret = false;
 
 	Lock();
-	for (it = mResources.begin(); (it != mResources.end()); it++) {
-		pRet = (*it);
+	res = FindResource(url);
+	if (res) {
+		res->DecRefCount();
 
-		if (pRet->GetName() == url) {
-			pRet->UpdateTime();
-			pRet->IncRefCountx();
-			break;
+		if (res->GetRefCount() == 1) {
+			threadPool->removeTask(res);
+			//mResources.remove(res);
+			//res->DecRefCount();
 		}
 
-		pRet = NULL;
+		ret = true;
 	}
 
 	Unlock();
 
-	return pRet;
+	return ret;
+}
+
+Resource* ResourceManager::FindResource(const string &url)
+{
+	Resource *res = NULL;
+	list<Resource*>::iterator it;
+
+	for (it = mResources.begin(); (it != mResources.end()); it++) {
+		res = *it;
+
+		if (res->GetName() == url) {
+			res->UpdateTime();
+			break;
+		}
+		res = NULL;
+	}
+
+	return res;
 }
 
 void ResourceManager::MemoryInc(size_t size)
@@ -260,31 +249,14 @@ void ResourceManager::MemoryDec(size_t size)
 	UseMemory -= size;
 }
 
-void ResourceManager::RemoveResource(Resource* res)
-{
-	Lock();
-
-	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end(); it++) {
-		if (*it == res) {
-			mResources.erase(it++);
-			res->DecRefCountx();
-			break;
-		}
-	}
-
-	Unlock();
-}
-
 void ResourceManager::Clear()
 {
 	Lock();
 
-	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end();) {
-		Resource* pRet = (*it);
+	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end(); it++)
+		(*it)->DecRefCount();
 
-		mResources.erase(it++);
-		pRet->DecRefCountx();
-	}
+	mResources.clear();
 
 	Unlock();
 }
@@ -297,24 +269,20 @@ static bool compare_resource(const Resource* first, const Resource* second)
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
 	bool ret = true;
+	list<Resource*>::iterator it;
+
+	if (UseMemory + memsize <= MaxMemory)
+		return ret;
 
 	Lock();
-
-	if (UseMemory + memsize <= MaxMemory) {
-		Unlock();
-
-		return ret;
-	}
-
 	mResources.sort(compare_resource);
 
-	list<Resource*>::iterator it;
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
-		Resource* pRet = (*it);
+		Resource *res = *it;
 
-		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
+		if (res->GetRefCount() == 1 && res->GetStatus() == Task::StatusFinish) {// 无人使用
 			mResources.erase(it++);
-			pRet->DecRefCountx();
+			res->DecRefCount();
 		}
 		else
 			it++;

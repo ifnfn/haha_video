@@ -43,6 +43,8 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 			return cjson.encode(ret)
 		end
 
+
+		print(js.data.pm)
 		ret.totalSet   = js.data.pm
 		ret.updateSet  = js.data.pt
 		if tonumber(pageSize) == 0 and tonumber(pageNo) then

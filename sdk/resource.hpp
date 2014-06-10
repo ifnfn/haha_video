@@ -18,8 +18,8 @@ public:
 
 class RefCountable {
 public:
-	virtual int IncRefCountx() {  return ++miRefCount; }
-	virtual int DecRefCountx() {
+	virtual int IncRefCount() {  return ++miRefCount; }
+	virtual int DecRefCount() {
 		miRefCount--;
 		int iRet = miRefCount;
 		if (miRefCount == 0) {
@@ -80,7 +80,6 @@ public:
 	ResourceManager(int thread_num = 1, size_t memory = 1024 * 1024 * 2);
 	virtual ~ResourceManager();
 
-	bool GetFile(FileResource& picture, const string &url);
 	Resource* GetResource(const string &url);
 	bool RemoveResource(const string &url);
 
@@ -93,21 +92,19 @@ public:
 	void SetCacheSize(size_t size) {
 		MaxMemory = size;
 	}
-
+protected:
 	void ResIncRef(Resource *res) {
 		Lock();
-		res->IncRefCountx();
+		res->IncRefCount();
 		Unlock();
 	}
 
 	void ResDecRef(Resource *res) {
 		Lock();
-		res->DecRefCountx();
+		res->DecRefCount();
 		Unlock();
 	}
-protected:
-	Resource* AddResource(const string &url);
-	void RemoveResource(Resource* res);
+
 	Resource* FindResource(const string &url);
 	list<Resource*> mResources;
 	size_t MaxMemory;

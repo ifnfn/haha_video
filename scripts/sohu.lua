@@ -115,7 +115,7 @@ local function get_album_set(playlistid)
 
 	local ret = {}
 	local js = cjson.decode(text)
-	ret.total      = js.totalSets
+	ret.totalSet   = js.totalSets
 	ret.updateSet  = js.updateSets
 
 	return ret

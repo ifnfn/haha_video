@@ -155,16 +155,15 @@ public:
 	FileResource() : res(NULL) {}
 	~FileResource();
 
+	Resource *GetResource(ResourceManager *manage, const string &url);
 	string& GetName();
 	size_t GetSize();
 	bool isCached();
 	void Wait();
 	void Clear();
 private:
-	Resource *GetResource(ResourceManager *manage, const string &url);
 	Resource *res;
 	string FileName;
-	friend class ResourceManager;
 };
 
 class EPG {
@@ -654,6 +653,7 @@ public:
 	time_t GetTime();
 	bool GetInfo(KolaInfo &info);
 	void SetPicutureCacheSize(size_t size);
+	bool KolaReady();
 	bool InternetReady();
 	void CleanResource();
 	int debug;

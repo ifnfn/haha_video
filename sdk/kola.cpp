@@ -29,7 +29,7 @@
 #endif
 
 static string Serial;
-static size_t CacheSize = 1024 * 1024 * 1;
+static size_t CacheSize = 1024 * 512;
 static int    ThreadNum = 10;
 
 string GetSerial(void)
@@ -124,7 +124,7 @@ KolaClient::KolaClient(void)
 	thread->start();
 }
 
-bool KolaClient::InternetReady()
+bool KolaClient::KolaReady()
 {
 	string ret;
 	if (this->UrlGet("/static/info", ret)) {
@@ -133,6 +133,13 @@ bool KolaClient::InternetReady()
 	}
 
 	return false;
+}
+
+bool KolaClient::InternetReady()
+{
+	string ip = GetIP(SERVER_HOST);
+
+	return not ip.empty();
 }
 
 string KolaClient::GetServer()

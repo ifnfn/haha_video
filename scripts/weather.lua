@@ -1,6 +1,15 @@
 function kola_main(city)
 	local url = "http://weather.hao.360.cn/api_weather_info.php?app=hao360"
 
+	if city == '' then
+		c = kola.getarea()
+
+
+		if c then
+			city = string.format("%s-%s-%s", c.province, c.city, c.city)
+		end
+	end
+
 	if city ~= nil and city ~= '' then
 		url = kola.geturl("/city?cid=1&name=" .. city)
 		local areaCode = kola.wget(url)

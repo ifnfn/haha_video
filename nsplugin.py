@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!env python3
 # -*- coding: utf-8 -*-
 
 import os, ctypes as c, re, logging
@@ -288,6 +288,7 @@ def find_plugins(paths=None):
 		pass
 
 def main():
+	#plugin = NSPlugin("/Users/silicon/PepperFlashPlayer.plugin")
 	plugin = NSPlugin("/tmp/flashplayer")
 	stream = plugin.new()
 	print(stream)

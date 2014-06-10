@@ -109,7 +109,7 @@ class ParserCutvLivetv(LivetvParser):
 
         if station == None:
             self.cmd['step'] = 1
-            self.cmd['source'] = 'http://ugc.sun-cam.com/api/tv_live_api.php?action=tv_live'
+            self.cmd['source'] = 'http://ugc.cutv.com/api/tv_live_api.php?action=tv_live'
         elif station and id:
             self.tvName = station
 

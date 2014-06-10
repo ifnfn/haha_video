@@ -246,7 +246,8 @@ bool KolaAlbum::GetPictureFile(FileResource& picture, enum PicType type)
 		string &fileName = GetPictureUrl(type);
 
 		if (not fileName.empty()) {
-			return client->resManager->GetFile(picture, fileName);
+			picture.Clear();
+			return picture.GetResource(client->resManager, fileName) != NULL;
 		}
 	}
 

@@ -46,11 +46,11 @@ class LiveEngine(VideoEngine):
         self.parserList = []
 
         self.LiveEngines = {
-            'CuTV'  : CuLiveTV,
+            #'CuTV'  : CuLiveTV,
             'CNTV'  : CntvLiveTV,
             'Sohu'  : SohuLiveTV,
             'PPTV'  : PPtvLiveTV,
-            '华数'   : WasuLiveTV,
+            #'华数'   : WasuLiveTV,
             '黑龙江' : HeiLongJiangLiveTV,
             '浙江'  : ZheJianLiveTV,
             '安徽'  : AnHuiLiveTV,
@@ -69,6 +69,7 @@ class LiveEngine(VideoEngine):
             '湖南'  : HuNanLiveTV,
             '江苏'  : JianSuLiveTV,
             '广东'  : GuanDongnLiveTV,
+
             #'文本'  : TextLiveTV,
             #'私有'  : WolidouLiveTV,
             #'广西'  : GuangXiLiveTV,

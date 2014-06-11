@@ -79,6 +79,15 @@ private:
         sem_t semaphore;
 };
 
+class IObject {
+public:
+	IObject();
+	virtual ~IObject() {}
+	virtual void Parser(json_t *js) = 0; // 从 json_t 中解析对象
+protected:
+	IClient *client;
+};
+
 class Task {
 public:
 	enum TaskStatus {
@@ -126,6 +135,7 @@ public:
 	string GetString();
 	long GetInteger();
 	double GetDouble();
+	bool Empty();
 	virtual bool LoadFromJson(json_t *js);
 private:
 	string valueStr;
@@ -181,7 +191,7 @@ public:
 	}
 };
 
-class KolaEpg: public Task {
+class KolaEpg: public Task, public IObject {
 public:
 	KolaEpg(Variant epg);
 	virtual ~KolaEpg() {
@@ -198,7 +208,7 @@ private:
 	virtual void Run(void);
 
 	bool LoadFromText(string text);
-	bool LoadFromJson(json_t *js);
+	virtual void Parser(json_t *js); // 从 json_t 中解析对象
 
 	vector<EPG> epgList;
 	Mutex mutex;
@@ -236,7 +246,6 @@ public:
 	void GetResolution(StringList& res);
 	void SetResolution(string &res);
 	string GetVideoUrl();
-	bool Empty();
 	string defaultKey;
 	string vid;
 private:
@@ -287,15 +296,6 @@ private:
 };
 
 
-class IObject {
-public:
-	IObject();
-	virtual ~IObject() {}
-	virtual void Parser(json_t *js) = 0; // 从 json_t 中解析对象
-protected:
-	IClient *client;
-};
-
 // 视频基类
 class KolaVideo: public IObject {
 public:
@@ -317,7 +317,6 @@ public:
 	double videoScore;
 	double playLength;
 
-	bool haveEpg;
 	Variant EpgInfo;
 
 	string showName;
@@ -334,7 +333,7 @@ public:
 	string GetVideoUrl();
 	string GetSubtitle(const char *lang) {return "";}
 
-	KolaEpg *NewEPG() const;
+	KolaEpg *NewEPG();
 private:
 	string directPlayUrl;
 };
@@ -377,7 +376,7 @@ public:
 	bool GetPictureFile(FileResource& picture, enum PicType type);
 	KolaVideo *GetVideo(size_t id);
 	string &GetPictureUrl(enum PicType type=PIC_AUTO);
-	KolaEpg *NewEPG() const;
+	KolaEpg *NewEPG();
 private:
 	void VideosClear();
 	bool LowVideoGetPage(size_t pageNo, size_t pageSize);
@@ -403,7 +402,6 @@ private:
 	string CurrentSource;   // 设置节目来源
 
 	int playIndex;
-	bool haveEpg;
 };
 
 class AlbumPage: public Task {
@@ -534,6 +532,7 @@ private:
 	Thread* thread;
 	KolaVideo tmpCurrentVideo;
 	KolaVideo *curVideo;
+	Variant EpgInfo;
 
 	list<KolaAlbum> albumList;
 };

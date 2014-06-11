@@ -15,15 +15,14 @@ KolaVideo::KolaVideo() {
 	videoPlayCount = 0;
 	videoScore = 0.0;
 	playLength = 0.0;
-	haveEpg = false;
 }
 
 KolaVideo::~KolaVideo() {
 }
 
-KolaEpg *KolaVideo::NewEPG() const
+KolaEpg *KolaVideo::NewEPG()
 {
-	if (haveEpg) {
+	if (not EpgInfo.Empty()) {
 		KolaEpg *epg = new KolaEpg(EpgInfo);
 		epg->SetPool(client->threadPool);
 
@@ -58,7 +57,7 @@ void KolaVideo::Parser(json_t *js)
 	totalBytes     = (int)json_geti(js, "totalBytes", 0);
 	fps            = (int)json_geti(js, "fps"       , 0);
 
-	haveEpg = json_get_variant(js, "info", &EpgInfo);
+	json_get_variant(js, "info", &EpgInfo);
 	json_get_variant(js, "resolution", &Resolution);
 	Resolution.vid = vid;
 }

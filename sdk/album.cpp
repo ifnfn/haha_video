@@ -22,7 +22,6 @@ KolaAlbum::KolaAlbum()
 	videoPageSize = VIDEO_COUNT;
 	videoPageId = -1;
 	playIndex = 0;
-	haveEpg = false;
 }
 
 KolaAlbum::~KolaAlbum() {
@@ -153,7 +152,7 @@ void KolaAlbum::Parser(json_t *js)
 	json_get_stringlist(js, "mainActors", &mainActors);
 	json_get_stringlist(js, "directors", &directors);
 
-	haveEpg = json_get_variant(js, "epgInfo", &EpgInfo);
+	json_get_variant(js, "epgInfo", &EpgInfo);
 	sub = json_geto(js, "engine");
 	if (sub) {
 		const char *key;
@@ -215,9 +214,9 @@ KolaVideo *KolaAlbum::GetVideo(size_t id)
 	return NULL;
 }
 
-KolaEpg *KolaAlbum::NewEPG() const
+KolaEpg *KolaAlbum::NewEPG()
 {
-	if (haveEpg) {
+	if (not EpgInfo.Empty()) {
 		KolaEpg *epg = new KolaEpg(EpgInfo);
 		epg->SetPool(client->threadPool);
 

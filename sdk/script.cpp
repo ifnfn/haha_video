@@ -326,40 +326,6 @@ string ScriptCommand::Run()
 	return ret;
 }
 
-bool Variant::LoadFromJson(json_t *js)
-{
-	if (json_is_string(js)) {
-		directValue = SC_STRING;
-		valueStr = json_string_value(js);
-
-		return true;
-	}
-	else if (json_is_integer(js)) {
-		directValue = SC_INTEGER;
-		valueInt = json_integer_value(js);
-
-		return true;
-	}
-	else if (json_is_real(js)) {
-		directValue = SC_DOUBLE;
-		valueDouble = json_real_value(js);
-
-		return true;
-	}
-
-	else if (json_is_object(js)) {
-		if (ScriptCommand::LoadFromJson(js)) {
-			directValue = SC_SCRIPT;
-
-			return true;
-		}
-	}
-
-	directValue = SC_STRING;
-	json_dump_str(js, valueStr);
-
-	return false;
-}
 
 Variant::Variant(json_t *js) : ScriptCommand()
 {
@@ -367,55 +333,87 @@ Variant::Variant(json_t *js) : ScriptCommand()
 	LoadFromJson(js);
 }
 
+bool Variant::LoadFromJson(json_t *js)
+{
+	directValue = SC_NONE;
+
+	if (js == NULL)
+		return false;
+
+	switch (json_typeof(js)) {
+		case JSON_STRING:
+			directValue = SC_STRING;
+			valueStr = json_string_value(js);
+			break;
+		case JSON_INTEGER:
+			directValue = SC_INTEGER;
+			valueInt = json_integer_value(js);
+			break;
+		case JSON_REAL:
+			directValue = SC_DOUBLE;
+			valueDouble = json_real_value(js);
+			break;
+		case JSON_OBJECT:
+			if (ScriptCommand::LoadFromJson(js))
+				directValue = SC_SCRIPT;
+			else {
+				directValue = SC_STRING;
+				json_dump_str(js, valueStr);
+			}
+			break;
+		default:
+			return false;
+	}
+
+	return true;
+}
+
+bool Variant::Empty() {
+	return directValue == SC_NONE;
+}
+
 string Variant::GetString()
 {
-	if (directValue == SC_DOUBLE) {
-		char buffer[128];
-		sprintf(buffer, "%f", valueDouble);
+	switch (directValue) {
+		case SC_DOUBLE: {
+			char buffer[128];
+			sprintf(buffer, "%f", valueDouble);
 
-		return buffer;
-	}
-	else if (directValue == SC_STRING) {
-		return valueStr;
-	}
-	else if (directValue == SC_INTEGER) {
-		char buffer[32];
-		sprintf(buffer, "%ld", valueInt);
+			return buffer;
+		}
+		case SC_STRING:
+				return valueStr;
+		case SC_INTEGER: {
+			char buffer[32];
+			sprintf(buffer, "%ld", valueInt);
 
-		return buffer;
+			return buffer;
+		}
+		case SC_SCRIPT:
+				return Run();
+		default:
+			return "";
 	}
-	else if (directValue == SC_SCRIPT) {
-		return Run();
-	}
-
-	return "";
 }
 
 long Variant::GetInteger()
 {
-	if (directValue == SC_DOUBLE) {
-		return int(valueDouble);
-	}
-	else if (directValue == SC_STRING) {
-		try {
-			return atoi(valueStr.c_str());
-		}
-		catch(exception &ex) {
+	switch (directValue) {
+		case SC_DOUBLE:
+			return int(valueDouble);
+		case SC_INTEGER:
+			return valueInt;
+		case SC_SCRIPT:
+			valueStr = Run();
+		case SC_STRING:
+			try {
+				return atoi(valueStr.c_str());
+			}
+			catch(exception &ex) {
+				return 0;
+			}
+		default:
 			return 0;
-		}
-	}
-	else if (directValue == SC_INTEGER) {
-		return valueInt;
-	}
-	else if (directValue == SC_SCRIPT) {
-		string text = Run();
-		try {
-			return atoi(text.c_str());
-		}
-		catch(exception &ex) {
-			return 0;
-		}
-
 	}
 
 	return 0;
@@ -423,30 +421,21 @@ long Variant::GetInteger()
 
 double Variant::GetDouble()
 {
-	if (directValue == SC_DOUBLE) {
-		return valueDouble;
-	}
-	else if (directValue == SC_INTEGER) {
-		return valueInt;
-	}
-	else if (directValue == SC_STRING) {
-		try {
-			return atof(valueStr.c_str());
-		}
-		catch(exception &ex) {
+	switch (directValue) {
+		case SC_DOUBLE:
+			return valueDouble;
+		case SC_INTEGER:
+			return valueInt;
+		case SC_SCRIPT:
+			valueStr = Run();
+		case SC_STRING:
+			try {
+				return atof(valueStr.c_str());
+			}
+			catch(exception &ex) {
+				return 0.0;
+			}
+		default:
 			return 0.0;
-		}
 	}
-	else if (directValue == SC_SCRIPT) {
-		string text = Run();
-		try {
-			return atof(text.c_str());
-		}
-		catch(exception &ex) {
-			return 0.0;
-		}
-
-	}
-
-	return 0.0;
 }

@@ -7,11 +7,6 @@
 #include "base64.hpp"
 #include "threadpool.hpp"
 
-bool VideoResolution::Empty()
-{
-	return urls.empty();
-}
-
 void VideoResolution::Clear()
 {
 	urls.clear();
@@ -47,7 +42,7 @@ void VideoResolution::Calc()
 
 void VideoResolution::GetResolution(StringList& res)
 {
-	if (Empty())
+	if (urls.empty())
 		Calc();
 
 	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++) {
@@ -79,7 +74,7 @@ string VideoResolution::GetVideoUrl()
 	string key;
 	bool find;
 
-	if (Empty())
+	if (urls.empty())
 		Calc();
 
 	key = vid + defaultKey;
@@ -92,7 +87,7 @@ string VideoResolution::GetVideoUrl()
 		return url;
 	}
 
-	if (not Empty()) {
+	if (not urls.empty()) {
 		map<string ,Variant>::iterator it = urls.find(defaultKey);
 		if (it != urls.end()) {
 			url = it->second.GetString();

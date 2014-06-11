@@ -16,15 +16,18 @@ bool KolaEpg::LoadFromText(string text)
 	json_error_t error;
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
-	if (js)
-		ret = LoadFromJson(js);
+	if (js) {
+		Parser(js);
+		this->pool = client->threadPool;
+		ret = true;
+	}
 
 	json_delete(js);
 
 	return ret;
 }
 
-bool KolaEpg::LoadFromJson(json_t *js)
+void KolaEpg::Parser(json_t *js)
 {
 	json_t *v;
 
@@ -39,8 +42,6 @@ bool KolaEpg::LoadFromJson(json_t *js)
 		epgList.push_back(e);
 	}
 	mutex.unlock();
-
-	return true;
 }
 
 bool KolaEpg::GetCurrent(EPG &e)

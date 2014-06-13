@@ -10,7 +10,6 @@
 KolaPlayer::KolaPlayer()
 {
 	curVideo = NULL;
-	epg = NULL;
 	_condvar = new ConditionVar();
 	thread = new Thread(this, &KolaPlayer::Run);
 	thread->start();

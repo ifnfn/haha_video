@@ -83,11 +83,12 @@ end
 -- 获取节目的EPG
 function get_channel(vid)
 	local ret = {}
-	local url = string.format('http://tv.cntv.cn/index.php?action=zhibo-jiemu2&channel=%s', vid)
+	local url = string.format('http://tv.cntv.cn/index.php?action=epg-list&date=%s&channel=%s', os.date("%Y-%m-%d", kola.gettime()), vid)
 	local text = kola.wget(url, false)
 	local idx = 1
 
-	for time,title in rex.gmatch(text, '<span class="sp_1">(.*?)</span>[\\s\\S]*?&nbsp;(.*?)[</a>|</li>]') do
+	for time, title in rex.gmatch(text, '<a target="_blank" href=".*" class="p_name_a">(.*) (.*?)</a>') do
+		-- print(time, title)
 		ret[idx] = to_epg(time, title)
 
 		if idx > 1 then
@@ -96,5 +97,14 @@ function get_channel(vid)
 		idx = idx + 1
 	end
 
+	for time, title in rex.gmatch(text, '<a class="p_name" href="###">(.*) (.*?)</a>') do
+		-- print(time, title)
+		ret[idx] = to_epg(time, title)
+
+		if idx > 1 then
+			ret[idx - 1].duration = os.difftime(ret[idx].time, ret[idx - 1].time)
+		end
+		idx = idx + 1
+	end
 	return cjson.encode(ret)
 end

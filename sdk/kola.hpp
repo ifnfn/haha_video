@@ -193,9 +193,14 @@ public:
 
 class KolaEpg: public Task, public IObject {
 public:
+	KolaEpg();
 	KolaEpg(Variant epg);
 	virtual ~KolaEpg() {
 		Wait();
+	}
+
+	void Set(Variant epg) {
+		scInfo = epg;
 	}
 
 	bool GetCurrent(EPG &e);
@@ -204,13 +209,13 @@ public:
 	void Clear();
 	void Update();
 	bool UpdateFinish();
+	vector<EPG> epgList;
 private:
 	virtual void Run(void);
 
 	bool LoadFromText(string text);
 	virtual void Parser(json_t *js); // 从 json_t 中解析对象
 
-	vector<EPG> epgList;
 	Mutex mutex;
 	Variant scInfo;
 	bool finished;
@@ -522,8 +527,8 @@ public:
 	void AddAlbum(KolaAlbum album);
 	KolaEpg *GetEPG(bool sync=false);
 	KolaVideo *GetCurrentVideo();
+	KolaEpg Epg;
 protected:
-	KolaEpg *epg;
 	Mutex Lock;
 private:
 	virtual void Run();
@@ -532,7 +537,6 @@ private:
 	Thread* thread;
 	KolaVideo tmpCurrentVideo;
 	KolaVideo *curVideo;
-	Variant EpgInfo;
 
 	list<KolaAlbum> albumList;
 };

@@ -3,10 +3,17 @@
 #include "kola.hpp"
 #include "json.hpp"
 
+KolaEpg::KolaEpg() {
+	finished = false;
+	pool = client->threadPool;
+}
+
 KolaEpg::KolaEpg(Variant epg)
 {
 	finished = false;
 	scInfo = epg;
+
+	pool = client->threadPool;
 }
 
 bool KolaEpg::LoadFromText(string text)
@@ -18,7 +25,6 @@ bool KolaEpg::LoadFromText(string text)
 
 	if (js) {
 		Parser(js);
-		this->pool = client->threadPool;
 		ret = true;
 	}
 

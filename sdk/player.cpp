@@ -40,10 +40,7 @@ void KolaPlayer::Run()
 			curVideo = NULL;
 			Lock.unlock();
 
-			if (epg)
-				delete epg;
-
-			EpgInfo = album.EpgInfo;
+			Epg.Set(album.EpgInfo);
 
 			size_t video_count = album.GetVideoCount();
 			printf("[%s] %s: Video Count %ld\n", album.vid.c_str(), album.albumName.c_str(), video_count);
@@ -58,8 +55,9 @@ void KolaPlayer::Run()
 				Lock.lock();
 				tmpCurrentVideo = *video;
 				curVideo = &tmpCurrentVideo;
-				if (not curVideo->EpgInfo.Empty() && EpgInfo.Empty())
-					EpgInfo = album.EpgInfo;
+				if (not curVideo->EpgInfo.Empty())
+					Epg.Set(curVideo->EpgInfo);
+
 				Lock.unlock();
 			}
 
@@ -79,22 +77,16 @@ void KolaPlayer::AddAlbum(KolaAlbum album)
 
 KolaEpg *KolaPlayer::GetEPG(bool sync)
 {
-	KolaEpg *tmp = NULL;
+	KolaEpg *tmp = &Epg;
 
 	Lock.lock();
 
-	if (not EpgInfo.Empty()) {
-		epg = new KolaEpg(EpgInfo);
-	}
+	tmp->Update();
+	if (sync)
+		tmp->Wait();
+	if (not tmp->UpdateFinish())
+		tmp = NULL;
 
-	if (epg) {
-		if (sync) {
-			epg->Update();
-			epg->Wait();
-		}
-		if (epg->UpdateFinish())
-			tmp = epg;
-	}
 	Lock.unlock();
 
 	return tmp;

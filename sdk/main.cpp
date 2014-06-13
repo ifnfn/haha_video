@@ -75,20 +75,13 @@ void test_livetv()
 	KolaClient &kola = KolaClient::Instance();
 
 	kola.UpdateMenu();
-#if 1
+#if 0
 	for(int i=0, count=(int)kola.MenuCount(); i < count; i++) {
 		m = kola.Index(i);
 		cout << "Menu: " << m->name << endl;
 	}
 #endif
 
-#if 0
-	while (1) {
-		KolaClient &kola = KolaClient::Instance();
-		kola.UpdateMenu();
-		m = kola.GetMenu(200);
-	}
-#endif
 	m = kola.GetMenu(200);
 	if (m == NULL)
 		return;
@@ -124,12 +117,14 @@ void test_livetv()
 			if (video) {
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
-#if 0
+#if 1
 				while (1) {
-					KolaEpg *epg = video->NewEPG();
+					KolaEpg *epg = album->NewEPG();
 
 					if (epg) {
 						EPG e1, e2;
+						epg->Update();
+						epg->Wait();
 						epg->GetCurrent(e1);
 						epg->GetNext(e2);
 
@@ -144,9 +139,8 @@ void test_livetv()
 
 						epg->Clear();
 						delete epg;
-						break;
 					}
-					//break;
+					break;
 				}
 #endif
 			}

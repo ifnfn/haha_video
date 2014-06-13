@@ -154,7 +154,7 @@ class AlbumBase:
         self.weeklyPlayNum   = 0   # 每周播放次数 [*]
         self.monthlyPlayNum  = 0   # 每月播放次数 [*]
         self.totalPlayNum    = 0   # 总播放次数   [*]
-        self.Score           = 0.0 # 得分         [*]
+        self.Score           = 0.0 # 得分        [*]
         self.Number          = 0
 
         self.mainActors      = []  # [*]
@@ -162,6 +162,7 @@ class AlbumBase:
 
         self.videoListUrl    = ''
 
+        self.epgInfo         = {}
         self.sources         = {}  # 直接节目    [*]
         self.videos          = []
         self.private         = {}
@@ -225,6 +226,7 @@ class AlbumBase:
         ret['Number']          = self.Number
 
         if self.sources         : ret['sources']         = self.sources
+        if self.epgInfo         : ret['epgInfo']         = self.epgInfo
 
         #if self.videoListUrl: ret['videoListUrl']    = self.videoListUrl  # 每日指数
 
@@ -277,6 +279,7 @@ class AlbumBase:
         if 'updateTime' in json     : self.updateTime      = json['updateTime']
 
         if 'sources' in json        : self.sources         = json['sources']
+        if 'epgInfo' in json        : self.epgInfo         = json['epgInfo']
         if 'private' in json        : self.private         = json['private']
 
 # 一级分类菜单

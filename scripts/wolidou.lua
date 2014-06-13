@@ -141,7 +141,7 @@ local function sxmsp_url(video_url)
 end
 
 function get_video_url(video_url)
-	-- print(string.format("get_video_url(%s)", video_url))
+	--print(string.format("get_video_url(%s)", video_url))
 	if string.find(video_url, 'http://www.wolidou.com/c/basic_1') then
 		return basic_1(video_url)
 	elseif string.find(video_url, 'http://www.wolidou.com/c/basic_2') then
@@ -163,11 +163,3 @@ function get_video_url(video_url)
 		return video_url
 	end
 end
-
--- 获取节目的EPG
-function get_channel(video_url)
-	-- 无EPG
-	return ""
-end
-
-

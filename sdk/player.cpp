@@ -54,7 +54,7 @@ void KolaPlayer::Run()
 				Lock.lock();
 				tmpCurrentVideo = *video;
 				curVideo = &tmpCurrentVideo;
-				if (not curVideo->EpgInfo.Empty())
+				if (Epg.scInfo.Empty())
 					Epg.Set(curVideo->EpgInfo);
 
 				Lock.unlock();
@@ -81,10 +81,10 @@ KolaEpg *KolaPlayer::GetEPG(bool sync)
 
 	Lock.lock();
 
-	tmp->Update();
+	Epg.Update();
 	if (sync)
-		tmp->Wait();
-	if (not tmp->UpdateFinish())
+		Epg.Wait();
+	if (not Epg.UpdateFinish())
 		tmp = NULL;
 
 	Lock.unlock();

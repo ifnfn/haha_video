@@ -114,30 +114,24 @@ void test_livetv()
 		while (1) {
 			KolaEpg *epg = player.GetEPG();
 			if (epg) {
-				EPG e1, e2;
-
-				size_t count = (int)player.Epg.epgList.size();
-				for (int i =0;i < count; i++) {
-					e1 = player.Epg.epgList[i];
-					if (not e1.empty()) {
-						printf("\t\tCurrent:[%s] %s\n", e1.timeString.c_str(), e1.title.c_str());
-					}
-				}
+				EPG e, e1, e2;
 
 				epg->GetCurrent(e1);
 				epg->GetNext(e2);
-
-				if (not e1.empty()) {
-					printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
-				}
-
-				if (not e2.empty()) {
-					printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+				size_t count = (int)player.Epg.epgList.size();
+				for (int i =0;i < count; i++) {
+					e = player.Epg.epgList[i];
+					if (not e.empty()) {
+						if (e == e1)
+							printf("\t\t * [%s] %s\n", e.timeString.c_str(), e.title.c_str());
+						else if (e == e2)
+							printf("\t\t **[%s] %s\n", e.timeString.c_str(), e.title.c_str());
+						else
+							printf("\t\t   [%s] %s\n", e.timeString.c_str(), e.title.c_str());
+					}
 				}
 				printf("\n\n");
-
-				epg->Clear();
-				break;
+				//break;
 			}
 		}
 		sleep(4);

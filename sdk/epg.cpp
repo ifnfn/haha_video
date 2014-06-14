@@ -52,7 +52,12 @@ void KolaEpg::Parser(json_t *js)
 
 void KolaEpg::Set(Variant epg) {
 	scInfo = epg;
-	Clear();
+	mutex.lock();
+	finished = false;
+	epgList.clear();
+	status = Task::StatusInit;
+	mutex.unlock();
+	Update();
 }
 
 bool KolaEpg::GetCurrent(EPG &e)
@@ -121,17 +126,24 @@ void KolaEpg::Run(void)
 	string text = scInfo.GetString();
 
 	if (not text.empty()) {
+		mutex.lock();
+		epgList.clear();
+		mutex.unlock();
 		LoadFromText(text);
+		mutex.lock();
 		Sort();
+		mutex.unlock();
 	}
 	finished = true;
 }
 
 void KolaEpg::Update()
 {
-	if (finished == false && status == Task::StatusInit) {
+	mutex.lock();
+	if (finished == false && status == Task::StatusInit && not scInfo.Empty()) {
 		Start();
 	}
+	mutex.unlock();
 }
 
 bool KolaEpg::UpdateFinish()
@@ -146,7 +158,6 @@ void KolaEpg::Clear()
 	finished = false;
 	status = Task::StatusInit;
 	epgList.clear();
-	Update();
 	mutex.unlock();
 }
 

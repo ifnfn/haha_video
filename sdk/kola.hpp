@@ -136,6 +136,7 @@ public:
 	long GetInteger();
 	double GetDouble();
 	bool Empty();
+	void Clear();
 	virtual bool LoadFromJson(json_t *js);
 private:
 	string valueStr;
@@ -186,6 +187,11 @@ public:
 	size_t duration;
 	string title;
 	string timeString;
+	bool operator == (EPG &e) {
+
+		return startTime == e.startTime;
+	}
+
 	bool empty() {
 		return startTime == 0 && title == "" && timeString == "";
 	}
@@ -208,6 +214,7 @@ public:
 	void Update();
 	bool UpdateFinish();
 	vector<EPG> epgList;
+	Variant scInfo;
 private:
 	virtual void Run(void);
 
@@ -216,8 +223,8 @@ private:
 	void Sort();
 
 	Mutex mutex;
-	Variant scInfo;
 	bool finished;
+	time_t update_time;
 };
 
 class CacheUrl {

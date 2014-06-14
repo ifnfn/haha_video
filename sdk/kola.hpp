@@ -199,9 +199,7 @@ public:
 		Wait();
 	}
 
-	void Set(Variant epg) {
-		scInfo = epg;
-	}
+	void Set(Variant epg);
 
 	bool GetCurrent(EPG &e);
 	bool GetNext(EPG &e);

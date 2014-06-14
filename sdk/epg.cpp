@@ -50,6 +50,11 @@ void KolaEpg::Parser(json_t *js)
 	mutex.unlock();
 }
 
+void KolaEpg::Set(Variant epg) {
+	scInfo = epg;
+	Clear();
+}
+
 bool KolaEpg::GetCurrent(EPG &e)
 {
 	return Get(e, KolaClient::Instance().GetTime());

@@ -115,8 +115,15 @@ void test_livetv()
 			KolaEpg *epg = player.GetEPG();
 			if (epg) {
 				EPG e1, e2;
-				epg->Update();
-				epg->Wait();
+
+				size_t count = (int)player.Epg.epgList.size();
+				for (int i =0;i < count; i++) {
+					e1 = player.Epg.epgList[i];
+					if (not e1.empty()) {
+						printf("\t\tCurrent:[%s] %s\n", e1.timeString.c_str(), e1.title.c_str());
+					}
+				}
+
 				epg->GetCurrent(e1);
 				epg->GetNext(e2);
 

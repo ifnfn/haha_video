@@ -213,6 +213,7 @@ private:
 
 	bool LoadFromText(string text);
 	virtual void Parser(json_t *js); // 从 json_t 中解析对象
+	void Sort();
 
 	Mutex mutex;
 	Variant scInfo;

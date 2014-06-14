@@ -106,12 +106,23 @@ bool KolaEpg::Get(EPG &e, time_t t)
 	return ret;
 }
 
+bool epg_compr(EPG &e1, EPG &e2)
+{
+	return e1.startTime < e2.startTime;
+}
+
+void KolaEpg::Sort()
+{
+	sort(epgList.begin(), epgList.end(), epg_compr);
+}
+
 void KolaEpg::Run(void)
 {
 	string text = scInfo.GetString();
 
 	if (not text.empty()) {
 		LoadFromText(text);
+		Sort();
 	}
 	finished = true;
 }

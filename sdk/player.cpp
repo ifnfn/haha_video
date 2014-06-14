@@ -68,6 +68,7 @@ void KolaPlayer::Run()
 void KolaPlayer::AddAlbum(KolaAlbum album)
 {
 	_condvar->lock();
+	Epg.Clear();
 	albumList.clear();
 	albumList.push_back(album);
 	_condvar->broadcast();

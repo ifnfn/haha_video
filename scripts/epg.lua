@@ -51,3 +51,50 @@ function get_channel_cntv(albumName)
 	end
 	return cjson.encode(ret)
 end
+
+function get_channel_cutv(albumName)
+	local name_key = {}
+	name_key['深圳-都市频道'] = 'ZwxzUXr'
+	name_key['深圳-电视剧']   = '4azbkoY'
+	name_key['深圳-财经生活'] = '3vlcoxP'
+	name_key['深圳-娱乐频道'] = '1q4iPng'
+	name_key['深圳-少儿频道'] = '1SIQj6s'
+	name_key['深圳-公共频道'] = '2q76Sw2'
+
+	vid = name_key[albumName]
+
+	if not vid then
+		return '{}'
+	end
+
+	local url = string.format('http://cls.cutv.com/live/ajax/getprogrammelist2/id/%s/callback/callTslEpg', vid)
+	local text = kola.wget(url, false)
+	local ret = {}
+
+	--print(url)
+	if text then
+		text = kola.pcre("callTslEpg\\((.*)\\)", text)
+		local js = cjson.decode(text)
+
+		if js and js.list then
+			for id, ch in ipairs(js.list) do
+				local date = ch.daytime / 1000
+				if date == kola.getdate() then
+					for k,a in ipairs(ch.programme) do
+						local start_time = date + a.s / 1000
+						ret[k] = {}
+						ret[k].time_string = os.date("%H:%M", start_time)
+						ret[k].time        = start_time
+						ret[k].duration    = 0
+						ret[k].title       = a.t
+						if k > 1 then
+							ret[k-1].duration = os.difftime(ret[k].time, ret[k-1].time)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return cjson.encode(ret)
+end

@@ -1,57 +1,26 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from .wolidou import WolidouBaseParser, WolidouBaseMenu
-from kola import utils, LivetvMenu
-from .livetvdb import LivetvParser, LivetvDB
+from .wolidou import WolidouDirectParser, WolidouBaseMenu
 from .common import PRIOR_DEFTV
+from kola import utils
 
 # CCTV
-class ParserCCTVLivetvWolidou(LivetvParser):
+class CCTVLivetvWolidouParser(WolidouDirectParser):
     def __init__(self, albumName=None, url=None):
-        super().__init__()
+        super().__init__(albumName, url)
         self.tvName = 'CCTV'
         self.order = PRIOR_DEFTV
 
-        if url and albumName:
-            self.cmd['source']    = url
-            self.cmd['albumName'] = albumName
-
-            #self.cmd['cache'] = False
-            self.cmd['text'] = 'OK'
-
-    def CmdParser(self, js):
-        db = LivetvDB()
-
-        albumName = js['albumName']
-        if albumName[-2:] == '直播':
-            albumName = albumName[:-2]
-
-        epgInfo = utils.GetScript('epg', 'get_channel_cntv', [albumName])
-
-        album  = self.NewAlbum(js['albumName'], epgInfo)
-        if album == None:
-            return
-
-        v = album.NewVideo()
-        v.order = self.order
-        v.name  = self.tvName
-
-        playUrl = js['source']
-        v.vid   = utils.getVidoId(playUrl)
-
-        v.SetVideoUrlScript('default', 'wolidou', [playUrl])
-        v.info = epgInfo
-
-        album.videos.append(v)
-        db.SaveAlbum(album)
+    def NewEpgScript(self, albumName):
+        return utils.GetScript('epg', 'get_channel_cntv', [albumName])
 
 class CCTVLiveTV(WolidouBaseMenu):
     '''
     湖南省内所有电视台
     '''
     def __init__(self, name):
-        self.Parser = ParserCCTVLivetvWolidou
+        self.Parser = CCTVLivetvWolidouParser
         super().__init__(name)
         self.AlbumPage = [
             ('CCTV-1 综合',

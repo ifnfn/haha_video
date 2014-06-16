@@ -8,7 +8,6 @@ from kola import utils, LivetvMenu
 
 from .common import PRIOR_CNTV
 
-
 class ParserCntvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):
         super().__init__()

@@ -116,7 +116,7 @@ class ParserCutvLivetv(LivetvParser):
             self.cmd['step'] = 2
             self.cmd['station'] = station
             self.cmd['id'] = tv_id
-            self.cmd['source'] = 'http://ugc.sun-cam.com/api/tv_live_api.php?action=channel_prg_list&tv_id=' + utils.autostr(tv_id)
+            self.cmd['source'] = 'http://ugc.cutv.com/api/tv_live_api.php?action=channel_prg_list&tv_id=' + utils.autostr(tv_id)
 
     def CmdParser(self, js):
         if js['step'] == 1:

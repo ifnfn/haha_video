@@ -15,8 +15,8 @@ Update() {
     UpdateAlbum Qiyi
     UpdateAlbum QQ
     UpdateAlbum Sohu
-    UpdateAlbum PPtv
-    UpdateAlbum Letv
+    #UpdateAlbum PPtv
+    #UpdateAlbum Letv
 }
 
 Score() {

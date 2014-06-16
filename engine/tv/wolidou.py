@@ -9,6 +9,48 @@ from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 
 
+class WolidouDirectParser(LivetvParser):
+    def __init__(self, albumName=None, url=None):
+        super().__init__()
+        self.tvName = 'CCTV'
+        self.order = PRIOR_DEFTV
+
+        if url and albumName:
+            self.cmd['source']    = url
+            self.cmd['albumName'] = albumName
+
+            #self.cmd['cache'] = False
+            self.cmd['text'] = 'OK'
+
+    def NewEpgScript(self, albumName):
+        return None
+
+    def CmdParser(self, js):
+        db = LivetvDB()
+
+        albumName = js['albumName']
+        if albumName[-2:] == '直播':
+            albumName = albumName[:-2]
+
+        epgInfo = self.NewEpgScript(albumName)
+
+        album  = self.NewAlbum(js['albumName'], epgInfo)
+        if album == None:
+            return
+
+        v = album.NewVideo()
+        v.order = self.order
+        v.name  = self.tvName
+
+        playUrl = js['source']
+        v.vid   = utils.getVidoId(playUrl)
+
+        v.SetVideoUrlScript('default', 'wolidou', [playUrl])
+        v.info = epgInfo
+
+        album.videos.append(v)
+        db.SaveAlbum(album)
+
 class WolidouBaseParser(LivetvParser):
     def __init__(self, albumName=None, url=None):
         super().__init__()

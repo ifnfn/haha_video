@@ -110,7 +110,35 @@ void test_livetv()
 			continue;
 		size_t video_count = album->GetVideoCount();
 		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+#if 0
+		player.AddAlbum(*album);
+		while (1) {
+			KolaEpg *epg = player.GetEPG();
+			if (epg) {
+				EPG e, e1, e2;
+
+				epg->GetCurrent(e1);
+				epg->GetNext(e2);
+				size_t count = (int)player.Epg.epgList.size();
+				for (int i =0;i < count; i++) {
+					e = player.Epg.epgList[i];
+					if (not e.empty()) {
+						if (e == e1)
+							printf("\t\t * [%s] %s\n", e.timeString.c_str(), e.title.c_str());
+						else if (e == e2)
+							printf("\t\t **[%s] %s\n", e.timeString.c_str(), e.title.c_str());
+						else
+							printf("\t\t   [%s] %s\n", e.timeString.c_str(), e.title.c_str());
+					}
+				}
+				printf("\n\n");
+				//break;
+			}
+		}
+		sleep(4);
+#endif
 #if 1
+
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 			KolaVideo *video = album->GetVideo(j);

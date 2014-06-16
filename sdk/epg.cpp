@@ -3,10 +3,17 @@
 #include "kola.hpp"
 #include "json.hpp"
 
+KolaEpg::KolaEpg() {
+	finished = false;
+	pool = client->threadPool;
+}
+
 KolaEpg::KolaEpg(Variant epg)
 {
 	finished = false;
 	scInfo = epg;
+
+	pool = client->threadPool;
 }
 
 bool KolaEpg::LoadFromText(string text)
@@ -18,7 +25,6 @@ bool KolaEpg::LoadFromText(string text)
 
 	if (js) {
 		Parser(js);
-		this->pool = client->threadPool;
 		ret = true;
 	}
 
@@ -42,6 +48,16 @@ void KolaEpg::Parser(json_t *js)
 		epgList.push_back(e);
 	}
 	mutex.unlock();
+}
+
+void KolaEpg::Set(Variant epg) {
+	scInfo = epg;
+	mutex.lock();
+	finished = false;
+	epgList.clear();
+	status = Task::StatusInit;
+	mutex.unlock();
+	Update();
 }
 
 bool KolaEpg::GetCurrent(EPG &e)
@@ -95,21 +111,39 @@ bool KolaEpg::Get(EPG &e, time_t t)
 	return ret;
 }
 
+bool epg_compr(EPG &e1, EPG &e2)
+{
+	return e1.startTime < e2.startTime;
+}
+
+void KolaEpg::Sort()
+{
+	sort(epgList.begin(), epgList.end(), epg_compr);
+}
+
 void KolaEpg::Run(void)
 {
 	string text = scInfo.GetString();
 
 	if (not text.empty()) {
+		mutex.lock();
+		epgList.clear();
+		mutex.unlock();
 		LoadFromText(text);
+		mutex.lock();
+		Sort();
+		mutex.unlock();
 	}
 	finished = true;
 }
 
 void KolaEpg::Update()
 {
-	if (finished == false && status == Task::StatusInit) {
+	mutex.lock();
+	if (finished == false && status == Task::StatusInit && not scInfo.Empty()) {
 		Start();
 	}
+	mutex.unlock();
 }
 
 bool KolaEpg::UpdateFinish()
@@ -124,7 +158,6 @@ void KolaEpg::Clear()
 	finished = false;
 	status = Task::StatusInit;
 	epgList.clear();
-	Update();
 	mutex.unlock();
 }
 

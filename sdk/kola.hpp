@@ -136,6 +136,7 @@ public:
 	long GetInteger();
 	double GetDouble();
 	bool Empty();
+	void Clear();
 	virtual bool LoadFromJson(json_t *js);
 private:
 	string valueStr;
@@ -186,6 +187,12 @@ public:
 	size_t duration;
 	string title;
 	string timeString;
+	bool operator == (EPG &e) { return startTime == e.startTime;}
+	bool operator <= (EPG &e) { return startTime <= e.startTime;}
+	bool operator >= (EPG &e) { return startTime >= e.startTime;}
+	bool operator <  (EPG &e) { return startTime <  e.startTime;}
+	bool operator >  (EPG &e) { return startTime >  e.startTime;}
+
 	bool empty() {
 		return startTime == 0 && title == "" && timeString == "";
 	}
@@ -193,10 +200,13 @@ public:
 
 class KolaEpg: public Task, public IObject {
 public:
+	KolaEpg();
 	KolaEpg(Variant epg);
 	virtual ~KolaEpg() {
 		Wait();
 	}
+
+	void Set(Variant epg);
 
 	bool GetCurrent(EPG &e);
 	bool GetNext(EPG &e);
@@ -204,16 +214,18 @@ public:
 	void Clear();
 	void Update();
 	bool UpdateFinish();
+	vector<EPG> epgList;
+	Variant scInfo;
 private:
 	virtual void Run(void);
 
 	bool LoadFromText(string text);
 	virtual void Parser(json_t *js); // 从 json_t 中解析对象
+	void Sort();
 
-	vector<EPG> epgList;
 	Mutex mutex;
-	Variant scInfo;
 	bool finished;
+	time_t update_time;
 };
 
 class CacheUrl {
@@ -522,8 +534,8 @@ public:
 	void AddAlbum(KolaAlbum album);
 	KolaEpg *GetEPG(bool sync=false);
 	KolaVideo *GetCurrentVideo();
+	KolaEpg Epg;
 protected:
-	KolaEpg *epg;
 	Mutex Lock;
 private:
 	virtual void Run();
@@ -532,7 +544,6 @@ private:
 	Thread* thread;
 	KolaVideo tmpCurrentVideo;
 	KolaVideo *curVideo;
-	Variant EpgInfo;
 
 	list<KolaAlbum> albumList;
 };

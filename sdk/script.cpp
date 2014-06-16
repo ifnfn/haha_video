@@ -368,6 +368,10 @@ bool Variant::LoadFromJson(json_t *js)
 	return true;
 }
 
+void Variant::Clear() {
+	directValue = SC_NONE;
+}
+
 bool Variant::Empty() {
 	return directValue == SC_NONE;
 }

@@ -187,10 +187,11 @@ public:
 	size_t duration;
 	string title;
 	string timeString;
-	bool operator == (EPG &e) {
-
-		return startTime == e.startTime;
-	}
+	bool operator == (EPG &e) { return startTime == e.startTime;}
+	bool operator <= (EPG &e) { return startTime <= e.startTime;}
+	bool operator >= (EPG &e) { return startTime >= e.startTime;}
+	bool operator <  (EPG &e) { return startTime <  e.startTime;}
+	bool operator >  (EPG &e) { return startTime >  e.startTime;}
 
 	bool empty() {
 		return startTime == 0 && title == "" && timeString == "";

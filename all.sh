@@ -12,20 +12,24 @@ UpdateScore() {
 
 
 Update() {
-    UpdateAlbum Livetv
-    #UpdateAlbum Qiyi
-    #UpdateAlbum QQ
-    #UpdateAlbum Sohu
-    #UpdateAlbum PPtv
-    #UpdateAlbum Letv
+    UpdateAlbum Qiyi
+    UpdateAlbum QQ
+    UpdateAlbum Sohu
+    UpdateAlbum PPtv
+    UpdateAlbum Letv
 }
 
 Score() {
-    #UpdateScore Livetv
     UpdateScore Qiyi
     UpdateScore QQ
     UpdateScore Sohu
 }
 
-Update
+UpdateTV() {
+    mongo kola --eval 'db.album.remove({"cid":200}); db.videos.remove({"cid":200})'
+    UpdateAlbum Livetv
+}
+
+UpdateTV
+#Update
 #Score

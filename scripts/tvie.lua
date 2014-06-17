@@ -13,7 +13,6 @@ function get_video_url(url, id, referer)
 	--print(url)
 	local text = kola.wget(url, false)
 
-	print(text)
 	if text and text ~= "TVie Exception: No streams." then
 		local d = os.date("*t", kola.gettime())
 		local data_obj = cjson.decode(text)

@@ -5,11 +5,12 @@ import re
 
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_DEFTV
+from .common import PRIOR_DEFTV, PRIOR_UCTV
+
 from .livetvdb import LivetvParser, LivetvDB
 from .tvielivetv import ParserTVIELivetv
 from .m2oplayer import M2OLivetvParser
-
+import tornado.escape
 
 # 杭州电视台
 class ParserHangZhouLivetv(M2OLivetvParser):
@@ -55,8 +56,55 @@ class ParserZJLivetv(ParserTVIELivetv):
         }
         self.ExcludeName = ['频道109', '频道1[1,2,3]\w*', '频道[23].*']
 
+
+class ParserTVIELivetv2(LivetvParser):
+    def __init__(self, url):
+        super().__init__()
+        self.base_url = url
+        self.order = PRIOR_UCTV
+        self.area = ''
+
+        self.cmd['source'] = 'http://' + self.base_url + '/api/getChannels'
+        self.Referer = ''
+
+    def CmdParser(self, js):
+        db = LivetvDB()
+
+        jdata = tornado.escape.json_decode(js['data'])
+
+        for x in jdata['result']:
+            if 'group_names' in x and x['group_names'] == 'audio':
+                continue
+            name = ''
+            if 'name' in x: name = x['name']
+            if 'display_name' in x: name = x['display_name']
+
+            album = self.NewAlbum(name)
+            if album == None:
+                continue
+
+            v = album.NewVideo()
+            v.order = self.order
+            v.name = self.tvName
+
+            url = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
+            if self.base_url in ['api.cztv.com']:
+                url += '?domain=' + self.base_url
+
+            v.vid = utils.getVidoId(url)
+
+            v.SetVideoUrlScript('default', 'nbtv', [url, x['id'], self.Referer])
+
+            url = 'http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])
+            v.info = utils.GetScript('tvie', 'get_channel',[url, x['id']])
+
+            album.videos.append(v)
+            db.SaveAlbum(album)
+
+    def GetCategories(self, name):
+        return self.tvCate.GetCategories(name)
 # 宁波电视台
-class ParserNBLivetv(ParserTVIELivetv):
+class ParserNBLivetv(ParserTVIELivetv2):
     def __init__(self):
         super().__init__('ming-api.nbtv.cn')
         self.tvName = '宁波电视台'

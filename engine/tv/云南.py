@@ -21,6 +21,7 @@ class ParserYunNanLivetv(ParserTVIELivetv):
             '公共频道YNTV_6' : '云南-公共频道',
         }
         self.ExcludeName = ['云南卫视CDN']
+        self.Referer = 'http://store1.yntv.cn/flash-player'
 
 class YunNanLiveTV(LivetvMenu):
     '''

@@ -1,4 +1,5 @@
--- 攻取节目的播放地址
+
+-- 获取节目的播放地址
 function get_video_url(url)
 	local text = kola.wget(url, false)
 	if text then

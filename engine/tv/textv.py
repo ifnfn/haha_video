@@ -20,16 +20,20 @@ class TextLivetvParser(LivetvParser):
 
         self.cmd['text'] = 'OK'
 
+    def NewEpgScript(self, albumName):
+        return utils.GetScript('epg', 'get_channel_tvmao', [albumName])
+
     def CmdParser(self, js):
-        for name, (url, info) in self.tvs.items():
-            album  = self.NewAlbum(name)
+        for alubmName, (url, info) in self.tvs.items():
+            epgInfo = self.NewEpgScript(alubmName)
+            album  = self.NewAlbum(alubmName, epgInfo)
 
             v = album.NewVideo()
             v.order = self.order
 
             v.vid   = utils.getVidoId(url)
 
-            v.SetVideoUrl(name, url)
+            v.SetVideoUrl(alubmName, url)
 
             if info:
                 v.info = info

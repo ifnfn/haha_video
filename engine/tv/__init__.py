@@ -25,7 +25,7 @@ from .湖北 import HuBeiLiveTV
 from .江苏 import JianSuLiveTV3
 from .江西 import JianXiLiveTV
 from .吉林 import JilingLiveTV
-from .辽宁 import LiaoNingLiveTV2
+from .辽宁 import LiaoNingLiveTV
 from .上海 import SmgbbLivetv
 from .新疆 import XinJianLiveTV
 from .云南 import YunNanLiveTV
@@ -59,7 +59,7 @@ class LiveEngine(VideoEngine):
             '腾讯'  : QQLiveTV,
             '上海'  : SmgbbLivetv,
             '北京'  : BtvLiveTV,
-            '辽宁'  : LiaoNingLiveTV2,
+            '辽宁'  : LiaoNingLiveTV,
             '江西'  : JianXiLiveTV,
             '湖北'  : HuBeiLiveTV,
             '湖南'  : HuNanLiveTV,

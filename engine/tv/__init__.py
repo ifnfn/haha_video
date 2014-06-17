@@ -50,7 +50,7 @@ class LiveEngine(VideoEngine):
             #'CuTV'  : CuLiveTV,
             'CNTV'  : CntvLiveTV,
             'Sohu'  : SohuLiveTV,
-            'PPTV'  : PPtvLiveTV,
+            #'PPTV'  : PPtvLiveTV,
             #'华数'   : WasuLiveTV,
             '黑龙江' : HeiLongJiangLiveTV,
             '浙江'  : ZheJianLiveTV,

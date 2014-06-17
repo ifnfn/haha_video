@@ -3,10 +3,17 @@
 --end
 
 -- 攻取节目的播放地址
-function get_video_url(url, id)
+function get_video_url(url, id, referer)
+	local function getvideo(url)
+		if referer then
+			return string.format('%s -H "Referer: %s"', url, referer)
+		end
+		return url
+	end
 	--print(url)
 	local text = kola.wget(url, false)
 
+	print(text)
 	if text and text ~= "TVie Exception: No streams." then
 		local d = os.date("*t", kola.gettime())
 		local data_obj = cjson.decode(text)
@@ -26,7 +33,7 @@ function get_video_url(url, id)
 					break
 				end
 
-				return video_url
+				return getvideo(video_url)
 			end
 		elseif type(data_obj.streams) == "table" then
 			local channel_name = data_obj['channel_name']
@@ -41,7 +48,7 @@ function get_video_url(url, id)
 				break
 			end
 
-			return video_url
+			return getvideo(video_url)
 		end
 	end
 

@@ -31,7 +31,7 @@ class ParserHuBeiLivetv(ParserTVIELivetv):
             "长江TV"  : "湖北-长江TV",
         }
 
-        self.ExcludeName = ['.*广播', '卫视备份', '演播室.*', '湖北之声', 'CCTV-13-彩电', '网台直播', 'CCTV13']
+        self.ExcludeName = ['.*广播', '卫视备份', '演播室.*', '湖北之声', 'CCTV-13-彩电', '网台直播', 'CCTV13', '湖北场外直播', '联播湖北']
 
 class HuBeiLiveTV(LivetvMenu):
     '''

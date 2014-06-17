@@ -17,7 +17,8 @@ class ParserTVIELivetv(LivetvParser):
         self.area = ''
 
         self.cmd['source'] = 'http://' + self.base_url + '/api/getChannels'
-        
+        self.Referer = ''
+
     def CmdParser(self, js):
         db = LivetvDB()
 
@@ -44,7 +45,7 @@ class ParserTVIELivetv(LivetvParser):
 
             v.vid = utils.getVidoId(url)
 
-            v.SetVideoUrlScript('default', 'tvie', [url, x['id']])
+            v.SetVideoUrlScript('default', 'tvie', [url, x['id'], self.Referer])
 
             url = 'http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])
             v.info = utils.GetScript('tvie', 'get_channel',[url, x['id']])

@@ -22,7 +22,7 @@ from .广西 import GuangXiLiveTV
 from .河北 import HeBeiLiveTV
 from .黑龙江 import HeiLongJiangLiveTV
 from .湖北 import HuBeiLiveTV
-from .江苏 import JianSuLiveTV
+from .江苏 import JianSuLiveTV3
 from .江西 import JianXiLiveTV
 from .吉林 import JilingLiveTV
 from .辽宁 import LiaoNingLiveTV2
@@ -68,7 +68,7 @@ class LiveEngine(VideoEngine):
             '山东'  : ShangDongLiveTV,
             '香港'  : HongKongLiveTV,
             '湖南'  : HuNanLiveTV,
-            '江苏'  : JianSuLiveTV,
+            '江苏'  : JianSuLiveTV3,
             '广东'  : GuanDongLiveTV,
 
             #'文本'  : TextLiveTV,

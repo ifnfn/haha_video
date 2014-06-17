@@ -33,7 +33,6 @@ class WolidouDirectParser(LivetvParser):
             albumName = albumName[:-2]
 
         epgInfo = self.NewEpgScript(albumName)
-
         album  = self.NewAlbum(js['albumName'], epgInfo)
         if album == None:
             return

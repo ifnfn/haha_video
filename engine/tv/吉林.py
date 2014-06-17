@@ -18,10 +18,10 @@ class ParserJLntvLivetv(LivetvParser):
         self.order = PRIOR_DEFTV
 
         self.Alias = {
+            '吉林台-吉林卫视' : '吉林卫视',
             '吉林台-公共·新闻' : '吉林-公共新闻',
             '吉林台-东北戏曲' : '吉林-东北戏曲',
             '吉林台-都市频道' : '吉林-都市频道',
-            '吉林台-吉林卫视' : '吉林-吉林卫视',
             '吉林台-家有购物' : '吉林-家有购物',
             '吉林台-篮球频道' : '吉林-篮球频道',
             '吉林台-生活频道' : '吉林-生活频道',
@@ -34,6 +34,9 @@ class ParserJLntvLivetv(LivetvParser):
         self.cmd['source']  = 'http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6'
         self.cmd['regular'] = ['(<li id="T_Menu_.*</a></li>)']
 
+    def NewEpgScript(self, albumName):
+        return utils.GetScript('epg', 'get_channel_tvmao', [albumName])
+
     def CmdParser(self, js):
         db = LivetvDB()
 
@@ -41,7 +44,7 @@ class ParserJLntvLivetv(LivetvParser):
 
         for _, u, n in ch_list:
             n = '吉林台-' + n
-            album  = self.NewAlbum(n)
+            album  = self.NewAlbum(n, self.NewEpgScript(self.GetAliasName(n)))
             if album == None:
                 continue
 

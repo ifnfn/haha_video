@@ -111,25 +111,39 @@ function get_channel_tvmao(albumName)
 	name_key['江苏-学习频道'] = ''
 	name_key['江苏-好享购物'] = ''
 
-	name_key['湖南卫视'] = 'hunantv1'
+	name_key['湖南卫视']     = 'hunantv1'
+	name_key['沈阳-新闻频道'] = 'lnsy1'
+
+    --name_key['吉林-东北戏曲'] = ''
+    --name_key['吉林-家有购物'] = ''
+    name_key['吉林卫视']     = 'jilin1'
+    name_key['吉林-都市频道'] = 'jilin2'
+    name_key['吉林-生活频道'] = 'jilin3'
+    name_key['吉林-影视频道'] = 'jilin4'
+    name_key['吉林-乡村频道'] = 'jilin5'
+    name_key['吉林-公共新闻'] = 'jilin6'
+    name_key['吉林-综艺文化'] = 'jilin7'
+
+	--name_key['沈阳-经济频道'] = 'lnsy2'
+	--name_key['沈阳-公共频道'] = 'lnsy3'
+	--name_key['沈阳-生活频道'] = 'lnsy5'
 
 	vid = name_key[albumName]
 
-	if not vid then
+	if vid == nil or vid == '' then
 		return '{}'
 	end
 
 	local url = string.format('http://www.tvmao.com/epg/program.jsp?c=%s', vid)
 	local text = kola.wget(url, false)
+
 	local ret = {}
 	local idx = 1
 
 	for time,title in rex.gmatch(text, '<li><span class="[apn][mt]">(.*)</span>(.*)</li>') do
-		--print(time, title)
 		title = string.gsub(title, '<div class="tvgd".*</div>', '')
 		title = string.gsub(title, '<a title=.*</a>', '')
 		title = string.gsub(title, '<.->', '')
-		--print(time, title)
 		ret[idx] = to_epg(time, title)
 
 		if idx > 1 then

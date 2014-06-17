@@ -5,7 +5,6 @@ from kola import LivetvMenu, utils
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvDB, LivetvParser
-from bs4 import BeautifulSoup as bs
 from .wolidou import WolidouBaseParser, WolidouBaseMenu
 import re
 

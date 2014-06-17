@@ -26,9 +26,9 @@ function get_channel_cntv(albumName)
 	local vid = string.format("cctv%s", id)
 
 	local ret = {}
+	local idx = 1
 	local url = string.format('http://tv.cntv.cn/index.php?action=epg-list&date=%s&channel=%s', os.date("%Y-%m-%d", kola.gettime()), vid)
 	local text = kola.wget(url, false)
-	local idx = 1
 
 	for time, title in rex.gmatch(text, '<a target="_blank" href=".*" class="p_name_a">(.*) (.*?)</a>') do
 		-- print(time, title)
@@ -96,5 +96,44 @@ function get_channel_cutv(albumName)
 		end
 	end
 
+	return cjson.encode(ret)
+end
+
+function get_channel_tvmao(albumName)
+	local name_key = {}
+	name_key['江苏-城市频道'] = 'jstv3'
+	name_key['江苏-综艺频道'] = 'jstv2'
+	name_key['江苏-公共频道'] = 'jstv8'
+	name_key['江苏-影视频道'] = 'jstv4'
+	name_key['江苏-休闲频道'] = 'jstv6'
+	name_key['江苏-国际频道'] = 'jstv10'
+	name_key['江苏-教育频道'] = 'jstv9'
+	name_key['江苏-学习频道'] = ''
+	name_key['江苏-好享购物'] = ''
+
+	vid = name_key[albumName]
+
+	if not vid then
+		return '{}'
+	end
+
+	local url = string.format('http://www.tvmao.com/epg/program.jsp?c=%s', vid)
+	local text = kola.wget(url, false)
+	local ret = {}
+	local idx = 1
+
+	for time,title in rex.gmatch(text, '<li><span class="[apn][mt]">(.*)</span>(.*)</li>') do
+		--print(time, title)
+		title = string.gsub(title, '<div class="tvgd".*</div>', '')
+		title = string.gsub(title, '<a title=.*</a>', '')
+		title = string.gsub(title, '<.->', '')
+		--print(time, title)
+		ret[idx] = to_epg(time, title)
+
+		if idx > 1 then
+			ret[idx - 1].duration = os.difftime(ret[idx].time, ret[idx - 1].time)
+		end
+		idx = idx + 1
+	end
 	return cjson.encode(ret)
 end

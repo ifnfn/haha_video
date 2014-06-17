@@ -1,15 +1,18 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from .wolidou import WolidouBaseParser, WolidouBaseMenu
+from .wolidou import WolidouBaseMenu, WolidouDirectParser
+from kola import utils
 
 # 湖南省电视台
-class ParserHuNanLivetvWolidou(WolidouBaseParser):
-    def __init__(self, alubmName=None, url=None):
-        super().__init__(alubmName, url)
+class ParserHuNanLivetvWolidou(WolidouDirectParser):
+    def __init__(self, albumName=None, url=None):
+        super().__init__(albumName, url)
         self.tvName = '湖南电视台'
         self.area = '中国,湖南'
-        self.cmd['cache']   = False
+
+    def NewEpgScript(self, albumName):
+        return utils.GetScript('epg', 'get_channel_tvmao', [albumName])
 
 class HuNanLiveTV(WolidouBaseMenu):
     '''
@@ -20,10 +23,7 @@ class HuNanLiveTV(WolidouBaseMenu):
         super().__init__(name)
         self.AlbumPage = [
             ('湖南卫视', [
-            #'http://www.wolidou.com/tvp/204/play204_1_0.html',
-            'http://www.wolidou.com/tvp/204/play204_2_0.html',
-            'http://www.wolidou.com/tvp/204/play204_2_2.html',
-            'http://www.wolidou.com/tvp/204/play204_3_0.html',
-            #'http://www.wolidou.com/tvp/204/play204_3_3.html',
+            'http://www.wolidou.com/x/?s=jstv&f=flv&u=hntvsd',
+            'http://www.wolidou.com/x/?s=jstv&f=flv&u=hntv1"',
             ]),
         ]

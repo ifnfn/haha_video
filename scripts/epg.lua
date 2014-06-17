@@ -111,6 +111,8 @@ function get_channel_tvmao(albumName)
 	name_key['江苏-学习频道'] = ''
 	name_key['江苏-好享购物'] = ''
 
+	name_key['湖南卫视'] = 'hunantv1'
+
 	vid = name_key[albumName]
 
 	if not vid then

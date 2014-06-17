@@ -12,7 +12,7 @@ class ParserHuNanLivetvWolidou(WolidouDirectParser):
         self.area = '中国,湖南'
 
     def NewEpgScript(self, albumName):
-        return utils.GetScript('epg', 'get_channel_tvmao', [albumName])
+        return utils.GetTvmaoEpgScript(albumName)
 
 class HuNanLiveTV(WolidouBaseMenu):
     '''

@@ -99,39 +99,14 @@ function get_channel_cutv(albumName)
 	return cjson.encode(ret)
 end
 
-function get_channel_tvmao(albumName)
+function get_channel_tvmao(albumName, vid)
 	local name_key = {}
-	name_key['江苏-城市频道'] = 'jstv3'
-	name_key['江苏-综艺频道'] = 'jstv2'
-	name_key['江苏-公共频道'] = 'jstv8'
-	name_key['江苏-影视频道'] = 'jstv4'
-	name_key['江苏-休闲频道'] = 'jstv6'
-	name_key['江苏-国际频道'] = 'jstv10'
-	name_key['江苏-教育频道'] = 'jstv9'
-	name_key['江苏-学习频道'] = ''
-	name_key['江苏-好享购物'] = ''
+    name_key['河南-国际频道'] = 'hngj'
 
-	name_key['湖南卫视']     = 'hunantv1'
-	name_key['沈阳-新闻频道'] = 'lnsy1'
+	new_vid = name_key[albumName]
 
-    --name_key['吉林-东北戏曲'] = ''
-    --name_key['吉林-家有购物'] = ''
-    name_key['吉林卫视']     = 'jilin1'
-    name_key['吉林-都市频道'] = 'jilin2'
-    name_key['吉林-生活频道'] = 'jilin3'
-    name_key['吉林-影视频道'] = 'jilin4'
-    name_key['吉林-乡村频道'] = 'jilin5'
-    name_key['吉林-公共新闻'] = 'jilin6'
-    name_key['吉林-综艺文化'] = 'jilin7'
-
-	--name_key['沈阳-经济频道'] = 'lnsy2'
-	--name_key['沈阳-公共频道'] = 'lnsy3'
-	--name_key['沈阳-生活频道'] = 'lnsy5'
-
-	vid = name_key[albumName]
-
-	if vid == nil or vid == '' then
-		return '{}'
+	if new_vid then
+		vid = new_vid
 	end
 
 	local url = string.format('http://www.tvmao.com/epg/program.jsp?c=%s', vid)

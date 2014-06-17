@@ -2,6 +2,7 @@ local share = cURL.share_init()
 share:setopt_share("COOKIE")
 share:setopt_share("DNS")
 
+Cookie=''
 local function h_build_w_cb(t)
 	return function(s,len)
 		--stores the received data in the table t
@@ -9,6 +10,10 @@ local function h_build_w_cb(t)
 		name, value = s:match("(.-): (.+)")
 		if name and value then
 			t.headers[name] = value:gsub("[\n\r]", "")
+			--print(name, t.headers[name])
+			if name == 'Set-Cookie' then
+				Cookie = t.headers[name]
+			end
 		else
 			code, codemessage = string.match(s, "^HTTP/.* (%d+) (.+)$")
 			if code and codemessage then
@@ -151,8 +156,11 @@ function get_video_url(video_url)
 	elseif string.find(video_url, 'sxmsp.php') or string.find(video_url, 'pptv.php') or string.find(video_url, 'moon.php') then
 		return sxmsp_url(video_url)
 	elseif string.find(video_url, 'http://www.wolidou.com/x') then
-		return GetUrl(video_url)
-
+		local url = GetUrl(video_url)
+		if string.find(video_url, 'henan') and Cookie ~= '' then
+			url = url .. ' -H Set-Cookie: ' .. Cookie
+		end
+		return url
 	elseif string.find(video_url, 'jstv.com.wolidou.php') then
 		return jstv_url(video_url)
 	elseif string.find(video_url, 'rtmp://') then

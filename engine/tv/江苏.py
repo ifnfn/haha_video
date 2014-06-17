@@ -80,7 +80,7 @@ class JSLivetvWolidouParser(WolidouDirectParser):
         self.order = PRIOR_DEFTV
 
     def NewEpgScript(self, albumName):
-        return utils.GetScript('epg', 'get_channel_tvmao', [albumName])
+        return utils.GetTvmaoEpgScript(albumName)
 
 class JianSuLiveTV3(WolidouBaseMenu):
     '''

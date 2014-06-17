@@ -35,7 +35,7 @@ class ParserJLntvLivetv(LivetvParser):
         self.cmd['regular'] = ['(<li id="T_Menu_.*</a></li>)']
 
     def NewEpgScript(self, albumName):
-        return utils.GetScript('epg', 'get_channel_tvmao', [albumName])
+        return utils.GetTvmaoEpgScript(albumName)
 
     def CmdParser(self, js):
         db = LivetvDB()

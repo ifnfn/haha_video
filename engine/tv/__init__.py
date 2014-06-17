@@ -20,6 +20,7 @@ from .安徽 import AnHuiLiveTV
 from .北京 import BtvLiveTV
 from .广西 import GuangXiLiveTV
 from .河北 import HeBeiLiveTV
+from .河南 import HeNanLiveTV
 from .黑龙江 import HeiLongJiangLiveTV
 from .湖北 import HuBeiLiveTV
 from .江苏 import JianSuLiveTV3
@@ -47,11 +48,8 @@ class LiveEngine(VideoEngine):
 
         self.LiveEngines = {
             'CCTV' : CCTVLiveTV,
-            #'CuTV'  : CuLiveTV,
             'CNTV'  : CntvLiveTV,
             'Sohu'  : SohuLiveTV,
-            #'PPTV'  : PPtvLiveTV,
-            #'华数'   : WasuLiveTV,
             '黑龙江' : HeiLongJiangLiveTV,
             '浙江'  : ZheJianLiveTV,
             '安徽'  : AnHuiLiveTV,
@@ -64,6 +62,7 @@ class LiveEngine(VideoEngine):
             '湖北'  : HuBeiLiveTV,
             '湖南'  : HuNanLiveTV,
             '河北'  : HeBeiLiveTV,
+            '河南'   : HeNanLiveTV,
             '云南'  : YunNanLiveTV,
             '山东'  : ShangDongLiveTV,
             '香港'  : HongKongLiveTV,
@@ -71,11 +70,14 @@ class LiveEngine(VideoEngine):
             '江苏'  : JianSuLiveTV3,
             '广东'  : GuanDongLiveTV,
 
-            #'文本'  : TextLiveTV,
-            #'私有'  : WolidouLiveTV,
-            #'广西'  : GuangXiLiveTV,
+            '文本'  : TextLiveTV,
+            '广西'  : GuangXiLiveTV,
             #'新疆'  : XinJianLiveTV,
             #'Letv' : LetvLiveTV,
+            #'CuTV'  : CuLiveTV,
+            #'PPTV'  : PPtvLiveTV,
+            #'华数'   : WasuLiveTV,
+            #'私有'  : WolidouLiveTV,
         }
 
         for name, e  in self.LiveEngines.items():

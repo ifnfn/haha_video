@@ -5,7 +5,7 @@
 -- 攻取节目的播放地址
 function get_video_url(url, id, referer)
 	local function getvideo(url)
-		if referer then
+		if referer ~= nil and referer ~= '' then
 			return string.format('%s -H "Referer: %s"', url, referer)
 		end
 		return url

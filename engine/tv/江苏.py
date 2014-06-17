@@ -7,7 +7,7 @@ from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .wolidou import WolidouBaseParser, WolidouBaseMenu, WolidouDirectParser
+from .wolidou import WolidouBaseMenu, WolidouDirectParser
 
 
 # 江苏电视台
@@ -71,37 +71,6 @@ class JianSuLiveTV2(LivetvMenu):
     def __init__(self, name):
         super().__init__(name)
         self.parserClassList = [ParserJianSuLivetv]
-
-# 江苏省电视台
-class ParserHuNanLivetvWolidou(WolidouBaseParser):
-    def __init__(self, alubmName=None, url=None):
-        super().__init__(alubmName, url)
-        self.tvName = '江苏电视台'
-        self.area = '中国,江苏'
-        self.cmd['cache']   = False
-
-class JianSuLiveTV(WolidouBaseMenu):
-    '''
-    江苏省内所有电视台
-    '''
-    def __init__(self, name):
-        self.Parser = ParserHuNanLivetvWolidou
-        super().__init__(name)
-        self.AlbumPage = [
-            ('江苏卫视', ['http://www.wolidou.com/tvp/206/play206_0_0.html',
-                          'http://www.wolidou.com/tvp/206/play206_0_1.html',
-                        ]
-            ),
-            ('江苏-城市频道', 'http://www.wolidou.com/tvp/377/play377_0_0.html'),
-            ('江苏-综艺频道','http://www.wolidou.com/tvp/377/play377_0_1.html'),
-            ('江苏-公共频道','http://www.wolidou.com/tvp/377/play377_0_2.html'),
-            ('江苏-影视频道','http://www.wolidou.com/tvp/377/play377_0_3.html'),
-            ('江苏-休闲频道','http://www.wolidou.com/tvp/377/play377_0_4.html'),
-            ('江苏-国际频道','http://www.wolidou.com/tvp/377/play377_0_5.html'),
-            ('江苏-教育频道','http://www.wolidou.com/tvp/377/play377_0_6.html'),
-            ('江苏-学习频道','http://www.wolidou.com/tvp/377/play377_0_7.html'),
-            ('江苏-好享购物','http://www.wolidou.com/tvp/377/play377_0_8.html'),
-        ]
 
 
 class JSLivetvWolidouParser(WolidouDirectParser):

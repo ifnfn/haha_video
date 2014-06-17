@@ -36,6 +36,7 @@ from .湖南 import HuNanLiveTV
 from .香港 import HongKongLiveTV
 from .广东 import GuanDongLiveTV
 from .福建 import FuJianLiveTV
+from .天津 import TianjinLiveTV
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
@@ -71,9 +72,10 @@ class LiveEngine(VideoEngine):
             '江苏'  : JianSuLiveTV3,
             '广东'  : GuanDongLiveTV,
             '福建'  : FuJianLiveTV,
+            '天津'  : TianjinLiveTV,
 
             '文本'  : TextLiveTV,
-            '广西'  : GuangXiLiveTV,
+            #'广西'  : GuangXiLiveTV,
             #'新疆'  : XinJianLiveTV,
             #'Letv' : LetvLiveTV,
             #'CuTV'  : CuLiveTV,

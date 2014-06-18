@@ -15,6 +15,7 @@ from .tvielivetv import ParserTVIELivetv
 from .wolidou import WolidouLiveTV
 from .wasu import WasuLiveTV
 from .ccav import CCTVLiveTV
+from .wolidou_json import JsonLiveTV
 
 from .安徽 import AnHuiLiveTV
 from .北京 import BtvLiveTV
@@ -58,7 +59,6 @@ class LiveEngine(VideoEngine):
             '吉林'  : JilingLiveTV,
             '腾讯'  : QQLiveTV,
             '上海'  : SmgbbLivetv,
-            '北京'  : BtvLiveTV,
             '辽宁'  : LiaoNingLiveTV,
             '江西'  : JianXiLiveTV,
             '湖北'  : HuBeiLiveTV,
@@ -73,6 +73,8 @@ class LiveEngine(VideoEngine):
             '广东'  : GuanDongLiveTV,
             '福建'  : FuJianLiveTV,
             '天津'  : TianjinLiveTV,
+            #'北京'  : BtvLiveTV,
+            'JSON'  : JsonLiveTV,
 
             '文本'  : TextLiveTV,
             #'广西'  : GuangXiLiveTV,

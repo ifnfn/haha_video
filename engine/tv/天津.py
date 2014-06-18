@@ -11,7 +11,6 @@ class TianjinLivetvWolidouParser(WolidouDirectParser):
         super().__init__(albumName, url)
         self.tvName = '天津台'
         self.area = '中国,天津'
-        self.order = PRIOR_DEFTV
 
     def NewEpgScript(self, albumName):
         return utils.GetTvmaoEpgScript(albumName)

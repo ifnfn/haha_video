@@ -114,6 +114,15 @@ def GetTvmaoEpgScript(albumName):
     name_key['天津-少儿频道'] = 'TJTV8'
     name_key['天津-公共频道'] = 'TJTV9'
 
+    name_key['北京-文艺频道'] = 'BTV2'
+    name_key['北京-科教频道'] = 'BTV3'
+    name_key['北京-影视频道'] = 'BTV4'
+    name_key['北京-财经频道'] = 'BTV5'
+    name_key['北京-体育频道'] = 'BTV6'
+    name_key['北京-生活频道'] = 'BTV7'
+    name_key['北京-青年频道'] = 'BTV8'
+    name_key['北京-新闻频道'] = 'BTV9'
+
     if albumName in name_key:
         return GetScript('epg', 'get_channel_tvmao', [albumName, name_key[albumName]])
 

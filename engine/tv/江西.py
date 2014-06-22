@@ -3,10 +3,11 @@
 
 from bs4 import BeautifulSoup as bs
 
-from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
+from .livetvdb import LivetvParser, LivetvDB
+
 
 # 江西电视台
 class ParserJianXiLivetv(LivetvParser):

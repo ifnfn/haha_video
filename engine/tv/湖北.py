@@ -1,9 +1,10 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from .tvielivetv import ParserTVIELivetv
-from .common import PRIOR_DEFTV
 from kola import LivetvMenu
+
+from .common import PRIOR_DEFTV
+from .tvielivetv import ParserTVIELivetv
 
 
 # 湖北省电视台

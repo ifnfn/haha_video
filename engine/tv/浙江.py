@@ -3,14 +3,15 @@
 
 import re
 
+import tornado.escape
+
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV, PRIOR_UCTV
-
 from .livetvdb import LivetvParser, LivetvDB
-from .tvielivetv import ParserTVIELivetv
 from .m2oplayer import M2OLivetvParser
-import tornado.escape
+from .tvielivetv import ParserTVIELivetv
+
 
 # 杭州电视台
 class ParserHangZhouLivetv(M2OLivetvParser):
@@ -50,9 +51,9 @@ class ParserZJLivetv(ParserTVIELivetv):
             "频道106" : "浙江-6频道",
             "频道107" : "浙江-公共新农村",
             "频道108" : "浙江-少儿",
-            #"频道109" : "留学世界",
-            #"频道110" : "浙江国际",
-            #"频道111" : "好易购"
+            # "频道109" : "留学世界",
+            # "频道110" : "浙江国际",
+            # "频道111" : "好易购"
         }
         self.ExcludeName = ['频道109', '频道1[1,2,3]\w*', '频道[23].*']
 
@@ -96,7 +97,7 @@ class ParserTVIELivetv2(LivetvParser):
             v.SetVideoUrlScript('default', 'nbtv', [url, x['id'], self.Referer])
 
             url = 'http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])
-            v.info = utils.GetScript('tvie', 'get_channel',[url, x['id']])
+            v.info = utils.GetScript('tvie', 'get_channel', [url, x['id']])
 
             album.videos.append(v)
             db.SaveAlbum(album)
@@ -163,15 +164,15 @@ class ParserWenZhouLivetv(LivetvParser):
         ch_list = re.findall('data-source="(.*?)" data-id="(.*?)">(.*?)<i>', js['data'])
         for source, data_id, name in ch_list:
             name = '温州-' + name
-            album  = self.NewAlbum(name)
+            album = self.NewAlbum(name)
 
             v = album.NewVideo()
-            v.vid      = utils.getVidoId(js['source'] + '/' + source)
+            v.vid = utils.getVidoId(js['source'] + '/' + source)
             v.order = 2
-            v.name     = self.tvName
+            v.name = self.tvName
 
             v.SetVideoUrlScript('default', 'wztv', ['http://www.dhtv.cn/static/js/tv.js?acm', source])
-            v.info = utils.GetScript('wztv', 'get_channel',[data_id])
+            v.info = utils.GetScript('wztv', 'get_channel', [data_id])
 
             album.videos.append(v)
             db.SaveAlbum(album)

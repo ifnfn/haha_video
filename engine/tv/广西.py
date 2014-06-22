@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from xml.etree import ElementTree
-from .common import PRIOR_DEFTV
 
 from kola import utils, LivetvMenu, GetUrl
 
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 
 

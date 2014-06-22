@@ -16,7 +16,7 @@ from .letv import LetvEngine
 from .pptv import PPtvEngine
 from .qq import QQEngine
 from .sohu import SohuEngine
-from .tv import LiveEngine
+from .tv import LiveEngine, Live2Engine
 
 
 POOLSIZE = 10
@@ -30,6 +30,7 @@ class KolaEngine:
         self.UpdateAlbumFlag = False
 
         self.AddEngine(LiveEngine)
+        self.AddEngine(Live2Engine)
         self.AddEngine(QQEngine)
         self.AddEngine(QiyiEngine)
         self.AddEngine(PPtvEngine)
@@ -40,8 +41,7 @@ class KolaEngine:
     def AddEngine(self, egClass):
         self.engines.append(egClass())
 
-    def ParserHtml(self, data):
-        js = tornado.escape.json_decode(data)
+    def ParserJson(self, js):
         if (js == None) or ('data' not in js):
             db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
             db.rpush('urls', js['source'])
@@ -53,6 +53,11 @@ class KolaEngine:
                 break
 
         return True
+
+    def ParserHtml(self, data):
+        js = tornado.escape.json_decode(data)
+
+        return self.ParserJson(js)
 
     # 更新所有节目的排名数据
     def UpdateAllScore(self, engine):

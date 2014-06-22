@@ -1,8 +1,10 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from kola import GetPinYin, autostr
 import pymongo
+
+from kola import GetPinYin, autostr
+
 
 TVOrder = [
     'CCTV-1 综合',

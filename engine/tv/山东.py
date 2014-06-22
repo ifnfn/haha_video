@@ -1,15 +1,16 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re, time
+import re
+import time
+
 import tornado.escape
 
-from kola import LivetvMenu
+from kola import LivetvMenu, utils
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 from .m2oplayer import M2OLivetvParser
-from kola import utils
 
 
 # 山东电视台

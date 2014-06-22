@@ -3,12 +3,13 @@
 
 import re
 
+from bs4 import BeautifulSoup as bs, Tag
+import tornado.escape
+
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_PPTV
 from .livetvdb import LivetvParser, LivetvDB
-from bs4 import BeautifulSoup as bs, Tag
-import tornado.escape
 
 
 'http://web-play.pptv.com/web-m3u8-300162.m3u8?type=m3u8.web.pad&playback=0'

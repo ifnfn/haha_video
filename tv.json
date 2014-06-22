@@ -1,0 +1,459 @@
+[
+  {
+    "area": "中国,北京",
+    "tvName": "中央台",
+    "order": 6,
+    "channels": [
+      {
+        "name": "CCTV-1 综合",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv1",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv1",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv1"
+          ],
+          "rtmp://live.asbctv.com/livepkgr/_definst_/20asUBiNYsYoats8AbvqT0mfBclSk246JHoLj0TIibO37R3zdi14"
+        ]
+      },
+      {
+        "name": "CCTV-2 财经",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv2"
+        ]
+      },
+      {
+        "name": "CCTV-3 综艺",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv3",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv3",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv3"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-4 中文国际",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv4",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv4",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv4"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-5 体育",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv5",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv5",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv5"
+          ],
+          "http://61.55.175.79:81/youkulive/204/400/0/wolidou.com.flv"
+        ]
+      },
+      {
+        "name": "CCTV-6 电影",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv6",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv6",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv6"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-7 军事农业",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv7",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv7",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv7"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-8 电视剧",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv8",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv8",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv8"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-9 记录",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv9",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv9",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv9"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-10 科教",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv10",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv10",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv10"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-11 戏曲",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv11",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv11",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv11"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-12 社会与法",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv12",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv12",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv12"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-13 新闻",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv13",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv13",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv13"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-14 少儿",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv14",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv14",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv14"
+          ]
+        ]
+      },
+      {
+        "name": "CCTV-15 音乐",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv15",
+          [
+            "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=cctv15",
+            "http://www.wolidou.com/x/?s=alllook&f=m3u8&u=cctv15"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "area": "中国,北京",
+    "tvName": "北京台",
+    "channels": [
+      {
+        "name": "北京-文艺频道",
+        "urls": [
+          "http://www.wolidou.com/x/?s=sohu&f=flv&u=btv2",
+          "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvwy"
+        ]
+      },
+      {
+        "name": "北京-科教频道",
+        "urls": [
+          "http://www.wolidou.com/x/?s=sohu&f=flv&u=btv3",
+          "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvkj"
+        ]
+      },
+      {
+        "name": "北京-影视频道",
+        "urls": [
+          "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvys"
+        ]
+      },
+      {
+        "name": "北京-财经频道",
+        "urls": [
+          "http://www.wolidou.com/x/?s=sohu&f=flv&u=btv5",
+          "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvcj"
+        ]
+      },
+      {
+        "name": "北京-生活频道",
+        "urls": [
+          "http://61.55.175.79:81/youkulive/207/400/0/wolidou.com.flv",
+          "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvsh"
+        ]
+      },
+      {
+        "name": "北京-青年频道",
+        "urls": [
+          "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvqn",
+          "http://61.55.175.79:81/youkulive/206/400/0/wolidou.com.flv"
+        ]
+      },
+      {
+        "name": "北京-新闻频道",
+        "urls": "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvxw"
+      }
+    ]
+  },
+  {
+    "area": "中国,湖南",
+    "tvName": "湖南台",
+    "channels": [
+      {
+        "name": "湖南卫视",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=hntvsd",
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=hntv1"
+        ]
+      }
+    ]
+  },
+  {
+    "area": "中国,江苏",
+    "tvName": "江苏台",
+    "channels": [
+      {
+        "name": "江苏卫视",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvsd",
+          "http://www.wolidou.com/x/?s=moon&f=flv&u=jstv1"
+        ]
+      },
+      {
+        "name": "江苏-城市频道",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvcs"
+      },
+      {
+        "name": "江苏-综艺频道",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvzy"
+      },
+      {
+        "name": "江苏-公共频道",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgg"
+      },
+      {
+        "name": "江苏-影视频道",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvys"
+      },
+      {
+        "name": "江苏-休闲频道",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvxx"
+      },
+      {
+        "name": "江苏-国际频道",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgj"
+      },
+      {
+        "name": "江苏-教育频道",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvjy"
+      },
+      {
+        "name": "江苏-学习频道",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvlearn"
+      },
+      {
+        "name": "江苏-好享购物",
+        "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgw"
+      }
+    ]
+  },
+  {
+    "area": "中国,广东",
+    "tvName": "广东台",
+    "channels": [
+      {
+        "name": "广东-珠江频道",
+        "urls": "http://www.wolidou.com/x/?s=qq&f=flv&u=gdtvzj"
+      },
+      {
+        "name": "广东-公共频道",
+        "urls": "http://www.wolidou.com/x/?s=qq&f=flv&u=gdtvgg"
+      }
+    ]
+  },
+  {
+    "area": "中国,广东,深圳",
+    "tvName": "深圳台",
+    "channels": [
+      {
+        "name": "深圳-都市频道",
+        "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=7324394407c4d8125e3771e02cff6135"
+      },
+      {
+        "name": "深圳-电视剧",
+        "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=1e471ef1ab6b5ef3309a168acd7e8df2"
+      },
+      {
+        "name": "深圳-财经生活",
+        "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=82095635d41a182306589dcc5ea18b89"
+      },
+      {
+        "name": "深圳-娱乐频道",
+        "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=fe152fa9fddd7052663892e9a3573795"
+      },
+      {
+        "name": "深圳-少儿频道",
+        "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=f5bf2f2e18057e0851a4eaa74139ebe3"
+      },
+      {
+        "name": "深圳-公共频道",
+        "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=48554e172655812ad8c0d4c2c09204cd"
+      },
+      {
+        "name": "深圳-国际频道",
+        "urls": "rtmp://113.105.76.231/sztv_int/livestream"
+      }
+    ]
+  },
+  {
+    "area": "中国,福建",
+    "tvName": "福建台",
+    "channels": [
+      {
+        "name": "福建-综合频道",
+        "urls": "rtmp://stream1.fjtv.net:1935/live/zhpd_sd"
+      },
+      {
+        "name": "福建-公共频道",
+        "urls": "rtmp://stream1.fjtv.net:1935/live/ggpd_sd"
+      },
+      {
+        "name": "福建-新闻频道",
+        "urls": "rtmp://stream1.fjtv.net:1935/live/xwpd_sd"
+      },
+      {
+        "name": "福建-电视剧频道",
+        "urls": "rtmp://stream1.fjtv.net:1935/live/dsjpd_sd"
+      },
+      {
+        "name": "福建-都市频道",
+        "urls": "rtmp://stream1.fjtv.net:1935/live/dspd_sd"
+      },
+      {
+        "name": "福建-经济频道",
+        "urls": "rtmp://stream1.fjtv.net:1935/live/jjpd_sd"
+      },
+      {
+        "name": "福建-少儿频道",
+        "urls": "rtmp://stream1.fjtv.net:1935/live/child_sd"
+      }
+    ]
+  },
+  {
+    "area": "中国,天津",
+    "tvName": "天津台",
+    "channels": [
+      {
+        "name": "天津-新闻频道",
+        "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv111"
+      },
+      {
+        "name": "天津-文艺频道",
+        "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv2"
+      },
+      {
+        "name": "天津-影视频道",
+        "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv3"
+      },
+      {
+        "name": "天津-都市频道",
+        "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv4"
+      },
+      {
+        "name": "天津-科教频道",
+        "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv6"
+      },
+      {
+        "name": "天津-少儿频道",
+        "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv7"
+      },
+      {
+        "name": "天津-公共频道",
+        "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv8"
+      }
+    ]
+  },
+  {
+    "area": "中国,河南",
+    "tvName": "河南台",
+    "channels": [
+      {
+        "name": "河南-都市频道",
+        "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv2"
+      },
+      {
+        "name": "河南-民生频道",
+        "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv3"
+      },
+      {
+        "name": "河南-政法频道",
+        "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv4"
+      },
+      {
+        "name": "河南-电视剧频道",
+        "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv5"
+      },
+      {
+        "name": "河南-新闻频道",
+        "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv6"
+      },
+      {
+        "name": "河南-公共频道",
+        "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv8"
+      },
+      {
+        "name": "河南-新农村频道",
+        "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv9"
+      },
+      {
+        "name": "河南-国际频道",
+        "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv10"
+      }
+    ]
+  },
+  {
+    "area": "中国,香港",
+    "tvName": "香港电视台",
+    "channels": [
+      {
+        "name": "凤凰卫视-资讯台",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=fhzx",
+          "http://live.3gv.ifeng.com/zixun.m3u8",
+          "http://www.wolidou.com/x/?s=gsft&f=flv&u=fhzx"
+        ]
+      },
+      {
+        "name": "凤凰卫视-中文台",
+        "urls": [
+          "http://www.wolidou.com/x/?s=jstv&f=flv&u=fhzw",
+          "http://wolidou.gotoip3.com/if/pptv.php?u=300621",
+          "http://live.3gv.ifeng.com/zhongwen.m3u8",
+          "http://www.wolidou.com/x/?s=gsft&f=flv&u=fhzw"
+        ]
+      },
+      {
+        "name": "星空卫视",
+        "urls": [
+          "http://www.wolidou.com/x/?s=gsft&f=flv&u=hyws"
+        ]
+      },
+      {
+        "name": "香港卫视-综合台",
+        "urls": [
+          "rtmp://live.hkstv.hk.lxdns.com/live/hks"
+        ]
+      }
+    ]
+  }
+]

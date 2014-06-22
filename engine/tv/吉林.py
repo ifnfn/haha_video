@@ -4,8 +4,8 @@
 import re
 
 from kola import utils, LivetvMenu
-from .common import PRIOR_DEFTV
 
+from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
 
 

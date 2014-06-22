@@ -3,11 +3,10 @@
 
 import tornado.escape
 
-from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .wolidou import WolidouBaseMenu, WolidouDirectParser
+from .livetvdb import LivetvParser, LivetvDB
 
 
 # 江苏电视台
@@ -71,37 +70,3 @@ class JianSuLiveTV2(LivetvMenu):
     def __init__(self, name):
         super().__init__(name)
         self.parserClassList = [ParserJianSuLivetv]
-
-
-class JSLivetvWolidouParser(WolidouDirectParser):
-    def __init__(self, albumName=None, url=None):
-        super().__init__(albumName, url)
-        self.tvName = 'CCTV'
-        self.order = PRIOR_DEFTV
-
-    def NewEpgScript(self, albumName):
-        return utils.GetTvmaoEpgScript(albumName)
-
-class JianSuLiveTV3(WolidouBaseMenu):
-    '''
-    江苏省内所有电视台
-    '''
-    def __init__(self, name):
-        self.Parser = JSLivetvWolidouParser
-        super().__init__(name)
-        self.AlbumPage = [
-            ('江苏卫视', ['http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvsd',
-                         'http://www.wolidou.com/x/?s=moon&f=flv&u=jstv1',
-                ]
-            ),
-            ('江苏-城市频道', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvcs'),
-            ('江苏-综艺频道', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvzy'),
-            ('江苏-公共频道', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgg'),
-            ('江苏-影视频道', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvys'),
-            ('江苏-休闲频道', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvxx'),
-            ('江苏-国际频道', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgj'),
-            ('江苏-教育频道', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvjy'),
-            ('江苏-学习频道', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvlearn'),
-            ('江苏-好享购物', 'http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgw'),
-        ]
-

@@ -3,10 +3,10 @@
 
 from xml.etree import ElementTree
 
-from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_CUTV
+from .livetvdb import LivetvParser, LivetvDB
 
 
 class ParserCutvLivetv(LivetvParser):

@@ -1,11 +1,11 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from kola import LivetvMenu
+from kola import LivetvMenu, utils
 
-from kola import utils
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
+
 
 class TextLivetvParser(LivetvParser):
     def __init__(self):

@@ -3,10 +3,11 @@
 
 import tornado.escape
 
-from .livetvdb import LivetvParser, LivetvDB
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_CNTV
+from .livetvdb import LivetvParser, LivetvDB
+
 
 class ParserCntvLivetv(LivetvParser):
     def __init__(self, station=None, tv_id=None):

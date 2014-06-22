@@ -1,11 +1,13 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import re
+
 from kola import LivetvMenu, utils
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvDB, LivetvParser
-import re
+
 
 # 辽宁省电视台
 class LiaoningLivetvParser(LivetvParser):

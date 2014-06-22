@@ -3,6 +3,7 @@
 
 import hashlib
 import json
+import os
 import uuid
 
 from pymongo import Connection
@@ -13,6 +14,7 @@ import tornado.web
 
 import engine
 from kola import BaseHandler
+
 
 tv = engine.KolaEngine()
 
@@ -129,6 +131,29 @@ class LoginHandler(BaseHandler):
     def post(self):
         self.finish('OK')
 
+class UploadFileHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('loadtv.html')
+
+    def post(self):
+        ret = {}
+
+        try:
+            upload_path=os.path.join(os.path.dirname(__file__), 'files')  #文件的暂存路径
+
+            file_metas=self.request.files['myfile']    #提取表单中‘name’为‘file’的文件元数据
+            ret['files'] = []
+            for meta in file_metas:
+                filepath=os.path.join(upload_path,'tv.json')
+                with open(filepath,'wb') as up:      #有些文件需要已二进制的形式存储，实际中可以更改
+                    up.write(meta['body'])
+                tv.UpdateAllAlbumList('Livetv2Engine')
+                self.finish('OK')
+                break
+        except:
+            self.finish('Error!')
+            pass
+
 class EngineApplication(tornado.web.Application):
     def __init__(self):
         settings = dict(
@@ -146,6 +171,7 @@ class EngineApplication(tornado.web.Application):
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
+            (r'/upload',           UploadFileHandler),
             (r'/manage/update',    UpdateCommandHandle),
         ]
 

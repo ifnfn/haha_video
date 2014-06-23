@@ -16,9 +16,20 @@ class JsonLivetvWolidouParser(WolidouDirectParser):
         self.tvName = tvName
         self.area = area
         self.order = order
+        self.epgInfo = None
+
+    def SetEpgScript(self, epg):
+        paramList = epg.split('#')
+        if paramList:
+            func = paramList[0]
+            args = paramList[1:]
+            self.epgInfo = utils.GetScript('epg', func, args)
 
     def NewEpgScript(self, albumName):
-        return utils.GetTvmaoEpgScript(albumName)
+        if self.epgInfo:
+            return self.epgInfo
+        else:
+            return utils.GetTvmaoEpgScript(albumName)
 
 class JsonLiveTV(WolidouBaseMenu):
     def __init__(self, name):
@@ -81,10 +92,13 @@ class JsonLiveTV(WolidouBaseMenu):
                         for u in urls:
                             if type(u) == str:
                                 parser = self.Parser(order, area, tvName, albumName, u)
+                                if 'epg' in ch:
+                                    parser.SetEpgScript(ch['epg'])
+                                parser.CmdParser(parser.cmd)
                     elif type(urls) == str:
                         parser = self.Parser(order, area, tvName, albumName, urls)
-
-                    if parser:
+                        if 'epg' in ch:
+                            parser.SetEpgScript(ch['epg'])
                         parser.CmdParser(parser.cmd)
 
         except Exception as e:

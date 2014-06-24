@@ -395,7 +395,7 @@ void test_video(const char *menuName)
 		album->SetSource("爱奇艺");
 #endif
 
-#if 0
+#if 1
 		size_t video_count = album->GetVideoCount();
 		printf("[%d]: albumName: %s[%s], PlayNum:%ld, VideoCount: %ld, TotalCount: %ld\n",
 		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet());
@@ -411,7 +411,7 @@ void test_video(const char *menuName)
 			}
 		}
 #endif
-#if 0
+#if 1
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 			KolaVideo *video = album->GetVideo(j);
@@ -576,7 +576,7 @@ int main(int argc, char **argv)
 #endif
 //	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
-	printf("Test LiveTV\n"); test_livetv(); return 0;
+//	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

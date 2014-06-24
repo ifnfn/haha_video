@@ -59,6 +59,7 @@ build_py() {
 
     cp -af scripts templates static pyclib/
     scp -r pyclib root@114.215.174.227:~/kolatv
+    scp all.sh super_client.py root@114.215.174.227:~/kolatv/
 }
 
 if [ $# -le 1 ]; then

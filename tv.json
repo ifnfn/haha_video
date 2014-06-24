@@ -149,34 +149,39 @@
     "channels": [
       {
         "name": "湖南卫视",
+        "epg": "get_channel_tvmao#HUNANTV1",
         "urls": [
           "http://www.wolidou.com/x/?s=jstv&f=flv&u=hntvsd",
           "http://www.wolidou.com/x/?s=jstv&f=flv&u=hntv1"
         ]
       },
       {
-        "name": "湖南-经视",
-        "epg": "get_channel_tvmao#BTV9",
+        "name": "湖南-经视频道",
+        "epg": "get_channel_tvmao#HUNANTV1",
         "urls": "http://hlstest.imgo.tv/hva4/index_512k.m3u8"
       },
       {
-        "name": "湖南-娱乐",
+        "name": "湖南-娱乐频道",
+        "epg": "get_channel_tvmao#HUNANTV3",
         "urls": "http://hlstest.imgo.tv/hva8/index_512k.m3u8"
       },
       {
-        "name": "湖南-电视剧",
+        "name": "湖南-电视剧频道",
+        "epg": "get_channel_tvmao#HUNANTV4",
         "urls": "http://hlstest.imgo.tv/hva7/index_512k.m3u8"
       },
       {
-        "name": "湖南-公共",
+        "name": "湖南-公共频道",
+        "epg": "get_channel_tvmao#HUNANTV5",
         "urls": "http://hlstest.imgo.tv/hvb2/index_512k.m3u8"
       },
       {
-        "name": "湖南-都市",
+        "name": "湖南-都市频道",
         "urls": "http://hlstest.imgo.tv/hva6/index_512k.m3u8"
       },
       {
-        "name": "湖南-国际",
+        "name": "湖南-国际频道",
+        "epg": "get_channel_tvmao#HUNANTV7",
         "urls": "http://hlstest.imgo.tv/hva3/index_512k.m3u8"
       },
       {
@@ -200,20 +205,28 @@
         "urls": "http://hlstest.imgo.tv/hvb9/index_512k.m3u8"
       },
       {
+        "name": "金鹰卡通",
+        "urls": "http://hlstest.imgo.tv/hva2/index_512k.m3u8"
+      },
+      {
         "name": "长沙女性",
+        "epg": "get_channel_tvmao#CHANGSHAWUMON",
         "urls": "http://hlstest.imgo.tv/hva10/index_512k.m3u8"
       },
       {
         "name": "长沙政法",
+        "epg": "get_channel_tvmao#CHANGSHAWUMON2",
         "urls": "http://hlstest.imgo.tv/video11/index_512k.m3u8"
       },
       {
-        "name": "长沙新闻",
-        "urls": "http://hlstest.imgo.tv/video12/index_512k.m3u8"
+        "name": "长沙经贸",
+        "epg": "get_channel_tvmao#CHANGSHAWUMON3",
+        "urls": "http://220.169.44.38:1935/live/cstv4_800k/playlist.m3u8"
       },
       {
-        "name": "长沙经贸",
-        "urls": "http://220.169.44.38:1935/live/cstv4_800k/playlist.m3u8"
+        "name": "长沙新闻",
+        "epg": "get_channel_tvmao#CHANGSHAWUMON4",
+        "urls": "http://hlstest.imgo.tv/video12/index_512k.m3u8"
       },
       {
         "name": "先锋纪录",
@@ -222,10 +235,6 @@
       {
         "name": "快乐购",
         "urls": "http://hlstest.imgo.tv/hva9/index_512k.m3u8"
-      },
-      {
-        "name": "金鹰卡通",
-        "urls": "http://hlstest.imgo.tv/hva2/index_512k.m3u8"
       }
     ]
   },
@@ -476,6 +485,7 @@
     "channels": [
       {
         "name": "凤凰卫视-资讯台",
+        "epg" : "get_channel_tvmao#INFONEWS",
         "urls": [
           "http://www.wolidou.com/x/?s=jstv&f=flv&u=fhzx",
           "http://live.3gv.ifeng.com/zixun.m3u8",
@@ -484,6 +494,7 @@
       },
       {
         "name": "凤凰卫视-中文台",
+        "epg" : "get_channel_tvmao#PHOENIX1",
         "urls": [
           "http://www.wolidou.com/x/?s=jstv&f=flv&u=fhzw",
           "http://wolidou.gotoip3.com/if/pptv.php?u=300621",
@@ -499,6 +510,7 @@
       },
       {
         "name": "香港卫视-综合台",
+        "epg" : "get_channel_tvmao#HKSTV",
         "urls": [
           "rtmp://live.hkstv.hk.lxdns.com/live/hks"
         ]

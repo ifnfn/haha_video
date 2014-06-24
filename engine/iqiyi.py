@@ -397,7 +397,7 @@ class ParserAlbumPage(KolaParser):
     def CmdParser(self, js):
         if not js['data']: return
 
-        vlist = re.findall('(videoid|tvid|albumid)="(.*)"', js['data'])
+        vlist = re.findall('(videoid|tvid|albumid)="(.*?)"', js['data'])
         for u in vlist:
             if u[0] == 'videoid':
                 videoid = u[1]
@@ -413,7 +413,7 @@ class ParserAlbumList(KolaParser):
         if cid and page and url:
             self.cmd['baseurl'] = url
             self.cmd['source']  = url % page
-            self.cmd['regular'] = ['(<a[\s\S]*?class="pic_list imgBg1"[\s\S]*?</a>)']
+            #self.cmd['regular'] = ['(<a[\s\S]*?class="pic_list imgBg1"[\s\S]*?</a>)']
             self.cmd['cid']     = cid
             self.cmd['page']    = page
             self.cmd['cache']   = False
@@ -424,8 +424,7 @@ class ParserAlbumList(KolaParser):
         Found=False
         db = QiyiDB()
         soup = bs(js['data'])  # , from_encoding = 'GBK')
-        playlist = soup.findAll('a', { "class" : "pic_list imgBg1" })
-
+        playlist = soup.findAll('div', { "class" : "site-piclist_pic" })
         needNextPage = False
         for a in playlist:
             text = str(a)
@@ -436,7 +435,7 @@ class ParserAlbumList(KolaParser):
             vlist = re.findall('(albumid|channelid|tvid|vip|href|title)="([\s\S]*?)"', text)
             for u in vlist:
                 if u[0] == 'href':
-                    href = u[1]
+                    href = u[1].strip()
                 elif u[0] == 'albumid':
                     albumid = u[1]
                 elif u[0] == 'tvid':
@@ -559,37 +558,43 @@ class QiyiMovie(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 1
-        self.HomeUrlList = ['http://list.iqiyi.com/www/1/------------2-1-%d-1---.html']
+        #self.HomeUrlList = ['http://list.iqiyi.com/www/1/------------2-1-%d-1---.html']
+        self.HomeUrlList = ['http://list.iqiyi.com/www/1/----------0---10-%d-1-iqiyi--.html']
 
 # 电视
 class QiyiTV(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 2
-        self.HomeUrlList = ['http://list.iqiyi.com/www/2/------------2-1-%d-1---.html']
+        #self.HomeUrlList = ['http://list.iqiyi.com/www/2/------------2-1-%d-1---.html']
+        self.HomeUrlList = ['http://list.iqiyi.com/www/2/-------------10-%d-1-iqiyi--.html']
 
 # 动漫
 class QiyiComic(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 3
-        self.HomeUrlList = ['http://list.iqiyi.com/www/4/------------2-1-%d-1---.html',
-                            'http://list.iqiyi.com/www/15/------------2-1-%d-0---.html',
-                            ]
+        self.HomeUrlList = ['http://list.iqiyi.com/www/4/-------------10-%d-1-iqiyi--.html',
+                            'http://list.iqiyi.com/www/15/-------------10-%d-1-iqiyi--.html']
+        #self.HomeUrlList = ['http://list.iqiyi.com/www/4/------------2-1-%d-1---.html',
+        #                    'http://list.iqiyi.com/www/15/------------2-1-%d-0---.html',
+        #                    ]
 
 # 记录片
 class QiyiDocumentary(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 4
-        self.HomeUrlList = ['http://list.iqiyi.com/www/3/----------0--2-1-%d-1---.html']
+        self.HomeUrlList = ['http://list.iqiyi.com/www/3/----------0---10-%d----.html']
+        #self.HomeUrlList = ['http://list.iqiyi.com/www/3/----------0--2-1-%d-1---.html']
 
 # 综艺
 class QiyiShow(QiyiVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 5
-        self.HomeUrlList = ['http://list.iqiyi.com/www/6/------------2-1-%d-1---.html']
+        self.HomeUrlList = ['http://list.iqiyi.com/www/6/-------------10-%d-1-iqiyi--.html']
+        #self.HomeUrlList = ['http://list.iqiyi.com/www/6/------------2-1-%d-1---.html']
 
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):

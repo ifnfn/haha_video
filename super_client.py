@@ -28,8 +28,8 @@ def main_loop():
         print("Loop")
 
 def main_thread():
-    thread_pool = ThreadPool(10)
-    for _ in range(10):
+    thread_pool = ThreadPool(32)
+    for _ in range(32):
         thread_pool.add_job(main)
 
 def GetURL(xid):

@@ -42,6 +42,7 @@ class JsonLiveTV(WolidouBaseMenu):
             {
                 "area" : "中国,北京",
                 "tvName" : "中央台",
+                "epg": "get_channel_wasu#CCTV-1",
                 "channel": [
                     {
                         "name": "CCTV-1 综合",
@@ -51,20 +52,21 @@ class JsonLiveTV(WolidouBaseMenu):
                     },
                     {
                         "name": "CCTV-2 财经",
-                        "urls" : ["http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv2"]
+                        "urls" : "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv2"
                     }
                 ]
             },
             {
                 "area" : "中国,北京",
                 "tvName" : "北京台",
+                "epg": "get_channel_tvmao#BTV2",
                 "channels": [
                     {
                         "name": "北京-文艺频道",
-                        "urls" :["http://www.wolidou.com/x/?s=sohu&f=flv&u=btv2", "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvwy"],
-                    },
+                        "urls" :"http://www.wolidou.com/x/?s=sohu&f=flv&u=btv2#http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvwy"
+                    }
                 ]
-            },
+            }
         ]
         '''
         for p in self.parserClassList:
@@ -88,18 +90,16 @@ class JsonLiveTV(WolidouBaseMenu):
                     count += 1
                     print(count, albumName)
                     parser = None
-                    if type(urls) == list:
-                        for u in urls:
-                            if type(u) == str:
-                                parser = self.Parser(order, area, tvName, albumName, u)
-                                if 'epg' in ch:
-                                    parser.SetEpgScript(ch['epg'])
-                                parser.CmdParser(parser.cmd)
-                    elif type(urls) == str:
-                        parser = self.Parser(order, area, tvName, albumName, urls)
-                        if 'epg' in ch:
-                            parser.SetEpgScript(ch['epg'])
-                        parser.CmdParser(parser.cmd)
+
+                    if type(urls) == str:
+                        urls = urls.split('#')
+
+                    for u in urls:
+                        if type(u) == str:
+                            parser = self.Parser(order, area, tvName, albumName, u)
+                            if 'epg' in ch:
+                                parser.SetEpgScript(ch['epg'])
+                            parser.CmdParser(parser.cmd)
 
         except Exception as e:
             print(e)

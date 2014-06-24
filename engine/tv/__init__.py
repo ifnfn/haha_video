@@ -30,7 +30,6 @@ from .河北 import HeBeiLiveTV
 from .浙江 import ZheJianLiveTV
 from .湖北 import HuBeiLiveTV
 from .辽宁 import LiaoNingLiveTV
-from .香港 import HongKongLiveTV
 from .黑龙江 import HeiLongJiangLiveTV
 
 # LiveTV 搜索引擎
@@ -55,7 +54,6 @@ class LiveEngine(VideoEngine):
             '河北'  : HeBeiLiveTV,
             '云南'  : YunNanLiveTV,
             '山东'  : ShangDongLiveTV,
-            '香港'  : HongKongLiveTV,
             #'JSON'  : JsonLiveTV,
 
             # '北京'  : BtvLiveTV,

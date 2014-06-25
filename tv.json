@@ -51,8 +51,8 @@
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv8"
       },
       {
-        "name": "CCTV-9 记录",
-        "epg": "get_channel_wasu#CCTV-",
+        "name": "CCTV-9 纪录",
+        "epg": "get_channel_wasu#CCTV-9",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=cctv9"
       },
       {

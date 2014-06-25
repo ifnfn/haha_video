@@ -147,9 +147,6 @@ class VideoEngine:
         for m in self.menu:
             m.UpdateAlbumList()
 
-        #if self.Update:
-        #    self.Update()
-
     # 更新所有节目的排名数据
     def UpdateAllScore(self):
         print("UpdateAllScore")

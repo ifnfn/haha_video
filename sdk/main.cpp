@@ -510,7 +510,7 @@ void test_weather(KolaClient &kola)
 	cout << data.ToString() << endl;
 #endif
 	while (true) {
-		//kola.weather.SetArea("钓鱼岛");
+		kola.weather.SetArea("广东-清远");
 		//kola.weather.Update();
 		kola.weather.Update();
 
@@ -532,8 +532,8 @@ void test_weather(KolaClient &kola)
 			}
 		}
 
-		kola.weather.SetArea("");
-		kola.weather.Update();
+		//kola.weather.SetArea("");
+		//kola.weather.Update();
 
 		while (not kola.weather.UpdateFinish()) {
 			Weather *w = kola.weather.Today();
@@ -569,14 +569,15 @@ int main(int argc, char **argv)
 
 	kola.InternetReady();
 #if 0
+	test_weather(kola);
+	return 0;
 	test_info(kola);
 	test_area(kola);
-	test_weather(kola);
 	test_update(kola);
 #endif
 //	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
-//	printf("Test LiveTV\n"); test_livetv(); return 0;
+	printf("Test LiveTV\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

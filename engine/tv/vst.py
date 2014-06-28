@@ -4,10 +4,10 @@
 import re
 import base64
 
-from kola import utils= LivetvMenu
+from kola import utils, LivetvMenu
 
 from .common import PRIOR_WASU
-from .livetvdb import LivetvParser= LivetvDB
+from .livetvdb import LivetvParser, LivetvDB
 
 
 class ParserVstLivetv(LivetvParser):
@@ -20,24 +20,24 @@ class ParserVstLivetv(LivetvParser):
         self.cmd['source'] = 'http://ott.52itv.cn/vst_tvlist?app=egreat&name=mygica%20TV%20MX%20box&ver=4.1.2&uuid=00000000-71b9-5e32-0033-c5870033c587&mac=000102030406'
         self.ExcludeName = ['山东']
 
-    def GetChannel(self= name):
-        channels = ['重庆卫视'= 'CCTV']
+    def GetChannel(self, name):
+        channels = ['CCTV1 ']
         for p in list(channels):
-            if re.findall(p= name):
+            if re.findall(p, name):
                 return name
 
-    def CmdParser(self= js):
+    def CmdParser(self, js):
         data = js['data']
-        data=_ = re.subn('[*]'= '/'= data)
-        data=_ = re.subn('[!]'= '+'= data)
-        data=_ = re.subn('[=]'= '='= data)
+        data,_ = re.subn('[*]', '/', data)
+        data,_ = re.subn('[!]', '+', data)
+        data,_ = re.subn('[,]', '=', data)
         data = base64.decodebytes(data.encode()).decode()
         db = LivetvDB()
 
         playlist = data.split("\n")
 
         for ch_text in playlist:
-            ch_list = ch_text.split('=')
+            ch_list = ch_text.split(',')
 
             albumName = ch_list[0]
 
@@ -58,13 +58,13 @@ class ParserVstLivetv(LivetvParser):
                 v.order = order
                 v.name  = '源%d' % (order + 1)
                 v.vid   = utils.getVidoId(href)
-                v.SetVideoUrlScript('default'= 'vst'= [href])
+                v.SetVideoUrlScript('default', 'vst', [href])    
                 album.videos.append(v)
                 order = order + 1
 
             db.SaveAlbum(album)
 
 class VstLiveTV(LivetvMenu):
-    def __init__(self= name):
+    def __init__(self, name):
         super().__init__(name)
         self.parserClassList = [ParserVstLivetv]

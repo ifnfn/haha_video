@@ -7,6 +7,7 @@ from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
+from .epg import GetEPGScript
 
 
 # 吉林电视台
@@ -34,17 +35,14 @@ class ParserJLntvLivetv(LivetvParser):
         self.cmd['source']  = 'http://live.jlntv.cn/index.php?option=default,live&ItemId=86&type=record&channelId=6'
         self.cmd['regular'] = ['(<li id="T_Menu_.*</a></li>)']
 
-    def NewEpgScript(self, albumName):
-        return utils.GetTvmaoEpgScript(albumName)
-
     def CmdParser(self, js):
         db = LivetvDB()
 
         ch_list = re.findall('<li id="T_Menu_(\d*)"><a href="(.*)">(.*)</a></li>', js['data'])
 
         for _, u, n in ch_list:
-            n = '吉林台-' + n
-            album  = self.NewAlbum(n, self.NewEpgScript(self.GetAliasName(n)))
+            albumName = '吉林台-' + n
+            album  = self.NewAlbum(albumName)
             if album == None:
                 continue
 

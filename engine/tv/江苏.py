@@ -34,7 +34,8 @@ class ParserJianSuLivetv(LivetvParser):
         if tvlist['status'] == 'ok':
             for stations in tvlist['paramz']['stations']:
                 for ch in stations['channels']:
-                    album  = self.NewAlbum(ch['name'])
+                    albumName = ch['name']
+                    album  = self.NewAlbum(albumName)
                     if album == None:
                         continue
 

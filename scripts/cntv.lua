@@ -1,5 +1,8 @@
 local function check_m3u8(url)
-	if string.find(url, "m3u8") then
+	url = string.gsub(url, "m3u8 ?", "m3u8?")
+	url = string.gsub(url, ":8000:8000", ":8000")
+
+	if string.find(url, "m3u8") and string.len(url)>= 15 and string.find(url, "dianpian.mp4") == nil and string.find(url, "cntv.cloudcdn.net") == nil then
 		local text = ''
 		c = cURL.easy_init()
 		c:setopt_useragent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36")
@@ -58,53 +61,41 @@ function get_video_url(vid, aid)
 	return ''
 end
 
-local function to_epg(time, title)
-	local function strtotime(t)
-		local d = os.date("*t", kola.gettime())
-
-		d.hour, d.min = kola.strsplit(":", time, 2)
-		d.hour = tonumber(d.hour)
-		d.min  = tonumber(d.min)
-		d.sec  = 0
-
-		return os.time(d)
-	end
-
-	local epg = {}
-
-	epg.time_string = time
-	epg.title       = string.gsub(title, "_$", "") -- strip, trim, 去头尾空格
-	epg.time        = strtotime(time)
-	epg.duration    = 0
-
-	return epg
-end
-
--- 获取节目的EPG
-function get_channel(vid)
-	local ret = {}
-	local url = string.format('http://tv.cntv.cn/index.php?action=epg-list&date=%s&channel=%s', os.date("%Y-%m-%d", kola.gettime()), vid)
+function get_video_url2( vid, aid )
+	local url = string.format("http://vdn.live.cntv.cn/api2/live.do?client=iosapp&channel=pa://cctv_p2p_hd%s", vid)
 	local text = kola.wget(url, false)
-	local idx = 1
 
-	for time, title in rex.gmatch(text, '<a target="_blank" href=".*" class="p_name_a">(.*) (.*?)</a>') do
-		-- print(time, title)
-		ret[idx] = to_epg(time, title)
+	local video_url = ''
+	if text then
+		local hls_vod_url = ''
+		local js = cjson.decode(text)
 
-		if idx > 1 then
-			ret[idx - 1].duration = os.difftime(ret[idx].time, ret[idx - 1].time)
+		if not js then
+			return ''
 		end
-		idx = idx + 1
+		-- 如果有 hls
+		if js.hls_url then
+			if check_m3u8(js.hls_url.hls1) then
+				return js.hls_url.hls1
+			end
+			if check_m3u8(js.hls_url.hls2) then
+				return js.hls_url.hls2
+			end
+			if check_m3u8(js.hls_url.hls3) then
+				return js.hls_url.hls3
+			end
+		end
+
+		-- 如果有 hds
+		if js['hds_url'] then
+			video_url = js['hds_url']['hds2']
+			if string.find(video_url, 'http://') and string.find(video_url, 'channel') then
+				return video_url
+			end
+		end
 	end
 
-	for time, title in rex.gmatch(text, '<a class="p_name" href="###">(.*) (.*?)</a>') do
-		-- print(time, title)
-		ret[idx] = to_epg(time, title)
-
-		if idx > 1 then
-			ret[idx - 1].duration = os.difftime(ret[idx].time, ret[idx - 1].time)
-		end
-		idx = idx + 1
-	end
-	return cjson.encode(ret)
+	return ''
+	
+	end	
 end

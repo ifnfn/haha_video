@@ -76,11 +76,11 @@ class ParserTVIELivetv2(LivetvParser):
         for x in jdata['result']:
             if 'group_names' in x and x['group_names'] == 'audio':
                 continue
-            name = ''
-            if 'name' in x: name = x['name']
-            if 'display_name' in x: name = x['display_name']
+            albumName = ''
+            if 'name' in x: albumName = x['name']
+            if 'display_name' in x: albumName = x['display_name']
 
-            album = self.NewAlbum(name)
+            album = self.NewAlbum(albumName)
             if album == None:
                 continue
 
@@ -163,8 +163,8 @@ class ParserWenZhouLivetv(LivetvParser):
 
         ch_list = re.findall('data-source="(.*?)" data-id="(.*?)">(.*?)<i>', js['data'])
         for source, data_id, name in ch_list:
-            name = '温州-' + name
-            album = self.NewAlbum(name)
+            albumName = '温州-' + name
+            album = self.NewAlbum(albumName)
 
             v = album.NewVideo()
             v.vid = utils.getVidoId(js['source'] + '/' + source)

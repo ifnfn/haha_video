@@ -208,3 +208,8 @@ function get_channel_tvmao(albumName, vid)
 	end
 	return cjson.encode(ret)
 end
+
+
+function get_channel_pptv(albumName, vid)
+	return '{}'
+end

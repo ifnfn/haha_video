@@ -35,21 +35,23 @@ class ParserCntvLivetv(LivetvParser):
             if x in [ "数字频道", "城市频道"]:
                 continue
             for ch in v:
-                if ch[2] == '0' or ch[1] == '':
+                albumName = ch[1]
+                if ch[2] == '0' or albumName == '':
                     continue
 
-                album  = self.NewAlbum(ch[1])
+                album  = self.NewAlbum(albumName)
                 if album == None:
                     continue
                 album.area = self.city.GetCity(ch[3])
 
                 v = album.NewVideo()
                 v.order = self.order
-                v.name     = self.tvName
+                v.name  = self.tvName
 
-                v.vid      = utils.getVidoId('http://vcbox.cntv.chinacache.net/cache/%s.f4m' % ch[0])
-                v.SetVideoUrl('default', {'text' : ch[0]})
-                v.SetVideoUrlScript('default', 'cntv', [ch[0], ch[5]])
+                v.vid   = utils.getVidoId('http://vcbox.cntv.chinacache.net/cache/%s.f4m' % ch[0])
+                v.SetUrl("pa://cctv_p2p_hd" + ch[0])
+                #v.SetVideoUrl('default', {'text' : ch[0]})
+                #v.SetVideoUrlScript('default', 'cntv', [ch[0], ch[5]])
 
                 v.info = utils.GetScript('cntv', 'get_channel', [ch[0]])
 

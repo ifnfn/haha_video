@@ -33,8 +33,8 @@ class ParserSohuLivetv(LivetvParser):
         for v in tvlist['attachment']:
             pid = json_get(v, 'id', '')
 
-            name = json_get(v, 'name', '')
-            album  = self.NewAlbum(name)
+            alubmName = json_get(v, 'name', '')
+            album  = self.NewAlbum(alubmName)
             if album == None:
                 continue
 
@@ -47,7 +47,9 @@ class ParserSohuLivetv(LivetvParser):
             playUrl    = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
             v.vid      = utils.getVidoId(playUrl)
 
-            v.SetVideoUrlScript('default', 'sohulive', [playUrl])
+            v.SetUrl('sohutv://%d' % pid)
+
+            #v.SetVideoUrlScript('default', 'sohulive', [playUrl])
             v.info = utils.GetScript('sohulive', 'get_channel', [pid])
 
             album.videos.append(v)

@@ -30,7 +30,8 @@ class ParserNNLivetv(LivetvParser):
             album = None
             for p in root:
                 if p.tag == 'title':
-                    album  = self.NewAlbum(p.text)
+                    alubmName = p.text
+                    album  = self.NewAlbum(alubmName)
 
             if album == None:
                 return

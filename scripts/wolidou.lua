@@ -92,21 +92,6 @@ local function GetUrl(url)
 	end
 end
 
-local function basic_1(video_url)
-	text = kola.wget(video_url, false)
-	if text == nil then
-		return ''
-	end
-
-	local data_obj = cjson.decode(text)
-
-	if data_obj == nil then
-		return ''
-	end
-
-	return jstv_url(data_obj.u)
-end
-
 local function sdsj_url(video_url)
 	video_url = string.format("%s&ts=%d", video_url, kola.gettime() * 1000)
 	local c1 = curl_key(share)
@@ -149,8 +134,6 @@ function get_video_url(video_url)
 	--print(string.format("get_video_url(%s)", video_url))
 	if string.find(video_url, 'rtmp://') or string.find(video_url, ".m3u8") then
 		return video_url
-	elseif string.find(video_url, 'http://www.wolidou.com/c/basic_1') then
-		return basic_1(video_url)
 	elseif string.find(video_url, 'http://www.wolidou.com/c/basic_2') then
 		return GetUrl(video_url)
 	elseif string.find(video_url, 'sdsj.php') or string.find(video_url, 'dxcctv.php') or string.find(video_url, 'yu.php') then

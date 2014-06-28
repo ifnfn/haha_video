@@ -27,8 +27,8 @@ class ParserShanXiLivetv(LivetvParser):
         db = LivetvDB()
 
         channel = re.findall('<a href="\?channel=(.*?)" class="channel_name">(.*?)</a>', js['data'])
-        for pid, name in channel:
-            album  = self.NewAlbum(name)
+        for pid, albumName in channel:
+            album  = self.NewAlbum(albumName)
             if album == None:
                 continue
 

@@ -27,11 +27,11 @@ class ParserTVIELivetv(LivetvParser):
         for x in jdata['result']:
             if 'group_names' in x and x['group_names'] == 'audio':
                 continue
-            name = ''
-            if 'name' in x: name = x['name']
-            if 'display_name' in x: name = x['display_name']
+            alubmName = ''
+            if 'name' in x: alubmName = x['name']
+            if 'display_name' in x: alubmName = x['display_name']
 
-            album = self.NewAlbum(name)
+            album = self.NewAlbum(alubmName)
             if album == None:
                 continue
 

@@ -37,7 +37,8 @@ class ParserQQLivetv(LivetvParser):
             for k,v in ch_list:
                 ch[k] = v
 
-            album  = self.NewAlbum(ch['data-cname'])
+            albumName = ch['data-cname']
+            album  = self.NewAlbum(albumName)
             if album == None:
                 continue
 
@@ -48,7 +49,8 @@ class ParserQQLivetv(LivetvParser):
             playUrl = 'http://zb.v.qq.com:1863/?progid=%s&redirect=0&apptype=live&pla=ios' % ch['data-playid']
             v.vid   = utils.getVidoId(playUrl)
 
-            v.SetVideoUrlScript('default', 'qqtv', [ch['data-playid']])
+            v.SetUrl('qqtv://' + ch['data-playid'])
+            #v.SetVideoUrlScript('default', 'qqtv', [ch['data-playid']])
             v.info = utils.GetScript('qqtv', 'get_channel', [ch['data-key']])
 
             album.videos.append(v)

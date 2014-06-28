@@ -34,11 +34,11 @@ class ShangDongLivetv(LivetvParser):
         for tv in jdata:
             #'live': 'nongke', 'catname': '农科频道', 'id': 30, 'm3u8': '99/4'
             "http://m3u8.iqilu.com/live/' +livedata['m3u8']+ '.m3u8?st='+s+'&e='+t+'"
-            name = tv['catname']
+            albumName = tv['catname']
             s = time.time()
             t = ''
             url = 'http://m3u8.iqilu.com/live/' + tv['m3u8'] + '.m3u8?st=' + s + '&e=' + t
-            album  = self.NewAlbum(name)
+            album  = self.NewAlbum(albumName)
 
             v = album.NewVideo()
             v.order = self.order

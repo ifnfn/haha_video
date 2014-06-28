@@ -8,6 +8,7 @@ from kola import VideoBase, AlbumBase, DB, utils, City
 
 from .common import PRIOR_COMMON
 from .tvorder import GetOrder, GetNumber
+from .epg import GetEPGScript
 
 
 class TVCategory:
@@ -40,6 +41,10 @@ class LivetvDB(DB):
 class LivetvVideo(VideoBase):
     def __init__(self, js = None):
         super().__init__(js)
+
+    def SetUrl(self, url):
+        urlScript = utils.GetScript('livetv', 'get_video_url', [url])
+        self.SetVideoUrl('default', urlScript)
 
 class LivetvPrivate:
     def __init__(self):
@@ -106,8 +111,13 @@ class LivetvParser(KolaParser):
             album.categories  = self.tvCate.GetCategories(album.albumName)
 
             album.enAlbumName = self.tvName
-            if epgInfo:
-                album.epgInfo = epgInfo
+
+            if album.cid == 200: # 直播
+                if epgInfo == None:
+                    album.epgInfo = GetEPGScript(albumName)
+                else:
+                    album.epgInfo = epgInfo
+
             if self.area:
                 album.area = self.area
             else:
@@ -127,5 +137,3 @@ class LivetvParser(KolaParser):
             return self.Alias[name]
 
         return name
-
-

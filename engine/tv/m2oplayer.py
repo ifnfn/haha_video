@@ -31,8 +31,8 @@ class M2OLivetvParser(LivetvParser):
         text = js['data']
         root = ElementTree.fromstring(text)
 
-        name = root.attrib['name']
-        if name == '':
+        albumName = root.attrib['name']
+        if albumName == '':
             return
 
         ok = False
@@ -46,13 +46,13 @@ class M2OLivetvParser(LivetvParser):
         if ok == False:
             return
 
-        album  = self.NewAlbum(name)
+        album  = self.NewAlbum(albumName)
 
         v = album.NewVideo()
         v.order = self.order
         v.name  = self.tvName
-
         v.vid   = utils.getVidoId(url)
+
         v.SetVideoUrlScript('default', 'm2oplayer', [url])
 
         v.info = utils.GetScript('m2oplayer', 'get_channel',['http://%s/m2o/player/program_xml.php?channel_id=%d' % (self.baseUrl, js['channel_id'])])

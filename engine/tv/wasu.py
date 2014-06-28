@@ -55,10 +55,10 @@ class ParserWasuLivetv(LivetvParser):
                 continue
 
             href = ch_list[0][0]
-            name = ch_list[0][1]
-            print(href, name)
+            alubmName = ch_list[0][1]
+            print(href, alubmName)
 
-            album  = self.NewAlbum(name)
+            album  = self.NewAlbum(alubmName)
             if album == None:
                 continue
 

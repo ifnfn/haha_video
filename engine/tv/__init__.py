@@ -13,9 +13,8 @@ from .sohutv import SohuLiveTV
 from .textv import TextLiveTV
 from .tvielivetv import ParserTVIELivetv
 from .wasu import WasuLiveTV
-from .wolidou import WolidouLiveTV
-from .wolidou_json import JsonLiveTV
-
+from .wolidou import WolidouTV
+from .vst import VstLiveTV
 
 from .上海 import SmgbbLivetv
 from .云南 import YunNanLiveTV
@@ -40,24 +39,26 @@ class LiveEngine(VideoEngine):
         self.albumClass = LivetvAlbum
 
         self.LiveEngines = {
-            'CNTV'  : CntvLiveTV,
-            'Sohu'  : SohuLiveTV,
-            '黑龙江' : HeiLongJiangLiveTV,
-            '浙江'  : ZheJianLiveTV,
-            '安徽'  : AnHuiLiveTV,
-            '吉林'  : JilingLiveTV,
-            '腾讯'  : QQLiveTV,
-            '上海'  : SmgbbLivetv,
-            '辽宁'  : LiaoNingLiveTV,
-            '江西'  : JianXiLiveTV,
-            '湖北'  : HuBeiLiveTV,
-            '河北'  : HeBeiLiveTV,
-            '云南'  : YunNanLiveTV,
-            '山东'  : ShangDongLiveTV,
-            #'JSON'  : JsonLiveTV,
+            'VST' : VstLiveTV,
+            # 'CNTV'  : CntvLiveTV,
+            #===================================================================
+            # 'Sohu'  : SohuLiveTV,
+            # '黑龙江' : HeiLongJiangLiveTV,
+            # '浙江'  : ZheJianLiveTV,
+            # '安徽'  : AnHuiLiveTV,
+            # '吉林'  : JilingLiveTV,
+            # '腾讯'  : QQLiveTV,
+            # '上海'  : SmgbbLivetv,
+            # '辽宁'  : LiaoNingLiveTV,
+            # '江西'  : JianXiLiveTV,
+            # '湖北'  : HuBeiLiveTV,
+            # '河北'  : HeBeiLiveTV,
+            # '云南'  : YunNanLiveTV,
+            # '山东'  : ShangDongLiveTV,
+            # '文本'  : TextLiveTV,
+            #===================================================================
 
             # '北京'  : BtvLiveTV,
-            # '文本'  : TextLiveTV,
             # '广西'  : GuangXiLiveTV,
             # '新疆'  : XinJianLiveTV,
             # 'Letv' : LetvLiveTV,
@@ -84,7 +85,7 @@ class Live2Engine(VideoEngine):
         self.albumClass = LivetvAlbum
 
         self.LiveEngines = {
-            'JSON'  : JsonLiveTV,
+            'JSON'  : WolidouTV,
         }
 
         for name, e  in self.LiveEngines.items():

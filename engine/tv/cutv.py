@@ -138,10 +138,10 @@ class ParserCutvLivetv(LivetvParser):
         self.area = self.city.GetCity(js['station'])
         root = ElementTree.fromstring(text)
         for p in root.findall('channel'):
-            name = p.findtext('channel_name')
+            albumName = p.findtext('channel_name')
             channel_id = p.findtext('channel_id')
 
-            album  = self.NewAlbum(name)
+            album  = self.NewAlbum(albumName)
             if album == None:
                 continue
 

@@ -15,8 +15,6 @@ import tornado.options
 import tornado.web
 from barcode import get_barcode
 
-import pycurl, urllib, random, re
-
 try:
     from barcode.writer import ImageWriter
 except ImportError:

@@ -46,8 +46,8 @@ class BtvLiveTV(LivetvMenu):
 
         db = LivetvDB()
         parser = ParserBTV()
-        for name, pid, channel_id in self.tvList:
-            album  = parser.NewAlbum(name)
+        for albumName, pid, channel_id in self.tvList:
+            album  = parser.NewAlbum(albumName)
             if album == None:
                 continue
 

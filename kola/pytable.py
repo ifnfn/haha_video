@@ -30,6 +30,8 @@ class Pinyin(object):
         result = []
         flag = 1
         for char in chars:
+            if char == ' ':
+                continue
             try:
                 if ord(char) < 255:
                     c = char.upper()

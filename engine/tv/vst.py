@@ -16,6 +16,7 @@ class ParserVstLivetv(LivetvParser):
         self.tvName = ''
         self.order = 1
         self.Alias = {
+            'CCTV1 综合频道'     : 'CCTV-1 综合'
         }
         self.cmd['source'] = 'http://ott.52itv.cn/vst_tvlist?app=egreat&name=mygica%20TV%20MX%20box&ver=4.1.2&uuid=00000000-71b9-5e32-0033-c5870033c587&mac=000102030406'
         self.ExcludeName = ['山东']

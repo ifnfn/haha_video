@@ -48,7 +48,6 @@ end
 -- pa://cctv_p2p_hdcctv1
 function get_video_cntv( url )
 	local function check_m3u8(url)
-		print(url)
 		url = string.gsub(url, "m3u8 ?", "m3u8?")
 		url = string.gsub(url, ":8000:8000", ":8000")
 
@@ -214,7 +213,7 @@ end
 
 function get_video_sohutv(url)
 	pid = string.gsub(url, "sohutv://", "")
-    local url = string.format('http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1', pid)
+	local url = string.format('http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1', pid)
 	local text = kola.wget(url, false)
 
 	if text == nil then
@@ -237,5 +236,7 @@ function get_video_sohutv(url)
 end
 
 function get_video_imgotv(url)
-
+	return ""
 end
+
+

@@ -22,7 +22,8 @@ class TVCategory:
                 '综合台' : '综合|财|都市|经济|旅游',
                 '少儿台' : '动画|卡通|动漫|少儿',
                 '地方台' : '^(?!.*?(cctv|CCTV|卫视|测试|卡酷少儿|炫动卡通' + self.Outside + ')).*$',
-                '境外台' : self.Outside
+                '境外台' : self.Outside,
+                '高清台' : 'HD|hd|高清'
             }
         }
 
@@ -43,7 +44,7 @@ class LivetvVideo(VideoBase):
         super().__init__(js)
 
     def SetUrl(self, url):
-        urlScript = utils.GetScript('livetv', 'get_video_url', [url])
+        urlScript = utils.GetScript('vst', 'get_video_url', [url])
         self.SetVideoUrl('default', urlScript)
 
 class LivetvPrivate:
@@ -134,6 +135,9 @@ class LivetvParser(KolaParser):
             return None
 
         if name in self.Alias:
-            return self.Alias[name]
+            name = self.Alias[name]
+            for p in list(self.ExcludeName):
+                if p == name or re.findall(p, name):
+                    return None
 
         return name

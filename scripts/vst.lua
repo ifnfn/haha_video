@@ -1,5 +1,5 @@
 function get_video_url(url)
-	print(url)
+	--print(url)
 	if string.find(url, 'pa://') then
 		return get_video_cntv(url)
 	elseif string.find(url, 'm2o://') then
@@ -286,9 +286,7 @@ function get_video_52itv(url)
 
 	if string.find(url, '.sdtv') then
 		url = string.format('%s?k=%s', url, get_livekey())
-		print(url)
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
-		print(xml)
 		return 'aaa'
 	elseif string.find(url, '.letv') then
 		local url = string.gsub(url, '.letv', '')

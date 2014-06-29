@@ -9,6 +9,9 @@ def GetEPGScript(albumName):
     if info == None:
         info = get_channel_wasu(albumName)
 
+    if info == None:
+        info = utils.GetScript('epg', 'get_channel', [albumName])
+
     return info
 
 def get_channel_wasu(albumName):

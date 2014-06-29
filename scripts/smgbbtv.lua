@@ -10,27 +10,3 @@ function get_video_url(pid)
 
 	return ""
 end
-
--- 获取节目的EPG
-function get_channel(pid)
-	print('pid:', pid)
-	local ret = {}
-	local url = string.format('http://l.smgbb.cn/schedule.ashx?channel=%s', pid)
-	print(url)
-	local text = kola.wget(url, false)
-
-	if text then
-		local js = cjson.decode(text)
-		for k, v in ipairs(js.schedule) do
-			ret[k] = {}
-			ret[k].time_string = v.time
-			ret[k].time        = tonumber(v.start)
-			ret[k].duration    = tonumber(v['end']) - tonumber(v['start'])
-			ret[k].title       = v.title
-			--print(k, ret[k].time_string, ret[k].duration, ret[k].title)
-		end
-	end
-
-	return cjson.encode(ret)
-
-end

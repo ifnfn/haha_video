@@ -2,32 +2,29 @@
 # -*- coding: utf-8 -*-
 
 import pymongo
+import re
 
 from kola import GetPinYin, autostr
 
 
 TVOrder = [
-    'CCTV-1 综合',
-    'CCTV-2 财经',
-    'CCTV-3 综艺',
-    'CCTV-4 中文国际',
-    'CCTV-4 (亚洲)',
-    'CCTV-4 (欧洲)',
-    'CCTV-4 (美洲)',
-    'CCTV-5 体育',
-    'CCTV-5+ 体育',
-    'CCTV-6 电影',
-    'CCTV-7 军事农业',
-    'CCTV-8 电视剧',
-    'CCTV-9 纪录',
-    'CCTV-9 纪录(英)',
-    'CCTV-10 科教',
-    'CCTV-11 戏曲',
-    'CCTV-12 社会与法',
-    'CCTV-13 新闻',
-    'CCTV-14 少儿',
-    'CCTV-15 音乐',
-    'CCTV-NEWS',
+    'CCTV-1 ',
+    'CCTV-2 ',
+    'CCTV-3 ',
+    'CCTV-4 ',
+    'CCTV-5 ',
+    'CCTV5\+',
+    'CCTV-6 ',
+    'CCTV-7 ',
+    'CCTV-8 ',
+    'CCTV-9 ',
+    'CCTV-10 ',
+    'CCTV-11 ',
+    'CCTV-12 ',
+    'CCTV-13 ',
+    'CCTV-14 ',
+    'CCTV-15 ',
+    'CCTV NEWS',
     'CCTV-Français',
     'CCTV-Español',
     'CCTV-العربية',
@@ -86,6 +83,7 @@ TVOrder = [
     '云南卫视',
     '浙江卫视',
     #'浙江卫视-高清',
+    'CCTV ',
 ]
 
 con = pymongo.Connection('localhost', 27017)
@@ -96,7 +94,7 @@ tv_table.create_index([('id', pymongo.ASCENDING)])
 def GetOrder(name):
     i = 0
     for n in TVOrder:
-        if n == name:
+        if re.findall(n, name):
             return '%04d' % i
 
         i += 1
@@ -109,7 +107,7 @@ def GetOrder(name):
 def GetNumber(name):
     i = 1
     for n in TVOrder:
-        if n == name:
+        if re.findall(n, name):
             return '%d' % i
         i += 1
 

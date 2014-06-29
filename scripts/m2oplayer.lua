@@ -65,28 +65,3 @@ function get_video_url(url)
 
 	return ''
 end
-
--- 获取节目的EPG
-function get_channel(url)
-	local url = string.format("%s&time=%d", url, kola.gettime())
-
-	local ret = {}
-	text = kola.wget(url, false)
-	if text == nil then
-		return '{}'
-	end
-	x = xml.eval(text)
-	v= find(x, "program", "item")
-	for k, b in pairs(v) do
-		if type(b) == "table" then
-			ret[k] = {}
-			s = tonumber(b['startTime'])
-			ret[k].time_string = os.date("%H:%M", s)
-			ret[k].time = s
-			ret[k].duration = tonumber(b['duration'])
-			ret[k].title = b['name']
-		end
-	end
-
-	return cjson.encode(ret)
-end

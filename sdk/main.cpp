@@ -67,6 +67,191 @@ class Player: public KolaPlayer {
 	}
 };
 
+void test_livetv_noepg()
+{
+	KolaMenu* m = NULL;
+	Player player;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+
+	m = kola.GetMenu(200);
+	if (m == NULL)
+		return;
+
+	//m->FilterAdd("类型", "本省台");
+	//m->FilterAdd("类型", "央视台");
+	//m->FilterAdd("类型", "卫视台");
+	//m->FilterAdd("类型", "地方台");
+	//m->FilterAdd("类型", "高清台");
+	m->PictureCacheType = PIC_DISABLE;
+	size_t count = m->GetAlbumCount();
+	int pos = 0;
+
+	for (size_t i=pos; i < count; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		bool found = false;
+		while (1) {
+			KolaEpg *epg = album->NewEPG();
+
+			if (epg) {
+				EPG e1, e2;
+				epg->Update();
+				epg->Wait();
+				epg->GetCurrent(e1);
+				epg->GetNext(e2);
+
+				if (not e1.empty() or not e2.empty())
+					found = true;
+
+
+				epg->Clear();
+				delete epg;
+			}
+			break;
+		}
+		if (not found)
+			printf("\tname_key['%s'] = ''\n", album->albumName.c_str());
+	}
+
+	printf("%s End!!!\n", __func__);
+}
+
+void test_livetv_list()
+{
+	KolaMenu* m = NULL;
+	Player player;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+
+	m = kola.GetMenu(200);
+	if (m == NULL)
+		return;
+
+	//m->FilterAdd("类型", "本省台");
+	//m->FilterAdd("类型", "央视台");
+	//m->FilterAdd("类型", "卫视台");
+	//m->FilterAdd("类型", "地方台");
+	//m->FilterAdd("类型", "高清台");
+	//m->SetPageSize(3);
+	//m->GetPage(page);
+	//m->FilterAdd("PinYin", "hz");
+	//m->SetSort("Name", "1");
+	m->PictureCacheType = PIC_DISABLE;
+	size_t count = m->GetAlbumCount();
+	int pos = 0;
+
+	for (size_t i=pos; i < count; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] %-30s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
+#if 0
+		bool found = false;
+		while (1) {
+			KolaEpg *epg = album->NewEPG();
+
+			if (epg) {
+				EPG e1, e2;
+				epg->Update();
+				epg->Wait();
+				epg->GetCurrent(e1);
+				epg->GetNext(e2);
+
+				if (not e1.empty()) {
+					//printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+					found = true;
+				}
+
+				if (not e2.empty()) {
+					//printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+					found = true;
+				}
+				//printf("\n\n");
+
+				epg->Clear();
+				delete epg;
+			}
+			break;
+		}
+		if (not found)
+			printf("\tname_key['%s'] = ''\n", album->albumName.c_str());
+#endif
+	}
+
+	printf("%s End!!!\n", __func__);
+}
+
+void test_livetv_epglist()
+{
+	KolaMenu* m = NULL;
+	Player player;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+
+	m = kola.GetMenu(200);
+	if (m == NULL)
+		return;
+
+	//m->FilterAdd("类型", "本省台");
+	//m->FilterAdd("类型", "央视台");
+	//m->FilterAdd("类型", "卫视台");
+	//m->FilterAdd("类型", "地方台");
+	//m->FilterAdd("类型", "高清台");
+	//m->SetPageSize(3);
+	//m->GetPage(page);
+	//m->FilterAdd("PinYin", "hz");
+	//m->SetSort("Name", "1");
+	m->PictureCacheType = PIC_DISABLE;
+	size_t count = m->GetAlbumCount();
+	int pos = 0;
+
+	for (size_t i=pos; i < count; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] %s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
+		while (1) {
+			KolaEpg *epg = album->NewEPG();
+
+			if (epg) {
+				EPG e1, e2;
+				epg->Update();
+				epg->Wait();
+				epg->GetCurrent(e1);
+				epg->GetNext(e2);
+
+				if (not e1.empty()) {
+					printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+				}
+
+				if (not e2.empty()) {
+					printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+				}
+				else
+					printf("dddddddddddddddddddddddd\n");
+				printf("\n\n");
+
+				epg->Clear();
+				delete epg;
+			}
+			break;
+		}
+	}
+
+	printf("%s End!!!\n", __func__);
+}
+
 void test_livetv()
 {
 	KolaMenu* m = NULL;
@@ -94,6 +279,7 @@ void test_livetv()
 	//m->FilterAdd("类型", "央视台");
 	//m->FilterAdd("类型", "卫视台");
 	//m->FilterAdd("类型", "地方台");
+	//m->FilterAdd("类型", "高清台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
 	//m->FilterAdd("PinYin", "hz");
@@ -109,7 +295,7 @@ void test_livetv()
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
-		printf("[%ld] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		printf("[%ld] %s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
 #if 0
 		player.AddAlbum(*album);
 		while (1) {
@@ -137,6 +323,37 @@ void test_livetv()
 		}
 		sleep(4);
 #endif
+#if 0
+		bool found = false;
+		while (1) {
+			KolaEpg *epg = album->NewEPG();
+
+			if (epg) {
+				EPG e1, e2;
+				epg->Update();
+				epg->Wait();
+				epg->GetCurrent(e1);
+				epg->GetNext(e2);
+
+				if (not e1.empty()) {
+					printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
+					found = true;
+				}
+
+				if (not e2.empty()) {
+					printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
+					found = true;
+				}
+				printf("\n\n");
+
+				epg->Clear();
+				delete epg;
+			}
+			break;
+		}
+		if (not found)
+			printf("\tname_key['%s'] = ''\n", album->albumName.c_str());
+#endif
 #if 1
 
 		for (size_t j = 0; j < video_count; j++) {
@@ -145,32 +362,6 @@ void test_livetv()
 			if (video) {
 				player_url = video->GetVideoUrl();
 				printf("\t%s %s [%s] -> %s\n", video->vid.c_str(), video->name.c_str(), video->publishTime.c_str(), player_url.c_str());
-#if 1
-				while (1) {
-					KolaEpg *epg = album->NewEPG();
-
-					if (epg) {
-						EPG e1, e2;
-						epg->Update();
-						epg->Wait();
-						epg->GetCurrent(e1);
-						epg->GetNext(e2);
-
-						if (not e1.empty()) {
-							printf("\t\tCurrent:[%s] %s", e1.timeString.c_str(), e1.title.c_str());
-						}
-
-						if (not e2.empty()) {
-							printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
-						}
-						printf("\n\n");
-
-						epg->Clear();
-						delete epg;
-					}
-					break;
-				}
-#endif
 			}
 		}
 #endif
@@ -397,7 +588,7 @@ void test_video(const char *menuName)
 
 #if 1
 		size_t video_count = album->GetVideoCount();
-		printf("[%d]: albumName: %s[%s], PlayNum:%ld, VideoCount: %ld, TotalCount: %ld\n",
+		printf("[%d]: albumName: %s[%s], PlayNum:%d, VideoCount: %ld, TotalCount: %ld\n",
 		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet());
 #endif
 #if 0
@@ -577,7 +768,10 @@ int main(int argc, char **argv)
 #endif
 //	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
-	printf("Test LiveTV\n"); test_livetv(); return 0;
+//	printf("Test LiveTV(No EPG\n"); test_livetv_noepg(); return 0;
+//	printf("Test LiveTV(TV List\n"); test_livetv_list(); return 0;
+//	printf("Test LiveTV(TV List\n"); test_livetv_epglist(); return 0;
+	printf("Test LiveTV(TV List\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

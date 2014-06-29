@@ -40,17 +40,17 @@ class LiveEngine(VideoEngine):
 
         self.LiveEngines = {
             'VST' : VstLiveTV,
-            # 'CNTV'  : CntvLiveTV,
+            #'CNTV'  : CntvLiveTV,
             #===================================================================
-            # 'Sohu'  : SohuLiveTV,
-            # '黑龙江' : HeiLongJiangLiveTV,
-            # '浙江'  : ZheJianLiveTV,
-            # '安徽'  : AnHuiLiveTV,
-            # '吉林'  : JilingLiveTV,
-            # '腾讯'  : QQLiveTV,
-            # '上海'  : SmgbbLivetv,
-            # '辽宁'  : LiaoNingLiveTV,
-            # '江西'  : JianXiLiveTV,
+            #'Sohu'  : SohuLiveTV,
+            #'腾讯'  : QQLiveTV,
+            #'浙江'  : ZheJianLiveTV,
+            #'上海'  : SmgbbLivetv,
+            #'辽宁'  : LiaoNingLiveTV,
+            # '黑龙江' : HeiLongJiangLiveTV, # VST 中已有
+            # '安徽'  : AnHuiLiveTV,  # VST 中已有
+            # '吉林'  : JilingLiveTV,  # VST 中已有
+            '江西'  : JianXiLiveTV,
             # '湖北'  : HuBeiLiveTV,
             # '河北'  : HeBeiLiveTV,
             # '云南'  : YunNanLiveTV,

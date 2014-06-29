@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+PRIOR_VST   = 0
 PRIOR_LETV  = 1
 PRIOR_QQ    = 2
 PRIOR_PPTV  = 3

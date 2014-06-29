@@ -6,7 +6,7 @@ import base64
 
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_WASU
+from .common import PRIOR_VST
 from .livetvdb import LivetvParser, LivetvDB
 
 
@@ -14,15 +14,44 @@ class ParserVstLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = ''
-        self.order = 1
+        self.order = PRIOR_VST
         self.Alias = {
-            'CCTV1 综合频道'     : 'CCTV-1 综合'
+            '珠海2台' : '珠海生活服务',
+            '珠海1台' : '珠海新闻综合',
+            '浙江钱江' : '浙江钱江频道',
+            '钱江都市' : '浙江钱江频道',
+            '浙江6' : '浙江6频道',
+            '杭州明珠' : '杭州西湖明珠',
+            '吉林公共' : '吉林公共新闻',
+            '第一财经' : '上海第一财经',
+            'CCTV1 综合频道' : 'CCTV-1 综合',
+            'CCTV2 财经频道' : 'CCTV-2 财经',
+            'CCTV3 综艺频道' : 'CCTV-3 综艺',
+            'CCTV4 中文国际' : 'CCTV-4 中文国际',
+            'CCTV5 体育频道' : 'CCTV-5 体育',
+            'CCTV6 电影频道' : 'CCTV-6 电影',
+            'CCTV7 军事农业' : 'CCTV-7 军事农业',
+            'CCTV8 电视剧'   : 'CCTV-8 电视剧',
+            'CCTV9 中文记录' : 'CCTV-9 纪录',
+            'CCTV10 科教频道' : 'CCTV-10 科教',
+            'CCTV11 戏曲频道' : 'CCTV-11 戏曲',
+            'CCTV12 社会与法' : 'CCTV-12 社会与法',
+            'CCTV13 新闻频道' : 'CCTV-13 新闻',
+            'CCTV14 少儿频道' : 'CCTV-14 少儿',
+            'CCTV15 音乐频道' : 'CCTV-15 音乐',
+            'CCTV5+体育赛事' : 'CCTV5+ 体育赛事',
+            'CCTV9 海外记录' : 'CCTV-9 海外纪录',
+            'CCTV4 中文国际(美洲)' : 'CCTV-4 中文国际(美洲)',
+            'CCTV4 中文国际(欧洲)' : 'CCTV-4 中文国际(欧洲)',
         }
+        self.cmd['cache'] = True
         self.cmd['source'] = 'http://ott.52itv.cn/vst_tvlist?app=egreat&name=mygica%20TV%20MX%20box&ver=4.1.2&uuid=00000000-71b9-5e32-0033-c5870033c587&mac=000102030406'
-        self.ExcludeName = ['山东']
+        self.ExcludeName = ['电影片花', '法国1', '高尔夫.网球', '高尔夫', '周星驰专区', 'CCTV-4 中文国际(欧洲)', 'CCTV-4 中文国际(美洲)']
 
     def GetChannel(self, name):
-        channels = ['CCTV1 ']
+        channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
+        channels = ['江西']
+        #channels = ['.*']
         for p in list(channels):
             if re.findall(p, name):
                 return name

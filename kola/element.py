@@ -20,6 +20,7 @@ class LivetvMenu(db.VideoMenuBase):
                 '卫视台',
                 '本省台',
                 '体育台',
+                '高清台',
                 #'综合台',
                 '少儿台',
                 '地方台',

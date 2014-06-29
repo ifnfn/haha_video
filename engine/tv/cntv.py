@@ -48,8 +48,9 @@ class ParserCntvLivetv(LivetvParser):
                 v.order = self.order
                 v.name  = self.tvName
 
-                v.vid   = utils.getVidoId('http://vcbox.cntv.chinacache.net/cache/%s.f4m' % ch[0])
-                v.SetUrl("pa://cctv_p2p_hd" + ch[0])
+                href = "pa://cctv_p2p_hd" + ch[0]
+                v.vid   = utils.getVidoId(href)
+                v.SetUrl(href)
                 #v.SetVideoUrl('default', {'text' : ch[0]})
                 #v.SetVideoUrlScript('default', 'cntv', [ch[0], ch[5]])
 

@@ -1,5 +1,5 @@
 function get_video_url(url)
-	--print(url)
+	print(url)
 	if string.find(url, 'pa://') then
 		return get_video_cntv(url)
 	elseif string.find(url, 'm2o://') then
@@ -20,6 +20,8 @@ function get_video_url(url)
 		return url
 	end
 end
+
+local function isnan(x) return x ~= x end
 
 local function find(var, tag, key, value)
 	-- check input:
@@ -48,7 +50,7 @@ local function find(var, tag, key, value)
 	end
 end
 
-function curl_get( url, user_agent, referer )
+local function curl_get( url, user_agent, referer )
 	local text = ''
 	c = cURL.easy_init()
 	if user_agent == nil then
@@ -110,50 +112,31 @@ end
 -- pa://cctv_p2p_hdcctv1
 function get_video_cntv( url )
 	local function check_m3u8(url)
-		url = string.gsub(url, "m3u8 ?", "m3u8?")
-		url = string.gsub(url, ":8000:8000", ":8000")
-
-		if string.find(url, "m3u8") then
-			local text = curl_get(url)
-			if text and string.find(text, "EXTM3U") then
-				return url
-			end
+		if string.find(url, "m3u8") == nil or string.len(url) < 15 or string.find(url, 'cntv.cloudcdn.net') or string.find(url, 'dianpian.mp4') then
+			return nil
 		end
-
-		return nil
+		return url
 	end
 
 	local url = string.format("http://vdn.live.cntv.cn/api2/live.do?client=iosapp&channel=%s", url)
-	--local url = string.format("http://vdn.live.cntv.cn/api2/liveHtml5.do?channel=%s&client=html5", url)
 	local text = kola.wget(url, false)
-	--text = kola.pcre("var html5VideoData = '(.*)';", text)
 
-	local video_url = ''
 	if text then
-		local hls_vod_url = ''
 		local js = cjson.decode(text)
 
-		if not js then
-			return ''
-		end
-		-- 如果有 hls
-		if js.hls_url then
-			if check_m3u8(js.hls_url.hls1) then
-				return js.hls_url.hls1
-			end
-			if check_m3u8(js.hls_url.hls2) then
-				return js.hls_url.hls2
-			end
-			if check_m3u8(js.hls_url.hls3) then
-				return js.hls_url.hls3
-			end
-		end
+		if js and js.hls_url then
+			local video_url = nil
+			if video_url == nil then video_url = check_m3u8(js.hls_url.hls1) end
+			if video_url == nil then video_url = check_m3u8(js.hls_url.hls2) end
+			if video_url == nil then video_url = check_m3u8(js.hls_url.hls3) end
+			if video_url == nil then video_url = check_m3u8(js.hls_url.hls5) end
 
-		-- 如果有 hds
-		if js['hds_url'] then
-			video_url = js['hds_url']['hds2']
-			if string.find(video_url, 'http://') and string.find(video_url, 'channel') then
-				return video_url
+			if video_url then
+				print(video_url)
+				video_url = string.gsub(video_url, "m3u8 \\?", "m3u8?")
+				video_url = string.gsub(video_url, ":8000:8000", ":8000")
+
+				return kola.strtrim(video_url)
 			end
 		end
 	end
@@ -201,17 +184,6 @@ function get_video_m2o(url)
 
 	return ''
 end
-
-function get_video_pptv1(url)
-	channel_id = string.gsub(url, "pptv://", "")
-	if channel_id then
-		return string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', channel_id)
-	end
-
-	return ''
-end
-
-local function isnan(x) return x ~= x end
 
 function get_video_pptv(url)
 	vid = string.gsub(url, "pptv://", "")

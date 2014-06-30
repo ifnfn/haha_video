@@ -16,7 +16,6 @@ function get_video_url(url)
 		return get_video_52itv(url)
 	elseif string.find(url, '.letv') then
 		return get_video_get_letv(url)
-
 	else
 		return url
 	end
@@ -330,22 +329,14 @@ function get_video_52itv(url)
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''
 	elseif string.find(url, '.m3u8') then
+		url = curl_get_52itv(url)
 		return curl_get_52itv(url)
 	elseif string.find(url, '.letv') then
 		local url = string.gsub(url, '.letv', '')
 		local xml = lua_get(url, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6");
 		if string.find(xml, '</nodelist>') then
 			local nodelist = rex.match(xml, '<nodelist>(.*?)</nodelist>')
-			--local urllist = nodelist.split("</node>");
-			--local urlnum = urllist.length - 1;
-			--for(var i=0; i < urlnum;i++) {
-			--	ipurl = "http://" + vst_cut(urllist[i], "http://", "]");
-			--}
 		end
-		--if (ipurl.indexOf("banquantishi") > -1) {
-		--	ipurl = "http://url.52itv.cn/live";
-		--}
-		--return ipurl;
 	end
 	return string.format('%s?k=%s -H "User-Agent: GGwlPlayer/QQ243944493"', url, get_livekey())
 end

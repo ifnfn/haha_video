@@ -48,7 +48,6 @@ function getip_detail()
 				elseif string.find(j, "电信") or string.find(j, "联通") then
 					ret.isp = "中国" .. j
 				end
-				print(i,j)
 			end
 			return cjson.encode(ret)
 		end

@@ -25,6 +25,10 @@ class ParserVstLivetv(LivetvParser):
             '吉林公共' : '吉林公共新闻',
             '第一财经' : '上海第一财经',
             '江西经视' : '江西经济生活',
+            '江苏体育休闲' : '江苏休闲',
+            '凤凰卫视香港台' : '凤凰卫视-香港台',
+            '凤凰卫视中文台' : '凤凰卫视-中文台',
+            '凤凰卫视资讯台' : '凤凰卫视-资讯台',
             'CCTV1 综合频道' : 'CCTV-1 综合',
             'CCTV2 财经频道' : 'CCTV-2 财经',
             'CCTV3 综艺频道' : 'CCTV-3 综艺',
@@ -47,7 +51,8 @@ class ParserVstLivetv(LivetvParser):
         }
         self.cmd['cache'] = True
         self.cmd['source'] = 'http://ott.52itv.cn/vst_tvlist?app=egreat&name=mygica%20TV%20MX%20box&ver=4.1.2&uuid=00000000-71b9-5e32-0033-c5870033c587&mac=000102030406'
-        self.ExcludeName = ['电影片花', '法国1', '高尔夫.网球', '高尔夫', '周星驰专区', 'CCTV-4 中文国际(欧洲)', 'CCTV-4 中文国际(美洲)']
+        self.ExcludeName = ['电影片花', '法国1', '高尔夫.网球', '高尔夫', '周星驰专区', 'CCTV-4 中文国际(欧洲)', 'CCTV-4 中文国际(美洲)', 'CCTV '
+                            ]
 
     def GetChannel(self, name):
         channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']

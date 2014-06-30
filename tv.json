@@ -92,7 +92,7 @@
     "tvName": "北京台",
     "channels": [
       {
-        "name": "北京-文艺频道",
+        "name": "北京文艺",
         "epg": "get_channel_tvmao#BTV2",
         "urls": [
           "http://www.wolidou.com/x/?s=sohu&f=flv&u=btv2",
@@ -100,7 +100,7 @@
         ]
       },
       {
-        "name": "北京-科教频道",
+        "name": "北京科教",
         "epg": "get_channel_tvmao#BTV3",
         "urls": [
           "http://www.wolidou.com/x/?s=sohu&f=flv&u=btv3",
@@ -108,12 +108,12 @@
         ]
       },
       {
-        "name": "北京-影视频道",
+        "name": "北京影视",
         "epg": "get_channel_tvmao#BTV4",
         "urls": "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvys"
       },
       {
-        "name": "北京-财经频道",
+        "name": "北京财经",
         "epg": "get_channel_tvmao#BTV5",
         "urls": [
           "http://www.wolidou.com/x/?s=sohu&f=flv&u=btv5",
@@ -121,7 +121,7 @@
         ]
       },
       {
-        "name": "北京-生活频道",
+        "name": "北京生活",
         "epg": "get_channel_tvmao#BTV7",
         "urls": [
           "http://61.55.175.79:81/youkulive/207/400/0/wolidou.com.flv",
@@ -129,7 +129,7 @@
         ]
       },
       {
-        "name": "北京-青年频道",
+        "name": "北京青年",
         "epg": "get_channel_tvmao#BTV8",
         "urls": [
           "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvqn",
@@ -137,7 +137,7 @@
         ]
       },
       {
-        "name": "北京-新闻频道",
+        "name": "北京新闻",
         "epg": "get_channel_tvmao#BTV9",
         "urls": "http://www.wolidou.com/x/?s=cx2tv_hls&f=m3u8&u=btvxw"
       }
@@ -156,31 +156,31 @@
         ]
       },
       {
-        "name": "湖南-经视频道",
+        "name": "湖南经视",
         "epg": "get_channel_tvmao#HUNANTV1",
         "urls": "http://hlstest.imgo.tv/hva4/index_512k.m3u8"
       },
       {
-        "name": "湖南-娱乐频道",
+        "name": "湖南娱乐",
         "epg": "get_channel_tvmao#HUNANTV3",
         "urls": "http://hlstest.imgo.tv/hva8/index_512k.m3u8"
       },
       {
-        "name": "湖南-电视剧频道",
+        "name": "湖南电视剧",
         "epg": "get_channel_tvmao#HUNANTV4",
         "urls": "http://hlstest.imgo.tv/hva7/index_512k.m3u8"
       },
       {
-        "name": "湖南-公共频道",
+        "name": "湖南公共",
         "epg": "get_channel_tvmao#HUNANTV5",
         "urls": "http://hlstest.imgo.tv/hvb2/index_512k.m3u8"
       },
       {
-        "name": "湖南-都市频道",
+        "name": "湖南都市",
         "urls": "http://hlstest.imgo.tv/hva6/index_512k.m3u8"
       },
       {
-        "name": "湖南-国际频道",
+        "name": "湖南国际",
         "epg": "get_channel_tvmao#HUNANTV7",
         "urls": "http://hlstest.imgo.tv/hva3/index_512k.m3u8"
       },
@@ -250,46 +250,46 @@
         ]
       },
       {
-        "name": "江苏-城市频道",
+        "name": "江苏城市",
         "epg": "get_channel_tvmao#jstv3",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvcs"
       },
       {
-        "name": "江苏-综艺频道",
+        "name": "江苏综艺",
         "epg": "get_channel_tvmao#jstv2",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvzy"
       },
       {
-        "name": "江苏-公共频道",
+        "name": "江苏公共",
         "epg": "get_channel_tvmao#jstv8",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgg"
       },
       {
-        "name": "江苏-影视频道",
+        "name": "江苏影视",
         "epg": "get_channel_tvmao#jstv4",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvys"
       },
       {
-        "name": "江苏-休闲频道",
+        "name": "江苏休闲",
         "epg": "get_channel_tvmao#jstv6",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvxx"
       },
       {
-        "name": "江苏-国际频道",
+        "name": "江苏国际",
         "epg": "get_channel_tvmao#jstv10",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgj"
       },
       {
-        "name": "江苏-教育频道",
+        "name": "江苏教育",
         "epg": "get_channel_tvmao#jstv9",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvjy"
       },
       {
-        "name": "江苏-学习频道",
+        "name": "江苏学习",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvlearn"
       },
       {
-        "name": "江苏-好享购物",
+        "name": "江苏好享购物",
         "urls": "http://www.wolidou.com/x/?s=jstv&f=flv&u=jstvgw"
       }
     ]
@@ -299,12 +299,12 @@
     "tvName": "广东台",
     "channels": [
       {
-        "name": "广东-珠江频道",
+        "name": "广东珠江",
         "epg": "get_channel_tvmao#GDTV2",
         "urls": "http://www.wolidou.com/x/?s=qq&f=flv&u=gdtvzj"
       },
       {
-        "name": "广东-公共频道",
+        "name": "广东公共",
         "epg": "get_channel_tvmao#GDTV4",
         "urls": "http://www.wolidou.com/x/?s=qq&f=flv&u=gdtvgg"
       }
@@ -315,37 +315,37 @@
     "tvName": "深圳台",
     "channels": [
       {
-        "name": "深圳-都市频道",
+        "name": "深圳都市",
         "epg": "get_channel_tvmao#SZTV2",
         "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=7324394407c4d8125e3771e02cff6135"
       },
       {
-        "name": "深圳-电视剧",
+        "name": "深圳电视剧",
         "epg": "get_channel_tvmao#SZTV3",
         "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=1e471ef1ab6b5ef3309a168acd7e8df2"
       },
       {
-        "name": "深圳-财经生活",
+        "name": "深圳财经生活",
         "epg": "get_channel_tvmao#SZTV4",
         "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=82095635d41a182306589dcc5ea18b89"
       },
       {
-        "name": "深圳-娱乐频道",
+        "name": "深圳娱乐",
         "epg": "get_channel_tvmao#SZTV5",
         "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=fe152fa9fddd7052663892e9a3573795"
       },
       {
-        "name": "深圳-少儿频道",
+        "name": "深圳少儿",
         "epg": "get_channel_tvmao#SZTV7",
         "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=f5bf2f2e18057e0851a4eaa74139ebe3"
       },
       {
-        "name": "深圳-公共频道",
+        "name": "深圳公共",
         "epg": "get_channel_tvmao#SZTV8",
         "urls": "http://www.wolidou.com/x/?s=topway&f=rtmp&u=48554e172655812ad8c0d4c2c09204cd"
       },
       {
-        "name": "深圳-国际频道",
+        "name": "深圳国际",
         "epg": "get_channel_tvmao#SZTV10",
         "urls": "rtmp://113.105.76.231/sztv_int/livestream"
       }
@@ -356,37 +356,37 @@
     "tvName": "福建台",
     "channels": [
       {
-        "name": "福建-综合频道",
+        "name": "福建综合",
         "epg": "get_channel_tvmao#FJTV1",
         "urls": "rtmp://stream1.fjtv.net:1935/live/zhpd_sd"
       },
       {
-        "name": "福建-公共频道",
+        "name": "福建公共",
         "epg": "get_channel_tvmao#FJTV3",
         "urls": "rtmp://stream1.fjtv.net:1935/live/ggpd_sd"
       },
       {
-        "name": "福建-新闻频道",
+        "name": "福建新闻",
         "epg": "get_channel_tvmao#FJTV4",
         "urls": "rtmp://stream1.fjtv.net:1935/live/xwpd_sd"
       },
       {
-        "name": "福建-电视剧频道",
+        "name": "福建电视剧",
         "epg": "get_channel_tvmao#FJTV5",
         "urls": "rtmp://stream1.fjtv.net:1935/live/dsjpd_sd"
       },
       {
-        "name": "福建-都市频道",
+        "name": "福建都市",
         "epg": "get_channel_tvmao#FJTV6",
         "urls": "rtmp://stream1.fjtv.net:1935/live/dspd_sd"
       },
       {
-        "name": "福建-经济频道",
+        "name": "福建经济",
         "epg": "get_channel_tvmao#FJTV7",
         "urls": "rtmp://stream1.fjtv.net:1935/live/jjpd_sd"
       },
       {
-        "name": "福建-少儿频道",
+        "name": "福建少儿",
         "epg": "get_channel_tvmao#FJTV9",
         "urls": "rtmp://stream1.fjtv.net:1935/live/child_sd"
       }
@@ -397,37 +397,42 @@
     "tvName": "天津台",
     "channels": [
       {
-        "name": "天津-新闻频道",
+        "name": "天津新闻",
         "epg": "get_channel_tvmao#TJTV2",
         "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv111"
       },
       {
-        "name": "天津-文艺频道",
+        "name": "天津文艺",
         "epg": "get_channel_tvmao#TJTV3",
         "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv2"
       },
       {
-        "name": "天津-影视频道",
+        "name": "天津影视",
         "epg": "get_channel_tvmao#TJTV4",
         "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv3"
       },
       {
-        "name": "天津-都市频道",
+        "name": "天津都市",
         "epg": "get_channel_tvmao#TJTV5",
         "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv4"
       },
       {
-        "name": "天津-科教频道",
+        "name": "天津体育",
+        "epg": "get_channel_tvmao#TJTV7",
+        "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv5"
+      },
+      {
+        "name": "天津科教",
         "epg": "get_channel_tvmao#TJTV7",
         "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv6"
       },
       {
-        "name": "天津-少儿频道",
+        "name": "天津少儿",
         "epg": "get_channel_tvmao#TJTV8",
         "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv7"
       },
       {
-        "name": "天津-公共频道",
+        "name": "天津公共",
         "epg": "get_channel_tvmao#TJTV9",
         "urls": "http://www.wolidou.com/x/?s=gsft&f=flv&u=tjtv8"
       }
@@ -438,42 +443,42 @@
     "tvName": "河南台",
     "channels": [
       {
-        "name": "河南-都市频道",
+        "name": "河南都市",
         "epg": "get_channel_tvmao#hntv2",
         "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv2"
       },
       {
-        "name": "河南-民生频道",
+        "name": "河南民生",
         "epg": "get_channel_tvmao#hntv3",
         "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv3"
       },
       {
-        "name": "河南-政法频道",
+        "name": "河南政法",
         "epg": "get_channel_tvmao#hntv4",
         "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv4"
       },
       {
-        "name": "河南-电视剧频道",
+        "name": "河南电视剧",
         "epg": "get_channel_tvmao#hntv5",
         "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv5"
       },
       {
-        "name": "河南-新闻频道",
+        "name": "河南新闻",
         "epg": "get_channel_tvmao#hntv6",
         "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv6"
       },
       {
-        "name": "河南-公共频道",
+        "name": "河南公共",
         "epg": "get_channel_tvmao#hntv8",
         "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv8"
       },
       {
-        "name": "河南-新农村频道",
+        "name": "河南新农村",
         "epg": "get_channel_tvmao#hntv9",
         "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv9"
       },
       {
-        "name": "河南-国际频道",
+        "name": "河南国际",
         "epg": "get_channel_tvmao#hngj",
         "urls": "http://www.wolidou.com/x/?s=henan&f=flv&u=hentv10"
       }

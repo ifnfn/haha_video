@@ -3,11 +3,11 @@
 
 import json
 import posixpath
+import re
 
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .epg import GetEPGScript
 from .livetvdb import LivetvParser, LivetvDB
 
 
@@ -69,6 +69,14 @@ class WolidouTV(LivetvMenu):
         self.parserClassList = [self.Parser]
         self.AlbumPage = []
 
+    def GetChannel(self, name):
+        channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
+        channels = ['凤凰']
+        channels = ['.*']
+        for p in list(channels):
+            if re.findall(p, name):
+                return name
+
     def UpdateAlbumList(self):
         '''
         [
@@ -120,6 +128,9 @@ class WolidouTV(LivetvMenu):
                 for ch in tv['channels']:
                     urls = ch['urls']
                     albumName = ch['name']
+                    if self.GetChannel(albumName) == None:
+                        continue
+
                     count += 1
                     print(count, albumName)
                     parser = None

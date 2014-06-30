@@ -17,9 +17,11 @@ class ParserYunNanLivetv(ParserTVIELivetv):
 
         self.Alias = {
             '卫视频道YNTV_1' : '云南卫视',
-            '都市频道YNTV_2' : '云南-都市频道',
-            '娱乐频道YNTV_3' : '云南-娱乐频道',
-            '公共频道YNTV_6' : '云南-公共频道',
+            '都市频道YNTV_2' : '云南都市',
+            '娱乐频道YNTV_3' : '云南娱乐',
+            '公共频道YNTV_6' : '云南公共',
+            '都市频道' : '云南都市',
+            '国际频道' :'云南国际',
         }
         self.ExcludeName = ['云南卫视CDN']
         self.Referer = 'http://store1.yntv.cn/flash-player'

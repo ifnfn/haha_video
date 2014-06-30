@@ -24,6 +24,7 @@ class ParserVstLivetv(LivetvParser):
             '杭州明珠' : '杭州西湖明珠',
             '吉林公共' : '吉林公共新闻',
             '第一财经' : '上海第一财经',
+            '江西经视' : '江西经济生活',
             'CCTV1 综合频道' : 'CCTV-1 综合',
             'CCTV2 财经频道' : 'CCTV-2 财经',
             'CCTV3 综艺频道' : 'CCTV-3 综艺',
@@ -50,8 +51,8 @@ class ParserVstLivetv(LivetvParser):
 
     def GetChannel(self, name):
         channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
-        channels = ['江西']
-        #channels = ['.*']
+        channels = ['山东', '济南']
+        channels = ['.*']
         for p in list(channels):
             if re.findall(p, name):
                 return name

@@ -287,7 +287,7 @@ function get_video_52itv(url)
 	if string.find(url, '.sdtv') then
 		url = string.format('%s?k=%s', url, get_livekey())
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
-		return 'aaa'
+		return ''
 	elseif string.find(url, '.letv') then
 		local url = string.gsub(url, '.letv', '')
 		local xml = lua_get(url, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6");

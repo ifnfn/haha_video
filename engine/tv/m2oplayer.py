@@ -48,6 +48,9 @@ class M2OLivetvParser(LivetvParser):
 
         album  = self.NewAlbum(albumName)
 
+        if album == None:
+            return
+
         v = album.NewVideo()
         v.order = self.order
         v.name  = self.tvName

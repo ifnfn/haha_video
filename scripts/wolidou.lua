@@ -66,7 +66,6 @@ local function jstv_url(video_url)
 	return ""
 end
 
-
 local function GetUrl(url)
 	local c2 = curl_init(share, url)
 	local ret = {}

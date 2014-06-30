@@ -8,7 +8,7 @@ import re
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser, LivetvDB, tvalias
 
 
 class WolidouDirectParser(LivetvParser):
@@ -132,7 +132,7 @@ class WolidouTV(LivetvMenu):
                         continue
 
                     count += 1
-                    print(count, albumName)
+                    #print(count, albumName)
                     parser = None
 
                     if type(urls) == str:

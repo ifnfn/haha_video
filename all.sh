@@ -12,7 +12,7 @@ UpdateScore() {
 
 
 Update() {
-    mongo kola --eval 'db.album.remove({"cid":200}); db.videos.remove({})'
+#    mongo kola --eval 'db.album.remove({"cid":200}); db.videos.remove({})'
     UpdateAlbum Qiyi
     UpdateAlbum QQ
     UpdateAlbum Sohu

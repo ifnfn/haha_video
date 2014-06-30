@@ -17,9 +17,6 @@ class ParserShanXiLivetv(LivetvParser):
         self.area = '中国,陕西'
         self.order = PRIOR_DEFTV
 
-        self.Alias = {
-        }
-
         self.cmd['source'] = 'http://l.smgbb.cn/'
         self.cmd['regular'] = ['(<ul id="channels" class="ul_l_m">[\s\S]*</ul>)']
 

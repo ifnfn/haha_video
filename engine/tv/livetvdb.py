@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import re
+import posixpath
+import tornado.escape
+import json
 
 from engine import KolaParser
 from kola import VideoBase, AlbumBase, DB, utils, City
@@ -10,6 +13,48 @@ from .common import PRIOR_COMMON
 from .tvorder import GetOrder, GetNumber
 from .epg import GetEPGScript
 
+
+class TVAlias:
+    def __init__(self):
+        try:
+            fn = posixpath.abspath('alias.json')
+            self.alias_list = tornado.escape.json_decode(open(fn, encoding='utf8').read())
+            #try:
+            #    for v, x in self.alias_list.items():
+            #        if x == v:
+            #            self.alias_list[v] = ''
+            #    s = json.dumps(self.alias_list, indent=4, ensure_ascii=False, sort_keys=True)
+            #    print(s)
+            #except Exception as e:
+            #    print(e)
+        except Exception as e:
+            print(e)
+
+    def GetAliasName(self, albumName, engineName=None):
+        for v, x in self.alias_list.items():
+            if albumName == v:
+                return albumName
+            if type(x) == str:
+                nameList = x.split("$")
+            else:
+                nameList = x
+
+            for n in nameList:
+                if engineName in n:
+                    x = n.replace("@" + engineName, "")
+                    if albumName == x:
+                        return v
+                elif albumName == n:
+                    return v
+
+        print('"%s" : "%s",' % (albumName, albumName))
+        self.alias_list[albumName] = self.alias_list
+        return albumName
+
+    def Show(self):
+        return
+
+tvalias = TVAlias()
 
 class TVCategory:
     def __init__(self):
@@ -136,8 +181,5 @@ class LivetvParser(KolaParser):
 
         if name in self.Alias:
             name = self.Alias[name]
-            for p in list(self.ExcludeName):
-                if p == name or re.findall(p, name):
-                    return None
 
-        return name
+        return tvalias.GetAliasName(name, self.__class__.__name__)

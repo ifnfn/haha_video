@@ -16,13 +16,6 @@ class ParserCntvLivetv(LivetvParser):
         self.area = ''
         self.order = PRIOR_CNTV
 
-        self.Alias = {
-            'CCTV-Español' : 'CCTV-欧洲',
-            'CCTV-العربية'     : 'CCTV-阿拉伯',
-            'CCTV-Français' : 'CCTV-法语',
-            'CCTV-Русский'  : 'CCTV-俄语',
-            'CCTV-4 (亚洲)' : 'CCTV-4 中文国际'
-        }
         self.ExcludeName = ('厦门卫视', '香港卫视', '山东教育台', '延边卫视', 'CCTV-4 \(欧洲\)', 'CCTV-4 \(美洲\)', 'CCTV-9 纪录(英)', 'CCTV-NEWS')
 
         self.cmd['source'] = 'http://tv.cntv.cn/live'

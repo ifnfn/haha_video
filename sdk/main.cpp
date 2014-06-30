@@ -134,7 +134,7 @@ void test_livetv_list()
 	if (m == NULL)
 		return;
 
-	m->FilterAdd("类型", "本省台");
+	//m->FilterAdd("类型", "本省台");
 	//m->FilterAdd("类型", "央视台");
 	//m->FilterAdd("类型", "卫视台");
 	//m->FilterAdd("类型", "地方台");
@@ -152,7 +152,8 @@ void test_livetv_list()
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
-		printf("[%ld] %-30s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
+		printf("%s\n", album->albumName.c_str());
+		//printf("[%ld] %-30s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
 #if 0
 		bool found = false;
 		while (1) {
@@ -276,7 +277,7 @@ void test_livetv()
 			cout << "\t:" << *j << endl;
 	}
 	//m->FilterAdd("类型", "本省台");
-	//m->FilterAdd("类型", "央视台");
+	m->FilterAdd("类型", "央视台");
 	//m->FilterAdd("类型", "卫视台");
 	//m->FilterAdd("类型", "地方台");
 	//m->FilterAdd("类型", "高清台");

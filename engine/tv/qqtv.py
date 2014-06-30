@@ -15,13 +15,7 @@ class ParserQQLivetv(LivetvParser):
         super().__init__()
         self.tvName = '腾讯'
         self.order = PRIOR_QQ
-        self.Alias = {
-            '浙江卫视[高清]' : '浙江卫视',
-            '广东卫视[高清]' : '广东卫视',
-            '东方卫视[高清]' : '东方卫视',
-            '深圳卫视[高清]' : '深圳卫视',
-            '广东公共' : '广东-公共'
-        }
+
         self.cmd['source'] = 'http://v.qq.com/live/tv/34.html'
         self.cmd['regular'] = ['(data-cname=.*data-playid=.*data-key=.*>)']
 

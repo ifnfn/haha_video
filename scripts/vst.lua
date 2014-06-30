@@ -67,6 +67,47 @@ function curl_get( url, user_agent, referer )
 
 	return text
 end
+
+local function curl_get_52itv(video_url)
+	local function h_build_w_cb(t)
+		return function(s,len)
+			--stores the received data in the table t
+			--prepare header data
+			name, value = s:match("(.-): (.+)")
+			if name and value then
+				t.headers[name] = value:gsub("[\n\r]", "")
+				--print(name, t.headers[name])
+				if name == 'Set-Cookie' then
+					Cookie = t.headers[name]
+				end
+			else
+				code, codemessage = string.match(s, "^HTTP/.* (%d+) (.+)$")
+				if code and codemessage then
+					t.code = tonumber(code)
+					t.codemessage = codemessage:gsub("[\n\r]", "")
+				end
+			end
+
+			return len,nil
+		end
+	end
+
+	c = cURL.easy_init()
+
+	c:setopt_useragent("GGwlPlayer/QQ243944493")
+	c:setopt_url(video_url)
+
+	ret = {}
+	ret.headers = {}
+	c:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
+
+	if ret.headers.Location then
+		return ret.headers.Location
+	end
+
+	return video_url
+end
+
 -- pa://cctv_p2p_hdcctv1
 function get_video_cntv( url )
 	local function check_m3u8(url)
@@ -284,10 +325,12 @@ function get_video_52itv(url)
 		return string.format('%s-%d', string.lower(kola.md5(key)), d)
 	end
 
+	url = string.format('%s?k=%s', url, get_livekey())
 	if string.find(url, '.sdtv') then
-		url = string.format('%s?k=%s', url, get_livekey())
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''
+	elseif string.find(url, '.m3u8') then
+		return curl_get_52itv(url)
 	elseif string.find(url, '.letv') then
 		local url = string.gsub(url, '.letv', '')
 		local xml = lua_get(url, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6");

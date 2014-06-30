@@ -89,7 +89,7 @@ local function curl_get_52itv(video_url)
 				end
 			end
 
-			return len,nil
+			return len, nil
 		end
 	end
 
@@ -136,7 +136,15 @@ function get_video_cntv( url )
 				video_url = string.gsub(video_url, "m3u8 \\?", "m3u8?")
 				video_url = string.gsub(video_url, ":8000:8000", ":8000")
 
-				return kola.strtrim(video_url)
+				video_url = kola.strtrim(video_url)
+				if string.find(video_url, "AUTH=ip") == nil then
+					text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
+					auth = rex.match(text, '(AUTH=ip.*?)"')
+					if auth then
+						video_url =  video_url .. auth
+					end
+				end
+				return video_url
 			end
 		end
 	end
@@ -198,6 +206,7 @@ function get_video_pptv(url)
 
 	--if not isnan(vid) then
 	--	return string.format("http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0&kk=%s&o=v.pptv.com", vid, kk)
+	--	return string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', id)
 	--end
 
 	local xml = kola.wget("http://jump.synacast.com/live2/" .. vid)

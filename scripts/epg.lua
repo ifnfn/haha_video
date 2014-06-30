@@ -829,16 +829,17 @@ function get_channel_tvmao(albumName)
 	name_key['舟山新闻综合'] = nil
 
 	name_key['周星驰专区'] = ''
-	name_key['珠海1台'] = 'ZHTV1'
-	name_key['珠海2台'] = 'ZHTV2'
-	name_key['珠海生活服务'] = 'ZHTV2'
-	name_key['珠海新闻综合'] = 'ZHTV2'
+	name_key['珠海1台'] = 'zhtv1'
+	name_key['珠海2台'] = 'zhtv2'
+	name_key['珠海生活服务'] = 'zhtv2'
+	name_key['珠海新闻综合'] = 'zhtv2'
 
 	vid = get_vid(name_key, albumName)
 
-	if vid == nil then
-	    vid = rex.match(albumName, '(CCTV\\d+)')
-	    if vid == nil then
+	if vid == nil and string.find(albumName, "CCTV") then
+		aname = string.gsub(albumName, "-", "")
+		vid = rex.match(aname, '(CCTV\\d+)')
+		if vid == nil then
 			return nil
 		end
 	end

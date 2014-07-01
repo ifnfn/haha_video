@@ -35,18 +35,6 @@ class UploadHandler(BaseHandler):
         except:
             pass
 
-class RandomVideoUrlHandle(BaseHandler):
-    def get(self, name):
-        self.finish(tv.db.GetVideoCache(name))
-
-    def post(self, name):
-        if name == '':
-            body = self.request.body
-            name = hashlib.md5(body).hexdigest().upper()
-            self.db.set(name, body.decode())
-            self.db.expire(name, 60) # 1 分钟有效
-            self.finish(name)
-
 class UpdateCommandHandle(BaseHandler):
     def initialize(self):
         pass
@@ -126,7 +114,7 @@ class LoginHandler(BaseHandler):
             else:
                 tv.CommandEmptyMessage()
 
-        self.finish(json.dumps(ret))
+        self.finish(tornado.escape.json_encode(ret))
 
     def post(self):
         self.finish('OK')
@@ -169,7 +157,6 @@ class EngineApplication(tornado.web.Application):
 
         handlers = [
             (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
-            (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
             (r'/upload',           UploadFileHandler),
             (r'/manage/update',    UpdateCommandHandle),

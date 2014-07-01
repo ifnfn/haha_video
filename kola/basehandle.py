@@ -5,17 +5,17 @@ import base64
 from urllib.parse import unquote
 import zlib
 
-import redis
 import tornado.web
 
+from .kolaserver import kolas
 
-key_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
+        chipid  = self.get_argument('chipid', None)
+        serial  = self.get_argument('serial', None)
         key = self.get_secure_cookie('user_id', None, 1)
-        if key_db.exists(key) and key_db.get(key).decode() == self.request.remote_ip and True:
-            return key
+        return kolas.CheckUser(key, self.request.remote_ip, chipid, serial)
 
     def prepare(self):
         if self.request.method == "POST" and self.request.body:

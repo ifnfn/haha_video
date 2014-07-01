@@ -6,7 +6,6 @@ import hashlib
 
 import sys, os, time
 import traceback
-import uuid
 
 import redis
 import tornado.escape
@@ -20,113 +19,23 @@ try:
 except ImportError:
     ImageWriter = None
 
-from kola import BaseHandler, key_db, log, utils, KolaCommand, element, DB, City
+from kola import BaseHandler, log, utils, DB, City, kolas
 
-class KolatvServer:
-    def __init__(self):
-        self.db = DB()
-        self.command = KolaCommand()
-        self.MenuList = {}
-        self.UpdateAlbumFlag = False
-        self.MenuList['直播']   = element.LivetvMenu('直播')           # 200
-        self.MenuList['电影']   = element.MovieMenu('电影')            # 1
-        self.MenuList['电视剧'] = element.TVMenu('电视剧')              # 2
-        self.MenuList['动漫']   = element.ComicMenu('动漫')            # 3
-        self.MenuList['记录片'] = element.DocumentaryMenu('记录片')     # 4
-        self.MenuList['综艺']   = element.ShowMenu('综艺')             # 5
-        #self.MenuList['教育']   = element.EduMenu('教育')              # 6
-        #self.MenuList['娱乐']   = element.YuleMenu('娱乐')             # 7
-        #self.MenuList['旅游']   = element.TourMenu('旅游')             # 8
-
-    def GetVideoSource(self):
-        return {
-            'source' : ['腾讯', '搜狐', '爱奇艺'],
-            'resolution' : ['1080P', '原画质', '720P', '超清', '高清', '标清', '默认']
-        }
-
-    def GetMenuJsonInfoById(self, cid_list):
-        ret = []
-        count = len(cid_list)
-        for _, menu in list(self.MenuList.items()):
-            if count == 0 or str(menu.cid) in cid_list:
-                ret.append(menu.GetJsonInfo())
-
-        return ret
-
-    def GetMenuJsonInfoByName(self, name_list):
-        ret = []
-        count = len(name_list)
-        for name, menu in list(self.MenuList.items()):
-            if count == 0 or name in name_list:
-                ret.append(menu.GetJsonInfo())
-
-        return ret
-
-    def _GetMenuAlbumList(self, menu, argument):
-        if menu:
-            menu.CheckQuickFilter(argument)
-            menu.FixArgument(argument)
-            return self.db.GetAlbumListJson(argument, menu.cid)
-
-        return [], 0
-
-    def GetAlbumFailure(self, vids):
-        return self.db.GetAlbumFailure(vids)
-
-    def GetMenuAlbumListByVidList(self, vids, argument):
-        if 'filter' not in argument:
-            argument['filter'] = {}
-        argument['filter']['vids'] = vids
-        return self.db.GetAlbumListJson(argument)
-
-    def GetMenuAlbumListByName(self, menuName, argument):
-        menu = self.FindMenu(menuName)
-        return self._GetMenuAlbumList(menu, argument)
-
-    def GetMenuAlbumListByCid(self, cid, argument):
-        cid = utils.autoint(cid)
-        menu = self.FindMenuById(cid)
-        return self._GetMenuAlbumList(menu, argument)
-
-    def GetVideoByVid(self, vid):
-        video = self.db.FindVideoJson(vid=vid)
-
-        return video
-
-    def GetVideoListByPid(self, pid, argument):
-        return self.db.GetVideoListJson(pid=pid, arg=argument)
-
-    def FindMenuById(self, cid):
-        for _, menu in list(self.MenuList.items()):
-            if menu.cid == cid:
-                return menu
-
-        return None
-
-    def FindMenu(self, name):
-        if name in self.MenuList:
-            return self.MenuList[name]
-        else:
-            return None
-
-    def CommandEmptyMessage(self):
-        if self.UpdateAlbumFlag == True:
-            self.UpdateAlbumFlag = False
-
-tv = KolatvServer()
 
 class AlbumVidCheckHandler(BaseHandler):
     def get(self):
         vids = self.get_argument('vid', '')
-        ret = tv.GetAlbumFailure(vids)
+        ret = kolas.GetAlbumFailure(vids)
 
-        self.finish(json.dumps(ret, indent=4, ensure_ascii=False, sort_keys=True))
+        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False, sort_keys=True))
+        self.finish(tornado.escape.json_encode(ret))
 
     def post(self):
         if self.request.body:
             vids = tornado.escape.to_basestring(self.request.body)
-            ret = tv.GetAlbumFailure(vids)
-            self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+            ret = kolas.GetAlbumFailure(vids)
+            #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+            self.finish(tornado.escape.json_encode(ret))
 
 class AlbumListHandler(BaseHandler):
     def argument(self):
@@ -156,15 +65,16 @@ class AlbumListHandler(BaseHandler):
         args, menu, cid, vid = self.argument()
 
         if cid:
-            albumlist, args['total'] = tv.GetMenuAlbumListByCid(cid, args)
+            albumlist, args['total'] = kolas.GetMenuAlbumListByCid(cid, args)
         elif menu:
-            albumlist, args['total'] = tv.GetMenuAlbumListByName(menu, args)
+            albumlist, args['total'] = kolas.GetMenuAlbumListByName(menu, args)
         elif vid:
-            albumlist, args['total'] = tv.GetMenuAlbumListByVidList(vid, args)
+            albumlist, args['total'] = kolas.GetMenuAlbumListByVidList(vid, args)
 
         if albumlist: args['result'] = albumlist
 
-        self.finish(json.dumps(args, indent=4, ensure_ascii=False))
+        #self.finish(json.dumps(args, indent=4, ensure_ascii=False))
+        self.finish(tornado.escape.json_encode(args))
 
     @tornado.web.authenticated
     def post(self):
@@ -182,15 +92,16 @@ class AlbumListHandler(BaseHandler):
                 raise tornado.web.HTTPError(400)
 
         if cid:
-            albumlist, args['total'] = tv.GetMenuAlbumListByCid(cid, args)
+            albumlist, args['total'] = kolas.GetMenuAlbumListByCid(cid, args)
         elif menu:
-            albumlist, args['total'] = tv.GetMenuAlbumListByName(menu, args)
+            albumlist, args['total'] = kolas.GetMenuAlbumListByName(menu, args)
         elif vid:
-            albumlist, args['total'] = tv.GetMenuAlbumListByVidList(vid, args)
+            albumlist, args['total'] = kolas.GetMenuAlbumListByVidList(vid, args)
 
         if albumlist: args['result'] = albumlist
 
-        self.finish(json.dumps(args, indent=4, ensure_ascii=False))
+        #self.finish(json.dumps(args, indent=4, ensure_ascii=False))
+        self.finish(tornado.escape.json_encode(args))
 
 class GetVideoPlayerUrlHandle(BaseHandler):
     @tornado.web.authenticated
@@ -199,7 +110,7 @@ class GetVideoPlayerUrlHandle(BaseHandler):
         vid = self.get_argument('vid', '')
         res = self.get_argument('resolution', '')
         try:
-            video = tv.GetVideoByVid(vid)
+            video = kolas.GetVideoByVid(vid)
             if video:
                 for k,v in list(video['videos'].items()):
                     if (res == '' and k == 'default') or res == 'all' or v['name'] in res:
@@ -210,7 +121,8 @@ class GetVideoPlayerUrlHandle(BaseHandler):
                         break
 
         finally:
-            self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+            #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+            self.finish(tornado.escape.json_encode(ret))
 
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=0'
@@ -232,14 +144,15 @@ class GetVideoHandler(BaseHandler):
         self.Finish(args, pid, full)
 
     def Finish(self, args, pid, full):
-        videos, count = tv.GetVideoListByPid(pid, args)
+        videos, count = kolas.GetVideoListByPid(pid, args)
         #if full != '1':
         #    for v in videos:
         #        del v['videos']
 
         args['count'] = count
         args['videos'] = videos
-        self.finish(json.dumps(args, indent=4, ensure_ascii=False))
+        self.finish(tornado.escape.json_encode(args))
+        #self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
         args,pid,full = self.argument()
@@ -283,7 +196,7 @@ class GetPlayerHandler(BaseHandler):
 
             m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
             name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
-            tv.db.SetVideoCache(name, m3u8)
+            kolas.db.SetVideoCache(name, m3u8)
 
             return url + name
         except:
@@ -328,7 +241,7 @@ class GetPlayerHandler(BaseHandler):
                 m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
 
                 name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
-                tv.db.SetVideoCache(name, m3u8)
+                kolas.db.SetVideoCache(name, m3u8)
 
                 return url + name
         except:
@@ -352,38 +265,22 @@ class GetMenuHandler(BaseHandler):
         name  = self.get_argument('name', '')
         if cid:
             cid = cid.split(',')
-            ret = tv.GetMenuJsonInfoById(cid)
+            ret = kolas.GetMenuJsonInfoById(cid)
         elif name != '':
             name = name.split(',')
-            ret =  tv.GetMenuJsonInfoByName(name)
+            ret =  kolas.GetMenuJsonInfoByName(name)
         else:
-            ret =  tv.GetMenuJsonInfoByName([])
+            ret =  kolas.GetMenuJsonInfoByName([])
 
-        self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+        self.finish(tornado.escape.json_encode(ret))
 
 class GetKolaInfoHandler(BaseHandler):
     def get(self):
-        ret =  tv.GetVideoSource()
+        ret =  kolas.GetVideoSource()
 
-        self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
-
-class UploadHandler(BaseHandler):
-    def get(self):
-        print('Upload get')
-        pass
-
-    @tornado.web.authenticated
-    def post(self):
-        try:
-            if type(self.request.body) == bytes:
-                body = self.request.body.decode()
-            else:
-                body = self.request.body
-            if body and len(body) > 0:
-                tv.ParserHtml(body)
-                #tv.AddTask(body)
-        except:
-            pass
+        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+        self.finish(tornado.escape.json_encode(ret))
 
 class CityHandler(BaseHandler):
     city = City()
@@ -392,7 +289,8 @@ class CityHandler(BaseHandler):
         cid = self.get_argument('cid', '')
         if cid == '':
             ret = self.city.GetListByFullName(name)
-            self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+            #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+            self.finish(tornado.escape.json_encode(ret))
         else:
             self.finish(self.city.GetCiyByFullName(name))
 
@@ -418,71 +316,12 @@ class ADHandler(BaseHandler):
 
         self.redirect(self.GetUrl(ret))
 
-class ShowHandler(BaseHandler):
-    def initialize(self):
-        pass
-
-    def get(self):
-        vid = self.get_argument('vid')
-        album = tv.db.FindAlbumJson(vid=vid)
-        if not album:
-            return
-
-        if 'largeVerPicUrl' in album:
-            album['pic'] = album['largeVerPicUrl']
-        elif 'largeHorPicUrl' in album:
-            album['pic'] = album['largeHorPicUrl']
-        elif 'smallVerPicUrl' in album:
-            album['pic'] = album['smallVerPicUrl']
-        elif 'smallVerPicUrl' in album:
-            album['pic'] = album['smallVerPicUrl']
-        else:
-            album['pic'] = ''
-        if 'directors' in album:
-            album['directors'] = ', '.join(album['directors'])
-        else:
-            album['directors'] = ''
-        if 'mainActors' in album:
-            album['mainActors'] = ', '.join(album['mainActors'])
-        else:
-            album['mainActors'] = ''
-
-        if 'area' not in album:
-            album['area'] = ''
-
-        if 'playLength'   not in album: album['playLength'] = 0
-        if 'albumDesc'    not in album: album['albumDesc'] = ''
-        if 'totalPlayNum' not in album: album['totalPlayNum'] = ''
-        if 'Score' in album:
-            album['Score'] = '%.2f' % (float(album['Score']))
-        else:
-            album['Score'] = ''
-
-        totalPlayNum = utils.autoint(album['totalPlayNum'])
-        if totalPlayNum > 100000000:
-            album['totalPlayNum'] = '%.4f 亿次' % (totalPlayNum / 100000000)
-        elif totalPlayNum > 10000:
-            album['totalPlayNum'] = '%.2f 万次' % (totalPlayNum / 10000)
-        else:
-            album['totalPlayNum'] = '%d次' % (totalPlayNum)
-
-        album['playLength'] = '%.2f 分钟' % (album['playLength'] / 60.0)
-
-        if album['cid'] == 1:
-            album['type'] = '电影'
-        elif album['cid'] == 2:
-            album['type'] = '电视剧'
-        else:
-            album['type'] = ''
-
-        self.render("show.html", alubm=album)
-
 class RandomVideoUrlHandle(BaseHandler):
     def initialize(self):
         pass
 
     def get(self, name):
-        self.finish(tv.db.GetVideoCache(name))
+        self.finish(kolas.db.GetVideoCache(name))
 
     def post(self, name):
         if name == '':
@@ -519,7 +358,8 @@ class UserInfoHandler(BaseHandler):
         for x in cursor:
             del x['_id']
             ret.append(x)
-        self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+        self.finish(tornado.escape.json_encode(ret))
 
 class SerialHandler(BaseHandler):
     user_table = DB().user_table
@@ -581,7 +421,6 @@ class SerialHandler(BaseHandler):
         number    = utils.autoint(self.get_argument('number', 0))
         start     = utils.autoint(self.get_argument('start', 0))
         image     = self.get_argument('image', '0')
-        type      = self.get_argument('type', '')
 
         codes = []
         skip = False
@@ -617,32 +456,11 @@ class LoginHandler(BaseHandler):
         self.version = self.get_argument('version', '')
 
     def check_user_id(self):
-        status = 'NO'
-
-        if self.serial in ['000001', '000002', '000003', '000004']:
-            status = 'YES'
-        elif self.chipid and self.serial and self.chipid not in ['0000000000000000']: # 默认的测试号
-            json = self.user_table.find_one({'serial' : self.serial})
-            if json and (json['chipid'] == '' or json['chipid'] == self.chipid):
-                status = 'YES'
-                self.user_table.update({'serial' : self.serial}, {'$set' : {'chipid': self.chipid, 'updateTime' : time.time()}})
-
-        if status == 'YES':
-            # 登录检查，生成随机 KEY
-            if not key_db.exists(self.chipid):
-                key = (self.chipid + uuid.uuid4().__str__() + self.request.remote_ip).encode()
-                key = hashlib.md5(key).hexdigest().upper()
-                key_db.set(self.chipid, key)
-                key_db.set(key, self.request.remote_ip)
-            else:
-                key = key_db.get(self.chipid).decode()
-                key_db.set(key, self.request.remote_ip)
-            key_db.expire(self.chipid, 120) # 一分钟过期
-            key_db.expire(key, 120)         # 一分钟过期
-
+        key = kolas.Login(self.chipid, self.serial, self.request.remote_ip)
+        
+        if key:
             return key
         else:
-            return ''
             raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.chipid)
 
     def get(self):
@@ -713,136 +531,6 @@ class LoginHandler(BaseHandler):
         self.set_secure_cookie("user_id", user_id, 1)
 
         self.finish(json.dumps(ret))
-
-class IndexHandler(BaseHandler):
-    def initialize(self):
-        pass
-
-    def get(self):
-        args = {}
-        args['page'] = 0
-        args['size'] = 20
-        args['sort'] = '昨日热播'
-
-        _items, _ = tv.GetMenuAlbumListByName('电视剧', args)
-        newtv = []
-        for i in _items:
-            _item = {}
-            _item['id'] = i['vid']
-            _item['title'] = i['albumName']
-            if 'publishTime' in i:
-                _item['time'] = time.strftime('%Y-%m-%d', time.gmtime(i['publishTime']))
-            elif 'publishYear' in i:
-                _item['time'] = i['publishYear']
-            else:
-                _item['time'] = ''
-
-            if 'smallVerPicUrl' in i:
-                _item['pic'] = i['smallVerPicUrl']
-            elif 'smallVerPicUrl' in i:
-                _item['pic'] = i['smallVerPicUrl']
-            elif 'largeHorPicUrl' in i:
-                _item['pic'] = i['largeHorPicUrl']
-            elif 'largeVerPicUrl' in i:
-                _item['pic'] = i['largeVerPicUrl']
-            else:
-                _item['pic'] = ''
-            newtv.append(_item)
-
-        toptv = []
-        x = 0
-        args['page'] = 0
-        args['size'] = 20
-        args['sort'] = '评分最高'
-
-        _items, _ = tv.GetMenuAlbumListByName('电视剧', args)
-        for i in _items:
-            _item = {}
-            if x == 0:
-                _item['info'] = i['albumName']
-            x += 1
-            _item['id'] = i['vid']
-            _item['title'] = i['albumName']
-            if 'Score' in i:
-                _item['score'] = '%.2f' % (float(i['Score']))
-            else:
-                _item['score'] = ''
-
-            if 'smallVerPicUrl' in i:
-                _item['pic'] = i['smallVerPicUrl']
-            elif 'smallVerPicUrl' in i:
-                _item['pic'] = i['smallVerPicUrl']
-            elif 'largeHorPicUrl' in i:
-                _item['pic'] = i['largeHorPicUrl']
-            elif 'largeVerPicUrl' in i:
-                _item['pic'] = i['largeVerPicUrl']
-            else:
-                _item['pic'] = ''
-            toptv.append(_item)
-
-        args['page'] = 0
-        args['size'] = 20
-        args['sort'] = '昨日热播'
-        _items, _ = tv.GetMenuAlbumListByName('电影', args)
-        newmovie = []
-        for i in _items:
-            _item = {}
-            _item['id'] = i['vid']
-            _item['title'] = i['albumName']
-            if 'publishTime' in i:
-                _item['time'] = time.strftime('%Y-%m-%d', time.gmtime(i['publishTime']))
-            elif 'publishYear' in i:
-                _item['time'] = i['publishYear']
-            else:
-                _item['time'] = ''
-#            _item['time'] = _item['time'].replace("集更新", "集|更新至")
-#            if "更新" in _item['time']:
-#                _item['time'] = "更"+ _item['time'].split("更")[1]
-            if 'smallVerPicUrl' in i:
-                _item['pic'] = i['smallVerPicUrl']
-            elif 'smallVerPicUrl' in i:
-                _item['pic'] = i['smallVerPicUrl']
-            elif 'largeHorPicUrl' in i:
-                _item['pic'] = i['largeHorPicUrl']
-            elif 'largeVerPicUrl' in i:
-                _item['pic'] = i['largeVerPicUrl']
-            else:
-                _item['pic'] = ''
-            newmovie.append(_item)
-
-        topmovie = []
-        x = 0
-        args['page'] = 0
-        args['size'] = 20
-        args['sort'] = '评分最高'
-
-        _items, _ = tv.GetMenuAlbumListByName('电影', args)
-        for i in _items:
-            _item = {}
-            if x == 0:
-                _item['info'] = i['albumName']
-            x += 1
-            _item['id'] = i['vid']
-            _item['title'] = i['albumName']
-
-            if 'Score' in i:
-                _item['score'] = '%.2f' % (float(i['Score']))
-            else:
-                _item['score'] = ''
-
-            if 'smallVerPicUrl' in i:
-                _item['pic'] = i['smallVerPicUrl']
-            elif 'smallVerPicUrl' in i:
-                _item['pic'] = i['smallVerPicUrl']
-            elif 'largeHorPicUrl' in i:
-                _item['pic'] = i['largeHorPicUrl']
-            elif 'largeVerPicUrl' in i:
-                _item['pic'] = i['largeVerPicUrl']
-            else:
-                _item['pic'] = ''
-            topmovie.append(_item)
-
-        self.render("index.html",newtv=newtv,toptv=toptv,topmovie=topmovie,newmovie=newmovie)
 
 class EncryptFileHandler(tornado.web.StaticFileHandler):
     def initialize(self, path, default_filename=None):
@@ -958,11 +646,9 @@ class ViewApplication(tornado.web.Application):
         )
 
         handlers = [
-            (r'/',                 IndexHandler),
             (r'/video/vidcheck',   AlbumVidCheckHandler),
             (r'/video/list',       AlbumListHandler),
             (r'/video/getvideo',   GetVideoHandler),
-            (r'/video/upload',     UploadHandler),          # 接受客户端上网的需要解析的网页文本
             (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
             (r'/video/getmenu',    GetMenuHandler),         #
             (r'/video/getinfo',    GetKolaInfoHandler),     #
@@ -970,7 +656,6 @@ class ViewApplication(tornado.web.Application):
             (r'/video/geturl',     GetVideoPlayerUrlHandle),
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
-            (r'/show',             ShowHandler),
             (r'/ad',               ADHandler),              # 广告
             (r'/city',             CityHandler),            # 城市编码
 

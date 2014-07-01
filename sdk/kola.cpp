@@ -483,6 +483,11 @@ string KolaClient::GetFullUrl(string url)
 		full_url = UrlLink(GetServer(), url);
 	else
 		full_url = url;
+
+	if (full_url.find("?") == std::string::npos)
+		full_url = full_url + "?";
+
+	full_url = full_url + "chipid=" + GetChipKey() + "&serial=" + GetChipKey();
 	//printf("FullUrl: %s\n", full_url.c_str());
 
 	return full_url;
@@ -508,6 +513,7 @@ IObject::IObject()
 bool KolaArea::Empty() {
 	return ip.empty() && province.empty() && city.empty();
 }
+
 string KolaArea::toJson() {
 	string ret = "\"area\" : {";
 

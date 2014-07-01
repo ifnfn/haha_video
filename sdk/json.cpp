@@ -1,14 +1,19 @@
 #include "json.hpp"
 #include "kola.hpp"
 
+extern "C" void jsonp_free(void*);
+
 bool json_dump_str(json_t *js, string &ret)
 {
 	char *text = json_dumps(js, 2);
 
 	if (text) {
 		ret = text;
+#if defined(CSKY) && defined(LINUX_OS)
 		jsonp_free(text);
-
+#else
+		free(text);
+#endif
 		return true;
 	}
 

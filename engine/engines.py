@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import configparser
-import json
 import sys
 import traceback
+import tornado.escape
 
 from kola import DB, KolaCommand, VideoMenuBase
 
@@ -69,7 +69,7 @@ class EngineCommands(KolaCommand):
                 cmd['source'] = self.GetUrl(cmd['source'])
             if self.pipe == None:
                 self.pipe = self.db.pipeline()
-            self.pipe.rpush('command', json.dumps(cmd))
+            self.pipe.rpush('command', tornado.escape.json_encode(cmd))
         return self
 
     def Execute(self):

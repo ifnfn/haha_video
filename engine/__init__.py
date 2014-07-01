@@ -7,7 +7,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 
-from kola import BaseHandler, DB, ThreadPool
+from kola import DB, ThreadPool
 
 from .engines import EngineCommands, VideoEngine, KolaParser, KolaAlias
 from .funshion import FunshionEngine

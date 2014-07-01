@@ -67,7 +67,7 @@ class KolatvServer:
             return ''
 
     def CheckUser(self, key, remote_ip, chipid=None, serial=None):
-        if not kolas.kdb.exists(key):
+        if not self.kdb.exists(key):
             if chipid and serial:
                 return self.Login(chipid, serial, remote_ip)
         else:
@@ -150,5 +150,3 @@ class KolatvServer:
     def CommandEmptyMessage(self):
         if self.UpdateAlbumFlag == True:
             self.UpdateAlbumFlag = False
-
-kolas = KolatvServer()

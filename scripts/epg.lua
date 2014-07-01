@@ -245,9 +245,6 @@ function get_channel_tvmao(albumName)
 	name_key['云南']   = 'yntv1'
 	name_key['浙江']   = 'zjtv1'
 	name_key['兵团']   = 'bingtuan'
-	name_key['凤凰卫视香港台']   = 'phoenixhk'
-	name_key['凤凰卫视中文台']   = ''
-	name_key['凤凰卫视资讯台']   = 'phoenix-infonews'
 	name_key['华娱']   = 'huayu1'
 	name_key['健康']   = 'jkwshk'
 	name_key['莲花']   = 'lotusbtv'
@@ -256,270 +253,275 @@ function get_channel_tvmao(albumName)
 	name_key['卡酷少儿']   = 'btv10'
 	name_key['三沙']   = 'sanshatv'
 	name_key['炫动卡通']   = 'toonmax1'
-
+	name_key['凤凰卫视-香港台'] = 'phoenixhk'
+	name_key['凤凰卫视-中文台'] = ''
+	name_key['凤凰卫视-资讯台'] = 'phoenix-infonews'
 
 	-- 安徽
-	name_key['安徽经济'] = 'ahtv2'
-	name_key['安徽影视'] = 'ahtv3'
-	name_key['安徽综艺'] = 'ahtv4'
-	name_key['安徽公共'] = 'ahtv5'
-	name_key['安徽科教'] = 'ahtv6'
-	name_key['安徽人物'] = 'ahtv7'
-	name_key['安徽国际'] = 'ahtv8'
-	name_key['安庆公共'] = 'aqgg'
-	name_key['安庆黄梅戏'] = nil
-	name_key['安庆生活']    = nil
-	name_key['安庆新闻综合'] = 'aqxw'
+	name_key['安徽-经济生活'] = 'ahtv2'
+	name_key['安徽-影视频道'] = 'ahtv3'
+	name_key['安徽-综艺频道'] = 'ahtv4'
+	name_key['安徽-公共频道'] = 'ahtv5'
+	name_key['安徽-科教频道'] = 'ahtv6'
+	name_key['安徽-人物频道'] = 'ahtv7'
+	name_key['安徽-国际频道'] = 'ahtv8'
+	name_key['安庆-公共频道'] = 'aqgg'
+	name_key['安庆-黄梅戏'] = nil
+	name_key['安庆-生活']    = nil
+	name_key['安庆-新闻综合'] = 'aqxw'
 	name_key['百姓健康']     = 'chtv'
-	name_key['蚌埠公共频道'] = 'ahbbtv3'
-	name_key['蚌埠生活频道'] = 'ahbbtv2'
-	name_key['蚌埠新闻综合'] = 'ahbbtv1'
+	name_key['蚌埠-公共频道'] = 'ahbbtv3'
+	name_key['蚌埠-生活频道'] = 'ahbbtv2'
+	name_key['蚌埠-新闻综合'] = 'ahbbtv1'
 
-	name_key['天津新闻'] = 'tjtv2'
-	name_key['天津文艺'] = 'tjtv3'
-	name_key['天津影视'] = 'tjtv4'
-	name_key['天津都市'] = 'tjtv5'
-	name_key['天津体育'] = 'tjtv6'
-	name_key['天津科教'] = 'tjtv7'
-	name_key['天津少儿'] = 'tjtv8'
-	name_key['天津公共'] = 'tjtv9'
+	name_key['天津-新闻'] = 'tjtv2'
+	name_key['天津-文艺'] = 'tjtv3'
+	name_key['天津-影视'] = 'tjtv4'
+	name_key['天津-都市'] = 'tjtv5'
+	name_key['天津-体育'] = 'tjtv6'
+	name_key['天津-科教'] = 'tjtv7'
+	name_key['天津-少儿'] = 'tjtv8'
+	name_key['天津-公共'] = 'tjtv9'
 
-	name_key['北京文艺'] = 'btv2'
-	name_key['北京科教'] = 'btv3'
-	name_key['北京影视'] = 'btv4'
-	name_key['北京财经'] = 'btv5'
-	name_key['北京体育'] = 'btv6'
-	name_key['北京生活'] = 'btv7'
-	name_key['北京青年'] = 'btv8'
-	name_key['北京新闻'] = 'btv9'
+	name_key['北京-文艺'] = 'btv2'
+	name_key['北京-科教'] = 'btv3'
+	name_key['北京-影视'] = 'btv4'
+	name_key['北京-财经'] = 'btv5'
+	name_key['北京-体育'] = 'btv6'
+	name_key['北京-生活'] = 'btv7'
+	name_key['北京-青年'] = 'btv8'
+	name_key['北京-新闻'] = 'btv9'
 
-	name_key['长沙女性'] = 'changshawumon1'
-	name_key['长沙政法'] = 'changshawumon2'
-	name_key['长沙经贸'] = 'changshawumon3'
-	name_key['长沙新闻'] = 'changshawumon4'
-	name_key['长沙公共'] = 'changshawumon5'
+	name_key['长沙-女性'] = 'changshawumon1'
+	name_key['长沙-政法'] = 'changshawumon2'
+	name_key['长沙-经贸'] = 'changshawumon3'
+	name_key['长沙-新闻'] = 'changshawumon4'
+	name_key['长沙-公共'] = 'changshawumon5'
 
-	name_key['长春综合频道'] = 'ctv1'
-	name_key['长春娱乐频道'] = 'ctv2'
-	name_key['长春新知频道'] = 'ctv5'
-	name_key['常州新闻综合'] = 'changzhou1'
-	name_key['常州都市频道'] = 'changzhou2'
-	name_key['常州生活频道'] = 'changzhou3'
-	name_key['常州公共频道'] = 'changzhou4'
+	name_key['长春-综合频道'] = 'ctv1'
+	name_key['长春-娱乐频道'] = 'ctv2'
+	name_key['长春-新知频道'] = 'ctv5'
+	name_key['常州-新闻综合'] = 'changzhou1'
+	name_key['常州-都市频道'] = 'changzhou2'
+	name_key['常州-生活频道'] = 'changzhou3'
+	name_key['常州-公共频道'] = 'changzhou4'
 
-	name_key['沈阳公共频道'] = 'lnsy3'
-	name_key['沈阳经济频道'] = 'lnsy2'
-	name_key['沈阳新闻综合'] = 'lnsy1'
-	name_key['成都新闻综合'] = 'chengdu1'
-	name_key['成都经济资讯'] = 'chengdu2'
-	name_key['成都都市生活'] = 'chengdu3'
-	name_key['成都影视文艺'] = 'chengdu4'
-	name_key['成都公共频道'] = 'chengdu5'
-	name_key['成都少儿']     = 'cdtv-6'
+	name_key['沈阳-公共频道'] = 'lnsy3'
+	name_key['沈阳-经济频道'] = 'lnsy2'
+	name_key['沈阳-新闻综合'] = 'lnsy1'
+	name_key['成都-新闻综合'] = 'chengdu1'
+	name_key['成都-经济资讯'] = 'chengdu2'
+	name_key['成都-都市生活'] = 'chengdu3'
+	name_key['成都-影视文艺'] = 'chengdu4'
+	name_key['成都-公共频道'] = 'chengdu5'
+	name_key['成都-少儿频道'] = 'cdtv-6'
 
-	name_key['大连乐天购物'] = nil
-	name_key['大连新闻频道'] = 'dalian1'
-	name_key['大连生活频道'] = 'dalian2'
-	name_key['大连公共频道'] = 'dalian3'
-	name_key['大连文体频道'] = 'dalian4'
-	name_key['大连影视频道'] = 'dalian5'
-	name_key['大连少儿频道'] = 'dalian6'
-	name_key['大连财经频道'] = 'dalian7'
+	name_key['大连-乐天购物'] = nil
+	name_key['大连-新闻频道'] = 'dalian1'
+	name_key['大连-生活频道'] = 'dalian2'
+	name_key['大连-公共频道'] = 'dalian3'
+	name_key['大连-文体频道'] = 'dalian4'
+	name_key['大连-影视频道'] = 'dalian5'
+	name_key['大连-少儿频道'] = 'dalian6'
+	name_key['大连-财经频道'] = 'dalian7'
 
 	name_key['电子体育'] = 'esports'
 	name_key['东方财经'] = 'sitv14'
 	name_key['东方电影'] = 'dfmv1'
 	name_key['东方购物'] = 'shhai10'
-	name_key['东莞公共'] = 'gddg1'
-	name_key['东莞综合'] = 'gddg2'
+
+	name_key['东莞-公共频道'] = 'gddg1'
+	name_key['东莞-综合频道'] = 'gddg2'
+
+	name_key['鄂尔多斯一套'] = nil
 	name_key['鄂尔多斯二套'] = nil
 	name_key['鄂尔多斯三套'] = nil
-	name_key['鄂尔多斯一套'] = nil
-	name_key['恩施公共频道'] = nil
-	name_key['恩施新闻频道'] = nil
-	name_key['恩施综艺频道'] = nil
-	name_key['法国1'] = nil
+	name_key['鄂尔多斯四套'] = nil
 
-	name_key['福建综合'] = 'fjtv1'
-	name_key['福建公共'] = 'fjtv3'
-	name_key['福建新闻'] = 'fjtv4'
-	name_key['福建电视剧'] = 'fjtv5'
-	name_key['福建都市时尚'] = 'fjtv6'
-	name_key['福建经济'] = 'fjtv7'
-	name_key['福建体育'] = 'fjtv8'
-	name_key['福建少儿'] = 'fjtv9'
+	name_key['恩施-公共频道'] = nil
+	name_key['恩施-新闻频道'] = nil
+	name_key['恩施-综艺频道'] = nil
 
-	name_key['福州新闻'] = 'fztv1'
-	name_key['福州生活'] = 'fztv3'
-	name_key['福州影视'] = 'fztv2'
-	name_key['福州少儿'] = 'fztv-baby'
+	name_key['福建-综合'] = 'fjtv1'
+	name_key['福建-公共'] = 'fjtv3'
+	name_key['福建-新闻'] = 'fjtv4'
+	name_key['福建-电视剧'] = 'fjtv5'
+	name_key['福建-都市时尚'] = 'fjtv6'
+	name_key['福建-经济'] = 'fjtv7'
+	name_key['福建-体育'] = 'fjtv8'
+	name_key['福建-少儿'] = 'fjtv9'
+
+	name_key['福州-新闻'] = 'fztv1'
+	name_key['福州-生活'] = 'fztv3'
+	name_key['福州-影视'] = 'fztv2'
+	name_key['福州-少儿'] = 'fztv-baby'
 
 	name_key['高尔夫.网球'] = nil
 	name_key['高尔夫'] = nil
-	name_key['广东会展频道'] = 'huizahn'
-	name_key['广东现代教育'] = nil
-	name_key['珠江电影'] = 'gdtv2'
-	name_key['广东体育'] = 'gdtv3'
-	name_key['广东公共'] = 'gdtv4'
-	name_key['珠江频道'] = 'gdtv5'
-	name_key['广东新闻'] = 'gdtv6'
 
-	name_key['广西国际']    = 'gxgj'
-	name_key['广西交通']    = nil
-	name_key['广西综艺']    = 'guanxi2'
-	name_key['广西都市频道'] = 'guanxi3'
-	name_key['广西影视']    = 'guanxi5'
-	name_key['广西公共']    = 'guanxi4'
-	name_key['广西资讯']    = 'guanxi7'
+	name_key['广东-会展频道'] = 'huizahn'
+	name_key['广东-现代教育'] = nil
+	name_key['广东-珠江电影'] = 'gdtv2'
+	name_key['广东-体育频道'] = 'gdtv3'
+	name_key['广东-公共频道'] = 'gdtv4'
+	name_key['广东-珠江频道'] = 'gdtv5'
+	name_key['广东-新闻频道'] = 'gdtv6'
 
-	name_key['广州综合'] = 'gztv1'
-	name_key['广州新闻'] = 'gztv2'
-	name_key['广州竞赛'] = 'gztv3'
-	name_key['广州影视'] = 'gztv4'
-	name_key['广州英语'] = 'gztv5'
-	name_key['广州经济'] = 'gztv6'
-	name_key['广州少儿'] = 'gztv7'
-	name_key['嘉佳卡通'] = 'gdtv7'
+	name_key['广西-国际频道'] = 'gxgj'
+	name_key['广西-交通频道'] = nil
+	name_key['广西-综艺频道'] = 'guanxi2'
+	name_key['广西-都市频道'] = 'guanxi3'
+	name_key['广西-影视频道'] = 'guanxi5'
+	name_key['广西-公共频道'] = 'guanxi4'
+	name_key['广西-资讯频道'] = 'guanxi7'
 
-	name_key['贵阳经济生活'] = 'gytv2'
-	name_key['贵州家有购物1'] = nil
-	name_key['贵州经济频道'] = nil
+	name_key['广州-综合频道'] = 'gztv1'
+	name_key['广州-新闻频道'] = 'gztv2'
+	name_key['广州-竞赛频道'] = 'gztv3'
+	name_key['广州-影视频道'] = 'gztv4'
+	name_key['广州-英语频道'] = 'gztv5'
+	name_key['广州-经济频道'] = 'gztv6'
+	name_key['广州-少儿频道'] = 'gztv7'
 
-	name_key['海南文体']    = 'hnwt'
-	name_key['海南综合']    = 'hainantv1'
-	name_key['海南新闻']    = 'hainantv2'
-	name_key['海南公共']    = 'hainantv3'
-	name_key['海南青少科教'] = 'hainantv5'
-	name_key['海南影视剧']   = 'hnysj'
+	name_key['贵阳-经济生活'] = 'gytv2'
+	name_key['贵州-家有购物1'] = nil
+	name_key['贵州-经济频道'] = nil
 
-	name_key['邯郸公共'] = nil
-	name_key['邯郸民生都市'] = nil
-	name_key['邯郸新闻综合'] = nil
+	name_key['海南-文体']    = 'hnwt'
+	name_key['海南-综合']    = 'hainantv1'
+	name_key['海南-新闻']    = 'hainantv2'
+	name_key['海南-公共']    = 'hainantv3'
+	name_key['海南-青少科教'] = 'hainantv5'
+	name_key['海南-影视剧']   = 'hnysj'
 
-	name_key['杭州综合'] = 'htv1'
-	name_key['杭州明珠'] = 'htv2'
-	name_key['杭州生活'] = 'htv3'
-	name_key['杭州影视'] = 'htv4'
-	name_key['杭州少儿'] = 'htv5'
-	name_key['杭州导视'] = 'htv6'
-	name_key['杭州房产'] = 'htv66'
+	name_key['邯郸-公共频道'] = nil
+	name_key['邯郸-民生都市'] = nil
+	name_key['邯郸-新闻综合'] = nil
 
-	name_key['河北经济'] = 'hebei2'
-	name_key['河北都市'] = 'hebei3'
-	name_key['河北影视'] = 'hebei4'
-	name_key['河北少儿科教'] = 'hebei5'
-	name_key['河北公共'] = 'hebei6'
-	name_key['河北农民'] = 'hebei7'
+	name_key['杭州-综合'] = 'htv1'
+	name_key['杭州-明珠'] = 'htv2'
+	name_key['杭州-生活'] = 'htv3'
+	name_key['杭州-影视'] = 'htv4'
+	name_key['杭州-少儿'] = 'htv5'
+	name_key['杭州-导视'] = 'htv6'
+	name_key['杭州-房产'] = 'htv66'
 
-	name_key['合肥教育'] = nil
-	name_key['合肥新闻频道'] = 'hefeitv1'
-	name_key['合肥生活频道'] = 'hefeitv2'
-	name_key['合肥法制教育'] = 'hefeitv3'
-	name_key['合肥财经频道'] = 'hefeitv4'
-	name_key['合肥影院频道'] = 'hefeitv5'
-	name_key['合肥文体博览'] = 'wentibolan'
+	name_key['河北-经济频道'] = 'hebei2'
+	name_key['河北-都市频道'] = 'hebei3'
+	name_key['河北-影视频道'] = 'hebei4'
+	name_key['河北-少儿科教'] = 'hebei5'
+	name_key['河北-公共频道'] = 'hebei6'
+	name_key['河北-农民频道'] = 'hebei7'
 
-	name_key['河南都市']    = 'hntv2'
-	name_key['河南民生']    = 'hntv3'
-	name_key['河南政法']    = 'hntv4'
-	name_key['河南电视剧']  = 'hntv5'
-	name_key['河南新闻']    = 'hntv6'
-	name_key['河南欢腾购物'] = 'hntv7'
-	name_key['河南公共']    = 'hntv8'
-	name_key['河南新农村']  = 'hntv9'
-	name_key['河南国际']    = 'hngj'
+	name_key['合肥-教育频道'] = nil
+	name_key['合肥-新闻频道'] = 'hefeitv1'
+	name_key['合肥-生活频道'] = 'hefeitv2'
+	name_key['合肥-法制教育'] = 'hefeitv3'
+	name_key['合肥-财经频道'] = 'hefeitv4'
+	name_key['合肥-影院频道'] = 'hefeitv5'
+	name_key['合肥-文体博览'] = 'wentibolan'
 
-	name_key['黑龙江影视'] = 'hljtv2'
-	name_key['黑龙江文艺'] = 'hljtv3'
-	name_key['黑龙江都市'] = 'hljtv4'
-	name_key['黑龙江新闻'] = 'hljtv5'
-	name_key['黑龙江公共'] = 'hljtv6'
-	name_key['黑龙江少儿'] = 'hljtv7'
-	name_key['黑龙江导视频道'] = 'hljdaoshi'
+	name_key['河南-都市']    = 'hntv2'
+	name_key['河南-民生']    = 'hntv3'
+	name_key['河南-政法']    = 'hntv4'
+	name_key['河南-电视剧']  = 'hntv5'
+	name_key['河南-新闻']    = 'hntv6'
+	name_key['河南-欢腾购物'] = 'hntv7'
+	name_key['河南-公共']    = 'hntv8'
+	name_key['河南-新农村']  = 'hntv9'
+	name_key['河南-国际']    = 'hngj'
 
-	name_key['湖北碟市'] = ''
-	name_key['湖北公共'] = 'hubei7'
-	name_key['湖北教育'] = 'hubei4'
-	name_key['湖北经视'] = 'hubei8'
-	name_key['湖北体育生活'] = 'hubei5'
-	name_key['湖北影视'] = 'hubei3'
-	name_key['湖北综合'] = 'hubei2'
-	name_key['睛彩湖北'] = nil
-	name_key['湖北垄上'] = 'jztv2'
+	name_key['黑龙江-影视频道'] = 'hljtv2'
+	name_key['黑龙江-文艺频道'] = 'hljtv3'
+	name_key['黑龙江-都市频道'] = 'hljtv4'
+	name_key['黑龙江-新闻频道'] = 'hljtv5'
+	name_key['黑龙江-公共频道'] = 'hljtv6'
+	name_key['黑龙江-少儿频道'] = 'hljtv7'
+	name_key['黑龙江-导视频道'] = 'hljdaoshi'
 
-	name_key['湖南经视'] = 'hnetv1'
-	name_key['湖南都市'] = 'hnetv2'
-	name_key['金鹰纪实'] = 'hnetv3'
-	name_key['金鹰卡通'] = 'hunantv2'
-	name_key['湖南娱乐'] = 'hunantv3'
-	name_key['湖南电视剧'] = 'hunantv4'
-	name_key['湖南公共'] = 'hunantv5'
-	name_key['潇湘电影'] = 'hunantv6'
-	name_key['湖南国际'] = 'hunantv7'
+	name_key['湖北-碟市'] = ''
+	name_key['湖北-综合频道'] = 'hubei2'
+	name_key['湖北-影视频道'] = 'hubei3'
+	name_key['湖北-教育频道'] = 'hubei4'
+	name_key['湖北-体育生活'] = 'hubei5'
+	name_key['湖北-公共频道'] = 'hubei7'
+	name_key['湖北-经视频道'] = 'hubei8'
+	name_key['睛彩-湖北'] = nil
+	name_key['湖北-垄上'] = 'jztv2'
 
-	name_key['黄石都市'] = 'hbhstv3'
-	name_key['黄石新闻'] = 'hbhstv1'
-	name_key['黄石移动'] = nil
-	name_key['黄石综合'] = nil
+	name_key['湖南-经视'] = 'hnetv1'
+	name_key['湖南-经视HD'] = 'hnetv1'
+	name_key['湖南-都市'] = 'hnetv2'
+	name_key['湖南-金鹰纪实'] = 'hnetv3'
+	name_key['湖南-金鹰卡通'] = 'hunantv2'
+	name_key['湖南-娱乐'] = 'hunantv3'
+	name_key['湖南-电视剧'] = 'hunantv4'
+	name_key['湖南-公共'] = 'hunantv5'
+	name_key['湖南-潇湘电影'] = 'hunantv6'
+	name_key['湖南-国际'] = 'hunantv7'
+
+	name_key['黄石-都市'] = 'hbhstv3'
+	name_key['黄石-新闻'] = 'hbhstv1'
+	name_key['黄石-移动'] = nil
+	name_key['黄石-综合'] = nil
 
 	name_key['惠州一套'] = 'gdhztv1'
 	name_key['惠州二套'] = 'gdhztv2'
 
-	name_key['吉林东北戏曲'] = nil
-	name_key['吉林篮球'] = nil
-	name_key['吉林都市'] = 'jilin2'
-	name_key['吉林生活'] = 'jilin3'
-	name_key['吉林影视'] = 'jilin4'
-	name_key['吉林乡村'] = 'jilin5'
-	name_key['吉林公共'] = 'jilin6'
-	name_key['吉林综艺文化'] = 'jilin7'
+	name_key['吉林-东北戏曲'] = nil
+	name_key['吉林-篮球'] = nil
+	name_key['吉林-都市'] = 'jilin2'
+	name_key['吉林-生活'] = 'jilin3'
+	name_key['吉林-影视'] = 'jilin4'
+	name_key['吉林-乡村'] = 'jilin5'
+	name_key['吉林-公共新闻'] = 'jilin6'
+	name_key['吉林-综艺文化'] = 'jilin7'
 
-	name_key['济南泉天下'] = nil
-	name_key['济南新闻'] = 'jntv1'
-	name_key['济南都市'] = 'jntv2'
-	name_key['济南影视'] = 'jntv3'
-	name_key['济南娱乐'] = 'jntv4'
-	name_key['济南生活'] = 'jntv5'
-	name_key['济南商务'] = 'jntv6'
-	name_key['济南少儿'] = 'jntv7'
+	name_key['济南-泉天下'] = nil
+	name_key['济南-新闻频道'] = 'jntv1'
+	name_key['济南-都市频道'] = 'jntv2'
+	name_key['济南-影视频道'] = 'jntv3'
+	name_key['济南-娱乐频道'] = 'jntv4'
+	name_key['济南-生活频道'] = 'jntv5'
+	name_key['济南-商务频道'] = 'jntv6'
+	name_key['济南-少儿频道'] = 'jntv7'
 
 	name_key['家庭理财'] = 'jiatinglicai'
-	name_key['建始综合频道'] = nil
+	name_key['建始-综合频道'] = nil
 
-	name_key['江苏综艺'] = 'jstv2'
-	name_key['江苏城市'] = 'jstv3'
-	name_key['江苏影视'] = 'jstv4'
-	name_key['江苏靓妆'] = 'jstv5'
-	name_key['靓妆频道'] = 'jstv5'
-	name_key['江苏休闲'] = 'jstv6'
-	name_key['江苏体育休闲'] = 'jstv6'
-	name_key['优漫卡通'] = 'jstv7'
-	name_key['江苏公共'] = 'jstv8'
-	name_key['江苏教育'] = 'jstv9'
-	name_key['江苏国际'] = 'jstv10'
-	name_key['江苏学习'] = nil
-	name_key['江苏好享购物'] = nil
+	name_key['江苏-综艺'] = 'jstv2'
+	name_key['江苏-城市'] = 'jstv3'
+	name_key['江苏-影视'] = 'jstv4'
+	name_key['江苏-靓妆频道'] = 'jstv5'
+	name_key['江苏-休闲'] = 'jstv6'
+	name_key['江苏-体育休闲'] = 'jstv6'
+	name_key['江苏-优漫卡通'] = 'jstv7'
+	name_key['江苏-公共'] = 'jstv8'
+	name_key['江苏-教育'] = 'jstv9'
+	name_key['江苏-国际'] = 'jstv10'
+	name_key['江苏-学习'] = nil
+	name_key['江苏-好享购物'] = nil
 
-	name_key['江西都市']    = 'jxtv2'
-	name_key['江西经视']    = 'jxtv3'
-	name_key['江西影视']    = 'jxtv4'
-	name_key['江西公共']    = 'jxtv5'
-	name_key['江西少儿']     = 'jxtv6'
-	name_key['江西红色经典'] = 'jxtv7'
-	name_key['江西电视指南'] = 'jxtv-guide'
-	name_key['江西风尚购物'] = 'fstvgo'
-	name_key['江西移动电视'] = nil
+	name_key['江西-都市']    = 'jxtv2'
+	name_key['江西-经视']    = 'jxtv3'
+	name_key['江西-影视']    = 'jxtv4'
+	name_key['江西-公共']    = 'jxtv5'
+	name_key['江西-少儿']     = 'jxtv6'
+	name_key['江西-红色经典'] = 'jxtv7'
+	name_key['江西-电视指南'] = 'jxtv-guide'
+	name_key['江西-风尚购物'] = 'fstvgo'
+	name_key['江西-移动电视'] = nil
 
-	name_key['江阴民生'] = nil
-	name_key['江阴新闻'] = nil
+	name_key['江阴-民生'] = nil
+	name_key['江阴-新闻'] = nil
 
-	name_key['金华综合'] = 'jinhuatv1'
-	name_key['金华都市'] = nil
-	name_key['金华公共'] = nil
+	name_key['金华-综合'] = 'jinhuatv1'
+	name_key['金华-都市'] = nil
+	name_key['金华-公共'] = nil
 
 	name_key['睛彩平顶山'] =  nil
 	name_key['经典电影'] = nil
-	name_key['荆州新闻综合'] = 'jztv1'
+	name_key['荆州-新闻综合'] = 'jztv1'
 	name_key['劲爆体育'] = 'sitv4'
 	name_key['快乐宠物'] = 'pets-tv'
 	name_key['快乐垂钓'] = 'kuailechuidiao'
@@ -529,7 +531,7 @@ function get_channel_tvmao(albumName)
 	name_key['昆明3'] = nil
 	name_key['昆明6'] = nil
 
-	name_key['昆明新闻频道'] = 'kmtv1'
+	name_key['昆明-新闻频道'] = 'kmtv1'
 
 	name_key['乐视电视剧'] = nil
 	name_key['乐视电影'] = nil
@@ -550,115 +552,113 @@ function get_channel_tvmao(albumName)
 	name_key['乐视足球'] = nil
 	name_key['乐思购'] = nil
 
-	name_key['柳州新闻频道'] = 'gxlztv1'
-	name_key['柳州科教频道'] = 'gxlztv2'
-	name_key['柳州公共频道'] = 'gxlztv3'
-	name_key['美嘉购物'] = nil
+	name_key['柳州-新闻频道'] = 'gxlztv1'
+	name_key['柳州-科教频道'] = 'gxlztv2'
+	name_key['柳州-公共频道'] = 'gxlztv3'
 	name_key['魅力时尚'] = nil
 	name_key['魅力时装'] = nil
 	name_key['魅力音乐'] = 'sitv5'
 
-	name_key['绵阳公共频道'] = nil
-	name_key['绵阳交通信息'] = nil
-	name_key['绵阳教育资讯'] = nil
-	name_key['绵阳科技频道'] = nil
-	name_key['绵阳旅游信息'] = nil
-	name_key['绵阳新农村信息'] = nil
-	name_key['绵阳综合频道'] = nil
-	name_key['绵阳综合信息'] = nil
+	name_key['绵阳-公共频道'] = nil
+	name_key['绵阳-交通信息'] = nil
+	name_key['绵阳-教育资讯'] = nil
+	name_key['绵阳-科技频道'] = nil
+	name_key['绵阳-旅游信息'] = nil
+	name_key['绵阳-新农村信息'] = nil
+	name_key['绵阳-综合频道'] = nil
+	name_key['绵阳-综合信息'] = nil
 
 	name_key['MTV音乐'] = nil
 
-	name_key['南昌新闻综合'] = 'nanchang1'
-	name_key['南昌公共频道'] = 'nanchang2'
-	name_key['南昌资讯政法'] = 'nanchang3'
-	name_key['南昌都市频道'] = 'nanchang4'
+	name_key['南昌-新闻综合'] = 'nanchang1'
+	name_key['南昌-公共频道'] = 'nanchang2'
+	name_key['南昌-资讯政法'] = 'nanchang3'
+	name_key['南昌-都市频道'] = 'nanchang4'
 
-	name_key['南充公共频道'] = nil -- 'scnctv2'
-	name_key['南充文娱频道'] = nil -- 'scnctv4'
-	name_key['南充新闻频道'] = 'scnctv1'
-	name_key['南充资讯频道'] = nil -- 'scnctv5'
+	name_key['南充-公共频道'] = nil -- 'scnctv2'
+	name_key['南充-文娱频道'] = nil -- 'scnctv4'
+	name_key['南充-新闻频道'] = 'scnctv1'
+	name_key['南充-资讯频道'] = nil -- 'scnctv5'
 
-	name_key['南方经视'] = 'nanfang1'
-	name_key['南方综艺'] = 'nanfang3'
-	name_key['南方影视'] = 'nanfang4'
-	name_key['南方少儿'] = 'nanfang5'
+	name_key['南方-经视频道'] = 'nanfang1'
+	name_key['南方-综艺频道'] = 'nanfang3'
+	name_key['南方-影视频道'] = 'nanfang4'
+	name_key['南方-少儿频道'] = 'nanfang5'
 
-	name_key['南京教科频道'] = 'njtv3'
-	name_key['南京少儿频道'] = 'njtv7'
-	name_key['南京生活频道'] = 'njtv4'
-	name_key['南京十八频道'] = 'njtv6'
-	name_key['南京新闻综合'] = 'njtv1'
-	name_key['南京影视'] = 'njtv2'
-	name_key['南京娱乐频道'] = 'njtv5'
+	name_key['南京-新闻综合'] = 'njtv1'
+	name_key['南京-影视频道'] = 'njtv2'
+	name_key['南京-教科频道'] = 'njtv3'
+	name_key['南京-生活频道'] = 'njtv4'
+	name_key['南京-娱乐频道'] = 'njtv5'
+	name_key['南京-十八频道'] = 'njtv6'
+	name_key['南京-少儿频道'] = 'njtv7'
 
-	name_key['南宁新闻综合'] = 'nanningtv1'
-	name_key['南宁影视娱乐'] = 'nanningtv2'
-	name_key['南宁都市生活'] = 'nanningtv3'
-	name_key['南宁公共频道'] = 'nanningtv4'
+	name_key['南宁-新闻综合'] = 'nanningtv1'
+	name_key['南宁-影视娱乐'] = 'nanningtv2'
+	name_key['南宁-都市生活'] = 'nanningtv3'
+	name_key['南宁-公共频道'] = 'nanningtv4'
 
-	name_key['宁波新闻综合'] = 'nbtv1'
-	name_key['宁波社会生活'] = 'nbtv2'
-	name_key['宁波文化娱乐'] = 'nbtv3'
-	name_key['宁波影视剧']   = 'nbtv4'
-	name_key['宁波少儿频道'] = 'nbtv5'
+	name_key['宁波-新闻综合'] = 'nbtv1'
+	name_key['宁波-社会生活'] = 'nbtv2'
+	name_key['宁波-文化娱乐'] = 'nbtv3'
+	name_key['宁波-影视剧']   = 'nbtv4'
+	name_key['宁波-少儿频道'] = 'nbtv5'
 
-	name_key['宁夏公共'] = 'nxtv1'
-	name_key['宁夏经济'] = 'nxtv3'
-	name_key['宁夏影视'] = 'nxtv4'
-	name_key['宁夏少儿'] = 'nxtv5'
+	name_key['宁夏-公共'] = 'nxtv1'
+	name_key['宁夏-经济'] = 'nxtv3'
+	name_key['宁夏-影视'] = 'nxtv4'
+	name_key['宁夏-少儿'] = 'nxtv5'
 
 	name_key['欧洲足球'] = 'europefootball'
 
-	name_key['衢州公共生活'] = nil
-	name_key['衢州经济信息'] = nil
-	name_key['衢州生活娱乐'] = nil
-	name_key['衢州新闻综合'] = nil
+	name_key['衢州-公共生活'] = nil
+	name_key['衢州-经济信息'] = nil
+	name_key['衢州-生活娱乐'] = nil
+	name_key['衢州-新闻综合'] = nil
 	name_key['全纪实'] = 'sitv11'
 	name_key['热播剧场'] = nil
 	name_key['三佳购物'] = 'ttcjmall'
 
-	name_key['厦门新闻'] = 'xmtv1'
-	name_key['厦门纪实'] = 'xmtv2'
-	name_key['厦门生活'] = 'xmtv3'
-	name_key['厦门影视'] = 'xmtv4'
+	name_key['厦门-新闻'] = 'xmtv1'
+	name_key['厦门-纪实'] = 'xmtv2'
+	name_key['厦门-生活'] = 'xmtv3'
+	name_key['厦门-影视'] = 'xmtv4'
 
-	name_key['陕西都市青春'] = 'shxitv3'
-	name_key['陕西公共频道'] = 'shxitv2'
-	name_key['陕西生活频道'] = 'shxitv4'
-	name_key['陕西体育休闲'] = 'shxitv8'
-	name_key['陕西新闻资讯'] = nil
+	name_key['陕西-都市青春'] = 'shxitv3'
+	name_key['陕西-公共频道'] = 'shxitv2'
+	name_key['陕西-生活频道'] = 'shxitv4'
+	name_key['陕西-体育休闲'] = 'shxitv8'
+	name_key['陕西-新闻资讯'] = nil
 
-	name_key['上海教育']    = 'shedu1'
-	name_key['上海新闻综合'] = 'shhai1'
-	name_key['第一财经']     = 'shhai2'
-	name_key['上海生活时尚'] = 'shhai3'
-	name_key['上海星尚']     = 'shhai3'
-	name_key['上海电视剧']   = 'shhai4'
-	name_key['五星体育']     = 'shhai5'
-	name_key['上海纪实']     = 'shhai6'
-	name_key['上海新娱乐']   = 'shhai7'
-	name_key['上海艺术人文'] = 'shhai8'
-	name_key['上海外语频道'] = 'shhai9'
-	name_key['上海外语']    = 'shhai9'
+	name_key['上海-教育']    = 'shedu1'
+	name_key['上海-新闻综合'] = 'shhai1'
+	name_key['上海-第一财经'] = 'shhai2'
+	name_key['上海-生活时尚'] = 'shhai3'
+	name_key['上海-星尚']     = 'shhai3'
+	name_key['上海-电视剧']   = 'shhai4'
+	name_key['上海-五星体育'] = 'shhai5'
+	name_key['上海-纪实频道'] = 'shhai6'
+	name_key['上海-新娱乐']   = 'shhai7'
+	name_key['上海-艺术人文'] = 'shhai8'
+	name_key['上海-外语频道'] = 'shhai9'
 
-	name_key['绍兴文化影视'] = 'shaoxin1'
-	name_key['绍兴公共频道'] = 'shaoxin2'
-	name_key['绍兴新闻综合'] = 'shaoxin3'
+	name_key['绍兴-文化影视'] = 'shaoxin1'
+	name_key['绍兴-公共频道'] = 'shaoxin2'
+	name_key['绍兴-新闻综合'] = 'shaoxin3'
 
-	name_key['深圳都市']    = 'sztv2'
-	name_key['深圳电视剧']   = 'sztv3'
-	name_key['深圳财经生活'] = 'sztv4'
-	name_key['深圳娱乐']     = 'sztv5'
-	name_key['深圳体育健康'] = 'sztv6'
-	name_key['深圳少儿']     = 'sztv7'
-	name_key['深圳公共']     = 'sztv8'
-	name_key['深圳dv生活']   = 'sztv11'
+	name_key['深圳-都市']    = 'sztv2'
+	name_key['深圳-电视剧']   = 'sztv3'
+	name_key['深圳-财经生活'] = 'sztv4'
+	name_key['深圳-娱乐']     = 'sztv5'
+	name_key['深圳-体育健康'] = 'sztv6'
+	name_key['深圳-少儿']     = 'sztv7'
+	name_key['深圳-公共']     = 'sztv8'
+	name_key['深圳-DV生活']   = 'sztv11'
 
-	name_key['石家庄新闻综合'] = 'shijiazhuang1'
-	name_key['石家庄娱乐'] = 'shijiazhuang2'
-	name_key['石家庄生活'] = 'shijiazhuang3'
-	name_key['石家庄都市'] = 'shijiazhuang4'
+	name_key['石家庄-新闻综合'] = 'shijiazhuang1'
+	name_key['石家庄-娱乐'] = 'shijiazhuang2'
+	name_key['石家庄-生活'] = 'shijiazhuang3'
+	name_key['石家庄-都市'] = 'shijiazhuang4'
 
 	------------------------------------------------
 	name_key['收藏天下'] = 'shoucangtiaxia'
@@ -670,87 +670,88 @@ function get_channel_tvmao(albumName)
 	name_key['TVB8'] = 'TVB8'
 	------------------------------------------------
 
-	name_key['四川经视']     = nil
-	name_key['四川文化旅游'] = 'sctv2'
-	name_key['四川财经']     = 'sctv3'
-	name_key['四川新闻资讯'] = 'sctv4'
-	name_key['四川影视文艺'] = 'sctv5'
-	name_key['四川妇女儿童'] = 'sctv7'
-	name_key['四川公共']    = 'sctv9'
+	name_key['四川-经济频道'] = 'sctv3'
+	name_key['四川-文化旅游'] = 'sctv2'
+	name_key['四川-新闻资讯'] = 'sctv4'
+	name_key['四川-影视文艺'] = 'sctv5'
+	name_key['四川-妇女儿童'] = 'sctv7'
+	name_key['四川-公共频道'] = 'sctv9'
 
-	name_key['苏州新闻综合'] = 'suzhoutv1'
-	name_key['苏州社会经济'] = 'suzhoutv2'
-	name_key['苏州文化生活'] = 'suzhoutv3'
-	name_key['苏州电影娱乐'] = 'suzhoutv4'
-	name_key['苏州生活资讯'] = 'suzhoutv5'
+	name_key['苏州-新闻综合'] = 'suzhoutv1'
+	name_key['苏州-社会经济'] = 'suzhoutv2'
+	name_key['苏州-文化生活'] = 'suzhoutv3'
+	name_key['苏州-电影娱乐'] = 'suzhoutv4'
+	name_key['苏州-生活资讯'] = 'suzhoutv5'
 
-	name_key['遂宁公共公益'] = nil
-	name_key['遂宁互动影视 '] = nil
-	name_key['遂宁新闻综合'] = nil
-	name_key['遂宁直播频道'] = nil
+	name_key['遂宁-公共公益'] = nil
+	name_key['遂宁-互动影视 '] = nil
+	name_key['遂宁-新闻综合'] = nil
+	name_key['遂宁-直播频道'] = nil
 
-	name_key['泰州新闻综合'] = 'tztv1'
+	name_key['泰州-新闻综合'] = 'tztv1'
 
-	name_key['唐山新闻'] = 'tssv1'
-	name_key['唐山生活'] = 'tssv2'
-	name_key['唐山影视'] = 'tssv3'
-	name_key['唐山公共'] = 'tssv4'
+	name_key['唐山-新闻'] = 'tssv1'
+	name_key['唐山-生活'] = 'tssv2'
+	name_key['唐山-影视'] = 'tssv3'
+	name_key['唐山-公共'] = 'tssv4'
 
 	name_key['TGA游戏频道'] = nil
-	name_key['通化公共'] = nil
-	name_key['通化科教'] = nil
-	name_key['通化新闻频道'] = nil
 	name_key['VST电影台'] = nil
 	name_key['VST纪录片'] = nil
 
-	name_key['威海新闻综合'] = 'weihai1'
-	name_key['威海公共频道'] = 'weihai2'
+	name_key['通化-公共频道'] = nil
+	name_key['通化-科教频道'] = nil
+	name_key['通化-新闻频道'] = nil
 
-	name_key['芜湖新闻综合'] = 'wuhutv1'
-	name_key['芜湖生活频道'] = 'wuhutv2'
-	name_key['芜湖徽商频道'] = 'wuhutv3'
+	name_key['威海-新闻综合'] = 'weihai1'
+	name_key['威海-公共频道'] = 'weihai2'
 
-	name_key['无锡新闻综合'] = 'wuxi1'
-	name_key['无锡娱乐']     = 'wuxi2'
-	name_key['无锡经济频道'] = 'wuxi4'
-	name_key['无锡生活频道'] = 'wuxi5'
+	name_key['芜湖-新闻综合'] = 'wuhutv1'
+	name_key['芜湖-生活频道'] = 'wuhutv2'
+	name_key['芜湖-徽商频道'] = 'wuhutv3'
 
-	name_key['武汉新闻频道'] = 'whtv1'
-	name_key['武汉文艺频道'] = 'whtv2'
-	name_key['武汉科教生活'] = 'whtv3'
-	name_key['武汉影视频道'] = 'whtv4'
-	name_key['武汉体育频道'] = 'whtv5'
-	name_key['武汉外语频道'] = 'whtv6'
-	name_key['武汉少儿频道'] = 'whtv7'
+	name_key['无锡-新闻综合'] = 'wuxi1'
+	name_key['无锡-娱乐频道'] = 'wuxi2'
+	name_key['无锡-经济频道'] = 'wuxi4'
+	name_key['无锡-生活频道'] = 'wuxi5'
+	name_key['无锡-都市综合'] = nil
 
-	name_key['西安新闻综合'] = 'xian1'
-	name_key['西安白鸽都市'] = 'xian2'
-	name_key['西安商务资讯'] = 'xian3'
-	name_key['西安文化影视'] = 'xian4'
-	name_key['西安健康快乐'] = 'xian5'
-	name_key['西安音乐综艺'] = 'xian6'
+	name_key['武汉-新闻频道'] = 'whtv1'
+	name_key['武汉-文艺频道'] = 'whtv2'
+	name_key['武汉-科教生活'] = 'whtv3'
+	name_key['武汉-影视频道'] = 'whtv4'
+	name_key['武汉-体育频道'] = 'whtv5'
+	name_key['武汉-外语频道'] = 'whtv6'
+	name_key['武汉-少儿频道'] = 'whtv7'
+
+	name_key['西安-新闻综合'] = 'xian1'
+	name_key['西安-白鸽都市'] = 'xian2'
+	name_key['西安-商务资讯'] = 'xian3'
+	name_key['西安-文化影视'] = 'xian4'
+	name_key['西安-健康快乐'] = 'xian5'
+	name_key['西安-音乐综艺'] = 'xian6'
 
 	name_key['西藏藏语'] = 'xizangtv1'
 
-	name_key['西宁生活频道'] = 'xining-life'
-	name_key['西宁新闻频道'] = 'xining-news'
+	name_key['西宁-生活频道'] = 'xining-life'
+	name_key['西宁-新闻频道'] = 'xining-news'
 
-	name_key['新疆哈萨克语新闻综合'] = 'xjtv3'
-	name_key['新疆少儿'] = 'xjtv12'
-	name_key['新疆维语新闻综合'] = 'xjtv2'
-	name_key['新疆维语综艺'] = 'xjtv5'
+	name_key['新疆-哈萨克语新闻综合'] = 'xjtv3'
+	name_key['新疆-少儿'] = 'xjtv12'
+	name_key['新疆-维语新闻综合'] = 'xjtv2'
+	name_key['新疆-维语综艺'] = 'xjtv5'
 
 	name_key['新影视'] = nil
 	name_key['新娱乐'] = nil
 
-	name_key['徐州新闻综合'] = 'xztv1'
-	name_key['徐州经济生活'] = 'xztv2'
-	name_key['徐州文艺影视'] = 'xztv3'
-	name_key['徐州公共频道'] = 'xztv4'
+	name_key['徐州-新闻综合'] = 'xztv1'
+	name_key['徐州-经济生活'] = 'xztv2'
+	name_key['徐州-文艺影视'] = 'xztv3'
+	name_key['徐州-公共频道'] = 'xztv4'
 
 	name_key['雪梨TV'] = nil
-	name_key['雅安新闻综合'] = nil
-	name_key['雅安雨城电视台'] = nil
+	name_key['雅安-新闻综合'] = nil
+	name_key['雅安-雨城电视台'] = nil
 
 	name_key['盐城一台'] = 'yanchengtv1'
 	name_key['盐城二台'] = 'yanchengtv2'
@@ -759,80 +760,77 @@ function get_channel_tvmao(albumName)
 
 	name_key['壹电视新闻台'] = 'nexttv-news'
 
-	name_key['宜宾新闻综合'] = 'scybtv1'
-	name_key['宜宾公共生活'] = 'scybtv2'
+	name_key['宜宾-新闻综合'] = 'scybtv1'
+	name_key['宜宾-公共生活'] = 'scybtv2'
 
-	name_key['义乌新闻综合'] = 'zjyiwu1'
-	name_key['义乌商贸频道'] = 'zjyiwu2'
-	name_key['义乌电视剧'] = 'zjyiwu3'
-	name_key['义乌公共'] = nil
+	name_key['义乌-新闻综合'] = 'zjyiwu1'
+	name_key['义乌-商贸频道'] = 'zjyiwu2'
+	name_key['义乌-电视剧'] = 'zjyiwu3'
+	name_key['义乌-公共文艺'] = nil
 
-	name_key['银川文体'] = 'yinchuang1'
-	name_key['银川生活'] = 'yinchuang2'
-	name_key['银川公共'] = 'yinchuang3'
+	name_key['银川-文体'] = 'yinchuang1'
+	name_key['银川-生活'] = 'yinchuang2'
+	name_key['银川-公共'] = 'yinchuang3'
 
 	name_key['英语辅导'] = 'english-teaching'
 	name_key['优优宝贝'] = 'bamc3'
 	name_key['游戏风云hd'] = 'sitv2'
 	name_key['游戏竞技'] = 'gtv-youxi'
 
-	name_key['云南都市'] = nil
-	name_key['云南少儿'] = 'yntv8'
+	name_key['云南-都市频道'] = nil
+	name_key['云南-少儿频道'] = 'yntv8'
 
 	name_key['孕育指南'] = 'cctvpayfee32'
 
-	name_key['枣庄公共频道'] = 'zaozhuang2'
-	name_key['枣庄新闻综合'] = 'zaozhuang3'
+	name_key['枣庄-公共频道'] = 'zaozhuang2'
+	name_key['枣庄-新闻综合'] = 'zaozhuang3'
 
-	name_key['张家港生活'] = nil
-	name_key['张家港新闻'] = nil
+	name_key['张家港-生活'] = nil
+	name_key['张家港-新闻'] = nil
 
-	name_key['浙江钱江都市']   = 'zjtv2'
-	name_key['浙江经视']      = 'zjtv3'
-	name_key['浙江科教']      = 'zjtv4'
-	name_key['浙江教育科教']   = 'zjtv4'
-	name_key['浙江影视娱乐']   = 'zjtv5'
-	name_key['浙江6频道']     = 'zjtv6'
-	name_key['浙江公共新农村'] = 'zjtv7'
-	name_key['浙江少儿']      = 'zjtv8'
-	name_key['浙江国际']      = 'zjtv9'
-	name_key['浙江浙东新农村'] = nil
-	name_key['浙江购物']      = nil
-	name_key['浙江民生休闲']   = nil
+	name_key['浙江-钱江频道']   = 'zjtv2'
+	name_key['浙江-经视']      = 'zjtv3'
+	name_key['浙江-青少科教']   = 'zjtv4'
+	name_key['浙江-教育科教']   = 'zjtv4'
+	name_key['浙江-影视娱乐']   = 'zjtv5'
+	name_key['浙江-6频道']      = 'zjtv6'
+	name_key['浙江-公共新农村'] = 'zjtv7'
+	name_key['浙江-少儿频道']   = 'zjtv8'
+	name_key['浙江-国际频道']   = 'zjtv9'
+	name_key['浙江-新农村']     = nil
+	name_key['浙江-购物']      = nil
+	name_key['浙江-民生休闲']   = nil
 
-	name_key['郑州妇女儿童频道'] = 'zhengzhoutv5'
-	name_key['郑州商都频道'] = 'zhengzhoutv2'
-	name_key['郑州时政频道'] = 'zhengzhoutv1'
+	name_key['郑州-妇女儿童'] = 'zhengzhoutv5'
+	name_key['郑州-商都频道'] = 'zhengzhoutv2'
+	name_key['郑州-时政频道'] = 'zhengzhoutv1'
 
-	name_key['中国教育1'] = 'cetv1'
-	name_key['中国教育2'] = 'cetv2'
-	name_key['中国教育3'] = 'cetv3'
+	name_key['中国教育一'] = 'cetv1'
+	name_key['中国教育二'] = 'cetv2'
+	name_key['中国教育三'] = 'cetv3'
 
-	name_key['重庆汽摩'] = nil
-	name_key['重庆手持电视'] = nil
-	name_key['重庆移动'] = nil
-	name_key['重庆新财经'] = 'cqtvxcj'
-	name_key['重庆影视'] = 'ccqtv2'
-	name_key['重庆新闻'] = 'ccqtv3'
-	name_key['重庆科教'] = 'ccqtv4'
-	name_key['重庆都市'] = 'ccqtv5'
-	name_key['重庆娱乐'] = 'ccqtv6'
-	name_key['重庆生活'] = 'ccqtv7'
-	name_key['重庆时尚'] = 'ccqtv8'
-	name_key['重庆公共农村'] = 'ccqtv9'
-	name_key['重庆少儿'] = 'ccqtv10'
+	name_key['重庆-汽摩'] = nil
+	name_key['重庆-手持电视'] = nil
+	name_key['重庆-移动'] = nil
+	name_key['重庆-新财经'] = 'cqtvxcj'
+	name_key['重庆-影视'] = 'ccqtv2'
+	name_key['重庆-新闻'] = 'ccqtv3'
+	name_key['重庆-科教'] = 'ccqtv4'
+	name_key['重庆-都市'] = 'ccqtv5'
+	name_key['重庆-娱乐'] = 'ccqtv6'
+	name_key['重庆-生活'] = 'ccqtv7'
+	name_key['重庆-时尚'] = 'ccqtv8'
+	name_key['重庆-公共农村'] = 'ccqtv9'
+	name_key['重庆-少儿'] = 'ccqtv10'
 
-	name_key['舟山公共频道'] = nil
-	name_key['舟山就业服务'] = nil
-	name_key['舟山群岛旅游'] = nil
-	name_key['舟山生活频道'] = nil
-	name_key['舟山新闻综合'] = nil
+	name_key['舟山-公共频道'] = nil
+	name_key['舟山-就业服务'] = nil
+	name_key['舟山-群岛旅游'] = nil
+	name_key['舟山-生活频道'] = nil
+	name_key['舟山-新闻综合'] = nil
 
-	name_key['周星驰专区'] = ''
-	name_key['珠海1台'] = 'zhtv1'
-	name_key['珠海2台'] = 'zhtv2'
 	name_key['珠海生活服务'] = 'zhtv2'
-	name_key['珠海新闻综合'] = 'zhtv2'
+	name_key['珠海新闻综合'] = 'zhtv1'
 
 	vid = get_vid(name_key, albumName)
 

@@ -4,7 +4,6 @@
 import re
 import posixpath
 import tornado.escape
-import json
 
 from engine import KolaParser
 from kola import VideoBase, AlbumBase, DB, utils, City

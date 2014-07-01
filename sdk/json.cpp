@@ -14,7 +14,6 @@ bool json_dump_str(json_t *js, string &ret)
 #else
 		free(text);
 #endif
-
 		return true;
 	}
 

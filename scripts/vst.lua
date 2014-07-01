@@ -14,8 +14,6 @@ function get_video_url(url)
 		return get_video_imgotv(url)
 	elseif string.find(url, 'url.52itv.cn') then
 		return get_video_52itv(url)
-	elseif string.find(url, '.letv') then
-		return get_video_get_letv(url)
 	else
 		return url
 	end
@@ -62,6 +60,7 @@ local function curl_get( url, user_agent, referer )
 	end
 	c:setopt_useragent(user_agent)
 	c:setopt_referer(referer)
+	c:setopt_followlocation(1)
 	c:setopt_url(url)
 
 	c:perform({writefunction = function(str) text = text .. str end})
@@ -69,6 +68,7 @@ local function curl_get( url, user_agent, referer )
 	return text
 end
 
+-- 展开所有重定向
 local function curl_get_52itv(video_url)
 	local function h_build_w_cb(t)
 		return function(s,len)
@@ -102,8 +102,8 @@ local function curl_get_52itv(video_url)
 	ret.headers = {}
 	c:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
 
-	if ret.headers.Location then
-		return ret.headers.Location
+	if ret.headers.Location and ret.headers.Localtion ~= '' then
+		return curl_get_52itv(ret.headers.Location)
 	end
 
 	return video_url
@@ -310,14 +310,19 @@ function get_video_52itv(url)
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''
 	elseif string.find(url, '.m3u8') then
-		url = curl_get_52itv(url)
 		return curl_get_52itv(url)
 	elseif string.find(url, '.letv') then
 		local url = string.gsub(url, '.letv', '')
-		local xml = lua_get(url, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6");
+		url = curl_get_52itv(url)
+
+		local xml = curl_get(url, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6");
 		if string.find(xml, '</nodelist>') then
+			print("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
+			print(xml)
 			local nodelist = rex.match(xml, '<nodelist>(.*?)</nodelist>')
 		end
+
+		return url
 	end
 	return string.format('%s?k=%s -H "User-Agent: GGwlPlayer/QQ243944493"', url, get_livekey())
 end
@@ -329,8 +334,4 @@ function get_video_imgotv(url)
 
 	text = kola.pcre('url="(.*?)"', text)
 	return kola.strtrim(text)
-end
-
-function get_video_get_letv(url)
-	return url
 end

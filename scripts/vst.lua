@@ -141,7 +141,7 @@ function get_video_cntv( url )
 					text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
 					auth = rex.match(text, '(AUTH=ip.*?)"')
 					if auth then
-						video_url =  video_url .. auth
+						video_url =  string.format("%s?%s", video_url, auth)
 					end
 				end
 				return video_url

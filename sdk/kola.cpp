@@ -484,6 +484,7 @@ string KolaClient::GetFullUrl(string url)
 	else
 		full_url = url;
 
+#if 1
 	if (full_url.find("?") == std::string::npos)
 		full_url = full_url + "?";
 	else
@@ -491,6 +492,7 @@ string KolaClient::GetFullUrl(string url)
 
 	full_url = full_url + "chipid=" + GetChipKey() + "&serial=" + GetSerial();
 	//printf("FullUrl: %s\n", full_url.c_str());
+#endif
 
 	return full_url;
 }

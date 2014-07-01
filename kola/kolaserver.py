@@ -71,7 +71,7 @@ class KolatvServer:
             if chipid and serial:
                 return self.Login(chipid, serial, remote_ip)
         else:
-            js = self.kdb.get(chipid)
+            js = self.kdb.get(key)
             userinfo = tornado.escape.json_decode(js)
             if userinfo['key'] == key.decode() and userinfo['remote_ip'] == remote_ip:
                 return key

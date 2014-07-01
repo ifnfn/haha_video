@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!env python3
 # -*- coding: utf-8 -*-
 
 import hashlib
@@ -11,12 +11,27 @@ import redis
 import tornado.ioloop
 import tornado.options
 import tornado.web
+import base64
+from urllib.parse import unquote
+import zlib
 
 import engine
-from kola import BaseHandler
-
 
 tv = engine.KolaEngine()
+
+
+class BaseHandler(tornado.web.RequestHandler):
+    def prepare(self):
+        if self.request.method == "POST" and self.request.body:
+            body = unquote(self.request.body.decode())           # URLDecode
+            body = base64.decodebytes(body.encode())             # BASE64_Decode
+            if int(body[0]) == 0x5A and int(body[1]) == 0xA5:
+                decompress = zlib.decompressobj(-zlib.MAX_WBITS)     # ZLIB Decompress
+                self.request.body = decompress.decompress(body[2:])
+                self.request.body += decompress.flush()
+            else:
+                self.request.body = body
+
 
 class UploadHandler(BaseHandler):
     def get(self):

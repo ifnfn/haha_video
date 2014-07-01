@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import hashlib
-import json
 import logging
+import tornado.escape
 
 from .pytable import Pinyin
 
@@ -97,8 +97,7 @@ def GetNameByUrl(url):
 def GetQuickFilter(name, default):
     filename = name + '.json'
     try:
-        io = open(filename)
-        return json.load(io)
+        return tornado.escape.json_decode(open(filename, encoding='utf8').read())
     except:
         return default
 

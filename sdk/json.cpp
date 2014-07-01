@@ -7,7 +7,7 @@ bool json_dump_str(json_t *js, string &ret)
 
 	if (text) {
 		ret = text;
-		free(text);
+		jsonp_free(text);
 
 		return true;
 	}

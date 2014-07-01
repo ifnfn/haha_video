@@ -1,14 +1,14 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import json
+import tornado.escape
 import posixpath
 import re
 
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB, tvalias
+from .livetvdb import LivetvParser, LivetvDB
 
 
 class WolidouDirectParser(LivetvParser):
@@ -70,8 +70,8 @@ class WolidouTV(LivetvMenu):
         self.AlbumPage = []
 
     def GetChannel(self, name):
-        channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
-        channels = ['凤凰']
+        #channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
+        #channels = ['凤凰']
         channels = ['.*']
         for p in list(channels):
             if re.findall(p, name):
@@ -115,7 +115,7 @@ class WolidouTV(LivetvMenu):
 
         try:
             fn = posixpath.abspath('tv.json')
-            js = json.loads(open(fn, encoding='utf8').read())
+            js = tornado.escape.json_decode(open(fn, encoding='utf8').read())
             count = 0
             for tv in js:
                 tvName = tv['tvName']

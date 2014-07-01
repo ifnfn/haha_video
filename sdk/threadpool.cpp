@@ -28,6 +28,7 @@ static void *starter(void *arg)
 {
 	Thread *tmp = static_cast<Thread *>(arg);
 	tmp->run();
+
 	return (0);
 }
 
@@ -70,8 +71,8 @@ bool Thread::cancel()
 			_state = false;
 		return ret;
 	}
-	else
-		return (false);
+
+	return false;
 }
 
 ThreadPool::ThreadPool(int num)
@@ -101,6 +102,7 @@ bool ThreadPool::init(size_t nbThread)
 		if (!thread->start())
 			return false;
 	}
+
 	return true;
 }
 
@@ -124,6 +126,7 @@ void ThreadPool::addTask(Task *task, bool priority)
 bool ThreadPool::removeTask(Task *task)
 {
 	bool ret = false;
+	
 	if (task) {
 		mutex.lock();
 		for (deque<Task*>::iterator it = _tasksList.begin(); it != _tasksList.end(); it++) {

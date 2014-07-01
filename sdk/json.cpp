@@ -19,12 +19,10 @@ json_t* json_loadurl(const char *url)
 {
 	json_error_t error;
 	string text;
-	KolaClient& kola = KolaClient::Instance();
-	if (kola.UrlGet(url, text) == true) {
-		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
-		return js;
-	}
+	KolaClient& kola = KolaClient::Instance();
+	if (kola.UrlGet(url, text) == true)
+		return json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	return NULL;
 }

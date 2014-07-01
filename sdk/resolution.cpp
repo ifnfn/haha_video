@@ -45,9 +45,8 @@ void VideoResolution::GetResolution(StringList& res)
 	if (urls.empty())
 		Calc();
 
-	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++) {
+	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++)
 		res.Add(it->first);
-	}
 }
 
 void VideoResolution::SetResolution(string &res)

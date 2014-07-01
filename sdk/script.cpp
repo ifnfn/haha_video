@@ -26,7 +26,7 @@ extern "C" {
 
 static lua_State *globalL = NULL;
 
-static void lstop (lua_State *L, lua_Debug *ar)
+static void lstop(lua_State *L, lua_Debug *ar)
 {
 	(void)ar;  /* unused arg. */
 	lua_sethook(L, NULL, 0, 0);
@@ -49,6 +49,7 @@ static int traceback (lua_State *L)
 		if (!luaL_callmeta(L, 1, "__tostring"))  /* try its 'tostring' metamethod */
 			lua_pushliteral(L, "(no error message)");
 	}
+
 	return 1;
 }
 
@@ -56,6 +57,7 @@ static int docall (lua_State *L, int narg, int nres)
 {
 	int status;
 	int base = lua_gettop(L) - narg;  /* function index               */
+
 	lua_pushcfunction(L, traceback);  /* push traceback function      */
 	lua_insert(L, base);              /* put it under chunk and args  */
 	globalL = L;                      /* to be available to 'laction' */
@@ -63,6 +65,7 @@ static int docall (lua_State *L, int narg, int nres)
 	status = lua_pcall(L, narg, nres, base);
 	signal(SIGINT, SIG_DFL);
 	lua_remove(L, base);              /* remove traceback function    */
+
 	return status;
 }
 
@@ -78,6 +81,7 @@ static int report(lua_State *L, const char *filename, int status)
 		/* force a complete garbage collection in case of errors */
 		lua_gc(L, LUA_GCCOLLECT, 0);
 	}
+
 	return status;
 }
 
@@ -85,12 +89,12 @@ string LuaScript::lua_runscript(lua_State* L, const char *filename,
 				const char *fn, const char *func, vector<string> &args)
 {
 	int i, status;
-	int argc = (int)args.size();
-
 	string ret;
+	int argc = (int)args.size();
 
 	if (luaL_dostring(L, fn) != LUA_OK) {
 		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
+
 		return ret;
 	}
 
@@ -208,6 +212,7 @@ bool LuaScript::GetScript(const string &name, string &text)
 			scripts.erase(it);
 		else {
 			text = it->second.text;
+
 			return true;
 		}
 	}
@@ -222,6 +227,7 @@ bool LuaScript::GetScript(const string &name, string &text)
 	}
 
 	printf("Not found script %s\n", name.c_str());
+
 	return false;
 }
 
@@ -276,6 +282,7 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 			json_dump_str(tx, text);
 
 		directText = true;
+
 		return true;
 	}
 

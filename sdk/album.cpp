@@ -58,10 +58,10 @@ size_t KolaAlbum::GetVideoCount()
 bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 {
 	json_t *js = NULL, *videos, *v;
+	Variant* var = NULL;
+
 	if (pageNo == videoPageId)
 		return true;
-
-	Variant* var = NULL;
 
 	if (SourceList.size() > 0) {
 		map<string, Variant>::iterator it = SourceList.find(CurrentSource);
@@ -321,7 +321,6 @@ size_t AlbumPage::CachePicture(enum PicType type) // 将图片加至线程队列
 		return 0;
 
 	mutex.lock();
-
 	for (vector<KolaAlbum>::iterator it = albumList.begin(); it != albumList.end(); it++) {
 		string &url = (*it).GetPictureUrl(type);
 		if (not url.empty()) {
@@ -385,4 +384,7 @@ int PictureIterator::Get(FileResource &picture)
 	return -1;
 }
 
-size_t PictureIterator::size() {return albums.size();}
+size_t PictureIterator::size()
+{
+	return albums.size();
+}

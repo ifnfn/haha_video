@@ -24,12 +24,13 @@ Resource::~Resource()
 
 static string StringGetFileExt(string path)
 {
+	string ret;
+
 	if (path.rfind('/') != string::npos)
 		path = path.substr(path.rfind("/") + 1);
 
 	string::size_type start = path.rfind('.') == string::npos ? path.length() : path.rfind('.');
 
-	string ret;
 	while (start < path.size() && (isalpha(path[start]) || path[start] == '.'))
 		ret = ret + path[start++];
 
@@ -98,7 +99,6 @@ string Resource::ToString()
 
 	return ret;
 }
-
 
 FileResource::~FileResource()
 {

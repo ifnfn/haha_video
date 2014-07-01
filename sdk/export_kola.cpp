@@ -62,6 +62,7 @@ static int lua_wget(lua_State *L)
 	int argc = lua_gettop(L);
 	const char *url = NULL;
 	bool cached = true;
+
 	if (argc < 1)
 		return 0;
 	if (argc >= 1 && lua_type(L, 1) == LUA_TSTRING)
@@ -253,10 +254,12 @@ static int StringToTime(const string &strDateStr,time_t &timeData)
 		printf("strDateStr[%s] err \n", strDateStr.c_str());
 		return -1;
 	}
+
 	int iDay = atoi(pPos + 1);
 	int iHour=0;
 	int iMin=0;
 	int iSec=0;
+
 	pPos = strstr(pPos + 1," ");
 	//为了兼容有些没精确到时分秒的
 	if(pPos != NULL) {
@@ -314,6 +317,7 @@ static int lua_md5(lua_State *L)
 static int lua_getchipid(lua_State *L)
 {
 	lua_pushstring(L, GetChipKey().c_str());
+
 	return 0;
 }
 
@@ -321,6 +325,7 @@ static int lua_getchipid(lua_State *L)
 static int lua_getserial(lua_State *L)
 {
 	lua_pushstring(L, GetSerial().c_str());
+
 	return 0;
 }
 
@@ -337,6 +342,7 @@ static int lua_strtrim(lua_State *L)
 		--back;
 
 	lua_pushlstring(L, &str[front], back - front + 1);
+
 	return 1;
 }
 
@@ -347,6 +353,7 @@ static int lua_strsplit(lua_State *L)
 	const char *str = luaL_checkstring(L, 2);
 	int limit = luaL_optint(L, 3, 0);
 	int count = 0;
+
 	/* Set the stack to a predictable size */
 	lua_settop(L, 0);
 	/* Initialize the result count */
@@ -379,6 +386,7 @@ static int lua_strsplit(lua_State *L)
 	lua_pushstring(L, str);
 	++count;
 	/* Return with the number of values found */
+
 	return count;
 }
 
@@ -477,8 +485,10 @@ static const struct luaL_Reg kola_lib[] = {
 	{NULL            , NULL},
 };
 
-LUALIB_API int luaopen_kola(lua_State *L) {
+LUALIB_API int luaopen_kola(lua_State *L)
+{
 	luaL_newlib(L, kola_lib);
+
 	return 1;
 }
 

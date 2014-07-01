@@ -27,6 +27,7 @@ KolaMenu::KolaMenu()
 
 KolaMenu::~KolaMenu(void)
 {
+
 }
 
 void KolaMenu::Parser(json_t *js)

@@ -276,6 +276,7 @@ const char *Http::curlGetCurlURL(int times)
 	data = buffer.mem;
 end:
 	status = CURLMSG_DONE;
+
 	return data;
 }
 

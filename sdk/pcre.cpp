@@ -21,6 +21,7 @@ int KolaPcre::AddRule(const string &patten)
 {
 	const char *error;
 	int erroffset;
+
 	pcre *re = pcre_compile(
 			patten.c_str(), /* the pattern                  */
 			0,              /* default options              */

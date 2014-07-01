@@ -5,6 +5,7 @@ import hashlib
 import uuid
 import time
 import redis
+import tornado.escape
 
 from .utils import autoint
 from .commands import KolaCommand
@@ -38,18 +39,26 @@ class KolatvServer:
             json = self.db.user_table.find_one({'serial' : serial})
             if json and (json['chipid'] == '' or json['chipid'] == chipid):
                 status = 'YES'
-                self.db.user_table.update({'serial' : serial}, {'$set' : {'chipid': chipid, 'updateTime' : time.time()}})
+                if json['chipid'] == '':
+                    self.db.user_table.update({'serial' : serial}, {'$set' : {'chipid': chipid}})
 
         if status == 'YES':
             # 登录检查，生成随机 KEY
-            if not self.kdb.exists(chipid):
+            userinfo = {'chipid': chipid, 'serial' : serial, 'remote_ip' : remote_ip, 'updateTime': time.time()}
+            key = None
+            if self.kdb.exists(chipid):
+                js = self.kdb.get(chipid)
+                key = tornado.escape.json_decode(js)['key']
+            if not key:
                 key = (chipid + uuid.uuid4().__str__() + remote_ip).encode()
                 key = hashlib.md5(key).hexdigest().upper()
-                self.kdb.set(chipid, key)
-                self.kdb.set(key, remote_ip)
-            else:
-                key = self.kdb.get(chipid).decode()
-                self.kdb.set(key, remote_ip)
+
+            userinfo['key'] = key
+
+            userinfo = tornado.escape.json_encode(userinfo)
+            self.kdb.set(chipid, userinfo)
+            self.kdb.set(key, userinfo)
+
             self.kdb.expire(chipid, 120) # 一分钟过期
             self.kdb.expire(key, 120)    # 一分钟过期
 
@@ -58,10 +67,14 @@ class KolatvServer:
             return ''
 
     def CheckUser(self, key, remote_ip, chipid=None, serial=None):
-        if not kolas.kdb.exists(key) and chipid and serial:
-            return self.Login(chipid, serial, remote_ip)
-        elif kolas.kdb.get(key).decode() == remote_ip:
-            return key
+        if not kolas.kdb.exists(key):
+            if chipid and serial:
+                return self.Login(chipid, serial, remote_ip)
+        else:
+            js = self.kdb.get(chipid)
+            userinfo = tornado.escape.json_decode(js)
+            if userinfo['key'] == key.decode() and userinfo['remote_ip'] == remote_ip:
+                return key
 
     def GetVideoSource(self):
         return {

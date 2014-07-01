@@ -844,6 +844,10 @@ function get_channel_tvmao(albumName)
 		end
 	end
 
+	if vid == nil then
+		return '{}'
+	end
+
 	local url = string.format('http://www.tvmao.com/epg/program.jsp?c=%s', vid)
 	local text = kola.wget(url, false)
 

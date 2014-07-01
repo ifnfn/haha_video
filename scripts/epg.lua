@@ -275,23 +275,23 @@ function get_channel_tvmao(albumName)
 	name_key['蚌埠生活频道'] = 'ahbbtv2'
 	name_key['蚌埠新闻综合'] = 'ahbbtv1'
 
-    name_key['天津新闻'] = 'tjtv2'
-    name_key['天津文艺'] = 'tjtv3'
-    name_key['天津影视'] = 'tjtv4'
-    name_key['天津都市'] = 'tjtv5'
-    name_key['天津体育'] = 'tjtv6'
-    name_key['天津科教'] = 'tjtv7'
-    name_key['天津少儿'] = 'tjtv8'
-    name_key['天津公共'] = 'tjtv9'
+	name_key['天津新闻'] = 'tjtv2'
+	name_key['天津文艺'] = 'tjtv3'
+	name_key['天津影视'] = 'tjtv4'
+	name_key['天津都市'] = 'tjtv5'
+	name_key['天津体育'] = 'tjtv6'
+	name_key['天津科教'] = 'tjtv7'
+	name_key['天津少儿'] = 'tjtv8'
+	name_key['天津公共'] = 'tjtv9'
 
-    name_key['北京文艺'] = 'btv2'
-    name_key['北京科教'] = 'btv3'
-    name_key['北京影视'] = 'btv4'
-    name_key['北京财经'] = 'btv5'
-    name_key['北京体育'] = 'btv6'
-    name_key['北京生活'] = 'btv7'
-    name_key['北京青年'] = 'btv8'
-    name_key['北京新闻'] = 'btv9'
+	name_key['北京文艺'] = 'btv2'
+	name_key['北京科教'] = 'btv3'
+	name_key['北京影视'] = 'btv4'
+	name_key['北京财经'] = 'btv5'
+	name_key['北京体育'] = 'btv6'
+	name_key['北京生活'] = 'btv7'
+	name_key['北京青年'] = 'btv8'
+	name_key['北京新闻'] = 'btv9'
 
 	name_key['长沙女性'] = 'changshawumon1'
 	name_key['长沙政法'] = 'changshawumon2'
@@ -340,14 +340,14 @@ function get_channel_tvmao(albumName)
 	name_key['恩施综艺频道'] = nil
 	name_key['法国1'] = nil
 
-    name_key['福建综合'] = 'fjtv1'
-    name_key['福建公共'] = 'fjtv3'
-    name_key['福建新闻'] = 'fjtv4'
-    name_key['福建电视剧'] = 'fjtv5'
+	name_key['福建综合'] = 'fjtv1'
+	name_key['福建公共'] = 'fjtv3'
+	name_key['福建新闻'] = 'fjtv4'
+	name_key['福建电视剧'] = 'fjtv5'
 	name_key['福建都市时尚'] = 'fjtv6'
-    name_key['福建经济'] = 'fjtv7'
-    name_key['福建体育'] = 'fjtv8'
-    name_key['福建少儿'] = 'fjtv9'
+	name_key['福建经济'] = 'fjtv7'
+	name_key['福建体育'] = 'fjtv8'
+	name_key['福建少儿'] = 'fjtv9'
 
 	name_key['福州新闻'] = 'fztv1'
 	name_key['福州生活'] = 'fztv3'
@@ -419,15 +419,15 @@ function get_channel_tvmao(albumName)
 	name_key['合肥影院频道'] = 'hefeitv5'
 	name_key['合肥文体博览'] = 'wentibolan'
 
-    name_key['河南都市']    = 'hntv2'
-    name_key['河南民生']    = 'hntv3'
-    name_key['河南政法']    = 'hntv4'
-    name_key['河南电视剧']  = 'hntv5'
-    name_key['河南新闻']    = 'hntv6'
+	name_key['河南都市']    = 'hntv2'
+	name_key['河南民生']    = 'hntv3'
+	name_key['河南政法']    = 'hntv4'
+	name_key['河南电视剧']  = 'hntv5'
+	name_key['河南新闻']    = 'hntv6'
 	name_key['河南欢腾购物'] = 'hntv7'
-    name_key['河南公共']    = 'hntv8'
-    name_key['河南新农村']  = 'hntv9'
-    name_key['河南国际']    = 'hngj'
+	name_key['河南公共']    = 'hntv8'
+	name_key['河南新农村']  = 'hntv9'
+	name_key['河南国际']    = 'hngj'
 
 	name_key['黑龙江影视'] = 'hljtv2'
 	name_key['黑龙江文艺'] = 'hljtv3'
@@ -467,12 +467,12 @@ function get_channel_tvmao(albumName)
 
 	name_key['吉林东北戏曲'] = nil
 	name_key['吉林篮球'] = nil
-    name_key['吉林都市'] = 'jilin2'
-    name_key['吉林生活'] = 'jilin3'
-    name_key['吉林影视'] = 'jilin4'
-    name_key['吉林乡村'] = 'jilin5'
+	name_key['吉林都市'] = 'jilin2'
+	name_key['吉林生活'] = 'jilin3'
+	name_key['吉林影视'] = 'jilin4'
+	name_key['吉林乡村'] = 'jilin5'
 	name_key['吉林公共'] = 'jilin6'
-    name_key['吉林综艺文化'] = 'jilin7'
+	name_key['吉林综艺文化'] = 'jilin7'
 
 	name_key['济南泉天下'] = nil
 	name_key['济南新闻'] = 'jntv1'
@@ -486,19 +486,19 @@ function get_channel_tvmao(albumName)
 	name_key['家庭理财'] = 'jiatinglicai'
 	name_key['建始综合频道'] = nil
 
-    name_key['江苏综艺'] = 'jstv2'
-    name_key['江苏城市'] = 'jstv3'
-    name_key['江苏影视'] = 'jstv4'
-    name_key['江苏靓妆'] = 'jstv5'
+	name_key['江苏综艺'] = 'jstv2'
+	name_key['江苏城市'] = 'jstv3'
+	name_key['江苏影视'] = 'jstv4'
+	name_key['江苏靓妆'] = 'jstv5'
 	name_key['靓妆频道'] = 'jstv5'
-    name_key['江苏休闲'] = 'jstv6'
+	name_key['江苏休闲'] = 'jstv6'
 	name_key['江苏体育休闲'] = 'jstv6'
- 	name_key['优漫卡通'] = 'jstv7'
+	name_key['优漫卡通'] = 'jstv7'
 	name_key['江苏公共'] = 'jstv8'
-    name_key['江苏教育'] = 'jstv9'
-    name_key['江苏国际'] = 'jstv10'
-    name_key['江苏学习'] = nil
-    name_key['江苏好享购物'] = nil
+	name_key['江苏教育'] = 'jstv9'
+	name_key['江苏国际'] = 'jstv10'
+	name_key['江苏学习'] = nil
+	name_key['江苏好享购物'] = nil
 
 	name_key['江西都市']    = 'jxtv2'
 	name_key['江西经视']    = 'jxtv3'
@@ -844,7 +844,6 @@ function get_channel_tvmao(albumName)
 		end
 	end
 
-	vid = 'LNSY4'
 	local url = string.format('http://www.tvmao.com/epg/program.jsp?c=%s', vid)
 	local text = kola.wget(url, false)
 

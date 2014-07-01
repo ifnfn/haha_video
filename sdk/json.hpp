@@ -4,16 +4,6 @@
 #include <string>
 #include "jansson.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "jansson_private.h"
-
-#ifdef __cplusplus
-}
-#endif
-
 using namespace std;
 
 class ScriptCommand;

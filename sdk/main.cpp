@@ -306,9 +306,9 @@ void test_livetv()
 
 				epg->GetCurrent(e1);
 				epg->GetNext(e2);
-				size_t count = (int)player.Epg.epgList.size();
+				size_t count = player.Epg.Count();
 				for (int i =0;i < count; i++) {
-					e = player.Epg.epgList[i];
+					player.Epg.Get(i, e);
 					if (not e.empty()) {
 						if (e == e1)
 							printf("\t\t * [%s] %s\n", e.timeString.c_str(), e.title.c_str());
@@ -761,10 +761,9 @@ int main(int argc, char **argv)
 
 	kola.InternetReady();
 #if 0
-	test_weather(kola);
-	return 0;
 	test_info(kola);
 	test_area(kola);
+	test_weather(kola);
 	test_update(kola);
 #endif
 //	test_picture1("电影"); return 0;

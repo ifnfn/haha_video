@@ -161,3 +161,26 @@ void KolaEpg::Clear()
 	mutex.unlock();
 }
 
+size_t KolaEpg::Count()
+{
+	mutex.lock();
+	size_t size = epgList.size();
+	mutex.unlock();
+
+	return size;
+}
+
+bool KolaEpg::Get(int index, EPG &epg)
+{
+	bool ret = false;
+	mutex.lock();
+	if (index >= 0 && index < epgList.size()) {
+		epg = epgList.at(index);
+		ret = true;
+	}
+	mutex.unlock();
+
+	return ret;
+}
+
+

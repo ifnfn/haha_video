@@ -214,7 +214,8 @@ public:
 	void Clear();
 	void Update();
 	bool UpdateFinish();
-	vector<EPG> epgList;
+	size_t Count();
+	bool Get(int index, EPG &epg);
 	Variant scInfo;
 private:
 	virtual void Run(void);
@@ -226,6 +227,7 @@ private:
 	Mutex mutex;
 	bool finished;
 	time_t update_time;
+	vector<EPG> epgList;
 };
 
 class CacheUrl {

@@ -17,7 +17,7 @@ from .pptv import PPtvEngine
 from .qq import QQEngine
 from .sohu import SohuEngine
 from .tv import LiveEngine, Live2Engine
-from .tv.livetvdb import tvalias
+#from .tv.livetvdb import tvalias
 
 POOLSIZE = 10
 
@@ -71,7 +71,7 @@ class KolaEngine:
 
     # 更新所有节目
     def UpdateAllAlbumList(self, engine):
-        tvalias.Update()
+        #tvalias.Update()
         for eg in self.engines:
             if engine:
                 if eg.engine_name in engine:

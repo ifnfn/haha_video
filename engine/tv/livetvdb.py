@@ -33,24 +33,23 @@ class TVAlias:
             print(e)
 
     def GetAliasName(self, albumName, engineName=None):
-        for v, x in self.alias_list.items():
-            if albumName == v:
+        for k, v in self.alias_list.items():
+            if albumName == k:
                 return albumName
-            if type(x) == str:
-                nameList = x.split("$")
+            if type(v) == str:
+                nameList = v.split("$")
             else:
-                nameList = x
+                nameList = v
 
             for n in nameList:
                 if engineName in n:
-                    x = n.replace("@" + engineName, "")
-                    if albumName == x:
-                        return v
+                    tmp_name = n.replace("@" + engineName, "")
+                    if albumName == tmp_name:
+                        return k
                 elif albumName == n:
-                    return v
+                    return k
 
         print('"%s" : "%s",' % (albumName, albumName))
-        self.alias_list[albumName] = self.alias_list
         return albumName
 
     def Show(self):

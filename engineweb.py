@@ -19,7 +19,6 @@ import engine
 
 tv = engine.KolaEngine()
 
-
 class BaseHandler(tornado.web.RequestHandler):
     def prepare(self):
         if self.request.method == "POST" and self.request.body:

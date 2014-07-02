@@ -15,6 +15,9 @@ from .epg import GetEPGScript
 
 class TVAlias:
     def __init__(self):
+        self.Update()
+
+    def Update(self):
         try:
             fn = posixpath.abspath('alias.json')
             self.alias_list = tornado.escape.json_decode(open(fn, encoding='utf8').read())

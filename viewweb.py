@@ -604,6 +604,7 @@ class UploadFileHandler(tornado.web.RequestHandler):
         projectName = self.get_argument('projectname', '')
         password = self.get_argument('password', '')
         ret['version'] = self.get_argument('version', '')
+        ret['chanagelog'] = self.get_argument('changelog', '')
 
         if not (projectName and password and ret['version'] and len(self.request.files['file'])):
             self.write('项目名、密码、版本号不能加空，至少要上传一个文件！')

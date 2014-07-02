@@ -624,6 +624,7 @@ public:
 class KolaUpdate {
 public:
 	string Version;
+	string ChangeLog;
 
 	bool CheckVersion(const string ProjectName, const string oldVersion);
 

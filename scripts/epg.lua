@@ -579,6 +579,7 @@ function get_channel_tvmao(albumName)
 	name_key['南充-文娱频道'] = nil -- 'scnctv4'
 	name_key['南充-新闻频道'] = 'scnctv1'
 	name_key['南充-资讯频道'] = nil -- 'scnctv5'
+	name_key['南充-科教频道'] = nil,
 
 	name_key['南方-经视频道'] = 'nanfang1'
 	name_key['南方-综艺频道'] = 'nanfang3'
@@ -735,6 +736,8 @@ function get_channel_tvmao(albumName)
 
 	name_key['西宁-生活频道'] = 'xining-life'
 	name_key['西宁-新闻频道'] = 'xining-news'
+	name_key['西宁-夏都房车'] = nil,
+	name_key['西宁-文化先锋'] = nil,
 
 	name_key['新疆-哈萨克语新闻综合'] = 'xjtv3'
 	name_key['新疆-少儿'] = 'xjtv12'
@@ -784,6 +787,7 @@ function get_channel_tvmao(albumName)
 
 	name_key['枣庄-公共频道'] = 'zaozhuang2'
 	name_key['枣庄-新闻综合'] = 'zaozhuang3'
+	name_key['枣庄-生活教育'] = nil
 
 	name_key['张家港-生活'] = nil
 	name_key['张家港-新闻'] = nil
@@ -829,8 +833,23 @@ function get_channel_tvmao(albumName)
 	name_key['舟山-生活频道'] = nil
 	name_key['舟山-新闻综合'] = nil
 
-	name_key['珠海生活服务'] = 'zhtv2'
-	name_key['珠海新闻综合'] = 'zhtv1'
+	name_key['珠海-生活服务'] = 'zhtv2'
+	name_key['珠海-新闻综合'] = 'zhtv1'
+
+	name_key["太原-新闻频道"] = "sxtytv1"
+	name_key["太原-百姓频道"] = "sxtytv2"
+	name_key["太原-法制频道"] = "sxtytv3"
+	name_key["太原-影视频道"] = "sxtytv4"
+	name_key["太原-文体频道"] = "sxtytv5"
+
+	name_key['青岛-新闻综合'] = 'SDQD1'
+	name_key['青岛-生活服务'] = 'SDQD2'
+	name_key['青岛-影视频道'] = 'SDQD3'
+	name_key['青岛-财经资讯'] = 'SDQD4'
+	name_key['青岛-都市频道'] = 'SDQD5'
+	name_key['青岛-青少旅游'] = 'SDQD6'
+	name_key['青岛-党建频道'] = 'SDQD7'
+	name_key['青岛-休闲频道'] = nil
 
 	vid = get_vid(name_key, albumName)
 

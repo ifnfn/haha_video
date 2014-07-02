@@ -16,6 +16,7 @@ bool KolaUpdate::CheckVersion(const string ProjectName, string oldVersion)
 	json_t *js = json_loadurl(url.c_str());
 
 	Version = json_gets(js, "version", "");
+	ChangeLog = json_gets(js, "chanagelog", "");
 
 	json_t *files = json_geto(js, "files");
 

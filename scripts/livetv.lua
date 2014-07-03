@@ -2,8 +2,6 @@ function get_video_url(url)
 	print(url)
 	if string.find(url, 'pa://') then
 		return get_video_cntv(url)
-	elseif string.find(url, 'm2o://') then
-		return get_video_m2o(url)
 	elseif string.find(url, 'pptv://') then
 		return get_video_pptv(url)
 	elseif string.find(url, 'qqtv://') then
@@ -12,11 +10,20 @@ function get_video_url(url)
 		return get_video_sohutv(url)
 	elseif string.find(url, 'imgotv://') then
 		return get_video_imgotv(url)
-
+	elseif string.find(url, 'lntv://') then
+		return get_video_lntv(url)
+	elseif string.find(url, 'url.52itv.cn') then
+		return get_video_52itv(url)
+	elseif string.find(url, 'm2otv://') then
+		return get_video_m2otv(url)
+	elseif string.find(url, 'tvie://') then
+		return get_video_tvie(url)
 	else
 		return url
 	end
 end
+
+local function isnan(x) return x ~= x end
 
 local function find(var, tag, key, value)
 	-- check input:
@@ -45,9 +52,112 @@ local function find(var, tag, key, value)
 	end
 end
 
+local function curl_get( url, user_agent, referer )
+	local text = ''
+	c = cURL.easy_init()
+	if user_agent == nil then
+		user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36"
+	end
 
--- 攻取节目的播放地址
-function get_video_m2o(url)
+	if referer == nil then
+		referer = url
+	end
+	c:setopt_useragent(user_agent)
+	c:setopt_referer(referer)
+	c:setopt_followlocation(1)
+	c:setopt_url(url)
+
+	c:perform({writefunction = function(str) text = text .. str end})
+
+	return text
+end
+
+-- 展开所有重定向
+local function curl_get_location(video_url)
+	local function h_build_w_cb(t)
+		return function(s,len)
+			--stores the received data in the table t
+			--prepare header data
+			name, value = s:match("(.-): (.+)")
+			if name and value then
+				t.headers[name] = value:gsub("[\n\r]", "")
+				--print(name, t.headers[name])
+				if name == 'Set-Cookie' then
+					Cookie = t.headers[name]
+				end
+			else
+				code, codemessage = string.match(s, "^HTTP/.* (%d+) (.+)$")
+				if code and codemessage then
+					t.code = tonumber(code)
+					t.codemessage = codemessage:gsub("[\n\r]", "")
+				end
+			end
+
+			return len, nil
+		end
+	end
+
+	c = cURL.easy_init()
+
+	c:setopt_useragent("GGwlPlayer/QQ243944493")
+	c:setopt_url(video_url)
+
+	ret = {}
+	ret.headers = {}
+	c:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
+
+	if ret.headers.Location and ret.headers.Localtion ~= '' then
+		return curl_get_location(ret.headers.Location)
+	end
+
+	return video_url
+end
+
+-- pa://cctv_p2p_hdcctv1
+function get_video_cntv( url )
+	local function check_m3u8(url)
+		if string.find(url, "m3u8") == nil or string.len(url) < 15 or string.find(url, 'cntv.cloudcdn.net') or string.find(url, 'dianpian.mp4') then
+			return nil
+		end
+		return url
+	end
+
+	local url = string.format("http://vdn.live.cntv.cn/api2/live.do?client=iosapp&channel=%s", url)
+	local text = kola.wget(url, false)
+
+	if text then
+		local js = cjson.decode(text)
+
+		if js and js.hls_url then
+			local video_url = nil
+			if video_url == nil then video_url = check_m3u8(js.hls_url.hls1) end
+			if video_url == nil then video_url = check_m3u8(js.hls_url.hls2) end
+			if video_url == nil then video_url = check_m3u8(js.hls_url.hls3) end
+			if video_url == nil then video_url = check_m3u8(js.hls_url.hls5) end
+
+			if video_url then
+				print(video_url)
+				video_url = string.gsub(video_url, "m3u8 \\?", "m3u8?")
+				video_url = string.gsub(video_url, ":8000:8000", ":8000")
+
+				video_url = kola.strtrim(video_url)
+				if string.find(video_url, "AUTH=ip") == nil then
+					text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
+					auth = rex.match(text, '(AUTH=ip.*?)"')
+					if auth then
+						video_url =  string.format("%s?%s", video_url, auth)
+					end
+				end
+				return video_url
+			end
+		end
+	end
+
+	return ''
+end
+
+function get_video_m2otv(url)
+	url = string.gsub(url, "m2otv://", "http://")
 	local text = kola.wget(url, false)
 	if text == nil then
 		return '{}'
@@ -88,13 +198,30 @@ function get_video_m2o(url)
 end
 
 function get_video_pptv(url)
-	print(url)
-	channel_id = string.gsub(url, "pptv://", "")
-	if channel_id then
-		return string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', channel_id)
+	vid = string.gsub(url, "pptv://", "")
+	local kk = "";
+	local pphtml = curl_get("http://v.pptv.com/show/h1G4Np4EdLIVkics.html",
+					"Mozilla/5.0 (iPad; CPU OS 7_1_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D201 Safari/9537.53",
+					"http://live.pptv.com/")
+
+	if pphtml and string.find(pphtml, "kk%%3D") then
+		kk = rex.match(pphtml, 'kk%3D(.*?)"')
 	end
 
-	return ''
+	--if not isnan(vid) then
+	--	return string.format("http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0&kk=%s&o=v.pptv.com", vid, kk)
+	--	return string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', id)
+	--end
+
+	local xml = kola.wget("http://jump.synacast.com/live2/" .. vid)
+	if xml then
+		local ip = rex.match(xml, '<server_host>(.*?)</server_host>')
+		local delay = rex.match(xml, '<delay_play_time>(.*?)</delay_play_time>')
+
+		return string.format("http://%s/live/5/30/%s.m3u8?type=m3u8.web.pad&playback=0&kk=%s&o=v.pptv.com", ip, vid, kk)
+	end
+
+	return ""
 end
 
 function get_video_qqtv( url )
@@ -152,7 +279,7 @@ end
 
 function get_video_sohutv(url)
 	pid = string.gsub(url, "sohutv://", "")
-	local url = string.format('http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1', pid)
+    local url = string.format('http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1', pid)
 	local text = kola.wget(url, false)
 
 	if text == nil then
@@ -174,8 +301,120 @@ function get_video_sohutv(url)
 	return ''
 end
 
+function get_video_52itv(url)
+	local function get_livekey()
+		local d = kola.gettime()
+		local key = string.format('st=QQ243944493&tm=%d', d)
+
+		return string.format('%s-%d', string.lower(kola.md5(key)), d)
+	end
+
+	url = string.format('%s?k=%s', url, get_livekey())
+	if string.find(url, '.sdtv') then
+		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
+		return ''
+	elseif string.find(url, '.m3u8') then
+		return curl_get_location(url)
+	elseif string.find(url, '.letv') then
+		local url = string.gsub(url, '.letv', '')
+		url = curl_get_location(url)
+
+		local xml = curl_get(url, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6");
+		if string.find(xml, '</nodelist>') then
+			print("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
+			print(xml)
+			local nodelist = rex.match(xml, '<nodelist>(.*?)</nodelist>')
+		end
+
+		return url
+	end
+	return string.format('%s?k=%s -H "User-Agent: GGwlPlayer/QQ243944493"', url, get_livekey())
+end
+
 function get_video_imgotv(url)
-	return ""
+	local pid = string.gsub(url, "imgotv://", "")
+	local pid = string.gsub(pid, "/", "")
+	local url = string.format("http://interface.hifuntv.com/mgtv/BasicIndex/ApplyPlayVideo?Tag=26&BussId=1000000&VideoType=1&MediaAssetsId=channel&CategoryId=1000&VideoIndex=0&Version=3.0.11.1.2.MG00_Release&VideoId=%s", pid);
+	local text = kola.wget(url, false)
+
+	text = kola.pcre('url="(.*?)"', text)
+	return kola.strtrim(text)
+end
+
+function get_video_lntv(url)
+	pid = string.gsub(url, "lntv://", "")
+	local url = 'http://zd.lntv.cn/lnradiotvnetwork/live_liveDetail.do?flag=1&id=' .. pid
+	print(url)
+	local text = curl_get(url)
+	--print(text)
+	return rex.match(text, "var playM3U8 = '(.*?)';")
 end
 
 
+function get_video_tvie(url)
+	url = string.gsub(url, "tvie://", "http://")
+
+	local referer = rex.match(url, "referer=(.*)")
+
+	if referer then
+		referer = kola.urldecode(referer)
+	end
+
+	--local function get_timestamp()
+	--	return kola.gettime()
+	--end
+
+	local function getvideo(url)
+		if referer ~= nil and referer ~= '' then
+			return string.format('%s -H "Referer: %s"', url, referer)
+		end
+		return url
+	end
+	--print(url)
+	local text = kola.wget(url, false)
+
+	if text and text ~= "TVie Exception: No streams." then
+		local d = os.date("*t", kola.gettime())
+		local data_obj = cjson.decode(text)
+		if data_obj == nil then
+			return ''
+		end
+
+		if string.find(url, 'nbtv.cn') then -- 宁波台跟别人为什么要不一样呢？
+			return string.format('http://zb.nbtv.cn:8134/hls-live/livepkgr/_definst_/liveevent/%s_1.m3u8', data_obj.channel_name)
+		end
+
+		if type(data_obj.result) == "table" then
+			if (data_obj ~= nil) and type(data_obj.result.datarates) == "table" then
+				local k = ''
+				local v = ''
+				local video_url = ''
+				local timestamp = tonumber(data_obj.result.timestamp)
+				timestamp = math.floor(timestamp / 1000) * 1000
+
+				for k,v in pairs(data_obj.result.datarates) do
+					video_url = string.format('http://%s/channels/%s/%s.flv/live?%s', v[1], id, k, tostring(timestamp))
+					break
+				end
+
+				return getvideo(video_url)
+			end
+		elseif type(data_obj.streams) == "table" then
+			local channel_name = data_obj['channel_name']
+			local customer_name = data_obj['customer_name']
+			local streams = data_obj['streams']
+			local video_url = ''
+			for k,v in pairs(streams) do
+				-- video_url = string.format('http://%s/channels/%s/%s/flv:%s/live?%d',
+				-- v.cdnlist[1], customer_name, channel_name, k, get_timestamp())
+				video_url = string.format('http://%s/channels/%s/%s/flv:%s/live',
+					v.cdnlist[1], customer_name, channel_name, k)
+				break
+			end
+
+			return getvideo(video_url)
+		end
+	end
+
+	return ""
+end

@@ -90,7 +90,7 @@ class LivetvVideo(VideoBase):
         super().__init__(js)
 
     def SetUrl(self, url):
-        urlScript = utils.GetScript('vst', 'get_video_url', [url])
+        urlScript = utils.GetScript('livetv', 'get_video_url', [url])
         self.SetVideoUrl('default', urlScript)
 
 class LivetvPrivate:

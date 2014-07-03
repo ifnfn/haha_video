@@ -44,8 +44,6 @@ class ParserQQLivetv(LivetvParser):
             v.vid   = utils.getVidoId(playUrl)
 
             v.SetUrl('qqtv://' + ch['data-playid'])
-            #v.SetVideoUrlScript('default', 'qqtv', [ch['data-playid']])
-            v.info = utils.GetScript('qqtv', 'get_channel', [ch['data-key']])
 
             album.videos.append(v)
             db.SaveAlbum(album)

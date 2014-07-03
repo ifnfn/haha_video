@@ -44,10 +44,6 @@ class ParserCntvLivetv(LivetvParser):
                 href = "pa://cctv_p2p_hd" + ch[0]
                 v.vid   = utils.getVidoId(href)
                 v.SetUrl(href)
-                #v.SetVideoUrl('default', {'text' : ch[0]})
-                #v.SetVideoUrlScript('default', 'cntv', [ch[0], ch[5]])
-
-                v.info = utils.GetScript('cntv', 'get_channel', [ch[0]])
 
                 album.videos.append(v)
                 db.SaveAlbum(album)

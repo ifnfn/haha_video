@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from xml.etree import ElementTree
+import re
 
 from kola import utils
 
@@ -56,9 +57,8 @@ class M2OLivetvParser(LivetvParser):
         v.name  = self.tvName
         v.vid   = utils.getVidoId(url)
 
-        v.SetVideoUrlScript('default', 'm2oplayer', [url])
-
-        v.info = utils.GetScript('m2oplayer', 'get_channel',['http://%s/m2o/player/program_xml.php?channel_id=%d' % (self.baseUrl, js['channel_id'])])
+        url,_ = re.subn('^http://', 'm2otv://', url)
+        v.SetUrl(url)
 
         album.videos.append(v)
         LivetvDB().SaveAlbum(album)

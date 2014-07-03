@@ -50,13 +50,13 @@ class LiveEngine(VideoEngine):
             '河北'  : HeBeiLiveTV,
             '云南'  : YunNanLiveTV,
             '山东'  : ShangDongLiveTV,
+            #===================================================================
             # '黑龙江' : HeiLongJiangLiveTV, # VST 中已有
             # '安徽'  : AnHuiLiveTV,  # VST 中已有
             # '吉林'  : JilingLiveTV,  # VST 中已有
             #'CNTV'  : CntvLiveTV,  # VST 中已有
             # '江西'  : JianXiLiveTV,   # VST 中已有
             # '文本'  : TextLiveTV,
-            #===================================================================
 
             # '北京'  : BtvLiveTV,
             # '广西'  : GuangXiLiveTV,

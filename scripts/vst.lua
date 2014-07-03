@@ -14,8 +14,10 @@ function get_video_url(url)
 		return get_video_lntv(url)
 	elseif string.find(url, 'url.52itv.cn') then
 		return get_video_52itv(url)
-	elseif string.find(url, 'm2o://') then
-		return get_video_m2o(url)
+	elseif string.find(url, 'm2otv://') then
+		return get_video_m2otv(url)
+	elseif string.find(url, 'tvie://') then
+		return get_video_tvie(url)
 	else
 		return url
 	end
@@ -154,8 +156,8 @@ function get_video_cntv( url )
 	return ''
 end
 
--- 攻取节目的播放地址
-function get_video_m2o(url)
+function get_video_m2otv(url)
+	url = string.gsub(url, "m2otv://", "http://")
 	local text = kola.wget(url, false)
 	if text == nil then
 		return '{}'
@@ -299,7 +301,7 @@ function get_video_sohutv(url)
 	return ''
 end
 
-local function get_video_52itv(url)
+function get_video_52itv(url)
 	local function get_livekey()
 		local d = kola.gettime()
 		local key = string.format('st=QQ243944493&tm=%d', d)
@@ -331,6 +333,7 @@ end
 
 function get_video_imgotv(url)
 	local pid = string.gsub(url, "imgotv://", "")
+	local pid = string.gsub(pid, "/", "")
 	local url = string.format("http://interface.hifuntv.com/mgtv/BasicIndex/ApplyPlayVideo?Tag=26&BussId=1000000&VideoType=1&MediaAssetsId=channel&CategoryId=1000&VideoIndex=0&Version=3.0.11.1.2.MG00_Release&VideoId=%s", pid);
 	local text = kola.wget(url, false)
 
@@ -345,4 +348,64 @@ function get_video_lntv(url)
 	local text = curl_get(url)
 	--print(text)
 	return rex.match(text, "var playM3U8 = '(.*?)';")
+end
+
+
+function get_video_tvie(url)
+	url = string.gsub(url, "tvie://", "http://")
+
+	local referer = rex.match(url, "referer=(.*)")
+
+	if referer then
+		referer = kola.urldecode(referer)
+	end
+
+	local function getvideo(url)
+		if referer ~= nil and referer ~= '' then
+			return string.format('%s -H "Referer: %s"', url, referer)
+		end
+		return url
+	end
+	--print(url)
+	local text = kola.wget(url, false)
+
+	if text and text ~= "TVie Exception: No streams." then
+		local d = os.date("*t", kola.gettime())
+		local data_obj = cjson.decode(text)
+		if data_obj == nil then
+			return ''
+		end
+		if type(data_obj.result) == "table" then
+			if (data_obj ~= nil) and type(data_obj.result.datarates) == "table" then
+				local k = ''
+				local v = ''
+				local video_url = ''
+				local timestamp = tonumber(data_obj.result.timestamp)
+				timestamp = math.floor(timestamp / 1000) * 1000
+
+				for k,v in pairs(data_obj.result.datarates) do
+					video_url = string.format('http://%s/channels/%s/%s.flv/live?%s', v[1], id, k, tostring(timestamp))
+					break
+				end
+
+				return getvideo(video_url)
+			end
+		elseif type(data_obj.streams) == "table" then
+			local channel_name = data_obj['channel_name']
+			local customer_name = data_obj['customer_name']
+			local streams = data_obj['streams']
+			local video_url = ''
+			for k,v in pairs(streams) do
+				-- video_url = string.format('http://%s/channels/%s/%s/flv:%s/live?%d',
+				-- v.cdnlist[1], customer_name, channel_name, k, get_timestamp())
+				video_url = string.format('http://%s/channels/%s/%s/flv:%s/live',
+					v.cdnlist[1], customer_name, channel_name, k)
+				break
+			end
+
+			return getvideo(video_url)
+		end
+	end
+
+	return ""
 end

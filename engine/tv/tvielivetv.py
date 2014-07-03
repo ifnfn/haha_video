@@ -4,6 +4,8 @@
 import tornado.escape
 
 from kola import utils
+import re
+from urllib.parse import quote
 
 from .common import PRIOR_UCTV
 from .livetvdb import LivetvParser, LivetvDB
@@ -45,10 +47,15 @@ class ParserTVIELivetv(LivetvParser):
 
             v.vid = utils.getVidoId(url)
 
-            v.SetVideoUrlScript('default', 'tvie', [url, x['id'], self.Referer])
+            url = re.sub('^http://', 'tvie://', url)
 
-            url = 'http://%s/api/getEPGByChannelTime/%s' % (self.base_url, x['id'])
-            v.info = utils.GetScript('tvie', 'get_channel',[url, x['id']])
+            if self.Referer:
+                if url.find("?", 0) > 0:
+                    url += "&referer=" + quote(self.Referer)
+                else:
+                    url += "?referer=" + quote(self.Referer)
+
+            v.SetUrl(url)
 
             album.videos.append(v)
             db.SaveAlbum(album)

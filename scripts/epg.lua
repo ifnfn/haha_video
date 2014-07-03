@@ -579,7 +579,7 @@ function get_channel_tvmao(albumName)
 	name_key['南充-文娱频道'] = nil -- 'scnctv4'
 	name_key['南充-新闻频道'] = 'scnctv1'
 	name_key['南充-资讯频道'] = nil -- 'scnctv5'
-	name_key['南充-科教频道'] = nil,
+	name_key['南充-科教频道'] = nil
 
 	name_key['南方-经视频道'] = 'nanfang1'
 	name_key['南方-综艺频道'] = 'nanfang3'
@@ -736,8 +736,8 @@ function get_channel_tvmao(albumName)
 
 	name_key['西宁-生活频道'] = 'xining-life'
 	name_key['西宁-新闻频道'] = 'xining-news'
-	name_key['西宁-夏都房车'] = nil,
-	name_key['西宁-文化先锋'] = nil,
+	name_key['西宁-夏都房车'] = nil
+	name_key['西宁-文化先锋'] = nil
 
 	name_key['新疆-哈萨克语新闻综合'] = 'xjtv3'
 	name_key['新疆-少儿'] = 'xjtv12'

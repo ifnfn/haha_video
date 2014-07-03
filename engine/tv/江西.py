@@ -1,6 +1,8 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import re
+
 from bs4 import BeautifulSoup as bs
 
 from kola import utils, LivetvMenu
@@ -49,9 +51,9 @@ class ParserJianXiLivetv(LivetvParser):
             v.name  = self.tvName
 
             v.vid   = utils.getVidoId(href)
-            v.SetVideoUrlScript('default', 'jxtv', [href])
 
-            v.info = utils.GetScript('jxtv', 'get_channel',[href])
+            href = re.sub('^http://', 'jxtv://', href)
+            v.SetUrl(href)
 
             album.videos.append(v)
             db.SaveAlbum(album)

@@ -1,23 +1,27 @@
 function get_video_url(url)
 	print(url)
-	if string.find(url, 'pa://') then
-		return get_video_cntv(url)
-	elseif string.find(url, 'pptv://') then
-		return get_video_pptv(url)
-	elseif string.find(url, 'qqtv://') then
-		return get_video_qqtv(url)
-	elseif string.find(url, 'sohutv://') then
-		return get_video_sohutv(url)
-	elseif string.find(url, 'imgotv://') then
-		return get_video_imgotv(url)
-	elseif string.find(url, 'lntv://') then
-		return get_video_lntv(url)
-	elseif string.find(url, 'url.52itv.cn') then
+	if string.find(url, 'url.52itv.cn') then
 		return get_video_52itv(url)
-	elseif string.find(url, 'm2otv://') then
+	elseif string.find(url, '^pa://') then
+		return get_video_cntv(url)
+	elseif string.find(url, '^pptv://') then
+		return get_video_pptv(url)
+	elseif string.find(url, '^qqtv://') then
+		return get_video_qqtv(url)
+	elseif string.find(url, '^sohutv://') then
+		return get_video_sohutv(url)
+	elseif string.find(url, '^imgotv://') then
+		return get_video_imgotv(url)
+	elseif string.find(url, '^lntv://') then
+		return get_video_lntv(url)
+	elseif string.find(url, '^m2otv://') then
 		return get_video_m2otv(url)
-	elseif string.find(url, 'tvie://') then
+	elseif string.find(url, '^tvie://') then
 		return get_video_tvie(url)
+	elseif string.find(url, '^jlntv://') then
+		return get_video_jlntv(url)
+	elseif string.find(url, '^jxtv://') then
+		return get_video_jxtv(url)
 	else
 		return url
 	end
@@ -418,3 +422,28 @@ function get_video_tvie(url)
 
 	return ""
 end
+
+
+function get_video_jlntv(url)
+	url = string.gsub(url, "jlntv://", "http://live.jlntv.cn/")
+
+	local text = kola.wget(url, false)
+	if text then
+		text = kola.pcre("var playurl = '(.*)';", text)
+		return kola.strtrim(text)
+	end
+
+	return ""
+end
+
+function get_video_jxtv(url)
+	url = string.gsub(url, "jxtv://", "http://")
+	local text = kola.wget(url)
+	if text then
+		text = kola.pcre('html5file:"(.*)"', text)
+		return kola.strtrim(text)
+	end
+
+	return ""
+end
+

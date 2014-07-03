@@ -1,1 +1,0 @@
-DD_belatedPNG.fix('.wdj_xwl_focus_scroll_prev a,.wdj_xwl_focus_scroll_prev a:hover,.wdj_xwl_focus_scroll_next a,.wdj_xwl_focus_scroll_next a:hover,.wdj_xwl_focus_desc i.movie,.wdj_xwl_focus_desc a,.wdj_xwl_focus_desc a:hover');

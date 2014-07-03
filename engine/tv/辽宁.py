@@ -18,41 +18,25 @@ class LiaoningLivetvParser(LivetvParser):
         self.order = PRIOR_DEFTV
 
         self.ExcludeName = ['辽宁卫视']
-        self.cmd['source'] = 'http://zd.lntv.cn/lnradiotvnetwork/live_liveDetail.do?flag=1&id=5'
-        self.cmd['regular'] = ["playM3U8 = '(.*)'"]
-
-        ['http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000123/index.m3u8', # 1
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000122/index.m3u8', # 2
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000126/index.m3u8', # 3
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000118/index.m3u8', # 4
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000120/index.m3u8', # 5
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000125/index.m3u8', # 6
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000121/index.m3u8', # 7
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000124/index.m3u8', # 8
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000112/index.m3u8', # 9
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000113/index.m3u8', # 10
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000114/index.m3u8', # 12
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000115/index.m3u8', # 11
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000116/index.m3u8', # 13
-         'http://61.161.141.139:8112/Fenghuo/01000000000000000000000000000117/index.m3u8', # 14
-         ]
+        self.cmd['source'] = 'http://zd.lntv.cn/lnradiotvnetwork/live_liveInfoList.do?flag=1'
+        self.cmd['regular'] = ['<dt><a href="(live_liveDetail.do.*?)">']
 
     def CmdParser(self, js):
         name_map = {
-            '123' : '辽宁卫视',   # 1
-            '122' : '辽宁都市',  # 2
-            '126' : '辽宁影视', # 3
-            '118' : '辽宁体育',  # 4
-            '120' : '辽宁生活',   # 5
-            '125' : '辽宁教育青少', # 6
-            '121' : '辽宁北方',    # 7
-            '124' : '辽宁宜佳购物', # 8
+            '1' : '辽宁卫视',   # 1
+            '2' : '辽宁-都市',  # 2
+            '3' : '辽宁-影视', # 3
+            '4' : '辽宁-体育',  # 4
+            '5' : '辽宁-生活',   # 5
+            '6' : '辽宁-教育青少', # 6
+            '7' : '辽宁-北方',    # 7
+            '8' : '辽宁-宜佳购物', # 8
         }
 
         db = LivetvDB()
         playlist = js['data'].split("\n")
         for href in playlist:
-            for x in re.findall('/01000000000000000000000000000(\w*)', href):
+            for x in re.findall('id=(\w*)', href):
                 if x in name_map:
                     albumName = name_map[x]
                     album = self.NewAlbum(albumName)
@@ -64,9 +48,7 @@ class LiaoningLivetvParser(LivetvParser):
                     v.name  = self.tvName
 
                     v.vid   = utils.getVidoId(href)
-                    v.SetVideoUrlScript('default', 'lntv', [href])
-
-                    v.info = utils.GetScript('lntv', 'get_channel',[href])
+                    v.SetUrl('lntv://' + x)
 
                     album.videos.append(v)
                     db.SaveAlbum(album)

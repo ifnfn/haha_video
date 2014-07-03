@@ -2,8 +2,6 @@ function get_video_url(url)
 	print(url)
 	if string.find(url, 'pa://') then
 		return get_video_cntv(url)
-	elseif string.find(url, 'm2o://') then
-		return get_video_m2o(url)
 	elseif string.find(url, 'pptv://') then
 		return get_video_pptv(url)
 	elseif string.find(url, 'qqtv://') then
@@ -12,8 +10,12 @@ function get_video_url(url)
 		return get_video_sohutv(url)
 	elseif string.find(url, 'imgotv://') then
 		return get_video_imgotv(url)
+	elseif string.find(url, 'lntv://') then
+		return get_video_lntv(url)
 	elseif string.find(url, 'url.52itv.cn') then
 		return get_video_52itv(url)
+	elseif string.find(url, 'm2o://') then
+		return get_video_m2o(url)
 	else
 		return url
 	end
@@ -69,7 +71,7 @@ local function curl_get( url, user_agent, referer )
 end
 
 -- 展开所有重定向
-local function curl_get_52itv(video_url)
+local function curl_get_location(video_url)
 	local function h_build_w_cb(t)
 		return function(s,len)
 			--stores the received data in the table t
@@ -103,7 +105,7 @@ local function curl_get_52itv(video_url)
 	c:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
 
 	if ret.headers.Location and ret.headers.Localtion ~= '' then
-		return curl_get_52itv(ret.headers.Location)
+		return curl_get_location(ret.headers.Location)
 	end
 
 	return video_url
@@ -297,7 +299,7 @@ function get_video_sohutv(url)
 	return ''
 end
 
-function get_video_52itv(url)
+local function get_video_52itv(url)
 	local function get_livekey()
 		local d = kola.gettime()
 		local key = string.format('st=QQ243944493&tm=%d', d)
@@ -310,10 +312,10 @@ function get_video_52itv(url)
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''
 	elseif string.find(url, '.m3u8') then
-		return curl_get_52itv(url)
+		return curl_get_location(url)
 	elseif string.find(url, '.letv') then
 		local url = string.gsub(url, '.letv', '')
-		url = curl_get_52itv(url)
+		url = curl_get_location(url)
 
 		local xml = curl_get(url, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6");
 		if string.find(xml, '</nodelist>') then
@@ -334,4 +336,13 @@ function get_video_imgotv(url)
 
 	text = kola.pcre('url="(.*?)"', text)
 	return kola.strtrim(text)
+end
+
+function get_video_lntv(url)
+	pid = string.gsub(url, "lntv://", "")
+	local url = 'http://zd.lntv.cn/lnradiotvnetwork/live_liveDetail.do?flag=1&id=' .. pid
+	print(url)
+	local text = curl_get(url)
+	--print(text)
+	return rex.match(text, "var playM3U8 = '(.*?)';")
 end

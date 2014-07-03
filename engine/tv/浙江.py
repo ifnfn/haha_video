@@ -126,8 +126,7 @@ class ParserWenZhouLivetv(LivetvParser):
             v.order = 2
             v.name = self.tvName
 
-            v.SetVideoUrlScript('default', 'wztv', ['http://www.dhtv.cn/static/js/tv.js?acm', source])
-            v.info = utils.GetScript('wztv', 'get_channel', [data_id])
+            v.SetUrl('wztv://' + source)
 
             album.videos.append(v)
             db.SaveAlbum(album)

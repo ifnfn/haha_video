@@ -22,6 +22,10 @@ function get_video_url(url)
 		return get_video_jlntv(url)
 	elseif string.find(url, '^jxtv://') then
 		return get_video_jxtv(url)
+	elseif string.find(url, '^smgbbtv://') then
+		return get_video_smgbbtv(url)
+	elseif string.find(url, '^wztv://') then
+		return get_video_wztv(url)
 	else
 		return url
 	end
@@ -140,7 +144,7 @@ function get_video_cntv( url )
 			if video_url == nil then video_url = check_m3u8(js.hls_url.hls5) end
 
 			if video_url then
-				print(video_url)
+				--print(video_url)
 				video_url = string.gsub(video_url, "m3u8 \\?", "m3u8?")
 				video_url = string.gsub(video_url, ":8000:8000", ":8000")
 
@@ -348,9 +352,8 @@ end
 function get_video_lntv(url)
 	pid = string.gsub(url, "lntv://", "")
 	local url = 'http://zd.lntv.cn/lnradiotvnetwork/live_liveDetail.do?flag=1&id=' .. pid
-	print(url)
+	--print(url)
 	local text = curl_get(url)
-	--print(text)
 	return rex.match(text, "var playM3U8 = '(.*?)';")
 end
 
@@ -447,3 +450,25 @@ function get_video_jxtv(url)
 	return ""
 end
 
+function get_video_smgbbtv(url)
+	local url = string.format('http://l.smgbb.cn/channelurl.ashx?starttime=0&endtime=0&channelcode=%s', pid)
+	local text = kola.wget(url, false)
+
+	if text then
+		text = kola.pcre('\\[CDATA\\[(.*)\\]\\]></channel>', text)
+		return kola.strtrim(text)
+	end
+
+	return ""
+end
+
+function get_video_wztv(url)
+	local  pid = string.gsub(url, "wztv://", "")
+	local text = kola.wget('http://www.dhtv.cn/static/js/tv.js?acm', false)
+	if text then
+		text = kola.pcre("file: '(.*)'", text)
+		return kola.strtrim(text) .. pid
+	end
+
+	return ""
+end

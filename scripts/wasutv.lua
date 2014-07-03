@@ -6,9 +6,3 @@ function get_video_url(url)
 	text = kola.pcre("<video>(.*)</video>", text)
 	return kola.strtrim(text)
 end
-
--- 获取节目的EPG
-function get_channel(vid, id)
-
-	return ''
-end

@@ -85,8 +85,11 @@ bool KolaMenu::SetQuickFilter(string name)
 
 size_t KolaMenu::GetAlbumCount()
 {
-	AlbumPage page;
-	LowGetPage(&page, 0, 0);
+	if (albumCount == 0) {
+		AlbumPage page;
+		LowGetPage(&page, 0, 0);
+	}
+
 	return albumCount;
 }
 
@@ -336,6 +339,7 @@ void KolaMenu::CleanPage()
 		pageCache[i].Clear();
 	}
 	cur = NULL;
+	albumCount = 0;
 	PageId = -1;
 }
 

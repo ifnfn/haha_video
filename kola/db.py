@@ -426,7 +426,7 @@ class DB:
                        upsert=True, multi=True)
 
     def _GetKeyAndJson(self, album, key):
-        album.vid        = autostr(album.vid)
+        album.vid = autostr(album.vid)
         key = ''
         js = {}
         if album.albumName or album.vid:
@@ -439,11 +439,6 @@ class DB:
                     key = {'albumName': album.albumName}
 
         return key, js
-
-    def DeleteAlbum(self, album, key={}):
-        key, _ = self._GetKeyAndJson(album, key)
-        if key:
-            self.album_table.remove(key)
 
     def _SaveAlbum(self, album, key={}, upsert=True):
         key, js = self._GetKeyAndJson(album, key)

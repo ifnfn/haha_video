@@ -468,13 +468,12 @@ public:
 	bool   SetQuickFilter(string);
 	void   SetSort(string v, string s="1");
 
-	AlbumPage &GetPage(int pageNo = -1);
 	void   SetPageSize(int size);
 	size_t GetPageSize() { return PageSize;}
 
-	virtual int    SeekByAlbumId(string vid);
-	virtual int    SeekByAlbumName(string name);
-	virtual int    SeekByAlbumNumber(string number);
+	virtual int SeekByAlbumId(string vid);
+	virtual int SeekByAlbumName(string name);
+	virtual int SeekByAlbumNumber(string number);
 
 	virtual size_t GetAlbumCount();
 protected:
@@ -484,6 +483,7 @@ protected:
 	string      quickFilter;
 	string      basePosData;
 
+	AlbumPage &GetPage(int pageNo = -1);
 	int ParserFromUrl(AlbumPage *page, string &jsonstr);
 
 	string GetPostData();

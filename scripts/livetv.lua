@@ -225,8 +225,7 @@ function get_video_qqtv( url )
 		local text = kola.wget(url, false)
 
 		if text then
-			text = kola.pcre('location url="(.*?)"', text)
-			return kola.strtrim(text)
+			return rex.match(text, 'location url="(.*?)"')
 		end
 
 		return ""
@@ -324,6 +323,7 @@ function get_video_52itv(url)
 	end
 
 	url = string.format('%s?k=%s', url, get_livekey())
+	print(url)
 	if string.find(url, '.sdtv') then
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''
@@ -332,6 +332,7 @@ function get_video_52itv(url)
 	elseif string.find(url, '.letv') then
 		return letv_video(url)
 	end
+
 	return string.format('%s?k=%s -H "User-Agent: GGwlPlayer/QQ243944493"', url, get_livekey())
 end
 
@@ -341,8 +342,7 @@ function get_video_imgotv(url)
 	local url = string.format("http://interface.hifuntv.com/mgtv/BasicIndex/ApplyPlayVideo?Tag=26&BussId=1000000&VideoType=1&MediaAssetsId=channel&CategoryId=1000&VideoIndex=0&Version=3.0.11.1.2.MG00_Release&VideoId=%s", pid);
 	local text = kola.wget(url, false)
 
-	text = kola.pcre('url="(.*?)"', text)
-	return kola.strtrim(text)
+	return rex.match(text, 'url="(.*?)"')
 end
 
 function get_video_lntv(url)
@@ -428,8 +428,7 @@ function get_video_jlntv(url)
 
 	local text = kola.wget(url, false)
 	if text then
-		text = kola.pcre("var playurl = '(.*)';", text)
-		return kola.strtrim(text)
+		return rex.match(text, "var playurl = '(.*)';")
 	end
 
 	return ""
@@ -439,8 +438,7 @@ function get_video_jxtv(url)
 	url = string.gsub(url, "jxtv://", "http://")
 	local text = kola.wget(url)
 	if text then
-		text = kola.pcre('html5file:"(.*)"', text)
-		return kola.strtrim(text)
+		return rex.match(text, 'html5file:"(.*)"')
 	end
 
 	return ""
@@ -451,8 +449,7 @@ function get_video_smgbbtv(url)
 	local text = kola.wget(url, false)
 
 	if text then
-		text = kola.pcre('\\[CDATA\\[(.*)\\]\\]></channel>', text)
-		return kola.strtrim(text)
+		return rex.match(text, '\\[CDATA\\[(.*)\\]\\]></channel>')
 	end
 
 	return ""
@@ -462,8 +459,7 @@ function get_video_wztv(url)
 	local  pid = string.gsub(url, "wztv://", "")
 	local text = kola.wget('http://www.dhtv.cn/static/js/tv.js?acm', false)
 	if text then
-		text = kola.pcre("file: '(.*)'", text)
-		return kola.strtrim(text) .. pid
+		return rex.match(text, "file: '(.*)'")
 	end
 
 	return ""

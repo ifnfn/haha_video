@@ -29,7 +29,6 @@ class KolatvServer:
         #self.MenuList['娱乐']   = YuleMenu('娱乐')             # 7
         #self.MenuList['旅游']   = TourMenu('旅游')             # 8
 
-
     def Login(self, chipid, serial, remote_ip):
         status = 'NO'
 

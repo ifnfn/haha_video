@@ -74,7 +74,7 @@ local function curl_get( url, user_agent, referer )
 end
 
 -- 展开所有重定向
-local function curl_get_location(video_url)
+local function curl_get_location(video_url, recurs)
 	local function h_build_w_cb(t)
 		return function(s,len)
 			name, value = s:match("(.-): (.+)")
@@ -98,7 +98,11 @@ local function curl_get_location(video_url)
 	c:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) text = text .. str end })
 
 	if ret.headers.Location and ret.headers.Localtion ~= '' then
-		return curl_get_location(ret.headers.Location)
+		if recurs then
+			return curl_get_location(ret.headers.Location, recurs)
+		else
+			return ret.headers.Location
+		end
 	end
 
 	return video_url, text
@@ -302,10 +306,10 @@ function get_video_52itv(url)
 
 	local function letv_video(url)
 		local url = string.gsub(url, '.letv', '')
-		url, _ = curl_get_location(url)
+		url, _ = curl_get_location(url, true)
 
 		local text = kola.wget('http://g3.letv.cn/recommend')
-		if text then 
+		if text then
 			local js = cjson.decode(text)
 			if js.nodelist then
 				for k,v in pairs(js.nodelist) do
@@ -322,15 +326,34 @@ function get_video_52itv(url)
 		return url
 	end
 
+	local function letv_video2(url)
+		local url = string.gsub(url, '.letv', '')
+		url, _ = curl_get_location(url, false)
+		local url = string.gsub(url, 'format=0', 'format=1')
+		text = curl_get(url)
+		if text then
+			local js = cjson.decode(text)
+			if js.nodelist then
+				for k,v in pairs(js.nodelist) do
+					if v.location then
+						return v.location
+					end
+				end
+			end
+		end
+
+
+		return url
+	end
+
 	url = string.format('%s?k=%s', url, get_livekey())
-	print(url)
 	if string.find(url, '.sdtv') then
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''
 	elseif string.find(url, '.m3u8') then
-		return curl_get_location(url)
+		return curl_get_location(url, true)
 	elseif string.find(url, '.letv') then
-		return letv_video(url)
+		return letv_video2(url)
 	end
 
 	return string.format('%s?k=%s -H "User-Agent: GGwlPlayer/QQ243944493"', url, get_livekey())

@@ -19,6 +19,7 @@ string.split = function(str, pattern)
 	str:gsub(pattern, parts)
 	setmetatable(parts, nil)
 	parts.__index = nil
+
 	return parts
 end
 

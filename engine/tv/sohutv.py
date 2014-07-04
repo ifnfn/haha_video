@@ -43,9 +43,6 @@ class ParserSohuLivetv(LivetvParser):
 
             v.SetUrl('sohutv://%d' % pid)
 
-            #v.SetVideoUrlScript('default', 'sohulive', [playUrl])
-            v.info = utils.GetScript('sohulive', 'get_channel', [pid])
-
             album.videos.append(v)
             db.SaveAlbum(album)
 

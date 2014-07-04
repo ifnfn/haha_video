@@ -292,6 +292,7 @@ void test_livetv()
 
 #if 1
 	for (size_t i=pos; i < count; i++) {
+		sleep(1);
 		KolaAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
 			continue;

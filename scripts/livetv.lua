@@ -1,34 +1,27 @@
 function get_video_url(url)
+	local func_maps = {
+		['url.52itv.cn'] = get_video_52itv,
+		['^pa://']       = get_video_cntv,
+		['^pptv://']     = get_video_pptv,
+		['^qqtv://']     = get_video_qqtv,
+		['^sohutv://']   = get_video_sohutv,
+		['^imgotv://']   = get_video_imgotv,
+		['^lntv://']     = get_video_lntv,
+		['^m2otv://']    = get_video_m2otv,
+		['^tvie://']     = get_video_tvie,
+		['^jlntv://']    = get_video_jlntv,
+		['^jxtv://']     = get_video_jxtv,
+		['^smgbbtv://']  = get_video_smgbbtv,
+		['^wztv://']     = get_video_wztv,
+	}
+
 	print(url)
-	if string.find(url, 'url.52itv.cn') then
-		return get_video_52itv(url)
-	elseif string.find(url, '^pa://') then
-		return get_video_cntv(url)
-	elseif string.find(url, '^pptv://') then
-		return get_video_pptv(url)
-	elseif string.find(url, '^qqtv://') then
-		return get_video_qqtv(url)
-	elseif string.find(url, '^sohutv://') then
-		return get_video_sohutv(url)
-	elseif string.find(url, '^imgotv://') then
-		return get_video_imgotv(url)
-	elseif string.find(url, '^lntv://') then
-		return get_video_lntv(url)
-	elseif string.find(url, '^m2otv://') then
-		return get_video_m2otv(url)
-	elseif string.find(url, '^tvie://') then
-		return get_video_tvie(url)
-	elseif string.find(url, '^jlntv://') then
-		return get_video_jlntv(url)
-	elseif string.find(url, '^jxtv://') then
-		return get_video_jxtv(url)
-	elseif string.find(url, '^smgbbtv://') then
-		return get_video_smgbbtv(url)
-	elseif string.find(url, '^wztv://') then
-		return get_video_wztv(url)
-	else
-		return url
+	for k,func in pairs(func_maps) do
+		if string.find(url, k) then
+			return func(url)
+		end
 	end
+	return url
 end
 
 local function isnan(x) return x ~= x end
@@ -84,41 +77,31 @@ end
 local function curl_get_location(video_url)
 	local function h_build_w_cb(t)
 		return function(s,len)
-			--stores the received data in the table t
-			--prepare header data
 			name, value = s:match("(.-): (.+)")
 			if name and value then
 				t.headers[name] = value:gsub("[\n\r]", "")
 				--print(name, t.headers[name])
-				if name == 'Set-Cookie' then
-					Cookie = t.headers[name]
-				end
-			else
-				code, codemessage = string.match(s, "^HTTP/.* (%d+) (.+)$")
-				if code and codemessage then
-					t.code = tonumber(code)
-					t.codemessage = codemessage:gsub("[\n\r]", "")
-				end
 			end
 
 			return len, nil
 		end
 	end
 
+	local text = ''
 	c = cURL.easy_init()
 
-	c:setopt_useragent("GGwlPlayer/QQ243944493")
+	c:setopt_useragent("Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6")
 	c:setopt_url(video_url)
 
-	ret = {}
+	local ret = {}
 	ret.headers = {}
-	c:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
+	c:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) text = text .. str end })
 
 	if ret.headers.Location and ret.headers.Localtion ~= '' then
 		return curl_get_location(ret.headers.Location)
 	end
 
-	return video_url
+	return video_url, text
 end
 
 -- pa://cctv_p2p_hdcctv1
@@ -216,11 +199,12 @@ function get_video_pptv(url)
 		kk = rex.match(pphtml, 'kk%3D(.*?)"')
 	end
 
-	--if not isnan(vid) then
-	--	return string.format("http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0&kk=%s&o=v.pptv.com", vid, kk)
-	--	return string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', id)
-	--end
-
+	--[[
+	if not isnan(vid) then
+		return string.format("http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0&kk=%s&o=v.pptv.com", vid, kk)
+		return string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', id)
+	end
+	]]--
 	local xml = kola.wget("http://jump.synacast.com/live2/" .. vid)
 	if xml then
 		local ip = rex.match(xml, '<server_host>(.*?)</server_host>')
@@ -317,6 +301,28 @@ function get_video_52itv(url)
 		return string.format('%s-%d', string.lower(kola.md5(key)), d)
 	end
 
+	local function letv_video(url)
+		local url = string.gsub(url, '.letv', '')
+		url, _ = curl_get_location(url)
+
+		local text = kola.wget('http://g3.letv.cn/recommend')
+		if text then 
+			local js = cjson.decode(text)
+			if js.nodelist then
+				for k,v in pairs(js.nodelist) do
+					_, _, u1 = string.find(v.location, '(http://.-)/')
+					_, _, u2 = string.find(url, 'http://.-(/.*)')
+
+					if u1 and u2 then
+						return u1 .. u2
+					end
+				end
+			end
+		end
+
+		return url
+	end
+
 	url = string.format('%s?k=%s', url, get_livekey())
 	if string.find(url, '.sdtv') then
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
@@ -324,17 +330,7 @@ function get_video_52itv(url)
 	elseif string.find(url, '.m3u8') then
 		return curl_get_location(url)
 	elseif string.find(url, '.letv') then
-		local url = string.gsub(url, '.letv', '')
-		url = curl_get_location(url)
-
-		local xml = curl_get(url, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6");
-		if string.find(xml, '</nodelist>') then
-			print("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
-			print(xml)
-			local nodelist = rex.match(xml, '<nodelist>(.*?)</nodelist>')
-		end
-
-		return url
+		return letv_video(url)
 	end
 	return string.format('%s?k=%s -H "User-Agent: GGwlPlayer/QQ243944493"', url, get_livekey())
 end

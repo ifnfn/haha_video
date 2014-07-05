@@ -278,7 +278,7 @@ void test_livetv()
 	}
 	//m->FilterAdd("类型", "本省台");
 	//m->FilterAdd("类型", "央视台");
-	m->FilterAdd("类型", "卫视台");
+	//m->FilterAdd("类型", "卫视台");
 	//m->FilterAdd("类型", "地方台");
 	//m->FilterAdd("类型", "高清台");
 	//m->SetPageSize(3);

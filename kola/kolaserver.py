@@ -12,7 +12,7 @@ from .commands import KolaCommand
 from .element import LivetvMenu, MovieMenu, TVMenu, ComicMenu, DocumentaryMenu, ShowMenu
 from .db import DB
 
-class KolatvServer:    
+class KolatvServer:
     def __init__(self):
         self.db = DB()
         self.kdb = redis.Redis(host='127.0.0.1', port=6379, db=1)
@@ -29,7 +29,20 @@ class KolatvServer:
         #self.MenuList['娱乐']   = YuleMenu('娱乐')             # 7
         #self.MenuList['旅游']   = TourMenu('旅游')             # 8
 
-    def Login(self, chipid, serial, remote_ip):
+    def GetOnline(self):
+        ret = []
+
+        i = 1
+        for key in self.kdb.keys('????????'):
+            js = tornado.escape.json_decode(self.kdb.get(key))
+            js['id'] = i
+            js['updateTimeStr'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(js['updateTime'])) 
+            ret.append(js)
+            i += 1
+
+        return ret
+
+    def Login(self, chipid, serial, remote_ip, area=None):
         status = 'NO'
 
         if serial in ['000001', '000002', '000003', '000004']:
@@ -43,7 +56,14 @@ class KolatvServer:
 
         if status == 'YES':
             # 登录检查，生成随机 KEY
-            userinfo = {'chipid': chipid, 'serial' : serial, 'remote_ip' : remote_ip, 'updateTime': time.time()}
+            userinfo = {
+                        'chipid': chipid,
+                        'serial' : serial,
+                        'remote_ip' : remote_ip,
+                        'updateTime': time.time()
+                        }
+            if area:
+                userinfo['area'] = area
             key = None
             if self.kdb.exists(chipid):
                 js = self.kdb.get(chipid)

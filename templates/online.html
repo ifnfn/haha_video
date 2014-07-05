@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<style>
+	table.list { border: 1px solid #e4e4e4;  border-collapse: collapse; width: 80%; margin-bottom: 4px; }
+	table.list th {  background-color:#EEEEEE; padding: 4px; white-space:nowrap; }
+	table.list td {  text-align:center; vertical-align:top; padding-right:10px;}
+	table.list td.id { width: 2%; text-align: center;}
+	table.list td.chipid { width: 4%; text-align: center;}
+	table.list td.serial{ width: 50px; text-align: center;}
+	table.list td.area {width:15%}
+	table.list td.time {width:15%; white-space:nowrap; text-align:center; }
+	table.list td.ip { text-align: left; width: 80px; }
+	table.list td.key { text-align: left; width: 80px; }
+</style>
+
+<html>
+    <head>
+        <title>KolaTV Serial system</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    </head>
+    <body>
+        <h1>在线用户列表：</h1>
+		<table border="1" class="list">
+			<tr>
+		        	<th> ID </th>
+		        	<th> ChipID </th>
+		        	<th> 序列号 </th>
+		        	<th> 地区 </th>
+		        	<th> 最新在线时间 </th>
+		        	<th> IP </th>
+		        	<th> KEY </th>
+	        </tr>
+			<tr>
+		        {% for v in onlines %}
+		        	<td class="id">     {{v['id']}}            </td>
+		        	<td class="chipid"> {{v['chipid']}}        </td>
+		        	<td class="serial"> {{v['serial']}}        </td>
+		        	<td class="area">   {{v['area']}}          </td>
+		        	<td class="time">   {{v['updateTimeStr']}} </td>
+		        	<td class="ip">     {{v['remote_ip']}}     </td>
+		        	<td class="key">    {{v['key']}}           </td>
+		        {% end %}
+	        </tr>
+		</table>
+    </body>
+</html>

@@ -49,8 +49,8 @@ function get_video_url(url)
 
 	local stream_id = rex.match(url, 'stream_id=(.*?)&')
 	print(stream_id)
-	local time = kola.gettime()
-	local letv_str = string.format("%s,%d,%s", dongfang, time, 'd0e8dad86abed8cae8ec5cc6deda')
+	local time = kola.gettime() + 600
+	local letv_str = string.format("%s,%d,%s", stream_id, time, '1ca1fc9546da2b196ce9edfa5decd787')
 	local key = string.lower(kola.md5(letv_str))
 	print(key)
 

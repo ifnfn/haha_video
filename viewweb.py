@@ -1,28 +1,30 @@
 #!env python3
 # -*- coding: utf-8 -*-
 
-import json
+import base64
 import hashlib
-
-import sys, os, time
+import json
+import os
+import sys
 import traceback
+from urllib.parse import unquote
+import zlib
 
 import redis
 import tornado.escape
 import tornado.ioloop
 import tornado.options
 import tornado.web
+
 from barcode import get_barcode
-import base64
-from urllib.parse import unquote
-import zlib
+from kola import log, utils, DB, City, KolatvServer
+
 
 try:
     from barcode.writer import ImageWriter
 except ImportError:
     ImageWriter = None
 
-from kola import log, utils, DB, City, KolatvServer
 
 kolas = KolatvServer()
 
@@ -50,14 +52,13 @@ class AlbumVidCheckHandler(BaseHandler):
         vids = self.get_argument('vid', '')
         ret = kolas.GetAlbumFailure(vids)
 
-        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False, sort_keys=True))
         self.finish(tornado.escape.json_encode(ret))
 
     def post(self):
         if self.request.body:
             vids = tornado.escape.to_basestring(self.request.body)
             ret = kolas.GetAlbumFailure(vids)
-            #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+
             self.finish(tornado.escape.json_encode(ret))
 
 class AlbumListHandler(BaseHandler):
@@ -96,7 +97,6 @@ class AlbumListHandler(BaseHandler):
 
         if albumlist: args['result'] = albumlist
 
-        #self.finish(json.dumps(args, indent=4, ensure_ascii=False))
         self.finish(tornado.escape.json_encode(args))
 
     @tornado.web.authenticated
@@ -123,7 +123,6 @@ class AlbumListHandler(BaseHandler):
 
         if albumlist: args['result'] = albumlist
 
-        #self.finish(json.dumps(args, indent=4, ensure_ascii=False))
         self.finish(tornado.escape.json_encode(args))
 
 class GetVideoPlayerUrlHandle(BaseHandler):
@@ -144,7 +143,6 @@ class GetVideoPlayerUrlHandle(BaseHandler):
                         break
 
         finally:
-            #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
             self.finish(tornado.escape.json_encode(ret))
 
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
@@ -295,14 +293,12 @@ class GetMenuHandler(BaseHandler):
         else:
             ret =  kolas.GetMenuJsonInfoByName([])
 
-        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
         self.finish(tornado.escape.json_encode(ret))
 
 class GetKolaInfoHandler(BaseHandler):
     def get(self):
         ret =  kolas.GetVideoSource()
 
-        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
         self.finish(tornado.escape.json_encode(ret))
 
 class CityHandler(BaseHandler):
@@ -312,7 +308,7 @@ class CityHandler(BaseHandler):
         cid = self.get_argument('cid', '')
         if cid == '':
             ret = self.city.GetListByFullName(name)
-            #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+
             self.finish(tornado.escape.json_encode(ret))
         else:
             self.finish(self.city.GetCiyByFullName(name))
@@ -381,7 +377,7 @@ class UserInfoHandler(BaseHandler):
         for x in cursor:
             del x['_id']
             ret.append(x)
-        #self.finish(json.dumps(ret, indent=4, ensure_ascii=False))
+
         self.finish(tornado.escape.json_encode(ret))
 
 class SerialHandler(BaseHandler):
@@ -468,9 +464,12 @@ class SerialHandler(BaseHandler):
         else:
             self.render("barcode.html", barcodes=ret, image=enableImage)
 
-class LoginHandler(BaseHandler):
-    user_table = DB().user_table
+class OnlineUserHandler(tornado.web.RequestHandler):
+    def get(self):
+        onlines = kolas.GetOnline()
+        self.render("online.html", onlines=onlines)
 
+class LoginHandler(BaseHandler):
     def initialize(self):
         self.chipid  = self.get_argument('chipid', '')
         self.serial  = self.get_argument('serial', '')
@@ -479,7 +478,7 @@ class LoginHandler(BaseHandler):
         self.version = self.get_argument('version', '')
 
     def check_user_id(self):
-        key = kolas.Login(self.chipid, self.serial, self.request.remote_ip)
+        key = kolas.Login(self.chipid, self.serial, self.request.remote_ip, self.area)
         
         if key:
             return key
@@ -686,6 +685,7 @@ class ViewApplication(tornado.web.Application):
             (r'/admin/userinfo',   UserInfoHandler),        # 用户信息
             (r'/admin/serial',     SerialHandler),          # 生成序列号
             (r'/admin/update',     UploadFileHandler),
+            (r'/admin/online',     OnlineUserHandler),
 
             (r"/files/(.*)",       DownloadFileHandler, {"path": "files"}),
             (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),

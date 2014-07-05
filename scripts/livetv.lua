@@ -114,7 +114,13 @@ function get_video_cntv( url )
 		if string.find(url, "m3u8") == nil or string.len(url) < 15 or string.find(url, 'cntv.cloudcdn.net') or string.find(url, 'dianpian.mp4') then
 			return nil
 		end
+
 		return url
+	end
+
+	local function get_cctv1_auth()
+		local text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
+		return rex.match(text, '(AUTH=ip.*?)"')
 	end
 
 	local url = string.format("http://vdn.live.cntv.cn/api2/live.do?client=iosapp&channel=%s", url)
@@ -137,13 +143,21 @@ function get_video_cntv( url )
 
 				video_url = kola.strtrim(video_url)
 				if string.find(video_url, "AUTH=ip") == nil then
-					text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
 					auth = rex.match(text, '(AUTH=ip.*?)"')
+					if not auth then
+						auth = get_cctv1_auth()
+					end
+
 					if auth then
 						video_url =  string.format("%s?%s", video_url, auth)
 					end
 				end
-				return video_url
+				local text = curl_get(video_url)
+				if string.find(text, 'M3U8') then
+					return video_url
+				end
+
+				return ''
 			end
 		end
 	end
@@ -342,7 +356,6 @@ function get_video_52itv(url)
 				end
 			end
 		end
-
 
 		return url
 	end

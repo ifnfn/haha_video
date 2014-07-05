@@ -33,7 +33,7 @@ class KolatvServer:
         ret = []
 
         i = 1
-        for key in self.kdb.keys('????????'):
+        for key in self.kdb.keys('????????????????'):
             js = tornado.escape.json_decode(self.kdb.get(key))
             js['id'] = i
             js['updateTimeStr'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(js['updateTime'])) 
@@ -60,10 +60,10 @@ class KolatvServer:
                         'chipid': chipid,
                         'serial' : serial,
                         'remote_ip' : remote_ip,
-                        'updateTime': time.time()
+                        'updateTime': time.time(),
+                        'area': area
                         }
-            if area:
-                userinfo['area'] = area
+
             key = None
             if self.kdb.exists(chipid):
                 js = self.kdb.get(chipid)

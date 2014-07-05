@@ -7,11 +7,24 @@
 	table.list td.id { width: 2%; text-align: center;}
 	table.list td.chipid { width: 4%; text-align: center;}
 	table.list td.serial{ width: 50px; text-align: center;}
-	table.list td.area {width:15%}
+	table.list td.area {width:15%; white-space:nowrap; text-align:left; }
 	table.list td.time {width:15%; white-space:nowrap; text-align:center; }
 	table.list td.ip { text-align: left; width: 80px; }
 	table.list td.key { text-align: left; width: 80px; }
+
+body, #wrapper {
+	font-family: "Lucida Grande", "microsoft yahei", verdana, arial, helvetica, sans-serif;
+	font-size: 12px;
+}
 </style>
+
+<script language="JavaScript">
+function myrefresh()
+{
+       window.location.reload();
+}
+setTimeout('myrefresh()',3000); //指定1秒刷新一次
+</script>
 
 <html>
     <head>
@@ -29,9 +42,9 @@
 		        	<th> 最新在线时间 </th>
 		        	<th> IP </th>
 		        	<th> KEY </th>
-	        </tr>
+			</tr>
+			{% for v in onlines %}
 			<tr>
-		        {% for v in onlines %}
 		        	<td class="id">     {{v['id']}}            </td>
 		        	<td class="chipid"> {{v['chipid']}}        </td>
 		        	<td class="serial"> {{v['serial']}}        </td>
@@ -39,8 +52,8 @@
 		        	<td class="time">   {{v['updateTimeStr']}} </td>
 		        	<td class="ip">     {{v['remote_ip']}}     </td>
 		        	<td class="key">    {{v['key']}}           </td>
+			</tr>
 		        {% end %}
-	        </tr>
 		</table>
     </body>
 </html>

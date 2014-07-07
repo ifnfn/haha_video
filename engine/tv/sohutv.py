@@ -16,7 +16,7 @@ class ParserSohuLivetv(LivetvParser):
         self.tvName = '搜狐'
         self.order = PRIOR_SOHU
 
-        self.ExcludeName = ['浙江卫视']
+        self.ExcludeName = ['浙江卫视', '无锡.*', ' 南京.*']
 
         self.cmd['source'] = 'http://tvimg.tv.itc.cn/live/top.json'
 

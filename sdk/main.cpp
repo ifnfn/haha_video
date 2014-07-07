@@ -239,8 +239,6 @@ void test_livetv_epglist()
 				if (not e2.empty()) {
 					printf(", Next: [%s] %s", e2.timeString.c_str(), e2.title.c_str());
 				}
-				else
-					printf("dddddddddddddddddddddddd\n");
 				printf("\n\n");
 
 				epg->Clear();

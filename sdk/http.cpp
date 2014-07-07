@@ -151,6 +151,11 @@ void Http::SetReferer(const char *referer)
 		SetOpt(CURLOPT_REFERER, referer);
 }
 
+void Http::SetOpt(CURLoption option, void *value) {
+	if (curl)
+		curl_easy_setopt(curl, option, value);
+}
+
 void Http::SetOpt(CURLoption option, const char *value)
 {
 	if (curl)

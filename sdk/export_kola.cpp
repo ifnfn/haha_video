@@ -57,6 +57,46 @@ static int lua_mwget(lua_State *L)
 	return 1;
 }
 
+static int lua_wget2(lua_State *L)
+{
+	Http http;
+	struct curl_slist *chunk = NULL;
+	const char *url = NULL;
+	int i = 1;
+
+	int argc = lua_gettop(L);
+	if (argc < 1)
+		return 0;
+
+	if (argc >= 1 && lua_type(L, 1) == LUA_TSTRING)
+		url = lua_tostring(L, 1);
+
+	if (lua_isstring(L, 2))
+		chunk = curl_slist_append(chunk, lua_tostring(L, 2));
+	else {
+		if (lua_type(L, 2) != LUA_TTABLE)
+			luaL_error(L, "wrong argument (%s): expected string or table", lua_typename(L, 2));
+
+		lua_rawgeti(L, 2, i++);
+		while (!lua_isnil(L, -1)) {
+			const char *value = lua_tostring(L, -1);
+			chunk = curl_slist_append(chunk, value);
+			lua_pop(L, 1);
+			lua_rawgeti(L, 2, i++);
+		}
+		lua_pop(L, 1);
+	}
+
+	http.SetOpt(CURLOPT_HTTPHEADER, chunk);
+	const char *text = http.Get(url);
+	if (text) {
+		lua_pushstring(L, text);
+		return 1;
+	}
+
+	return 0;
+}
+
 static int lua_wget(lua_State *L)
 {
 	int argc = lua_gettop(L);
@@ -465,6 +505,7 @@ static const struct luaL_Reg kola_lib[] = {
 	{"base64_encode" , lua_base64_encode },
 	{"base64_decode" , lua_base64_decode },
 	{"wget"          , lua_wget          },
+	{"wget2"         , lua_wget2         },
 	{"mwget"         , lua_mwget         },
 	{"wpost"         , lua_wpost         },
 	{"pcre"          , lua_pcre          },

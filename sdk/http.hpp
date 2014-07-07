@@ -79,6 +79,7 @@ public:
 	const char *Get(const char *url=NULL);
 	const char *Post(const char *url, const char *postdata);
 
+	void SetOpt(CURLoption option, void *value);
 	void SetOpt(CURLoption option, const char *value);
 	void SetOpt(CURLoption option, int value);
 

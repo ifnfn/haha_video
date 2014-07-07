@@ -18,7 +18,8 @@ function get_video_url(url, albumName, vid)
 	print(albumName, vid, url)
 	for k,func in pairs(func_maps) do
 		if string.find(url, k) then
-			return func(url)
+			url = func(url)
+			break
 		end
 	end
 	return url
@@ -53,24 +54,56 @@ local function find(var, tag, key, value)
 	end
 end
 
-local function curl_get( url, user_agent, referer )
-	local text = ''
-	c = cURL.easy_init()
+local share = cURL.share_init()
+share:setopt_share("COOKIE")
+share:setopt_share("DNS")
+
+local function curl_init(url, user_agent, referer)
+	local c = cURL.easy_init()
+	c:setopt_share(share)
+
 	if user_agent == nil then
-		user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36"
+		user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6"
 	end
 
-	if referer == nil then
-		referer = url
-	end
+	if referer == nil then referer = url end
+
 	c:setopt_useragent(user_agent)
 	c:setopt_referer(referer)
-	c:setopt_followlocation(1)
 	c:setopt_url(url)
 
-	c:perform({writefunction = function(str) text = text .. str end})
+	if url:find('myvst.net') or url:find('52itv.cn') or url:find('91vst.com') then
+		headers = {
+			'Connection: Keep-Alive'
+		}
+		c:setopt_httpheader(headers)
+	end
 
-	return text
+	return c
+end
+
+local function curl_get( url, user_agent, referer )
+	local text = ''
+	if kola.wget2 then
+		if user_agent == nil then
+			user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6"
+		end
+
+		if referer == nil then referer = url end
+
+		return kola.wget2(url, {
+			'User-Agent: ' .. user_agent,
+			'Referer: ' .. referer,
+			'Connection: Keep-Alive'
+			})
+	else
+		c = curl_init(url, user_agent, referer)
+		c:setopt_followlocation(1)
+
+		c:perform({writefunction = function(str) text = text .. str end})
+		return text
+	end
+
 end
 
 -- 展开所有重定向
@@ -88,10 +121,7 @@ local function curl_get_location(video_url, recurs)
 	end
 
 	local text = ''
-	c = cURL.easy_init()
-
-	c:setopt_useragent("Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6")
-	c:setopt_url(video_url)
+	c = curl_init(video_url, nil, nil)
 
 	local ret = {}
 	ret.headers = {}
@@ -121,7 +151,7 @@ local function curl_json(url, regular)
 		if regular and regular ~= '' then
 			text = rex.match(text, regular)
 		end
-		if text then
+		if text and text ~= '' then
 			return cjson.decode(text)
 		end
 	end
@@ -160,21 +190,14 @@ function get_video_cntv( url )
 
 			video_url = kola.strtrim(video_url)
 			if string.find(video_url, "AUTH=ip") == nil then
-				auth = rex.match(text, '(AUTH=ip.*?)"')
-				if not auth then
-					auth = get_cctv1_auth()
-				end
+				auth = get_cctv1_auth()
 
 				if auth then
 					video_url =  string.format("%s?%s", video_url, auth)
 				end
 			end
-			local text = curl_get(video_url)
-			if string.find(text, 'M3U8') then
-				return video_url
-			end
 
-			return ''
+			return video_url
 		end
 	end
 
@@ -241,7 +264,7 @@ function get_video_pptv(url)
 		return string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', id)
 	end
 	]]--
-	local xml = kola.wget("http://jump.synacast.com/live2/" .. vid)
+	local xml = curl_get("http://jump.synacast.com/live2/" .. vid)
 	if xml then
 		local ip = rex.match(xml, '<server_host>(.*?)</server_host>')
 		local delay = rex.match(xml, '<delay_play_time>(.*?)</delay_play_time>')
@@ -268,7 +291,7 @@ function get_video_qqtv( url )
 		-- 	2 : m3u8
 		local url = string.format('http://info.zb.qq.com/?stream=1&sdtfrom=003&cnlid=%s&cmd=2&pla=0&flvtype=1', playid)
 
-		local text = kola.wget(url, false)
+		local text = curl_get(url)
 		if text then
 			text = string.gsub(text, ";", "")
 			local js = cjson.decode(text)
@@ -302,16 +325,10 @@ function get_video_sohutv(url)
 
 	local js = curl_json(url)
 
-	if not js then
-		return ''
-	end
-	local ret = {}
-
-	print("ddddddddddddddddddd: ", js.data.live)
-	if js.data.live then
+	if js and js.data.live then
 		js = curl_json(js.data.live)
 
-		if js and js.msg == 'OK' then
+		if js and js.code == '000000' then
 			return js.url
 		end
 	end
@@ -392,7 +409,6 @@ function get_video_lntv(url)
 	return rex.match(text, "var playM3U8 = '(.*?)';")
 end
 
-
 function get_video_tvie(url)
 	url = string.gsub(url, "tvie://", "http://")
 
@@ -413,10 +429,9 @@ function get_video_tvie(url)
 		return url
 	end
 	--print(url)
-	local text = kola.wget(url, false)
+	local text = curl_get(url)
 
 	if text and text ~= "TVie Exception: No streams." then
-		local d = os.date("*t", kola.gettime())
 		local data_obj = cjson.decode(text)
 		if data_obj == nil then
 			return ''
@@ -462,25 +477,23 @@ function get_video_tvie(url)
 end
 
 function get_video_jlntv(url)
-	url = string.gsub(url, "jlntv://", "http://live.jlntv.cn/")
-
+	local url = string.gsub(url, 'jlntv://', 'http://live.jlntv.cn/')
 	return curl_match(url, "var playurl = '(.*)';")
 end
 
 function get_video_jxtv(url)
-	url = string.gsub(url, "jxtv://", "http://")
-
+	local url = string.gsub(url, 'jxtv://', 'http://')
 	return curl_match(url, 'html5file:"(.*)"')
 end
 
 function get_video_smgbbtv(url)
+	local pid = string.gsub(url, 'smgbbtv://', '')
 	local url = string.format('http://l.smgbb.cn/channelurl.ashx?starttime=0&endtime=0&channelcode=%s', pid)
 
 	return curl_match(url, '\\[CDATA\\[(.*)\\]\\]></channel>')
 end
 
 function get_video_wztv(url)
-	local  pid = string.gsub(url, "wztv://", "")
-
+	local pid = string.gsub(url, "wztv://", "")
 	return curl_match('http://www.dhtv.cn/static/js/tv.js?acm', "file: '(.*)'")
 end

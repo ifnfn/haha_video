@@ -30,7 +30,7 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 
 		local text = kola.wget(url, false)
 
-		text = kola.pcre("var videoListC=([\\s\\S]*)", text)
+		text = rex.match(text, "var videoListC=([\\s\\S]*)")
 		if not text then
 			return '{}'
 		end
@@ -111,7 +111,7 @@ function get_video_url(tvid, vid)
 	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
 	local text = get_tmts(url)
 
-	text = kola.pcre("var tvInfo.*=([\\s\\S]*)", text)
+	text = rex.match(text, "var tvInfo.*=([\\s\\S]*)")
 	if not text then
 		return '{}'
 	end
@@ -164,7 +164,7 @@ function get_resolution(tvid, vid)
 
 	local text = get_tmts(url)
 
-	text = kola.pcre("var tvInfo.*=([\\s\\S]*)", text)
+	text = rex.match(text, "var tvInfo.*=([\\s\\S]*)")
 
 	if not text then
 		return '{}'

@@ -283,7 +283,7 @@ void test_livetv()
 	//m->FilterAdd("类型", "高清台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "zh");
+	//m->FilterAdd("PinYin", "hz");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
@@ -292,7 +292,6 @@ void test_livetv()
 
 #if 1
 	for (size_t i=pos; i < count; i++) {
-		sleep(1);
 		KolaAlbum *album = m->GetAlbum(i);
 		if (album == NULL)
 			continue;
@@ -750,7 +749,7 @@ void test_weather(KolaClient &kola)
 
 void test_update(KolaClient &kola)
 {
-	KolaUpdate update;
+	KolaUserResources update;
 
 	update.CheckVersion("zhuzhg", "v1111");
 	update.Download("ppt2854.rar", "/tmp/ppt2854.rar");

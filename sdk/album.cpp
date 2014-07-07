@@ -226,7 +226,6 @@ KolaEpg *KolaAlbum::NewEPG()
 	return NULL;
 }
 
-
 string &KolaAlbum::GetPictureUrl(enum PicType type)
 {
 	string &fileName = this->smallPicUrl;

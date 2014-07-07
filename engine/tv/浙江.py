@@ -126,7 +126,7 @@ class ParserWenZhouLivetv(LivetvParser):
             v.order = 2
             v.name = self.tvName
 
-            v.SetUrl('wztv://' + source)
+            v.SetUrl('wztv://' + source, album)
 
             album.videos.append(v)
             db.SaveAlbum(album)

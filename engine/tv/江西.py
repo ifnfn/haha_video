@@ -53,7 +53,7 @@ class ParserJianXiLivetv(LivetvParser):
             v.vid   = utils.getVidoId(href)
 
             href = re.sub('^http://', 'jxtv://', href)
-            v.SetUrl(href)
+            v.SetUrl(href, album)
 
             album.videos.append(v)
             db.SaveAlbum(album)

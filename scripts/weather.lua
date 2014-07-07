@@ -23,7 +23,7 @@ function kola_main(city)
 
 	local ret = {}
 	if text then
-		text = kola.pcre("callback\\((.*)\\);", text)
+		text = rex.match(text, "callback\\((.*)\\);")
 		local js = cjson.decode(text)
 
 		if js == nil then

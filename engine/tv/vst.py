@@ -102,7 +102,7 @@ class ParserVstLivetv(LivetvParser):
                 v.order = order
                 v.name  = '源%d' % (order + 1)
                 v.vid   = utils.getVidoId(href)
-                v.SetUrl(href, albumName)
+                v.SetUrl(href, album)
                 album.videos.append(v)
                 order = order + 1
 

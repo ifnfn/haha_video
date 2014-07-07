@@ -1,6 +1,6 @@
 local function GetData(url)
 	local text = kola.wget(url, false)
-	text = kola.pcre("QZOutput.*=({[\\s\\S]*});", text)
+	text = rex.match(text, "QZOutput.*=({[\\s\\S]*});")
 
 	if text == nil then
 		return '{}'
@@ -97,7 +97,7 @@ function get_video_url(qvid, url_prefix, segments, stream_id)
 	end
 	local keys = kola.mwget(key_urls)
 	for k,v in pairs(keys) do
-		local text = kola.pcre("QZOutput.*=({[\\s\\S]*});", v)
+		local text = rex.match(v, "QZOutput.*=({[\\s\\S]*});")
 
 		if text == nil then keys[k] = ''else keys[k] = cjson.decode(text).key end
 	end

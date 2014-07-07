@@ -58,7 +58,7 @@ class M2OLivetvParser(LivetvParser):
         v.vid   = utils.getVidoId(url)
 
         url,_ = re.subn('^http://', 'm2otv://', url)
-        v.SetUrl(url)
+        v.SetUrl(url, album)
 
         album.videos.append(v)
         LivetvDB().SaveAlbum(album)

@@ -55,7 +55,7 @@ class ParserTVIELivetv(LivetvParser):
                 else:
                     url += "?referer=" + quote(self.Referer)
 
-            v.SetUrl(url)
+            v.SetUrl(url, album)
 
             album.videos.append(v)
             db.SaveAlbum(album)

@@ -102,7 +102,7 @@ class ParserPPtvList(LivetvParser):
 
                             v.vid   = utils.getVidoId(albumName + channel_id)
 
-                            v.SetUrl('pptv://' + channel_id)
+                            v.SetUrl('pptv://' + channel_id, album)
 
                             album.videos.append(v)
                             db.SaveAlbum(album)

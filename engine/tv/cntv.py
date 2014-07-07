@@ -43,7 +43,7 @@ class ParserCntvLivetv(LivetvParser):
 
                 href = "pa://cctv_p2p_hd" + ch[0]
                 v.vid   = utils.getVidoId(href)
-                v.SetUrl(href)
+                v.SetUrl(href, album)
 
                 album.videos.append(v)
                 db.SaveAlbum(album)

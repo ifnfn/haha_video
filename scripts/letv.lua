@@ -26,7 +26,7 @@ function get_videolist(pid, vid, pageNo, pageSize)
 			return '{}'
 		end
 
-		text = kola.pcre("<playurl><!\\[CDATA(.*)\\]></playurl>", text)
+		text = rex.match(text, "<playurl><!\\[CDATA(.*)\\]></playurl>")
 
 		--print(text)
 		if text == nil then
@@ -125,8 +125,8 @@ function get_resolution(vid)
 	local url = string.format('http://www.letv.com/v_xml/%s.xml', vid)
 	local text = kola.wget(url, false)
 
-	text = kola.pcre("<playurl>(.*)</playurl>", text)
-	text = kola.pcre("<!\\[CDATA(.*)\\]>", text)
+	text = rex.match(text, "<playurl>(.*)</playurl>")
+	text = rex.match(text, "<!\\[CDATA(.*)\\]>")
 
 	if text == nil then
 		return '{}'

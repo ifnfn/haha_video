@@ -27,7 +27,7 @@ function getip_detail()
 	local url = "http://iplocation.geo.qiyi.com/cityjson"
 	local text = kola.wget(url, false)
 	if text then
-		text = kola.pcre("var returnIpCity =(.*);", text)
+		text = rex.match(text, "var returnIpCity =(.*);")
 		local js = cjson.decode(text)
 
 		if js.code == "A00000" and js.data.country ~= "" and js.data.province ~= "" then

@@ -154,7 +154,7 @@ function get_channel_cutv(albumName)
 
 	--print(url)
 	if text then
-		text = kola.pcre("callTslEpg\\((.*)\\)", text)
+		text = rex.match(text, "callTslEpg\\((.*)\\)")
 		local js = cjson.decode(text)
 
 		if js and js.list then
@@ -1146,7 +1146,7 @@ function get_channel_nbtv(vid)
 
 	text = kola.wget(url, false)
 	if text then
-		text = kola.pcre("jsonp_program\\((.*)\\)", text)
+		text = rex.match(text, "jsonp_program\\((.*)\\)")
 		local js = cjson.decode(text)
 
 		local k = 1

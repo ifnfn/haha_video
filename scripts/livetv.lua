@@ -1,4 +1,4 @@
-function get_video_url(url, albumName)
+function get_video_url(url, albumName, vid)
 	local func_maps = {
 		['url.52itv.cn'] = get_video_52itv,
 		['^pa://']       = get_video_cntv,
@@ -15,7 +15,7 @@ function get_video_url(url, albumName)
 		['^wztv://']     = get_video_wztv,
 	}
 
-	print(albumName, url)
+	print(albumName, vid, url)
 	for k,func in pairs(func_maps) do
 		if string.find(url, k) then
 			return func(url)
@@ -108,14 +108,23 @@ local function curl_get_location(video_url, recurs)
 	return video_url, text
 end
 
-local function get_video_wztv(url)
-	local  pid = string.gsub(url, "wztv://", "")
-	local text = kola.wget('http://www.dhtv.cn/static/js/tv.js?acm', false)
+local function curl_match(url, regular)
+	local text = curl_get(url)
 	if text then
-		return rex.match(text, "file: '(.*)'")
+		return rex.match(text, regular)
 	end
+end
 
-	return ""
+local function curl_json(url, regular)
+	local text = curl_get(url)
+	if text then
+		if regular and regular ~= '' then
+			text = rex.match(text, regular)
+		end
+		if text then
+			return cjson.decode(text)
+		end
+	end
 end
 
 -- pa://cctv_p2p_hdcctv1
@@ -134,41 +143,38 @@ function get_video_cntv( url )
 	end
 
 	local url = string.format("http://vdn.live.cntv.cn/api2/live.do?client=iosapp&channel=%s", url)
-	local text = kola.wget(url, false)
 
-	if text then
-		local js = cjson.decode(text)
+	local js = curl_json(url)
 
-		if js and js.hls_url then
-			local video_url = nil
-			if video_url == nil then video_url = check_m3u8(js.hls_url.hls1) end
-			if video_url == nil then video_url = check_m3u8(js.hls_url.hls2) end
-			if video_url == nil then video_url = check_m3u8(js.hls_url.hls3) end
-			if video_url == nil then video_url = check_m3u8(js.hls_url.hls5) end
+	if js and js.hls_url then
+		local video_url = nil
+		if video_url == nil then video_url = check_m3u8(js.hls_url.hls1) end
+		if video_url == nil then video_url = check_m3u8(js.hls_url.hls2) end
+		if video_url == nil then video_url = check_m3u8(js.hls_url.hls3) end
+		if video_url == nil then video_url = check_m3u8(js.hls_url.hls5) end
 
-			if video_url then
-				--print(video_url)
-				video_url = string.gsub(video_url, "m3u8 \\?", "m3u8?")
-				video_url = string.gsub(video_url, ":8000:8000", ":8000")
+		if video_url then
+			--print(video_url)
+			video_url = string.gsub(video_url, "m3u8 \\?", "m3u8?")
+			video_url = string.gsub(video_url, ":8000:8000", ":8000")
 
-				video_url = kola.strtrim(video_url)
-				if string.find(video_url, "AUTH=ip") == nil then
-					auth = rex.match(text, '(AUTH=ip.*?)"')
-					if not auth then
-						auth = get_cctv1_auth()
-					end
-
-					if auth then
-						video_url =  string.format("%s?%s", video_url, auth)
-					end
-				end
-				local text = curl_get(video_url)
-				if string.find(text, 'M3U8') then
-					return video_url
+			video_url = kola.strtrim(video_url)
+			if string.find(video_url, "AUTH=ip") == nil then
+				auth = rex.match(text, '(AUTH=ip.*?)"')
+				if not auth then
+					auth = get_cctv1_auth()
 				end
 
-				return ''
+				if auth then
+					video_url =  string.format("%s?%s", video_url, auth)
+				end
 			end
+			local text = curl_get(video_url)
+			if string.find(text, 'M3U8') then
+				return video_url
+			end
+
+			return ''
 		end
 	end
 
@@ -177,11 +183,13 @@ end
 
 function get_video_m2otv(url)
 	url = string.gsub(url, "m2otv://", "http://")
-	local text = kola.wget(url, false)
-	if text == nil then
+
+	local text = curl_match(url, '(<\\?xml[\\s\\S]*)')
+
+	if not text then
 		return '{}'
 	end
-	text = kola.pcre('(<\\?xml[\\s\\S]*)', text)
+
 	local x = xml.eval(text)
 
 	local baseUrl = nil
@@ -250,13 +258,8 @@ function get_video_qqtv( url )
 		if string.find(playid, "http://") == nil then
 			url = string.format('http://zb.v.qq.com:1863/?progid=%s&redirect=0&apptype=live&pla=ios', playid)
 		end
-		local text = kola.wget(url, false)
 
-		if text then
-			return rex.match(text, 'location url="(.*?)"')
-		end
-
-		return ""
+		return curl_match(url, 'location url="(.*?)"')
 	end
 
 	local function get_video_url2( playid )
@@ -281,10 +284,7 @@ function get_video_qqtv( url )
 	playid = string.gsub(url, "qqtv://", "")
 	local url = string.format('http://zb.cgi.qq.com/commdatav2?cmd=4&channel_id=%s', playid)
 
-	local text = kola.wget(url, false)
-	text = kola.pcre("QZOutput.*=({[\\s\\S]*});", text)
-	local js = cjson.decode(text)
-
+	local js = curl_json(url, "QZOutput.*=({[\\s\\S]*});")
 	if js then
 		--{"ret":"0","flashver":"","p2p":"","http":"1","redirectver":"fplivev1.1"}
 		--{"ret":-1,"msg":"no record"}
@@ -299,20 +299,19 @@ end
 function get_video_sohutv(url)
 	pid = string.gsub(url, "sohutv://", "")
     local url = string.format('http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1', pid)
-	local text = kola.wget(url, false)
 
-	if text == nil then
+	local js = curl_json(url)
+
+	if not js then
 		return ''
 	end
 	local ret = {}
-	local js = cjson.decode(text)
-	local live = js.data.live
 
-	text = kola.wget(live, false)
-	if text ~= nil then
-		js = cjson.decode(text)
+	print("ddddddddddddddddddd: ", js.data.live)
+	if js.data.live then
+		js = curl_json(js.data.live)
 
-		if js.msg == 'OK' then
+		if js and js.msg == 'OK' then
 			return js.url
 		end
 	end
@@ -332,17 +331,14 @@ function get_video_52itv(url)
 		local url = string.gsub(url, '.letv', '')
 		url, _ = curl_get_location(url, true)
 
-		local text = kola.wget('http://g3.letv.cn/recommend')
-		if text then
-			local js = cjson.decode(text)
-			if js.nodelist then
-				for k,v in pairs(js.nodelist) do
-					_, _, u1 = string.find(v.location, '(http://.-)/')
-					_, _, u2 = string.find(url, 'http://.-(/.*)')
+		local js = curl_json('http://g3.letv.cn/recommend')
+		if js and js.nodelist then
+			for k,v in pairs(js.nodelist) do
+				_, _, u1 = string.find(v.location, '(http://.-)/')
+				_, _, u2 = string.find(url, 'http://.-(/.*)')
 
-					if u1 and u2 then
-						return u1 .. u2
-					end
+				if u1 and u2 then
+					return u1 .. u2
 				end
 			end
 		end
@@ -354,15 +350,12 @@ function get_video_52itv(url)
 		local url = string.gsub(url, '.letv', '')
 		url, _ = curl_get_location(url, false)
 		local url = string.gsub(url, 'format=%d+', 'format=1')
-		print(url)
-		text = curl_get(url)
-		if text then
-			local js = cjson.decode(text)
-			if js.nodelist then
-				for k,v in pairs(js.nodelist) do
-					if v.location then
-						return v.location
-					end
+
+		local js = curl_json(url)
+		if js and js.nodelist then
+			for k,v in pairs(js.nodelist) do
+				if v.location then
+					return v.location
 				end
 			end
 		end
@@ -387,9 +380,8 @@ function get_video_imgotv(url)
 	local pid = string.gsub(url, "imgotv://", "")
 	local pid = string.gsub(pid, "/", "")
 	local url = string.format("http://interface.hifuntv.com/mgtv/BasicIndex/ApplyPlayVideo?Tag=26&BussId=1000000&VideoType=1&MediaAssetsId=channel&CategoryId=1000&VideoIndex=0&Version=3.0.11.1.2.MG00_Release&VideoId=%s", pid);
-	local text = kola.wget(url, false)
 
-	return rex.match(text, 'url="(.*?)"')
+	return curl_match(url, 'url="(.*?)"')
 end
 
 function get_video_lntv(url)
@@ -469,45 +461,26 @@ function get_video_tvie(url)
 	return ""
 end
 
-
 function get_video_jlntv(url)
 	url = string.gsub(url, "jlntv://", "http://live.jlntv.cn/")
 
-	local text = kola.wget(url, false)
-	if text then
-		return rex.match(text, "var playurl = '(.*)';")
-	end
-
-	return ""
+	return curl_match(url, "var playurl = '(.*)';")
 end
 
 function get_video_jxtv(url)
 	url = string.gsub(url, "jxtv://", "http://")
-	local text = kola.wget(url)
-	if text then
-		return rex.match(text, 'html5file:"(.*)"')
-	end
 
-	return ""
+	return curl_match(url, 'html5file:"(.*)"')
 end
 
 function get_video_smgbbtv(url)
 	local url = string.format('http://l.smgbb.cn/channelurl.ashx?starttime=0&endtime=0&channelcode=%s', pid)
-	local text = kola.wget(url, false)
 
-	if text then
-		return rex.match(text, '\\[CDATA\\[(.*)\\]\\]></channel>')
-	end
-
-	return ""
+	return curl_match(url, '\\[CDATA\\[(.*)\\]\\]></channel>')
 end
 
 function get_video_wztv(url)
 	local  pid = string.gsub(url, "wztv://", "")
-	local text = kola.wget('http://www.dhtv.cn/static/js/tv.js?acm', false)
-	if text then
-		return rex.match(text, "file: '(.*)'")
-	end
 
-	return ""
+	return curl_match('http://www.dhtv.cn/static/js/tv.js?acm', "file: '(.*)'")
 end

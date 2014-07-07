@@ -41,7 +41,7 @@ class ParserJLntvLivetv(LivetvParser):
             playUrl  = 'http://live.jlntv.cn/' + u
             v.vid    = utils.getVidoId(playUrl)
 
-            v.SetUrl('jlntv://' + u)
+            v.SetUrl('jlntv://' + u, album)
 
             album.videos.append(v)
             db.SaveAlbum(album)

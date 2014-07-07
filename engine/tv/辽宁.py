@@ -48,7 +48,7 @@ class LiaoningLivetvParser(LivetvParser):
                     v.name  = self.tvName
 
                     v.vid   = utils.getVidoId(href)
-                    v.SetUrl('lntv://' + x)
+                    v.SetUrl('lntv://' + x, album)
 
                     album.videos.append(v)
                     db.SaveAlbum(album)

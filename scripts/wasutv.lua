@@ -3,6 +3,5 @@ function get_video_url(url)
 	url = 'http://www.wasu.cn/Api/' .. string.gsub(url, 'show', 'getLiveInfoByid')
 
 	local text = kola.wget(url, false)
-	text = kola.pcre("<video>(.*)</video>", text)
-	return kola.strtrim(text)
+	return rex.match(tex, "<video>(.*)</video>")
 end

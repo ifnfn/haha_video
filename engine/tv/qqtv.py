@@ -43,7 +43,7 @@ class ParserQQLivetv(LivetvParser):
             playUrl = 'http://zb.v.qq.com:1863/?progid=%s&redirect=0&apptype=live&pla=ios' % ch['data-playid']
             v.vid   = utils.getVidoId(playUrl)
 
-            v.SetUrl('qqtv://' + ch['data-playid'])
+            v.SetUrl('qqtv://' + ch['data-playid'], album)
 
             album.videos.append(v)
             db.SaveAlbum(album)

@@ -41,7 +41,7 @@ class ParserSohuLivetv(LivetvParser):
             playUrl    = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
             v.vid      = utils.getVidoId(playUrl)
 
-            v.SetUrl('sohutv://%d' % pid)
+            v.SetUrl('sohutv://%d' % pid, album)
 
             album.videos.append(v)
             db.SaveAlbum(album)

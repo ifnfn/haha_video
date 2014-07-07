@@ -421,12 +421,17 @@ size_t CustomMenu::GetAlbumCount()
 
 bool CustomMenu::SaveToFile(string otherFile)
 {
+	bool ret;
+
 	mutex.lock();
 	if (not otherFile.empty())
-		return albumIdList.SaveToFile(otherFile);
+		ret = albumIdList.SaveToFile(otherFile);
 	else
-		return albumIdList.SaveToFile(fileName);
+		ret = albumIdList.SaveToFile(fileName);
+
 	mutex.unlock();
+
+	return ret;
 }
 
 int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)

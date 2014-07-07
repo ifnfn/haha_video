@@ -3,12 +3,12 @@
 #include "json.hpp"
 #include "script.hpp"
 
-bool KolaUpdate::VersionCompr(const string newVersion, const string oldVersion)
+bool KolaUserResources::VersionCompr(const string newVersion, const string oldVersion)
 {
 	return Version != oldVersion;
 }
 
-bool KolaUpdate::CheckVersion(const string ProjectName, string oldVersion)
+bool KolaUserResources::CheckVersion(const string ProjectName, string oldVersion)
 {
 	string text;
 	string url = "files/" + ProjectName + "/info.json";
@@ -34,7 +34,7 @@ bool KolaUpdate::CheckVersion(const string ProjectName, string oldVersion)
 	return VersionCompr(Version, oldVersion);
 }
 
-bool KolaUpdate::GetSegment(const string name, UpdateSegment &sgm)
+bool KolaUserResources::GetSegment(const string name, UpdateSegment &sgm)
 {
 	vector<UpdateSegment>::iterator it;
 
@@ -48,18 +48,18 @@ bool KolaUpdate::GetSegment(const string name, UpdateSegment &sgm)
 	return false;
 }
 
-bool KolaUpdate::Download(const string name, const string filename)
+bool KolaUserResources::Download(const string name, const string filename)
 {
 	class UpdateHttp: public Http {
 	public:
-		UpdateHttp(KolaUpdate *u) {
+		UpdateHttp(KolaUserResources *u) {
 			 update = u;
 		}
 		virtual void Progress(curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
 			update->Progress(dltotal, dlnow);
 		}
 	private:
-		KolaUpdate *update;
+		KolaUserResources *update;
 	};
 
 	UpdateSegment sgm;

@@ -365,12 +365,15 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 		if (js) {
 			json_t *v;
+
+			mutex.lock();
 			json_array_foreach(js, v) {
 				if (json_is_string(v)) {
 					const char *vid = json_string_value(v);
 					albumIdList.Remove(vid);
 				}
 			}
+			mutex.unlock();
 
 			json_decref(js);
 		}
@@ -385,9 +388,11 @@ void CustomMenu::AlbumAdd(KolaAlbum *album)
 
 void CustomMenu::AlbumAdd(string vid)
 {
+	mutex.lock();
 	CleanPage();
 	albumIdList.Add(vid);
 	albumCount = albumIdList.size();
+	mutex.unlock();
 }
 
 void CustomMenu::AlbumRemove(KolaAlbum *album, bool sync)
@@ -398,24 +403,30 @@ void CustomMenu::AlbumRemove(KolaAlbum *album, bool sync)
 
 void CustomMenu::AlbumRemove(string vid, bool sync)
 {
+	mutex.lock();
 	albumIdList.Remove(vid);
 	albumCount = albumIdList.size();
 	if (sync)
 		CleanPage();
+	mutex.unlock();
 }
 
 size_t CustomMenu::GetAlbumCount()
 {
+	mutex.lock();
 	albumCount = albumIdList.size();
+	mutex.unlock();
 	return albumCount;
 }
 
 bool CustomMenu::SaveToFile(string otherFile)
 {
+	mutex.lock();
 	if (not otherFile.empty())
 		return albumIdList.SaveToFile(otherFile);
 	else
 		return albumIdList.SaveToFile(fileName);
+	mutex.unlock();
 }
 
 int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)

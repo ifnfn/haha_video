@@ -75,6 +75,7 @@ class ParserVstLivetv(LivetvParser):
             f.close()
         except:
             pass
+
         db = LivetvDB()
 
         playlist = data.split("\n")
@@ -101,7 +102,7 @@ class ParserVstLivetv(LivetvParser):
                 v.order = order
                 v.name  = '源%d' % (order + 1)
                 v.vid   = utils.getVidoId(href)
-                v.SetUrl(href)
+                v.SetUrl(href, albumName)
                 album.videos.append(v)
                 order = order + 1
 

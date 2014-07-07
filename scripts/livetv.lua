@@ -1,4 +1,4 @@
-function get_video_url(url)
+function get_video_url(url, albumName)
 	local func_maps = {
 		['url.52itv.cn'] = get_video_52itv,
 		['^pa://']       = get_video_cntv,
@@ -15,7 +15,7 @@ function get_video_url(url)
 		['^wztv://']     = get_video_wztv,
 	}
 
-	print(url)
+	print(albumName, url)
 	for k,func in pairs(func_maps) do
 		if string.find(url, k) then
 			return func(url)
@@ -106,6 +106,16 @@ local function curl_get_location(video_url, recurs)
 	end
 
 	return video_url, text
+end
+
+local function get_video_wztv(url)
+	local  pid = string.gsub(url, "wztv://", "")
+	local text = kola.wget('http://www.dhtv.cn/static/js/tv.js?acm', false)
+	if text then
+		return rex.match(text, "file: '(.*)'")
+	end
+
+	return ""
 end
 
 -- pa://cctv_p2p_hdcctv1

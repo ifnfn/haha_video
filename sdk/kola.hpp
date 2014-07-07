@@ -514,6 +514,7 @@ protected:
 private:
 	StringList albumIdList;
 	string fileName;
+	Mutex mutex;
 };
 
 class PictureIterator {
@@ -621,7 +622,7 @@ public:
 	string href;
 };
 
-class KolaUpdate {
+class KolaUserResources {
 public:
 	string Version;
 	string ChangeLog;

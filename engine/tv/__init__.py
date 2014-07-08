@@ -7,29 +7,25 @@ from .cntv import CntvLiveTV
 from .cutv import CuLiveTV
 from .letv import LetvLiveTV
 from .livetvdb import *
+from .m2oplayer import M2OLiveTV
 from .pptv import PPtvLiveTV
 from .qqtv import QQLiveTV
 from .sohutv import SohuLiveTV
 from .textv import TextLiveTV
-from .tvielivetv import ParserTVIELivetv
+from .tvielivetv import TvieLiveTV
+from .vst import VstLiveTV
 from .wasu import WasuLiveTV
 from .wolidou import WolidouTV
-from .vst import VstLiveTV
+
 
 from .上海 import SmgbbLivetv
-from .云南 import YunNanLiveTV
 from .北京 import BtvLiveTV
 from .吉林 import JilingLiveTV
-from .安徽 import AnHuiLiveTV
 from .山东 import ShangDongLiveTV
 from .广西 import GuangXiLiveTV
-from .新疆 import XinJianLiveTV
 from .江西 import JianXiLiveTV
-from .河北 import HeBeiLiveTV
 from .浙江 import ZheJianLiveTV
-from .湖北 import HuBeiLiveTV
 from .辽宁 import LiaoNingLiveTV
-from .黑龙江 import HeiLongJiangLiveTV
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
@@ -46,13 +42,10 @@ class LiveEngine(VideoEngine):
             '浙江'  : ZheJianLiveTV,
             '上海'  : SmgbbLivetv,
             '辽宁'  : LiaoNingLiveTV,
-            '湖北'  : HuBeiLiveTV,
-            '河北'  : HeBeiLiveTV,
-            '云南'  : YunNanLiveTV,
             '山东'  : ShangDongLiveTV,
+            'TVIE' : TvieLiveTV,
+            'M2O'  : M2OLiveTV,
             #===================================================================
-            # '黑龙江' : HeiLongJiangLiveTV, # VST 中已有
-            # '安徽'  : AnHuiLiveTV,  # VST 中已有
             # '吉林'  : JilingLiveTV,  # VST 中已有
             # 'CNTV'  : CntvLiveTV,  # VST 中已有
             # '江西'  : JianXiLiveTV,   # VST 中已有
@@ -60,7 +53,6 @@ class LiveEngine(VideoEngine):
 
             # '北京'  : BtvLiveTV,
             # '广西'  : GuangXiLiveTV,
-            # '新疆'  : XinJianLiveTV,
             # 'Letv' : LetvLiveTV,
             # 'CuTV'  : CuLiveTV,
             # 'PPTV'  : PPtvLiveTV,

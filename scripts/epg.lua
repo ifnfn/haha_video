@@ -223,14 +223,14 @@ function get_channel_tvmao(albumName)
 	name_key['恩施-新闻频道'] = nil
 	name_key['恩施-综艺频道'] = nil
 
-	name_key['福建-综合'] = 'fjtv1'
-	name_key['福建-公共'] = 'fjtv3'
-	name_key['福建-新闻'] = 'fjtv4'
+	name_key['福建-综合频道'] = 'fjtv1'
+	name_key['福建-公共频道'] = 'fjtv3'
+	name_key['福建-新闻频道'] = 'fjtv4'
 	name_key['福建-电视剧'] = 'fjtv5'
 	name_key['福建-都市时尚'] = 'fjtv6'
-	name_key['福建-经济'] = 'fjtv7'
-	name_key['福建-体育'] = 'fjtv8'
-	name_key['福建-少儿'] = 'fjtv9'
+	name_key['福建-经济生活'] = 'fjtv7'
+	name_key['福建-体育频道'] = 'fjtv8'
+	name_key['福建-少儿频道'] = 'fjtv9'
 
 	name_key['福州-新闻'] = 'fztv1'
 	name_key['福州-生活'] = 'fztv3'

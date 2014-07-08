@@ -281,7 +281,7 @@ void test_livetv()
 	//m->FilterAdd("类型", "高清台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "hz");
+	m->FilterAdd("PinYin", "ln");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();

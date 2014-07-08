@@ -3,103 +3,10 @@
 
 import re
 
-import tornado.escape
-from urllib.parse import quote
-
 from kola import utils, LivetvMenu
 
-from .common import PRIOR_DEFTV, PRIOR_UCTV
 from .livetvdb import LivetvParser, LivetvDB
-from .m2oplayer import M2OLivetvParser
-from .tvielivetv import ParserTVIELivetv
 
-
-# 杭州电视台
-class ParserHangZhouLivetv(M2OLivetvParser):
-    def __init__(self):
-        super().__init__()
-        self.tvName = '杭州电视台'
-        self.area = '中国,浙江,杭州'
-        self.order = PRIOR_DEFTV
-
-        self.Alias = {
-            '西湖明珠' : '杭州-西湖明珠',
-            '杭州导视' : '杭州-导视',
-            '杭州房产' : '杭州-房产',
-            '杭州少儿' : '杭州-少儿',
-            '杭州生活' : '杭州-生活',
-            '杭州综合' : '杭州-综合'
-        }
-        self.ExcludeName = []
-
-        self.baseUrl = 'www.hoolo.tv'
-        self.channelIds = (1, 2, 3, 5, 30, 31)
-
-# 浙江电视台
-class ParserZJLivetv(ParserTVIELivetv):
-    def __init__(self):
-        super().__init__('api.cztv.com')
-        self.tvName = '浙江电视台'
-        self.area = '中国,浙江'
-        self.order = PRIOR_DEFTV
-
-        self.Alias = {
-            "频道101" : "浙江卫视",
-            "频道102" : "浙江-钱江频道",
-            "频道103" : "浙江-经视",
-            "频道104" : "浙江-教育科技",
-            "频道105" : "浙江-影视娱乐",
-            "频道106" : "浙江-6频道",
-            "频道107" : "浙江-公共新农村",
-            "频道108" : "浙江-少儿频道",
-            # "频道109" : "留学世界",
-            # "频道110" : "浙江国际",
-            # "频道111" : "好易购"
-        }
-        self.ExcludeName = ['频道109', '频道1[1,2,3]\w*', '频道[23].*']
-
-# 宁波电视台
-class ParserNBLivetv(ParserTVIELivetv):
-    def __init__(self):
-        super().__init__('ming-api.nbtv.cn')
-        self.tvName = '宁波电视台'
-        self.area = '中国,浙江,宁波'
-
-        self.Alias = {
-            'nbtv1直播' : '宁波-新闻综合',
-            'nbtv2直播' : '宁波-社会生活',
-            'nbtv3直播' : '宁波-都市文体',
-            'nbtv4直播' : '宁波-影视剧',
-            'nbtv5直播' : '宁波-少儿频道',
-        }
-        self.ExcludeName = ['.*广播', '阳光调频', 'sunhotline']
-
-# 义乌电视台
-class ParserYiwuLivetv(ParserTVIELivetv):
-    def __init__(self):
-        super().__init__('live-01.ywcity.cn')
-        self.tvName = '义乌电视台'
-        self.area = '中国,浙江,金华,义乌'
-        self.Alias = {
-            "公共文艺" : '义乌-公共文艺',
-            "新闻综合" : '义乌-新闻综合',
-            "商贸频道" : '义乌-商贸频道',
-        }
-        self.ExcludeName = ['FM']
-
-# 绍兴电视台
-class ParserShaoxinLivetv(ParserTVIELivetv):
-    def __init__(self):
-        super().__init__('115.239.168.72')
-        self.tvName = '绍兴电视台'
-        self.area = '中国,浙江,绍兴'
-
-        self.Alias = {
-            "新闻综合频道" : '绍兴-新闻综合',
-            "公共频道"     : '绍兴-公共频道',
-            "文化影视频道" : '绍兴-文化影视',
-        }
-        self.ExcludeName = ['.*广播', '直播']
 
 # 温州电视台
 class ParserWenZhouLivetv(LivetvParser):
@@ -117,7 +24,7 @@ class ParserWenZhouLivetv(LivetvParser):
         db = LivetvDB()
 
         ch_list = re.findall('data-source="(.*?)" data-id="(.*?)">(.*?)<i>', js['data'])
-        for source, data_id, name in ch_list:
+        for source, _, name in ch_list:
             albumName = '温州-' + name
             album = self.NewAlbum(albumName)
 
@@ -138,10 +45,5 @@ class ZheJianLiveTV(LivetvMenu):
     def __init__(self, name):
         super().__init__(name)
         self.parserClassList = [
-            ParserZJLivetv,      # 浙江省台
-            ParserNBLivetv,      # 宁波
-            ParserYiwuLivetv,    # 义乌
-            ParserShaoxinLivetv, # 绍兴
-            ParserHangZhouLivetv,# 杭州台
             ParserWenZhouLivetv, # 温州
         ]

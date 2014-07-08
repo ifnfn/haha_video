@@ -7,7 +7,6 @@ from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
-from .epg import GetEPGScript
 
 
 # 吉林电视台

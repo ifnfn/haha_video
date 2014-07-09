@@ -393,7 +393,7 @@ function get_video_52itv(url)
 		return letv_video2(url)
 	end
 
-	return string.format('%s?k=%s -H "User-Agent: GGwlPlayer/QQ243944493"', url, get_livekey())
+	return curl_get_location(url)
 end
 
 function get_video_imgotv(url)
@@ -450,14 +450,16 @@ function get_video_tvie(url)
 
 		if type(data_obj.result) == "table" then
 			if (data_obj ~= nil) and type(data_obj.result.datarates) == "table" then
-				local k = ''
-				local v = ''
 				local video_url = ''
-				local timestamp = tonumber(data_obj.result.timestamp)
-				timestamp = math.floor(timestamp / 1000) * 1000
+				local id        = rex.match(url, 'getCDNByChannelId/(\\d*)')
+				local timestamp = math.floor(data_obj.result.timestamp / 1000) * 1000
 
 				for k,v in pairs(data_obj.result.datarates) do
-					video_url = string.format('http://%s/channels/%s/%s.flv/live?%s', v[1], id, k, tostring(timestamp))
+					local cname = v[1]
+					if cname == nil then
+						cname = 'channels'
+					end
+					video_url = string.format('http://%s/channels/%s/%s.flv/live?%s', cname, id, k, tostring(timestamp))
 					break
 				end
 
@@ -468,6 +470,7 @@ function get_video_tvie(url)
 			local customer_name = data_obj['customer_name']
 			local streams = data_obj['streams']
 			local video_url = ''
+
 			for k,v in pairs(streams) do
 				-- video_url = string.format('http://%s/channels/%s/%s/flv:%s/live?%d',
 				-- v.cdnlist[1], customer_name, channel_name, k, get_timestamp())

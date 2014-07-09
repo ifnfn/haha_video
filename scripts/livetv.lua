@@ -13,6 +13,7 @@ function get_video_url(url, albumName, vid)
 		['^jxtv://']     = get_video_jxtv,
 		['^smgbbtv://']  = get_video_smgbbtv,
 		['^wztv://']     = get_video_wztv,
+		['wolidou.com']  = get_video_wolidou
 	}
 
 	print(albumName, vid, url)
@@ -484,6 +485,48 @@ function get_video_tvie(url)
 	end
 
 	return ""
+end
+
+function get_video_wolidou(url)
+	local function curl_s_key(s)
+		local key_url = string.format("http://www.wolidou.com/x/key.php?f=k&t=%d", kola.gettime() * 1000)
+		c1 = curl_init(key_url)
+		c1:perform({writefunction=function(str) end })
+	end
+
+	local function GetUrl(url)
+		local c2 = curl_init(url)
+		local ret = {}
+		ret.headers = {}
+
+		local text = ''
+		c2:perform( {writefunction=function(str) text = text .. str end} )
+
+		if ret.headers.Location and ret.headers.Location ~= 'http://www.wolidou.com/live.mp4' then
+			return get_video_url(ret.headers.Location)
+		end
+
+		local data_obj = cjson.decode(text)
+
+		if data_obj == nil then
+			return get_video_url(text)
+		end
+
+		if data_obj.u then
+			return get_video_url(data_obj.u)
+		elseif data_obj.wolidou then
+			return get_video_url(data_obj.wolidou)
+		end
+	end
+
+	if string.find(url, 'http://www.wolidou.com/x') then
+		curl_s_key(share)
+		return GetUrl(url)
+	elseif string.find(url, 'live.mp4') then
+		return ""
+	end
+
+	return url
 end
 
 function get_video_jlntv(url)

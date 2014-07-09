@@ -43,10 +43,6 @@ local function curl_get_location(video_url)
 end
 
 function get_video_url(url)
-	print(url)
-	-- http://live.gslb.letv.com/gslb?stream_id=cctv1&tag=live&ext=m3u8&sign=live_tv
-
-
 	local stream_id = rex.match(url, 'stream_id=(.*?)&')
 	print(stream_id)
 	local time = kola.gettime() + 600

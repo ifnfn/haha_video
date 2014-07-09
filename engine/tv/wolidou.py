@@ -6,7 +6,7 @@ import re
 
 import tornado.escape
 
-from kola import LivetvMenu, utils
+from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB
@@ -49,8 +49,6 @@ class WolidouDirectParser(LivetvParser):
                 for u in urls:
                     v = album.NewVideo(u)
                     if v:
-                        urlScript = utils.GetScript('wolidou', 'get_video_url', [u])
-                        v.SetVideoUrl('default', urlScript)
                         v.name  = '其他 %d' % (order + 1)
                         album.videos.append(v)
                         order += 1

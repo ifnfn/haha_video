@@ -18,6 +18,7 @@ class KolatvServer:
         self.kdb = redis.Redis(host='127.0.0.1', port=6379, db=1)
         self.command = KolaCommand()
         self.MenuList = {}
+        self.ActiveTime = 60 # 客户端重新登录时长
         self.UpdateAlbumFlag = False
         self.MenuList['直播']   = LivetvMenu('直播')           # 200
         self.MenuList['电影']   = MovieMenu('电影')            # 1
@@ -78,8 +79,8 @@ class KolatvServer:
             self.kdb.set(chipid, userinfo)
             self.kdb.set(key, userinfo)
 
-            self.kdb.expire(chipid, 120) # 一分钟过期
-            self.kdb.expire(key, 120)    # 一分钟过期
+            self.kdb.expire(chipid, self.ActiveTime + 30) # 一分钟过期
+            self.kdb.expire(key, self.ActiveTime + 30)    # 一分钟过期
 
             return key
         else:

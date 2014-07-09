@@ -74,56 +74,22 @@ class LoginHandler(BaseHandler):
     def initialize(self):
         pass
 
-    def check_user_id(self):
-        self.user_id = self.get_argument('user_id')
-        status = 'YES'
-        con = Connection('localhost', 27017)
-        user_table = con.kola.users
-
-        json = user_table.find_one({'user_id' : self.user_id})
-        if json:
-            status = json['status']
-        else:
-            user_table.insert({'user_id' : self.user_id, 'status' : 'YES'})
-
-        if status == 'NO' or self.user_id == None or self.user_id == '':
-            raise tornado.web.HTTPError(401, 'Missing key %s' % self.user_id)
-
-        # 登录检查，生成随机 KEY
-        if not self.redis_db.exists(self.user_id):
-            key = (self.user_id + uuid.uuid4().__str__() + self.request.remote_ip).encode()
-            key = hashlib.md5(key).hexdigest().upper()
-            self.redis_db.set(self.user_id, key)
-            self.redis_db.set(key, self.request.remote_ip)
-        else:
-            key = self.redis_db.get(self.user_id).decode()
-            self.redis_db.set(key, self.request.remote_ip)
-        self.redis_db.expire(self.user_id, 60) # 一分钟过期
-        self.redis_db.expire(key, 60) # 一分钟过期
-
-        return key
-
     def get(self):
         ret = {
-            'key'    : self.check_user_id(),
+            'key'    : 'a',
             'server' : self.request.protocol + '://' + self.request.host,
             'next'   : 60,   # 下次登录时间
         }
 
         cmd = self.get_argument('cmd', '1')
         if cmd == '1':
-            if self.user_id == '000001':
-                timeout = 0
-            else:
-                timeout = 0.3
             count = self.get_argument('count', 1)
 
-            cmd = tv.command.GetCommand(timeout, count)
+            cmd = tv.command.GetCommand(0, count)
             if cmd:
                 ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
                 ret['command'] = cmd
-                if self.user_id == '000001':
-                    ret['next'] = 0
+                ret['next'] = 0
             else:
                 tv.CommandEmptyMessage()
 

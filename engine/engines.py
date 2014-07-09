@@ -4,6 +4,7 @@
 import configparser
 import sys
 import traceback
+
 import tornado.escape
 
 from kola import DB, KolaCommand, VideoMenuBase

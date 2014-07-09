@@ -1,10 +1,10 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re
 import base64
+import re
 
-from kola import utils, LivetvMenu
+from kola import LivetvMenu
 
 from .common import PRIOR_VST
 from .livetvdb import LivetvParser, LivetvDB

@@ -3,7 +3,7 @@
 
 import re
 
-from kola import utils, LivetvMenu
+from kola import LivetvMenu
 
 from .livetvdb import LivetvParser, LivetvDB
 

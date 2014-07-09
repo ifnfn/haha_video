@@ -1,13 +1,15 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import httplib2
-import zlib
 import base64
-import sys
-import traceback
 import hashlib
 import os
+import sys
+import traceback
+import zlib
+
+import httplib2
+
 
 global headers
 

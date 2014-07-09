@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from kola import LivetvMenu, utils
+from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB

@@ -1,9 +1,10 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import tornado.escape
 import posixpath
 import re
+
+import tornado.escape
 
 from kola import utils, LivetvMenu
 

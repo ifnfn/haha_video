@@ -1,16 +1,17 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re
 import posixpath
+import re
+
 import tornado.escape
 
 from engine import KolaParser
 from kola import VideoBase, AlbumBase, DB, utils, City
 
 from .common import PRIOR_COMMON
-from .tvorder import GetOrder, GetNumber
 from .epg import GetEPGScript
+from .tvorder import GetOrder, GetNumber
 
 
 class TVAlias:

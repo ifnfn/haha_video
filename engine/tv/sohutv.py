@@ -3,7 +3,7 @@
 
 import tornado.escape
 
-from kola import utils, LivetvMenu, json_get
+from kola import LivetvMenu, json_get
 
 from .common import PRIOR_SOHU
 from .livetvdb import LivetvParser, LivetvDB

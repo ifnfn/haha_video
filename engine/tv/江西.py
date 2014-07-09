@@ -5,7 +5,7 @@ import re
 
 from bs4 import BeautifulSoup as bs
 
-from kola import utils, LivetvMenu
+from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB

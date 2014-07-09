@@ -6,8 +6,6 @@ from urllib.parse import quote
 
 import tornado.escape
 
-from engine.tv.livetvdb import TVCategory
-from kola import utils
 from kola.element import LivetvMenu
 
 from .common import PRIOR_DEFTV

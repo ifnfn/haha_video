@@ -1,8 +1,9 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import pymongo
 import re
+
+import pymongo
 
 from kola import GetPinYin, autostr
 

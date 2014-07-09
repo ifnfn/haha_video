@@ -3,9 +3,11 @@
 
 import hashlib
 import logging
+
 import tornado.escape
 
 from .pytable import Pinyin
+
 
 def autostr(i):
     if i == None:

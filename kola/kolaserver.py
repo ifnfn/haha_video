@@ -2,15 +2,18 @@
 # -*- coding: utf-8 -*-
 
 import hashlib
-import uuid
 import time
+import uuid
+
 import redis
 import tornado.escape
 
-from .utils import autoint
 from .commands import KolaCommand
-from .element import LivetvMenu, MovieMenu, TVMenu, ComicMenu, DocumentaryMenu, ShowMenu
 from .db import DB
+from .element import LivetvMenu, MovieMenu, TVMenu, ComicMenu, DocumentaryMenu, \
+    ShowMenu
+from .utils import autoint
+
 
 class KolatvServer:
     def __init__(self):

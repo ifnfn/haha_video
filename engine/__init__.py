@@ -17,7 +17,7 @@ from .pptv import PPtvEngine
 from .qq import QQEngine
 from .sohu import SohuEngine
 from .tv import LiveEngine, Live2Engine
-#from .tv.livetvdb import tvalias
+
 
 POOLSIZE = 10
 

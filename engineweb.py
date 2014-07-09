@@ -1,20 +1,18 @@
 #!env python3
 # -*- coding: utf-8 -*-
 
-import hashlib
+import base64
 import os
-import uuid
+from urllib.parse import unquote
+import zlib
 
-from pymongo import Connection
 import redis
 import tornado.ioloop
 import tornado.options
 import tornado.web
-import base64
-from urllib.parse import unquote
-import zlib
 
 import engine
+
 
 tv = engine.KolaEngine()
 

@@ -4,7 +4,7 @@
 import re
 from xml.etree import ElementTree
 
-from kola import LivetvMenu, utils
+from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser, LivetvDB

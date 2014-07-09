@@ -6,7 +6,7 @@ import re
 from bs4 import BeautifulSoup as bs, Tag
 import tornado.escape
 
-from kola import utils, LivetvMenu
+from kola import LivetvMenu
 
 from .common import PRIOR_PPTV
 from .livetvdb import LivetvParser, LivetvDB

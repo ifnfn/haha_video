@@ -1,5 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
+import re
+
 
 class Pinyin(object):
     def get_pinyin(self, chars='', splitter='-'):
@@ -48,7 +50,8 @@ class Pinyin(object):
                 else:
                     result[-1] += char
 
-        return splitter.join(result)
+        result = splitter.join(result)
+        return re.sub('\W', '', result)
 
     def __init__(self):
         pass

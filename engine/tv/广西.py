@@ -37,8 +37,6 @@ class ParserNNLivetv(LivetvParser):
                 return
 
             v = album.NewVideo()
-            v.order = self.order
-            v.name  = self.tvName
 
             v.vid  = utils.getVidoId(url)
             for p in root:

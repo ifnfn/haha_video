@@ -52,16 +52,11 @@ class M2OLivetvParser(LivetvParser):
         if album == None:
             return
 
-        v = album.NewVideo()
-        v.order = self.order
-        v.name  = self.tvName
-        v.vid   = utils.getVidoId(url)
-
-        url,_ = re.subn('^http://', 'm2otv://', url)
-        v.SetUrl(url, album)
-
-        album.videos.append(v)
-        LivetvDB().SaveAlbum(album)
+        videoUrl,_ = re.subn('^http://', 'm2otv://', url)
+        v = album.NewVideo(videoUrl)
+        if v:
+            album.videos.append(v)
+            LivetvDB().SaveAlbum(album)
 
 # 安徽电视台
 class ParserAnhuiLivetv(M2OLivetvParser):

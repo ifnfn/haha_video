@@ -59,7 +59,6 @@ class ParserCutvLivetv(LivetvParser):
             album.largePicUrl = p.findtext('thumb')
 
             v = album.NewVideo()
-            v.order = self.order
             v.name     = js['station']
 
             v.SetVideoUrlScript('default', 'cutv', [tv_id, channel_id])

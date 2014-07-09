@@ -97,14 +97,15 @@ class ParserVstLivetv(LivetvParser):
 
             album.largePicUrl = iamge
             order = 0
-            for href in hrefs.split('#'):
-                v = album.NewVideo()
-                v.order = order
-                v.name  = '源%d' % (order + 1)
-                v.vid   = utils.getVidoId(href)
-                v.SetUrl(href, album)
-                album.videos.append(v)
-                order = order + 1
+            for videoUrl in hrefs.split('#'):
+                v = album.NewVideo(videoUrl)
+
+                if v:
+                    v.order = order
+                    v.name  = '源%d' % (order + 1)
+
+                    album.videos.append(v)
+                    order = order + 1
 
             db.SaveAlbum(album)
 

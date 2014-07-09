@@ -43,15 +43,12 @@ class LiaoningLivetvParser(LivetvParser):
                     if not album:
                         continue
 
-                    v = album.NewVideo()
-                    v.order = self.order
-                    v.name  = self.tvName
+                    videoUrl = 'lntv://' + x
+                    v = album.NewVideo(videoUrl)
 
-                    v.vid   = utils.getVidoId(href)
-                    v.SetUrl('lntv://' + x, album)
-
-                    album.videos.append(v)
-                    db.SaveAlbum(album)
+                    if v:
+                        album.videos.append(v)
+                        db.SaveAlbum(album)
                     break
 
 class LiaoNingLiveTV(LivetvMenu): # 无效

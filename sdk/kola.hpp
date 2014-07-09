@@ -508,12 +508,14 @@ public:
 	void AlbumRemove(string vid, bool sync=false);
 	bool SaveToFile(string otherFile = "");
 	virtual size_t GetAlbumCount();
+	void SetMaxCount(size_t size) { max_count = size; }
 protected:
 	virtual int LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize);
 	virtual int SeekGetPage(AlbumPage *page, string key, string value, size_t pageSize);
 private:
 	StringList albumIdList;
 	string fileName;
+	size_t max_count;
 	Mutex mutex;
 };
 

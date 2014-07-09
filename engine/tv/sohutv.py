@@ -34,17 +34,12 @@ class ParserSohuLivetv(LivetvParser):
 
             album.smallPicUrl = json_get(v, 'ico', '')
 
-            v = album.NewVideo()
-            v.order = self.order
-            v.name     = self.tvName
-
-            playUrl    = 'http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1' % pid
-            v.vid      = utils.getVidoId(playUrl)
-
-            v.SetUrl('sohutv://%d' % pid, album)
-
-            album.videos.append(v)
-            db.SaveAlbum(album)
+            videoUrl = 'sohutv://%d' % pid
+            v = album.NewVideo(videoUrl)
+            
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
 class SohuLiveTV(LivetvMenu):
     '''

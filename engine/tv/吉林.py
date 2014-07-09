@@ -33,17 +33,12 @@ class ParserJLntvLivetv(LivetvParser):
             if album == None:
                 continue
 
-            v = album.NewVideo()
-            v.order  = self.order
-            v.name   = self.tvName
-
-            playUrl  = 'http://live.jlntv.cn/' + u
-            v.vid    = utils.getVidoId(playUrl)
-
-            v.SetUrl('jlntv://' + u, album)
-
-            album.videos.append(v)
-            db.SaveAlbum(album)
+            videoUrl = 'jlntv://' + u
+            v = album.NewVideo(videoUrl)
+            
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
 class JilingLiveTV(LivetvMenu):
     '''

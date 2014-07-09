@@ -5,7 +5,6 @@ from engine import VideoEngine
 
 from .cntv import CntvLiveTV
 from .cutv import CuLiveTV
-from .letv import LetvLiveTV
 from .livetvdb import *
 from .m2oplayer import M2OLiveTV
 from .pptv import PPtvLiveTV
@@ -51,7 +50,6 @@ class LiveEngine(VideoEngine):
 
             # '北京'  : BtvLiveTV,
             # '广西'  : GuangXiLiveTV,
-            # 'Letv' : LetvLiveTV,
             # 'CuTV'  : CuLiveTV,
             # 'PPTV'  : PPtvLiveTV,
             # '华数'   : WasuLiveTV,

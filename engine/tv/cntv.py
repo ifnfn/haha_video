@@ -3,7 +3,7 @@
 
 import tornado.escape
 
-from kola import utils, LivetvMenu
+from kola import LivetvMenu
 
 from .common import PRIOR_CNTV
 from .livetvdb import LivetvParser, LivetvDB
@@ -35,18 +35,14 @@ class ParserCntvLivetv(LivetvParser):
                 album  = self.NewAlbum(albumName)
                 if album == None:
                     continue
+
                 album.area = self.city.GetCity(ch[3])
 
-                v = album.NewVideo()
-                v.order = self.order
-                v.name  = self.tvName
-
-                href = "pa://cctv_p2p_hd" + ch[0]
-                v.vid   = utils.getVidoId(href)
-                v.SetUrl(href, album)
-
-                album.videos.append(v)
-                db.SaveAlbum(album)
+                videoUrl = "pa://cctv_p2p_hd" + ch[0]
+                v = album.NewVideo(videoUrl)
+                if v:
+                    album.videos.append(v)
+                    db.SaveAlbum(album)
 
 class CntvLiveTV(LivetvMenu):
     '''

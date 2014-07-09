@@ -54,26 +54,17 @@ class ParserWasuLivetv(LivetvParser):
             if not ch_list:
                 continue
 
-            href = ch_list[0][0]
+            videoUrl = ch_list[0][0]
             alubmName = ch_list[0][1]
-            print(href, alubmName)
 
             album  = self.NewAlbum(alubmName)
             if album == None:
                 continue
 
-            v = album.NewVideo()
-            v.order = self.order
-            v.name  = self.tvName
-
-            playUrl = href
-            v.vid   = utils.getVidoId(playUrl)
-
-            v.SetVideoUrlScript('default', 'wasutv', [playUrl])
-            v.info = utils.GetScript('wasutv', 'get_channel', [])
-
-            album.videos.append(v)
-            db.SaveAlbum(album)
+            v = album.NewVideo(videoUrl)
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
 class WasuLiveTV(LivetvMenu):
     '''

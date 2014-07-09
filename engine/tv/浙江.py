@@ -28,15 +28,11 @@ class ParserWenZhouLivetv(LivetvParser):
             albumName = '温州-' + name
             album = self.NewAlbum(albumName)
 
-            v = album.NewVideo()
-            v.vid = utils.getVidoId(js['source'] + '/' + source)
-            v.order = 2
-            v.name = self.tvName
-
-            v.SetUrl('wztv://' + source, album)
-
-            album.videos.append(v)
-            db.SaveAlbum(album)
+            videoUrl = 'wztv://' + source
+            v = album.NewVideo(videoUrl)
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
 class ZheJianLiveTV(LivetvMenu):
     '''

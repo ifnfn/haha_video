@@ -347,6 +347,7 @@ CustomMenu::CustomMenu(string fileName, bool CheckFailure)
 {
 	this->fileName = fileName;
 	this->cid = -1;
+	this->max_count = 0;
 	albumIdList.LoadFromFile(fileName);
 	if (CheckFailure)
 		RemoveFailure();
@@ -389,6 +390,12 @@ void CustomMenu::AlbumAdd(KolaAlbum *album)
 void CustomMenu::AlbumAdd(string vid)
 {
 	mutex.lock();
+
+	if (max_count > 0 && albumIdList.size() >= max_count) {
+		StringList::iterator iter = albumIdList.begin();
+		if (iter != albumIdList.end())
+			albumIdList.erase(iter);
+	}
 	CleanPage();
 	albumIdList.Add(vid);
 	albumCount = albumIdList.size();

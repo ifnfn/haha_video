@@ -117,6 +117,19 @@ class LivetvAlbum(AlbumBase):
         self.livetv = LivetvPrivate()
         self.videoClass = LivetvVideo
 
+    def NewVideo(self, videoUrl=None):
+        v = self.videoClass()
+        v.pid = self.vid
+        v.cid = self.cid
+        v.order = self.order
+        v.name  = self.tvName
+
+        if videoUrl:
+            v.vid = utils.getVidoId(videoUrl)
+            v.SetUrl(videoUrl, self)
+
+        return v
+
     def SaveToJson(self):
         if self.livetv:
             self.private[self.engineName] = self.livetv.Json()
@@ -149,13 +162,12 @@ class LivetvParser(KolaParser):
         albumName = self.GetAliasName(name)
         if albumName:
             album  = LivetvAlbum()
-            album.albumName = albumName
-            album.Number    = GetNumber(album.albumName)
-            vid   = utils.genAlbumId(album.albumName)
-            order = GetOrder(album.albumName)
-
-            album.vid = order + vid
-            album.categories  = self.tvCate.GetCategories(album.albumName)
+            album.albumName  = albumName
+            album.Number     = GetNumber(album.albumName)
+            album.tvName     = self.tvName
+            album.order      = self.order
+            album.vid        = GetOrder(album.albumName) + utils.genAlbumId(album.albumName)
+            album.categories = self.tvCate.GetCategories(album.albumName)
 
             album.enAlbumName = self.tvName
 

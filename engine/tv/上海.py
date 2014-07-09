@@ -39,17 +39,11 @@ class ParserSmgbbLivetv(LivetvParser):
             if album == None:
                 continue
 
-            v = album.NewVideo()
-            v.order = self.order
-            v.name     = self.tvName
-
-            playUrl    = 'http://l.smgbb.cn/channelurl.ashx?starttime=0&endtime=0&channelcode=%s' % pid
-            v.vid      = utils.getVidoId(playUrl)
-
-            v.SetUrl('smgbbtv://' + pid, album)
-
-            album.videos.append(v)
-            db.SaveAlbum(album)
+            videoUrl = 'smgbbtv://' + pid
+            v = album.NewVideo(videoUrl)
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
 class SmgbbLivetv(LivetvMenu):
     '''

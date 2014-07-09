@@ -21,21 +21,14 @@ class TextLivetvParser(LivetvParser):
         self.cmd['text'] = 'OK'
 
     def CmdParser(self, js):
-        for alubmName, (url, info) in self.tvs.items():
+        db = LivetvDB()
+        for alubmName, (videoUrl, _) in self.tvs.items():
             album = self.NewAlbum(alubmName)
 
-            v = album.NewVideo()
-            v.order = self.order
-
-            v.vid   = utils.getVidoId(url)
-
-            v.SetVideoUrl(alubmName, url)
-
-            if info:
-                v.info = info
-
-            album.videos.append(v)
-            LivetvDB().SaveAlbum(album)
+            v = album.NewVideo(videoUrl)
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
 class TextLiveTV(LivetvMenu):
     '''

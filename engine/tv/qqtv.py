@@ -3,7 +3,7 @@
 
 import re
 
-from kola import utils, LivetvMenu
+from kola import LivetvMenu
 
 from .common import PRIOR_QQ
 from .livetvdb import LivetvParser, LivetvDB
@@ -36,17 +36,12 @@ class ParserQQLivetv(LivetvParser):
             if album == None:
                 continue
 
-            v = album.NewVideo()
-            v.order = self.order
-            v.name  = self.tvName
+            videoUrl = 'qqtv://' + ch['data-playid']
+            v = album.NewVideo(videoUrl)
 
-            playUrl = 'http://zb.v.qq.com:1863/?progid=%s&redirect=0&apptype=live&pla=ios' % ch['data-playid']
-            v.vid   = utils.getVidoId(playUrl)
-
-            v.SetUrl('qqtv://' + ch['data-playid'], album)
-
-            album.videos.append(v)
-            db.SaveAlbum(album)
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
 class QQLiveTV(LivetvMenu):
     '''

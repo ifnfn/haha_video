@@ -40,28 +40,22 @@ class ParserTVIELivetv(LivetvParser):
             if album == None:
                 continue
 
-            v = album.NewVideo()
-            v.order = self.order
-            v.name = self.tvName
-
-            url = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
+            videoUrl = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
             if self.base_url in ['api.cztv.com']:
-                url += '?domain=' + self.base_url
+                videoUrl += '?domain=' + self.base_url
 
-            v.vid = utils.getVidoId(url)
-
-            url = re.sub('^http://', 'tvie://', url)
+            videoUrl = re.sub('^http://', 'tvie://', videoUrl)
 
             if self.Referer:
-                if url.find("?", 0) > 0:
-                    url += "&referer=" + quote(self.Referer)
+                if videoUrl.find("?", 0) > 0:
+                    videoUrl += "&referer=" + quote(self.Referer)
                 else:
-                    url += "?referer=" + quote(self.Referer)
+                    videoUrl += "?referer=" + quote(self.Referer)
 
-            v.SetUrl(url, album)
-
-            album.videos.append(v)
-            db.SaveAlbum(album)
+            v = album.NewVideo(videoUrl)
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
     def GetCategories(self, name):
         return self.tvCate.GetCategories(name)
@@ -158,21 +152,8 @@ class ParserKksmgLivetv(ParserTVIELivetv):
 
 # 新疆电视台
 class ParserUCLivetv(ParserTVIELivetv):
-    class UCTVCategory(TVCategory):
-        def __init__(self):
-            super().__init__()
-            self.filter = {
-                '类型' : {
-                    '体育台' : '体育|足球|网球|cctv-5|CCTV5|cctv5|CCTV-5|中央电视台五套',
-                    '综合台' : '综合|财|都市|经济|旅游',
-                    '少儿台' : '动画|卡通|动漫|少儿',
-                    '地方台' : '.*',
-                }
-            }
-
     def __init__(self):
         super().__init__('epgsrv01.ucatv.com.cn')
-        self.tvCate = self.UCTVCategory()
         self.tvName = '新疆电视台'
         self.order = PRIOR_DEFTV
 

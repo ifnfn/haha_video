@@ -96,17 +96,11 @@ class ParserPPtvList(LivetvParser):
                             if album == None:
                                 continue
 
-                            v = album.NewVideo()
-                            v.order = self.order
-                            v.name     = self.tvName
-
-                            v.vid   = utils.getVidoId(albumName + channel_id)
-
-                            v.SetUrl('pptv://' + channel_id, album)
-
-                            album.videos.append(v)
-                            db.SaveAlbum(album)
-
+                            videoUrl = 'pptv://' + channel_id
+                            v = album.NewVideo(videoUrl)
+                            if v:
+                                album.videos.append(v)
+                                db.SaveAlbum(album)
 
 # PPTV 直播电视
 class ParserPPtvLivetv(LivetvParser):

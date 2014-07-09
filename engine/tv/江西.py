@@ -46,17 +46,11 @@ class ParserJianXiLivetv(LivetvParser):
             albumName = ch.text
             album  = self.NewAlbum(albumName)
 
-            v = album.NewVideo()
-            v.order = self.order
-            v.name  = self.tvName
-
-            v.vid   = utils.getVidoId(href)
-
-            href = re.sub('^http://', 'jxtv://', href)
-            v.SetUrl(href, album)
-
-            album.videos.append(v)
-            db.SaveAlbum(album)
+            videoUrl = re.sub('^http://', 'jxtv://', href)
+            v = album.NewVideo(videoUrl)
+            if v:
+                album.videos.append(v)
+                db.SaveAlbum(album)
 
 class JianXiLiveTV(LivetvMenu):
     '''

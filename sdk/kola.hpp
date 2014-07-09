@@ -24,7 +24,7 @@ using namespace std;
 			for(__foreach_type__::iterator i=container.begin();i!=container.end();i++)
 
 #define DEFAULT_PAGE_SIZE 20
-#define PAGE_CACHE 3
+#define PAGE_CACHE 5
 
 class IClient;
 class KolaClient;

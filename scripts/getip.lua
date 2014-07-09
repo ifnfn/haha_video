@@ -84,5 +84,6 @@ function gettime()
 end
 
 function kola_main(url)
+	print(chipid)
 	return getip()
 end

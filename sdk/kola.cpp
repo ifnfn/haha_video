@@ -180,18 +180,18 @@ KolaClient::~KolaClient(void)
 
 bool KolaClient::UrlGet(string url, string &ret)
 {
-	url = GetFullUrl(url);
-
 	Http http;
+
+	url = GetFullUrl(url);
 	http.Open(url.c_str());
 	if (http.Get() != NULL) {
 		ret.assign(http.Data().mem);
 
 		return true;
 	}
-	if (http.httpcode == 302) {
+
+	if (http.httpcode == 302)
 		printf("[Kolatv] Error unauthorized, error cdoe: %d\n", http.httpcode);
-	}
 
 	return false;
 }
@@ -268,7 +268,6 @@ bool KolaClient::LoginOne()
 		authorized = not loginKey.empty();
 
 		if (authorized) {
-			authorized = true;
 			ScriptCommand script;
 			if (json_get_variant(js, "script", &script))
 				script.Run();

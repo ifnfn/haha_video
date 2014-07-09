@@ -90,6 +90,7 @@ public:
 	HttpBuffer& Data() { return buffer; }
 	HttpBuffer buffer;
 	void Cancel();
+
 	int        cancel;
 	CURLMSG    msg;
 	long       status;

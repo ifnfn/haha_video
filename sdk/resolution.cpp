@@ -58,9 +58,11 @@ bool VideoResolution::GetVariant(string &key, Variant &var)
 {
 	if (key.empty())
 		key = defaultKey;
+
 	map<string ,Variant>::iterator it = urls.find(key);
 	if (it != urls.end()) {
 		var = it->second;
+
 		return true;
 	}
 
@@ -82,15 +84,13 @@ string VideoResolution::GetVideoUrl()
 
 	find = cache.FindByVid(key, url);
 
-	if (find) {
+	if (find)
 		return url;
-	}
 
 	if (not urls.empty()) {
 		map<string ,Variant>::iterator it = urls.find(defaultKey);
-		if (it != urls.end()) {
+		if (it != urls.end())
 			url = it->second.GetString();
-		}
 		else {
 			it = urls.begin();
 			url = it->second.GetString();

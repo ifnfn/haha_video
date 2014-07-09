@@ -21,7 +21,6 @@ from .wolidou import WolidouTV
 from .上海 import SmgbbLivetv
 from .北京 import BtvLiveTV
 from .吉林 import JilingLiveTV
-from .山东 import ShangDongLiveTV
 from .广西 import GuangXiLiveTV
 from .江西 import JianXiLiveTV
 from .浙江 import ZheJianLiveTV
@@ -42,7 +41,6 @@ class LiveEngine(VideoEngine):
             '浙江'  : ZheJianLiveTV,
             '上海'  : SmgbbLivetv,
             '辽宁'  : LiaoNingLiveTV,
-            '山东'  : ShangDongLiveTV,
             'TVIE' : TvieLiveTV,
             'M2O'  : M2OLiveTV,
             #===================================================================

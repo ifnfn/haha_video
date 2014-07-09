@@ -43,8 +43,8 @@ bool json_get_variant(json_t *js, const char *key, ScriptCommand *script)
 
 	if (p)
 		return json_to_variant(p, script);
-	else
-		return false;
+
+	return false;
 }
 
 const bool json_gets(json_t *js, const char *key, string &ret)
@@ -66,6 +66,7 @@ const bool json_gets(json_t *js, const char *key, string &ret)
 		if (sc) {
 			ScriptCommand cmd(p);
 			ret = cmd.Run();
+
 			return true;
 		}
 	}
@@ -81,10 +82,8 @@ const char *json_gets(json_t *js, const char *key, const char *def)
 
 	if (json_is_string(p))
 		return json_string_value(p);
-	else if (json_is_object(p)) {
-		while(1)
-			printf("dddddddddddddd\n");
-	}
+	else if (json_is_object(p))
+		printf("Error!\n");
 
 	return def;
 }

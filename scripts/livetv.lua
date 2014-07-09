@@ -83,6 +83,10 @@ local function curl_init(url, user_agent, referer)
 end
 
 local function curl_get( url, user_agent, referer )
+	if url == nil then
+		return nil
+	end
+
 	local text = ''
 	if kola.wget2 then
 		if user_agent == nil then
@@ -103,7 +107,6 @@ local function curl_get( url, user_agent, referer )
 		c:perform({writefunction = function(str) text = text .. str end})
 		return text
 	end
-
 end
 
 -- 展开所有重定向
@@ -405,8 +408,12 @@ function get_video_lntv(url)
 	pid = string.gsub(url, "lntv://", "")
 	local url = 'http://zd.lntv.cn/lnradiotvnetwork/live_liveDetail.do?flag=1&id=' .. pid
 	--print(url)
-	local text = curl_get(url)
-	return rex.match(text, "var playM3U8 = '(.*?)';")
+
+	url = curl_match(url, "var playM3U8 = '(.*?)';")
+	print(url)
+	url = curl_match(url, "(http://.*)")
+	print(url)
+	return url
 end
 
 function get_video_tvie(url)

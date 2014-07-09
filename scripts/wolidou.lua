@@ -13,6 +13,7 @@ local function h_build_w_cb(t)
 			--print(name, t.headers[name])
 			if name == 'Set-Cookie' then
 				Cookie = t.headers[name]
+				print(Cookie)
 			end
 		else
 			code, codemessage = string.match(s, "^HTTP/.* (%d+) (.+)$")
@@ -39,31 +40,13 @@ local function curl_init(s, url, referer)
 	return c
 end
 
-local function curl_key(s)
-	local key_url = string.format("http://www.wolidou.com/s/key.php?f=k&t=%d", kola.gettime() * 1000)
-	return curl_init(s, key_url)
-end
+local function curl_s_key(s)
+	local key_url = string.format("http://www.wolidou.com/x/key.php?f=k&t=%d", kola.gettime() * 1000)
+	c1 = curl_init(s, key_url)
+	local text = ''
+	c1:perform({writefunction=function(str) text = text .. str end })
 
-local function jstv_url(video_url)
-	local c1 = curl_key(share)
-	local c2 = curl_init(share, video_url)
-
-	--c1:setopt_verbose(1)
-	--c2:setopt_verbose(1)
-
-	-- getkey
-	c1:perform({writefunction=function(str) end })
-
-	--geturl
-	local ret = {}
-	ret.headers = {}
-	c2:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
-
-	if ret.headers.Location ~= 'http://www.wolidou.com/live.mp4' then
-		return ret.headers.Location
-	end
-
-	return ""
+	return text
 end
 
 local function GetUrl(url)
@@ -91,62 +74,13 @@ local function GetUrl(url)
 	end
 end
 
-local function sdsj_url(video_url)
-	video_url = string.format("%s&ts=%d", video_url, kola.gettime() * 1000)
-	local c1 = curl_key(share)
-	local c2 = curl_init(share, video_url)
-
-	-- getkey
-	c1:perform({writefunction=function(str) end })
-
-	--geturl
-	local ret = ''
-	c2:perform({writefunction=function(str) ret = ret .. str end })
-
-	if ret then
-		local data_obj = cjson.decode(ret)
-
-		if data_obj then
-			return data_obj.wolidou
-		end
-	end
-
-	return ''
-end
-
-local function sxmsp_url(video_url)
-	local c2 = curl_init(share, video_url)
-
-	--geturl
-	local ret = {}
-	ret.headers = {}
-	c2:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) end })
-
-	if ret.headers.Location ~= 'http://www.wolidou.com/live.mp4' then
-		return ret.headers.Location
-	end
-
-	return ""
-end
-
 function get_video_url(video_url)
-	print(string.format("get_video_url(%s)", video_url))
-	if string.find(video_url, 'rtmp://') or string.find(video_url, ".m3u8") then
+	--print(string.format("get_video_url(%s)", video_url))
+	if string.find(video_url, 'rtmp://') or string.find(video_url, ".m3u8$") then
 		return video_url
-	elseif string.find(video_url, 'http://www.wolidou.com/c/basic_2') then
-		return GetUrl(video_url)
-	elseif string.find(video_url, 'sdsj.php') or string.find(video_url, 'dxcctv.php') or string.find(video_url, 'yu.php') then
-		return sdsj_url(video_url)
-	elseif string.find(video_url, 'sxmsp.php') or string.find(video_url, 'pptv.php') or string.find(video_url, 'moon.php') then
-		return sxmsp_url(video_url)
 	elseif string.find(video_url, 'http://www.wolidou.com/x') then
-		local url = GetUrl(video_url)
-		if string.find(video_url, 'henan') and Cookie ~= '' then
-			url = url .. ' -H Set-Cookie: ' .. Cookie
-		end
-		return url
-	elseif string.find(video_url, 'jstv.com.wolidou.php') then
-		return jstv_url(video_url)
+		curl_s_key(share)
+		return GetUrl(video_url)
 	elseif string.find(video_url, 'live.mp4') then
 		return ""
 	else

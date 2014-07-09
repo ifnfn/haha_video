@@ -13,16 +13,15 @@ class TextLivetvParser(LivetvParser):
 
         self.order = PRIOR_DEFTV
         self.tvs = {
-            '沈阳-新闻频道' : ('http://streamer.csytv.com/live/1?fmt=h264_800k_flv', {}),
-            '沈阳-经济频道' : ('http://streamer.csytv.com/live/2?fmt=h264_800k_flv', {}),
-            '沈阳-公共频道' : ('http://streamer.csytv.com/live/3?fmt=h264_800k_flv', {}),
+            '池州-新闻综合': 'rtmp://60.174.36.89:1935/live/vod4',
+            '池州-经济频道': 'rtmp://60.174.36.89:1935/live/vod3',
         }
 
         self.cmd['text'] = 'OK'
 
     def CmdParser(self, js):
         db = LivetvDB()
-        for alubmName, (videoUrl, _) in self.tvs.items():
+        for alubmName, videoUrl in self.tvs.items():
             album = self.NewAlbum(alubmName)
 
             v = album.NewVideo(videoUrl)

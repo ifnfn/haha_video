@@ -42,6 +42,7 @@ class LiveEngine(VideoEngine):
             '辽宁'  : LiaoNingLiveTV,
             'TVIE' : TvieLiveTV,
             'M2O'  : M2OLiveTV,
+            '文本'  : TextLiveTV,
             #===================================================================
             # '吉林'  : JilingLiveTV,  # VST 中已有
             # 'CNTV'  : CntvLiveTV,  # VST 中已有

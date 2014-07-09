@@ -52,7 +52,9 @@ class ParserVstLivetv(LivetvParser):
         self.cmd['cache'] = True
         self.cmd['source'] = 'http://ott.52itv.cn/vst_tvlist?app=egreat&name=mygica%20TV%20MX%20box&ver=4.1.2&uuid=00000000-71b9-5e32-0033-c5870033c587&mac=000102030406'
         self.ExcludeName = ['电影片花', '法国1', '高尔夫.网球', '高尔夫', '周星驰专区', 'CCTV-4 中文国际(欧洲)', 'CCTV-4 中文国际(美洲)', 'CCTV ',
-                            '经典电影', 'CCTV4 中文国际(美洲)', 'CCTV4 中文国际(欧洲)'
+                            '经典电影', 'CCTV4 中文国际(美洲)', 'CCTV4 中文国际(欧洲)',
+                            '安庆'
+
                             ]
 
     def GetChannel(self, name):
@@ -105,7 +107,7 @@ class ParserVstLivetv(LivetvParser):
                     v.name  = '源%d' % (order + 1)
 
                     album.videos.append(v)
-                    order = order + 1
+                    order += 1
 
             db.SaveAlbum(album)
 

@@ -364,6 +364,21 @@ class ParserBaDongLivetv(ParserTVIELivetv):
         }
         self.ExcludeName = ['广播']
 
+# 芜湖电视台
+class ParserWuhubLivetv(ParserTVIELivetv):
+    def __init__(self):
+        super().__init__('live.wuhubtv.com')
+        self.tvName = '芜湖电视台'
+        self.area = '中国,安徽,芜湖'
+        self.Alias = {
+            "新闻综合": "芜湖-新闻综合",
+            "生活频道": "芜湖-生活频道",
+            "徽商频道": "芜湖-徽商频道",
+            "教育频道": "芜湖-教育频道"
+        }
+
+        self.ExcludeName = ['广播']
+
 class TvieLiveTV(LivetvMenu):
     def __init__(self, name):
         super().__init__(name)
@@ -381,8 +396,8 @@ class TvieLiveTV(LivetvMenu):
                                 ParserSuilinLivetv,
                                 ParserHeFeiLivetv,
                                 ParserSJZLivetv,
-                                ParserBaDongLivetv
-
+                                ParserBaDongLivetv,
+                                ParserWuhubLivetv
                             ]
 
 

@@ -766,7 +766,7 @@ int main(int argc, char **argv)
 #endif
 //	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
-//	printf("Test LiveTV(No EPG\n"); test_livetv_noepg(); return 0;
+	printf("Test LiveTV(No EPG\n"); test_livetv_noepg(); return 0;
 //	printf("Test LiveTV(TV List\n"); test_livetv_list(); return 0;
 //	printf("Test LiveTV(TV List\n"); test_livetv_epglist(); return 0;
 	printf("Test LiveTV(TV List\n"); test_livetv(); return 0;

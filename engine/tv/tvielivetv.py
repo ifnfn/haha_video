@@ -194,6 +194,7 @@ class ParserUCLivetv(ParserTVIELivetv):
             'XJTV-10': '新疆-体育健康(汉)',
             'XJTV-11': '新疆-法制信息频道',
             'XJTV-12': '新疆-少儿频道',
+            '福建卫视' : '东南卫视',
             '湖南卫视-高清' : '湖南卫视HD',
             'CCTV1-高清' : 'CCTV-1 综合HD',
             '广东卫视-高清' : '广东卫视HD',
@@ -289,7 +290,7 @@ class ParserShaoxinLivetv(ParserTVIELivetv):
 
         self.Alias = {
             "新闻综合频道" : '绍兴-新闻综合',
-            "公共频道"     : '绍兴-公共频道',
+            "公共频道"    : '绍兴-公共频道',
             "文化影视频道" : '绍兴-文化影视',
         }
         self.ExcludeName = ['.*广播', '直播']

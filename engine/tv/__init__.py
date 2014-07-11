@@ -33,8 +33,8 @@ class LiveEngine(VideoEngine):
         self.albumClass = LivetvAlbum
 
         self.LiveEngines = {
-            'VST' : VstLiveTV,
             #===================================================================
+            'VST' : VstLiveTV,
             'Sohu'  : SohuLiveTV,
             '腾讯'  : QQLiveTV,
             '浙江'  : ZheJianLiveTV,

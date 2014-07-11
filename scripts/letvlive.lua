@@ -24,14 +24,13 @@ local function curl_get_location(video_url)
 		end
 	end
 
-	print(video_url)
-	local text = ''
 	c = cURL.easy_init()
 
 	c:setopt_useragent("Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6")
 	c:setopt_url(video_url)
 
-	local ret = {}
+	local text  = ''
+	local ret   = {}
 	ret.headers = {}
 	c:perform({headerfunction=h_build_w_cb(ret), writefunction=function(str) text = text .. str end })
 

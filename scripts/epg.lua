@@ -63,6 +63,10 @@ local function get_vid(key_map, albumName)
 	return vid
 end
 
+local function to_str(ret)
+	if ret then return cjson.encode(ret) end
+end
+
 function get_channel_tvmao(albumName)
 	local name_key = {
 		['CCTV News']      = 'cctv19',
@@ -584,7 +588,7 @@ function get_channel_tvmao(albumName)
 		['苏州-生活资讯'] = 'suzhoutv5',
 
 		['遂宁-公共公益'] = nil,
-		['遂宁-互动影视 '] = nil,
+		['遂宁-互动影视'] = nil,
 		['遂宁-新闻综合'] = nil,
 		['遂宁-直播频道'] = nil,
 
@@ -594,10 +598,6 @@ function get_channel_tvmao(albumName)
 		['唐山-生活'] = 'tssv2',
 		['唐山-影视'] = 'tssv3',
 		['唐山-公共'] = 'tssv4',
-
-		['TGA游戏频道'] = nil,
-		['VST电影台'] = nil,
-		['VST纪录片'] = nil,
 
 		['通化-公共频道'] = nil,
 		['通化-科教频道'] = nil,
@@ -841,45 +841,7 @@ function get_channel_tvmao(albumName)
 		idx = idx + 1
 	end
 
-	if ret then
-		return cjson.encode(ret)
-	end
-end
-
-function get_channel_pptv(albumName)
-    vid = get_vid(name_key, albumName)
-
-	local time = kola.gettime()
-	local url = string.format('http://live.pptv.com/api/tv_menu?cb=kola&date=%s&id=%s&canBack=0',
-			os.date("%Y-%m-%d", time), vid)
-
-	local ret = {}
-	local text = kola.wget(url, false)
-	if text then
-		text = rex.match(text, 'kola\\((.*)\\)')
-
-		local js = cjson.decode(text)
-		local i = 1
-		local d = os.date("*t", time)
-		for time,title in rex.gmatch(js.html, "</i>(\\w*:\\w*)</span></a>\\s*.*?title\\s*=\\s*['\"](.*?)['\"]") do
-			d.hour = tonumber(string.sub(time, 1, string.find(time, ":") - 1))
-			d.min  = tonumber(string.sub(time, string.find(time, ":") + 1))
-
-			ret[i] = {}
-			ret[i].time_string = time
-			ret[i].time        = os.time(d)
-			ret[i].title       = title
-			ret[i].duration    = 0
-			if i > 1 then
-				ret[i-1].duration = os.difftime(ret[i].time, ret[i-1].time)
-			end
-			i = i + 1
-		end
-	end
-
-	if ret then
-		return cjson.encode(ret)
-	end
+	return to_str(ret)
 end
 
 function get_channel_letv(albumName)
@@ -901,83 +863,14 @@ function get_channel_letv(albumName)
 		end
 	end
 
-	if ret then
-		return cjson.encode(ret)
-	end
-end
-
-function get_channel_qqtv(albumName)
-	local name_key = {}
-    name_key[''] = ''
-    vid = get_vid(name_key, albumName)
-
-	local url = string.format('http://v.qq.com/live/tv/%s.html', vid)
-	local text = kola.wget(url, false)
-
-	local ret = {}
-	if text then
-		local i = 1
-		for x in rex.gmatch(text, '(<div class=".*sta_unlive j_wanthover">[\\s\\S]*?</div>)') do
-			for time, title in rex.gmatch(x, '<span class="time">(.*)</span>\\s*<span title="(.*)" class') do
-				ret[i] = to_epg(time, title)
-				if i > 1 then
-					ret[i-1].duration = os.difftime(ret[i].time, ret[i-1].time)
-				end
-				i = i + 1
-			end
-		end
-	end
-
-	if ret then
-		return cjson.encode(ret)
-	end
-end
-
-function get_channel_btv(albumName)
-	local name_key = {}
-    name_key[''] = ''
-    vid = get_vid(name_key, albumName)
-	local url = string.format("http://itv.brtn.cn/live/getepgday/%s", vid)
-
-	local text = kola.wget(url, false)
-
-
-	if text == nil then
-		return "{}"
-	end
-	local js = cjson.decode(text)
-
-	local ret = {}
-	if js then
-		for _, dayepg in ipairs(js.data) do
-			local time = kola.gettime()
-			if time >= tonumber(dayepg[1].start_time) and time < tonumber(dayepg[#dayepg].end_time) then
-				for k, ch in ipairs(dayepg) do
-					ret[k] = {}
-					start_time = tonumber(ch.start_time)
-					end_time = tonumber(ch.end_time)
-					ret[k].time_string = os.date("%H:%M", start_time)
-					ret[k].time        = tonumber(start_time)
-					ret[k].duration    = end_time - start_time
-					ret[k].title       = ch.title
-					--print(k, ret[k].time_string, ret[k].title)
-				end
-				break
-			end
-		end
-	end
-
-	return cjson.encode(ret)
+	return to_str(ret)
 end
 
 function get_channel(albumName)
 	--print(albumName)
 	local channel_function = {
 			get_channel_tvmao,
-			--get_channel_pptv,
 			--get_channel_letv,
-			--get_channel_qqtv,
-			--get_channel_btv
 	}
 
 	for _, cfunc in ipairs(channel_function) do

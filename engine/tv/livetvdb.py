@@ -160,7 +160,11 @@ class LivetvParser(KolaParser):
 
     def NewAlbum(self, name, epgInfo=None):
         album = None
+#        if name in ['宁波文化娱乐']:
+#            print(name)
         albumName = self.GetAliasName(name)
+#        if albumName in ['宁波文化娱乐']:
+#            print(albumName)
         if albumName:
             album  = LivetvAlbum()
             album.albumName  = albumName

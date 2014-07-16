@@ -48,6 +48,7 @@ class ParserVstLivetv(LivetvParser):
             'CCTV9 海外记录' : 'CCTV-9 海外纪录',
             'CCTV4 中文国际(美洲)' : 'CCTV-4 中文国际(美洲)',
             'CCTV4 中文国际(欧洲)' : 'CCTV-4 中文国际(欧洲)',
+            'HD' : '-高清'
         }
         self.cmd['cache'] = True
         self.cmd['source'] = 'http://ott.52itv.cn/vst_tvlist?app=egreat&name=mygica%20TV%20MX%20box&ver=4.1.2&uuid=00000000-71b9-5e32-0033-c5870033c587&mac=000102030406'

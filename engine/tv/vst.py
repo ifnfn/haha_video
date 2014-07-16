@@ -6,7 +6,7 @@ import re
 
 from kola import LivetvMenu
 
-from .common import PRIOR_VST
+from .common import PRIOR_VST, PRIOR_LETV, PRIOR_IMGO, PRIOR_CNTV
 from .livetvdb import LivetvParser, LivetvDB
 
 
@@ -56,6 +56,7 @@ class ParserVstLivetv(LivetvParser):
                             '安庆'
 
                             ]
+        self.vtv_order = 0
 
     def GetChannel(self, name):
         channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
@@ -64,6 +65,17 @@ class ParserVstLivetv(LivetvParser):
         for p in list(channels):
             if re.findall(p, name):
                 return name
+
+    def GetTVOrder(self, url):
+        if url.find('letv', 0) >= 0:
+            return PRIOR_LETV, 'VLTV'
+        elif url.find('imgotv', 0) >= 0:
+            return PRIOR_IMGO, 'VITV'
+        elif url.find('pa://', 0) >= 0:
+            return PRIOR_CNTV, 'VCNTV'
+
+        self.vtv_order += 1
+        return self.order + self.vtv_order, 'VTV'
 
     def CmdParser(self, js):
         data = js['data']
@@ -97,17 +109,14 @@ class ParserVstLivetv(LivetvParser):
             if album == None:
                 continue
 
+            self.vtv_order = 0
             album.largePicUrl = iamge
-            order = 0
             for videoUrl in hrefs.split('#'):
                 v = album.NewVideo(videoUrl)
 
                 if v:
-                    v.order = order
-                    v.name  = '源%d' % (order + 1)
-
+                    v.order, v.name = self.GetTVOrder(videoUrl)
                     album.videos.append(v)
-                    order += 1
 
             db.SaveAlbum(album)
 

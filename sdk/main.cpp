@@ -370,6 +370,66 @@ void test_livetv()
 	printf("%s End!!!\n", __func__);
 }
 
+void test_livetv_videolist()
+{
+	KolaMenu* m = NULL;
+	Player player;
+
+	KolaClient &kola = KolaClient::Instance();
+
+	kola.UpdateMenu();
+#if 0
+	for(int i=0, count=(int)kola.MenuCount(); i < count; i++) {
+		m = kola.Index(i);
+		cout << "Menu: " << m->name << endl;
+	}
+#endif
+
+	m = kola.GetMenu(200);
+	if (m == NULL)
+		return;
+	foreach(m->Filter.filterKey, i) {
+		cout << i->first << ": ";
+		foreach(i->second, j)
+			cout << "\t:" << *j << endl;
+	}
+	//m->FilterAdd("类型", "本省台");
+	//m->FilterAdd("类型", "央视台");
+	//m->FilterAdd("类型", "卫视台");
+	//m->FilterAdd("类型", "地方台");
+	//m->FilterAdd("类型", "高清台");
+	//m->SetPageSize(3);
+	//m->GetPage(page);
+	//m->FilterAdd("PinYin", "zj");
+	//m->SetSort("Name", "1");
+	m->PictureCacheType = PIC_DISABLE;
+	size_t count = m->GetAlbumCount();
+	int pos = 0;
+//	pos = m->SeekByAlbumNumber("4");
+
+#if 1
+	for (size_t i=pos; i < count; i++) {
+		KolaAlbum *album = m->GetAlbum(i);
+		if (album == NULL)
+			continue;
+		size_t video_count = album->GetVideoCount();
+		printf("[%ld] %s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
+#if 1
+
+		for (size_t j = 0; j < video_count; j++) {
+			string player_url;
+			KolaVideo *video = album->GetVideo(j);
+			if (video) {
+				printf("\t%s %s\n", video->vid.c_str(), video->name.c_str());
+			}
+		}
+#endif
+	}
+#endif
+
+	printf("%s End!!!\n", __func__);
+}
+
 void test_picture(const char *menuName)
 {
 	KolaMenu* m = NULL;
@@ -766,10 +826,11 @@ int main(int argc, char **argv)
 #endif
 //	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
-//	printf("Test LiveTV(No EPG\n"); test_livetv_noepg(); return 0;
-//	printf("Test LiveTV(TV List\n"); test_livetv_list(); return 0;
-//	printf("Test LiveTV(TV List\n"); test_livetv_epglist(); return 0;
-	printf("Test LiveTV(TV List\n"); test_livetv(); return 0;
+//	printf("Test LiveTV(No EPG)\n"); test_livetv_noepg(); return 0;
+//	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
+//	printf("Test LiveTV(TV List)\n"); test_livetv_epglist(); return 0;
+	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); return 0;
+//	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

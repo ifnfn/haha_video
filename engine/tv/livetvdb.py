@@ -9,7 +9,7 @@ import tornado.escape
 from engine import KolaParser
 from kola import VideoBase, AlbumBase, DB, utils, City
 
-from .common import PRIOR_COMMON
+from .common import PRIOR_DEFTV
 from .epg import GetEPGScript
 from .tvorder import GetOrder, GetNumber
 
@@ -155,7 +155,7 @@ class LivetvParser(KolaParser):
         self.Alias = {}
         self.ExcludeName = []
         self.tvName = ''
-        self.order = PRIOR_COMMON
+        self.order = PRIOR_DEFTV
         self.area = ''
 
     def NewAlbum(self, name, epgInfo=None):

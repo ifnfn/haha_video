@@ -197,14 +197,14 @@ class LivetvParser(KolaParser):
         if name in self.ExcludeName:
             return None
 
-        for (k,v) in self.Alias.items():
-            #if re.findall(k, name):
-            nname = re.sub(k, v, name)
-            if nname != name:
-                name = nname
-                break
-
         if name in self.Alias:
             name = self.Alias[name]
+        else:
+            for (k,v) in self.Alias.items():
+                #if re.findall(k, name):
+                nname = re.sub(k, v, name)
+                if nname != name:
+                    name = nname
+                    break
 
         return tvalias.GetAliasName(name, self.__class__.__name__)

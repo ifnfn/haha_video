@@ -4,7 +4,6 @@
 from engine import VideoEngine
 
 from .cntv import CntvLiveTV
-from .cutv import CuLiveTV
 from .livetvdb import *
 from .m2oplayer import M2OLiveTV
 from .pptv import PPtvLiveTV
@@ -37,6 +36,7 @@ class LiveEngine(VideoEngine):
             'VST' : VstLiveTV,
             'Sohu'  : SohuLiveTV,
             '腾讯'  : QQLiveTV,
+            'PPTV'  : PPtvLiveTV,
             '浙江'  : ZheJianLiveTV,
             '上海'  : SmgbbLivetv,
             '辽宁'  : LiaoNingLiveTV,
@@ -51,8 +51,6 @@ class LiveEngine(VideoEngine):
 
             # '北京'  : BtvLiveTV,
             # '广西'  : GuangXiLiveTV,
-            # 'CuTV'  : CuLiveTV,
-            # 'PPTV'  : PPtvLiveTV,
             # '华数'   : WasuLiveTV,
             # '私有'  : WolidouLiveTV,
         }

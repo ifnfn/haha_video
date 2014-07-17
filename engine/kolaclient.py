@@ -137,7 +137,7 @@ class KolaClient:
                 ret = True
         except:
             t, v, tb = sys.exc_info()
-            print("GetSoHuRealUrl playurl:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
+            print("KolaClient:  %s, %s,%s,%s" % (playurl, t, v, traceback.format_tb(tb)))
 
         return ret
 

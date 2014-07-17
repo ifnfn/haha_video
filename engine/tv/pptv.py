@@ -9,7 +9,7 @@ import tornado.escape
 from kola import LivetvMenu
 
 from .common import PRIOR_PPTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 'http://web-play.pptv.com/web-m3u8-300162.m3u8?type=m3u8.web.pad&playback=0'
@@ -25,7 +25,6 @@ class ParserPPtvList(LivetvParser):
             self.cmd['regular'] = ['\((.*)\)']
 
     def CmdParser(self, js):
-        db = LivetvDB()
         json = tornado.escape.json_decode(js['data'])
         if 'html' in json:
             html = json['html']
@@ -87,20 +86,15 @@ class ParserPPtvList(LivetvParser):
                             channel_id = re.findall('/(\w*).html', href)
                             if channel_id:
                                 channel_id = channel_id[0]
+
+                            if not (t.text and channel_id):
+                                continue
+
                             albumName = t.text
-
-                            if not (albumName and channel_id):
-                                continue
-
-                            album  = self.NewAlbum(albumName)
-                            if album == None:
-                                continue
-
                             videoUrl = 'pptv://' + channel_id
-                            v = album.NewVideo(videoUrl)
-                            if v:
-                                album.videos.append(v)
-                                db.SaveAlbum(album)
+
+                            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+                            self.db.SaveAlbum(album)
 
 # PPTV 直播电视
 class ParserPPtvLivetv(LivetvParser):

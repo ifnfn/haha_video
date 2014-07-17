@@ -6,7 +6,7 @@ import tornado.escape
 from kola import LivetvMenu
 
 from .common import PRIOR_CNTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 class ParserCntvLivetv(LivetvParser):
@@ -22,27 +22,22 @@ class ParserCntvLivetv(LivetvParser):
         self.cmd['regular'] = ['var chs = (.*);']
 
     def CmdParser(self, js):
-        db = LivetvDB()
         tvlist = tornado.escape.json_decode(js['data'])
         for x, v in tvlist.items():
             if x in [ "数字频道", "城市频道"]:
                 continue
             for ch in v:
+                if ch[2] == '0' or ch[1] == '':
+                    continue
+
                 albumName = ch[1]
-                if ch[2] == '0' or albumName == '':
-                    continue
-
-                album  = self.NewAlbum(albumName)
-                if album == None:
-                    continue
-
-                album.area = self.city.GetCity(ch[3])
-
                 videoUrl = "pa://cctv_p2p_hd" + ch[0]
-                v = album.NewVideo(videoUrl)
-                if v:
-                    album.videos.append(v)
-                    db.SaveAlbum(album)
+
+                album, v = self.NewAlbumAndVideo(albumName, videoUrl)
+                if album:
+                    album.area = self.city.GetCity(ch[3])
+
+                self.db.SaveAlbum(album)
 
 class CntvLiveTV(LivetvMenu):
     '''

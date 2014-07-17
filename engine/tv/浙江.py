@@ -5,7 +5,7 @@ import re
 
 from kola import LivetvMenu
 
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 # 温州电视台
@@ -21,18 +21,12 @@ class ParserWenZhouLivetv(LivetvParser):
         self.ExcludeName = []
 
     def CmdParser(self, js):
-        db = LivetvDB()
-
         ch_list = re.findall('data-source="(.*?)" data-id="(.*?)">(.*?)<i>', js['data'])
         for source, _, name in ch_list:
             albumName = '温州-' + name
-            album = self.NewAlbum(albumName)
-
             videoUrl = 'wztv://' + source
-            v = album.NewVideo(videoUrl)
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+            album,_ = self.NewAlbumAndVideo(albumName, videoUrl)
+            self.db.SaveAlbum(album)
 
 class ZheJianLiveTV(LivetvMenu):
     '''

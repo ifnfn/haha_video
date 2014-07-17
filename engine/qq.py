@@ -78,25 +78,6 @@ class QQAlias(KolaAlias):
 
 alias = QQAlias()
 
-class QQVideo(kola.VideoBase):
-    def SaveToJson(self):
-        ret = super().SaveToJson()
-
-        return ret
-
-    def LoadFromJson(self, json):
-        super().LoadFromJson(json)
-
-    def SetVideoScript(self, name, vid, func_name='kola_main'):
-        url = {
-            'script'     : 'qq',
-            'parameters' : [kola.autostr(vid), kola.autostr(self.cid)]
-        }
-        if func_name and func_name != 'kola_main':
-                url['function'] = func_name
-
-        self.SetVideoUrl(name, url)
-
 class QQPrivate:
     def __init__(self):
         self.name =  '腾讯'
@@ -124,8 +105,6 @@ class QQAlbum(kola.AlbumBase):
         super().__init__()
 
         self.qq = QQPrivate()
-
-        self.videoClass = QQVideo
 
     def SaveToJson(self):
         if self.qq:

@@ -79,25 +79,6 @@ class PPtvAlias(KolaAlias):
 
 alias = PPtvAlias()
 
-class PPtvVideo(kola.VideoBase):
-    def SaveToJson(self):
-        ret = super().SaveToJson()
-
-        return ret
-
-    def LoadFromJson(self, json):
-        super().LoadFromJson(json)
-
-    def SetVideoScript(self, name, vid, func_name='kola_main'):
-        url = {
-            'script'     : 'pptv',
-            'parameters' : [kola.autostr(vid), kola.autostr(self.cid)]
-        }
-        if func_name and func_name != 'kola_main':
-                url['function'] = func_name
-
-        self.SetVideoUrl(name, url)
-
 class PPtvPrivate:
     def __init__(self):
         self.name =  'PPTV'
@@ -122,7 +103,6 @@ class PPtvAlbum(kola.AlbumBase):
         super().__init__()
 
         self.pptv = PPtvPrivate()
-        self.videoClass = PPtvVideo
 
     def SaveToJson(self):
         if self.pptv:

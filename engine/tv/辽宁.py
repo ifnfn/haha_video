@@ -6,7 +6,7 @@ import re
 from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvDB, LivetvParser
+from .livetvdb import LivetvParser
 
 
 # 辽宁省电视台
@@ -33,23 +33,16 @@ class LiaoningLivetvParser(LivetvParser):
             '8' : '辽宁-宜佳购物',  # 8
         }
 
-        db = LivetvDB()
         playlist = js['data'].split("\n")
         for href in playlist:
             for x in re.findall('id=(\w*)', href):
                 if x in name_map:
                     albumName = name_map[x]
-                    album = self.NewAlbum(albumName)
-                    if not album:
-                        continue
-
                     videoUrl = 'lntv://' + x
-                    v = album.NewVideo(videoUrl)
-
-                    if v:
-                        album.videos.append(v)
-                        db.SaveAlbum(album)
-                    break
+                    album,_ = self.NewAlbumAndVideo(albumName, videoUrl)
+                    if album:
+                        self.db.SaveAlbum(album)
+                        break
 
 class LiaoNingLiveTV(LivetvMenu): # 无效
     '''

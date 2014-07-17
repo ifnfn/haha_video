@@ -6,7 +6,7 @@ from xml.etree import ElementTree
 from kola import utils, LivetvMenu, GetUrl
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 # 南宁电视台
@@ -20,7 +20,6 @@ class ParserNNLivetv(LivetvParser):
         self.cmd['source'] = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=104'
 
     def CmdParser(self, js):
-        db = LivetvDB()
         count = 0
         for i in ('101', '105', '104', '103', '106', '117', '109'): #  新闻综合 都市生活 影视娱乐 公共频道 广电购物 老友LIVE CCTV-1
             url = 'http://user.nntv.cn/nnplatform/index.php?mod=api&ac=player&m=getLiveUrlXml&inajax=2&cid=' + i
@@ -54,7 +53,7 @@ class ParserNNLivetv(LivetvParser):
             v.info = utils.GetScript('nntv', 'get_channel', [i])
 
             album.videos.append(v)
-            db.SaveAlbum(album)
+            self.db.SaveAlbum(album)
 
 class GuangXiLiveTV(LivetvMenu):
     '''

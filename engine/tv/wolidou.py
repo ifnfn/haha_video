@@ -9,7 +9,7 @@ import tornado.escape
 from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 class WolidouDirectParser(LivetvParser):
@@ -28,7 +28,6 @@ class WolidouDirectParser(LivetvParser):
                 return name
 
     def CmdParser(self, js):
-        db = LivetvDB()
         try:
             fn = posixpath.abspath('tv.json')
             js = tornado.escape.json_decode(open(fn, encoding='utf8').read())
@@ -38,7 +37,7 @@ class WolidouDirectParser(LivetvParser):
                 if self.GetChannel(albumName) == None:
                     continue
 
-                album  = self.NewAlbum(albumName)
+                album = self.NewAlbum(albumName)
                 if album == None:
                     continue
 
@@ -47,12 +46,12 @@ class WolidouDirectParser(LivetvParser):
 
                 order = 0
                 for u in urls:
-                    v = album.NewVideo(u)
+                    v = album.NewVideo(u, album.isHigh)
                     if v:
                         v.name  = '其他 %d' % (order + 1)
                         album.videos.append(v)
                         order += 1
-                db.SaveAlbum(album)
+                self.db.SaveAlbum(album)
 
         except Exception as e:
             print(e)

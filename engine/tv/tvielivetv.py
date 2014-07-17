@@ -9,7 +9,7 @@ import tornado.escape
 from kola.element import LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 class ParserTVIELivetv(LivetvParser):
@@ -23,20 +23,15 @@ class ParserTVIELivetv(LivetvParser):
         self.Referer = ''
 
     def CmdParser(self, js):
-        db = LivetvDB()
-
         jdata = tornado.escape.json_decode(js['data'])
 
         for x in jdata['result']:
             if 'group_names' in x and x['group_names'] == 'audio':
                 continue
-            alubmName = ''
-            if 'name' in x: alubmName = x['name']
-            if 'display_name' in x: alubmName = x['display_name']
 
-            album = self.NewAlbum(alubmName)
-            if album == None:
-                continue
+            albumName = ''
+            if 'name' in x: albumName = x['name']
+            if 'display_name' in x: albumName = x['display_name']
 
             videoUrl = 'http://' + self.base_url + '/api/getCDNByChannelId/' + x['id']
             if self.base_url in ['api.cztv.com']:
@@ -50,10 +45,8 @@ class ParserTVIELivetv(LivetvParser):
                 else:
                     videoUrl += "?referer=" + quote(self.Referer)
 
-            v = album.NewVideo(videoUrl)
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+            self.db.SaveAlbum(album)
 
     def GetCategories(self, name):
         return self.tvCate.GetCategories(name)
@@ -136,7 +129,7 @@ class ParserKksmgLivetv(ParserTVIELivetv):
             "娱乐频道" : "上海-娱乐频道",
             "艺术人文" : "上海-艺术人文",
             "戏剧频道" : "上海-戏剧",
-            "ICS"     : "上海-ICS",
+            "ICS"     : "上海-外语频道ICS",
             "星尚酷"   : "上海-星尚酷",
             "上海导视" : "上海-导视",
             "新闻综合" : "上海-新闻综合",

@@ -7,7 +7,7 @@ import re
 from kola import LivetvMenu
 
 from .common import PRIOR_VST, PRIOR_LETV, PRIOR_IMGO, PRIOR_CNTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 class ParserVstLivetv(LivetvParser):
@@ -91,8 +91,6 @@ class ParserVstLivetv(LivetvParser):
         except:
             pass
 
-        db = LivetvDB()
-
         playlist = data.split("\n")
 
         for ch_text in playlist:
@@ -106,20 +104,22 @@ class ParserVstLivetv(LivetvParser):
             hrefs = ch_list[1]
             iamge = ch_list[2]
 
-            album  = self.NewAlbum(albumName)
+            if albumName.find('HD') >= 0 or albumName.find('高清') > 0:
+                pass
+            album = self.NewAlbum(albumName)
             if album == None:
                 continue
 
             self.vtv_order = 0
             album.largePicUrl = iamge
             for videoUrl in hrefs.split('#'):
-                v = album.NewVideo(videoUrl)
+                v = album.NewVideo(videoUrl, album.isHigh)
 
                 if v:
                     v.order, v.name = self.GetTVOrder(videoUrl)
                     album.videos.append(v)
 
-            db.SaveAlbum(album)
+            self.db.SaveAlbum(album)
 
 class VstLiveTV(LivetvMenu):
     def __init__(self, name):

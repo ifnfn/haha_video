@@ -7,7 +7,7 @@ import re
 import tornado.escape
 
 from engine import KolaParser
-from kola import VideoBase, AlbumBase, DB, utils, City
+from kola import AlbumBase, DB, utils, City, autostr, autoint
 
 from .common import PRIOR_DEFTV
 from .epg import GetEPGScript
@@ -65,12 +65,13 @@ class TVCategory:
             '类型' : {
                 '央视台' : 'cctv|CCTV',
                 '卫视台' : '卫视|卡酷少儿|炫动卡通',
-                '体育台' : '体育|足球|网球|cctv-5|CCTV5|cctv5|CCTV-5',
+                '体育台' : '游戏|钓|体育|足球|网球|cctv-5|CCTV5|cctv5|CCTV-5',
                 '综合台' : '综合|财|都市|经济|旅游',
-                '少儿台' : '动画|卡通|动漫|少儿',
+                '少儿台' : '动画|卡通|动漫|少儿|宝贝',
                 '地方台' : '^(?!.*?(cctv|CCTV|卫视|测试|卡酷少儿|炫动卡通' + self.Outside + ')).*$',
                 '境外台' : self.Outside,
-                '高清台' : 'HD|hd|高清'
+                '高清台' : 'HD|hd|高清',
+                '网络台' : '乐视|VST|vst|全纪实|股票老左|大智慧财经|彩民在线|网络'
             }
         }
 
@@ -84,15 +85,42 @@ class TVCategory:
 
 class LivetvDB(DB):
     def SaveAlbum(self, album, upsert=True):
-        self._save_update_append(None, album)
+        if album and len(album.videos) > 0:
+            self._save_update_append(None, album)
 
-class LivetvVideo(VideoBase):
+class LivetvVideo:
     def __init__(self, js = None):
-        super().__init__(js)
+        self.name = ''
+        self.vid = ''
+        self.order = -1
+        self.isHigh = -1
+
+        self.resolution = {}
+
+        if js:
+            self.LoadFromJson(js)
 
     def SetUrl(self, url, album):
         urlScript = utils.GetScript('livetv', 'get_video_url', [url, album.albumName, album.vid])
-        self.SetVideoUrl('default', urlScript)
+        self.resolution['default'] = urlScript
+
+    def SaveToJson(self):
+        ret = {}
+
+        if self.vid             : ret['vid']          = self.vid
+        if self.name            : ret['name']         = self.name
+        if self.order != -1     : ret['order']        = self.order
+        if self.isHigh != -1    : ret['isHigh']       = self.isHigh
+        if self.resolution      : ret['resolution']   = self.resolution
+
+        return ret
+
+    def LoadFromJson(self, json):
+        if 'vid' in json        : self.vid        = autostr(json['vid'])
+        if 'order' in json      : self.order      = autoint(json['order'])
+        if 'isHigh' in json     : self.isHigh     = autoint(json['isHigh'])
+        if 'name' in json       : self.name       = json['name']
+        if 'resolution' in json : self.resolution = json['resolution']
 
 class LivetvPrivate:
     def __init__(self):
@@ -116,14 +144,16 @@ class LivetvAlbum(AlbumBase):
         self.cid =  200
         self.albumPageUrl = ''
         self.livetv = LivetvPrivate()
-        self.videoClass = LivetvVideo
 
-    def NewVideo(self, videoUrl=None):
-        v = self.videoClass()
+    def NewVideo(self, videoUrl=None, isHigh=0):
+        v = LivetvVideo()
         v.pid = self.vid
         v.cid = self.cid
         v.order = self.order
         v.name  = self.tvName
+        v.isHigh = isHigh
+        if isHigh:
+            self.isHigh = 1
 
         if videoUrl:
             v.vid = utils.getVidoId(videoUrl)
@@ -132,6 +162,12 @@ class LivetvAlbum(AlbumBase):
         return v
 
     def SaveToJson(self):
+        self.videoList = []
+        for v in self.videos:
+            js = v.SaveToJson()
+            self.videoList.append(js)
+
+        self.videos = []
         if self.livetv:
             self.private[self.engineName] = self.livetv.Json()
         ret = super().SaveToJson()
@@ -140,6 +176,12 @@ class LivetvAlbum(AlbumBase):
 
     def LoadFromJson(self, json):
         super().LoadFromJson(json)
+
+        for js in json['videoList']:
+            v = LivetvVideo()
+            v.LoadFromJson(js)
+            self.videos.append(v)
+
         if self.engineName in self.private:
             self.livetv.Load(self.private[self.engineName])
 
@@ -157,6 +199,19 @@ class LivetvParser(KolaParser):
         self.tvName = ''
         self.order = PRIOR_DEFTV
         self.area = ''
+        self.db = LivetvDB()
+
+    def NewAlbumAndVideo(self, albumName, videoUrl):
+        album = self.NewAlbum(albumName)
+        video = None
+        if album:
+            video = album.NewVideo(videoUrl)
+            if video:
+                if re.findall('HD|hd|高清', albumName):
+                    video.isHigh = 1
+                album.videos.append(video)
+
+        return album, video
 
     def NewAlbum(self, name, epgInfo=None):
         album = None
@@ -166,19 +221,31 @@ class LivetvParser(KolaParser):
 #        if albumName in ['宁波文化娱乐']:
 #            print(albumName)
         if albumName:
-            album  = LivetvAlbum()
-            album.albumName  = albumName
-            album.Number     = GetNumber(album.albumName)
-            album.tvName     = self.tvName
-            album.order      = self.order
-            album.vid        = GetOrder(album.albumName) + utils.genAlbumId(album.albumName)
-            album.categories = self.tvCate.GetCategories(album.albumName)
+            DisplayAlbumName = albumName
+            isHigh = 0
+            if re.findall('HD|hd|高清', albumName):
+                isHigh = 1
+                #DisplayAlbumName = re.sub('-高清', '', albumName)
 
+            vid = GetOrder(DisplayAlbumName) + utils.genAlbumId(DisplayAlbumName)
+
+            album = LivetvAlbum()
+            js, count = self.db.GetAlbumListJson({"filter" : {"vids": vid,"cid":200}}, disablePage=True, full=True)
+            if js and count == 1:
+                album.LoadFromJson(js[0])
+
+            album.isHigh      = isHigh
+            album.albumName   = DisplayAlbumName
+            album.Number      = GetNumber(album.albumName)
+            album.tvName      = self.tvName
+            album.order       = self.order
+            album.vid         = vid
+            album.categories  = self.tvCate.GetCategories(albumName)
             album.enAlbumName = self.tvName
 
             if album.cid == 200: # 直播
                 if epgInfo == None:
-                    album.epgInfo = GetEPGScript(albumName)
+                    album.epgInfo = GetEPGScript(album.albumName)
                 else:
                     album.epgInfo = epgInfo
 

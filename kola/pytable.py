@@ -4,21 +4,45 @@ import re
 
 
 class Pinyin(object):
+    def convert(self, k):
+        key_map = {
+            '一': '1',
+            '二': '2',
+            '三': '3',
+            '四': '4',
+            '五': '5',
+            '六': '6',
+            '七': '7',
+            '八': '8',
+            '九': '9',
+            '十': 'A',
+            '重': 'C'
+        }
+
+        if k in key_map:
+            return key_map[k]
+
+        return k
+
     def get_pinyin(self, chars='', splitter='-'):
         result = []
         flag = 1
         for char in chars:
-            key = "%X" % ord(char)
-            try:
-                result.append(
-                    self.dict[key].split(" ")[0].strip()[:-1].lower())
-                flag = 1
-            except KeyError:
-                if flag:
-                    result.append(char)
-                else:
-                    result[-1] += char
-                flag = 0
+            x = self.convert(char)
+            if x == char:
+                key = "%X" % ord(char)
+                try:
+                    result.append(
+                        self.dict[key].split(" ")[0].strip()[:-1].lower())
+                    flag = 1
+                except KeyError:
+                    if flag:
+                        result.append(char)
+                    else:
+                        result[-1] += char
+                    flag = 0
+            else:
+                result.append(x)
 
         return splitter.join(result)
 
@@ -32,6 +56,7 @@ class Pinyin(object):
         result = []
         flag = 1
         for char in chars:
+            char = self.convert(char)
             if char == ' ':
                 continue
             try:

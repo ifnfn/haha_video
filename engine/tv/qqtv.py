@@ -6,7 +6,7 @@ import re
 from kola import LivetvMenu
 
 from .common import PRIOR_QQ
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 # 腾讯直播电视
@@ -20,8 +20,6 @@ class ParserQQLivetv(LivetvParser):
         self.cmd['regular'] = ['(data-cname=.*data-playid=.*data-key=.*>)']
 
     def CmdParser(self, js):
-        db = LivetvDB()
-
         playlist = js['data'].split(">\n")
 
         for ch_text in playlist:
@@ -32,16 +30,10 @@ class ParserQQLivetv(LivetvParser):
                 ch[k] = v
 
             albumName = ch['data-cname']
-            album  = self.NewAlbum(albumName)
-            if album == None:
-                continue
-
             videoUrl = 'qqtv://' + ch['data-playid']
-            v = album.NewVideo(videoUrl)
 
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+            self.db.SaveAlbum(album)
 
 class QQLiveTV(LivetvMenu):
     '''

@@ -7,7 +7,7 @@ from xml.etree import ElementTree
 from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 class M2OLivetvParser(LivetvParser):
@@ -47,16 +47,10 @@ class M2OLivetvParser(LivetvParser):
         if ok == False:
             return
 
-        album  = self.NewAlbum(albumName)
-
-        if album == None:
-            return
-
         videoUrl,_ = re.subn('^http://', 'm2otv://', url)
-        v = album.NewVideo(videoUrl)
-        if v:
-            album.videos.append(v)
-            LivetvDB().SaveAlbum(album)
+
+        album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+        self.db.SaveAlbum(album)
 
 # 安徽电视台
 class ParserAnhuiLivetv(M2OLivetvParser):

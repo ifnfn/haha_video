@@ -7,124 +7,11 @@ import traceback
 import pymongo
 import redis
 
-from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin, GetScript
+from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin
 
-
-# 每个 Video 表示一个可以播放视频
-class VideoBase:
-    def __init__(self, js=None):
-        '''
-        self.data = {
-            'pid' : '371214851',
-            "name": "花非花雾非雾第1集",
-            "vid": 1268037,
-            "order": "1",
-            "playLength": 1935.051,
-            "showName": "第1集",
-            "publishTime": "2013-08-06",
-            "videoDesc": "事情一定要注意，有事给自己的打招呼。",
-            "isHigh": 1,
-
-            "videoPlayCount": 18435401,
-            "videoScore": 9.385957,
-
-            "largePicUrl": "http://photocdn.sohu.com/20130806/vrsb924544.jpg",
-            "smallPicUrl": "http://photocdn.sohu.com/20130806/vrss924544.jpg",
-        }
-        '''
-
-        self.pid = ''
-        self.name = ''
-        self.vid = ''
-        self.cid = 0
-
-        self.order = -1
-        self.playLength = 0.0
-        self.showName = ''
-        self.videoDesc = ''
-        self.isHigh = -1
-
-        self.PlayCount = 0
-        self.Score = 0.0
-
-        self.smallPicUrl = ''
-        self.largePicUrl = ''
-        self.playUrl = ''
-        self.private = {}
-
-        self.resolution = {}
-        self.info = {}
-
-        if js:
-            self.LoadFromJson(js)
-
-    def SetVideoUrlScript(self, name, script, param):
-        url = GetScript(script, 'get_video_url', param)
-        self.SetVideoUrl(name, url)
-
-    def SetVideoUrl(self, name, url):
-        nameList = {
-            'default' : '自动',
-            'super'   : '超清',
-            'high'    : '高清',
-            'original': '原画',
-            'normal'  : '标清'
-        }
-
-        if name in nameList:
-            self.resolution[nameList[name]] = url
-            if name == 'default':
-                self.resolution[nameList[name]]['default'] = 1
-        else:
-            self.resolution[name] = url
-
-    def SaveToJson(self):
-        ret = {}
-
-        if self.cid             : ret['cid']          = self.cid
-        if self.pid             : ret['pid']          = self.pid
-        if self.vid             : ret['vid']          = self.vid
-        if self.name            : ret['name']         = self.name
-
-        if self.order != -1     : ret['order']        = self.order
-        if self.playLength      : ret['playLength']   = self.playLength
-        if self.showName        : ret['showName']     = self.showName
-        if self.videoDesc       : ret['videoDesc']    = self.videoDesc
-        if self.isHigh != -1    : ret['isHigh']       = self.isHigh
-        if self.PlayCount       : ret['PlayCount']    = self.PlayCount
-        if self.Score           : ret['Score']        = self.Score
-        if self.largePicUrl     : ret['largePicUrl']  = self.largePicUrl
-        if self.smallPicUrl     : ret['smallPicUrl']  = self.smallPicUrl
-
-        if self.resolution      : ret['resolution']   = self.resolution
-        if self.private         : ret['private']      = self.private
-        if self.info            : ret['info']         = self.info
-
-        return ret
-
-    def LoadFromJson(self, json):
-        if 'cid' in json        : self.cid            = autoint(json['cid'])
-        if 'pid' in json        : self.pid            = autostr(json['pid'])
-        if 'vid' in json        : self.vid            = autostr(json['vid'])
-
-        if 'order' in json      : self.order          = autoint(json['order'])
-        if 'name' in json       : self.name           = json['name']
-        if 'videoName' in json  : self.name           = json['videoName']
-        if 'playLength' in json : self.playLength     = json['playLength']
-        if 'showName' in json   : self.showName       = json['showName']
-        if 'videoDesc' in json  : self.videoDesc      = json['videoDesc']
-        if 'isHigh' in json     : self.isHigh         = autoint(json['isHigh'])
-        if 'PlayCount' in json  : self.PlayCount      = json['PlayCount']
-        if 'Score' in json      : self.Score          = json['Score']
-        if 'largePicUrl' in json: self.largePicUrl    = json['largePicUrl']
-        if 'smallPicUrl' in json: self.smallPicUrl    = json['smallPicUrl']
-        if 'videos' in json     : self.videos         = json['videos']
-        if 'private' in json    : self.private        = json['private']
-        if 'info' in json       : self.info           = json['info']
 
 class AlbumBase:
     def __init__(self):
-        self.VideoClass = VideoBase
         self.cid = 0
 
         self.albumName       = ''  # 名称        [*]
@@ -148,7 +35,7 @@ class AlbumBase:
 
         self.albumDesc       = ''  # [*]
 
-        self.totalSet        = 0   # 总集数       [*]
+        self.totalSet        = 0   # 总集数      [*]
         self.updateSet       = 0   # 当前更新集   [*]
         self.dailyPlayNum    = 0   # 每日播放次数 [*]
         self.weeklyPlayNum   = 0   # 每周播放次数 [*]
@@ -167,16 +54,10 @@ class AlbumBase:
         self.videos          = []
         self.private         = {}
         self.engineList      = []
+        self.videoList       = []
 
         if self.engineName:
             self.engineList.append(self.engineName)
-
-    def NewVideo(self, js=None):
-        v = self.videoClass(js)
-        v.pid = self.vid
-        v.cid = self.cid
-
-        return v
 
     def SaveToJson(self):
         ret = {}
@@ -223,14 +104,13 @@ class AlbumBase:
         if self.monthlyPlayNum  : ret['monthlyPlayNum']  = self.monthlyPlayNum   # 每月播放次数
         if self.totalPlayNum    : ret['totalPlayNum']    = self.totalPlayNum     # 总播放资料
         if self.Score           : ret['Score']           = self.Score
-        ret['Number']          = self.Number
 
         if self.sources         : ret['sources']         = self.sources
         if self.epgInfo         : ret['epgInfo']         = self.epgInfo
-
-        #if self.videoListUrl: ret['videoListUrl']    = self.videoListUrl  # 每日指数
+        if self.videoList       : ret['videoList']       = self.videoList
 
         ret['private'] = self.private
+        ret['Number']  = self.Number
 
         return ret
 
@@ -277,6 +157,7 @@ class AlbumBase:
         if 'Number' in json         : self.Number          = json['Number']
 
         if 'updateTime' in json     : self.updateTime      = json['updateTime']
+        if 'videoList' in json      : self.videoList       = json['videoList']
 
         if 'sources' in json        : self.sources         = json['sources']
         if 'epgInfo' in json        : self.epgInfo         = json['epgInfo']
@@ -582,6 +463,29 @@ class DB:
     def GetVideoListJson(self, pid='', arg={}):
         ret = []
         pid        = autostr(pid)
+        allVideo = False
+        if 'page' in arg and 'size' in arg:
+            page = autoint(arg['page'])
+            size = autoint(arg['size'])
+        else:
+            allVideo = True
+            size = 0
+
+        cursor = self.album_table.find({'vid' : pid}, fields = {'videoList': True})
+        if cursor:
+            for x in cursor:
+                videoList = x['videoList']
+                count = len(videoList)
+                if size or allVideo:
+                    videoList = sorted(videoList, key=lambda d:d['order'])
+                else:
+                    videoList = []
+
+                return videoList, count
+
+        return [], 0
+
+        #################### 以下不要啦！###############################
         count = 0
         try:
             _filter = {}

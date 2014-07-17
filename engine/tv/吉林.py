@@ -6,7 +6,7 @@ import re
 from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 # 吉林电视台
@@ -23,22 +23,13 @@ class ParserJLntvLivetv(LivetvParser):
         self.cmd['regular'] = ['(<li id="T_Menu_.*</a></li>)']
 
     def CmdParser(self, js):
-        db = LivetvDB()
-
         ch_list = re.findall('<li id="T_Menu_(\d*)"><a href="(.*)">(.*)</a></li>', js['data'])
 
         for _, u, n in ch_list:
             albumName = '吉林台-' + n
-            album  = self.NewAlbum(albumName)
-            if album == None:
-                continue
-
             videoUrl = 'jlntv://' + u
-            v = album.NewVideo(videoUrl)
-            
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+            self.db.SaveAlbum(album)
 
 class JilingLiveTV(LivetvMenu):
     '''

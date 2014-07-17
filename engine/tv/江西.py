@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup as bs
 from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 # 江西电视台
@@ -37,20 +37,15 @@ class ParserJianXiLivetv(LivetvParser):
 
     def CmdParser(self, js):
         baseUrl = js['source']
-        db = LivetvDB()
         soup = bs(js['data'])  # , from_encoding = 'GBK')
 
         albumTag = soup.findAll('a')
         for ch in albumTag:
             href = baseUrl + ch.get('href')
             albumName = ch.text
-            album  = self.NewAlbum(albumName)
-
             videoUrl = re.sub('^http://', 'jxtv://', href)
-            v = album.NewVideo(videoUrl)
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+            self.db.SaveAlbum(album)
 
 class JianXiLiveTV(LivetvMenu):
     '''

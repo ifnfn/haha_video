@@ -9,8 +9,16 @@ void test_custommenu()
 {
 	size_t count;
 	CustomMenu *menu = new CustomMenu("/tmp/abc");
+	menu->SetMaxCount(2);
 	count = menu->GetAlbumCount();
 	printf("count=%ld\n", count);
+
+	menu->AlbumAdd("9gtvc9e467f9c6");
+	menu->AlbumAdd("00244963dc8049");
+	menu->AlbumAdd("0051fbb80cce31");
+	menu->AlbumAdd("0052073e2e13bc");
+	menu->AlbumAdd("0043bf2d0e47ac");
+	menu->SaveToFile();
 
 	while(1) {
 		for (int i=0; i < count; i++) {
@@ -827,9 +835,9 @@ int main(int argc, char **argv)
 //	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
 //	printf("Test LiveTV(No EPG)\n"); test_livetv_noepg(); return 0;
-//	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
+	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_epglist(); return 0;
-	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); return 0;
+//	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;

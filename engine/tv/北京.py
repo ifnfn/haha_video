@@ -4,7 +4,7 @@
 from kola import utils, LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 # 陕西卫视
@@ -41,7 +41,6 @@ class BtvLiveTV(LivetvMenu):
             ('卡酷少儿', 'KAKU', 84),  # http://his.cdn.brtn.cn/approve/live?channel=
         ]
 
-        db = LivetvDB()
         parser = ParserBTV()
         for albumName, pid, channel_id in self.tvList:
             album  = parser.NewAlbum(albumName)
@@ -57,4 +56,4 @@ class BtvLiveTV(LivetvMenu):
             v.info = utils.GetScript('btv', 'get_channel', [channel_id])
 
             album.videos.append(v)
-            db.SaveAlbum(album)
+            self.db.SaveAlbum(album)

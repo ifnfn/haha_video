@@ -80,25 +80,6 @@ class QiyiAliasComic(KolaAlias):
 alias = QiyiAlias()
 ComicAlias = QiyiAliasComic()
 
-class QiyiVideo(kola.VideoBase):
-    def SaveToJson(self):
-        ret = super().SaveToJson()
-
-        return ret
-
-    def LoadFromJson(self, json):
-        super().LoadFromJson(json)
-
-    def SetVideoScript(self, name, vid, func_name='kola_main'):
-        url = {
-            'script'     : 'qiyi',
-            'parameters' : [autostr(vid), autostr(self.cid)]
-        }
-        if func_name and func_name != 'kola_main':
-                url['function'] = func_name
-
-        self.SetVideoUrl(name, url)
-
 class QiyiPrivate:
     def __init__(self):
         self.name =  '爱奇艺'
@@ -127,10 +108,7 @@ class QiyiAlbum(kola.AlbumBase):
     def __init__(self):
         self.engineName = 'QiyiEngine'
         super().__init__()
-
         self.qiyi = QiyiPrivate()
-
-        self.videoClass = QiyiVideo
 
     def SaveToJson(self):
         if self.qiyi:

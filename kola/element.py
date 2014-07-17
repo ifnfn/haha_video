@@ -21,10 +21,9 @@ class LivetvMenu(db.VideoMenuBase):
                 '本省台',
                 '体育台',
                 '高清台',
-                #'综合台',
                 '少儿台',
                 '地方台',
-                #'境外台'
+                '网络台',
                 ],
             'PinYin' : []
         }

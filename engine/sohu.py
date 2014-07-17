@@ -34,15 +34,6 @@ class SohuAlias(KolaAlias):
             '娱乐节目' : '娱乐'
         }
 
-class SohuVideo(kola.VideoBase):
-    def SaveToJson(self):
-        ret = super().SaveToJson()
-
-        return ret
-
-    def LoadFromJson(self, json):
-        super().LoadFromJson(json)
-
 class SohuPrivate:
     def __init__(self):
         self.name =  '搜狐'
@@ -73,8 +64,6 @@ class SohuAlbum(kola.AlbumBase):
         super().__init__()
 
         self.sohu = SohuPrivate()
-
-        self.videoClass = SohuVideo
 
     def SaveToJson(self):
         if self.sohu:

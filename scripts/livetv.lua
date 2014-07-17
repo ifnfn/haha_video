@@ -254,21 +254,32 @@ end
 function get_video_pptv(url)
 	vid = string.gsub(url, "pptv://", "")
 	local kk = "";
+	local user_agent = "Mozilla/5.0 (iPad; CPU OS 7_1_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D201 Safari/9537.53"
 	local pphtml = curl_get("http://v.pptv.com/show/h1G4Np4EdLIVkics.html",
-					"Mozilla/5.0 (iPad; CPU OS 7_1_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D201 Safari/9537.53",
-					"http://live.pptv.com/")
+					user_agent, "http://live.pptv.com/")
+
+
+	--v = curl_json("http://v.pptv.com/show/h1G4Np4EdLIVkics.html", '"player":(.*?),"plugin"')
+	--print(v.ctx)
+	--kk = rex.match(v.ctx, 'kk%3D(.*)')
+	--print(v.playList[1].ipadurl)
+	--u = string.format('%s?type=m3u8.web.pad&playback=0&kk=%s&o=v.pptv.com' , v.playList[1].ipadurl, kk)
+	--print(u)
 
 	if pphtml and string.find(pphtml, "kk%%3D") then
 		kk = rex.match(pphtml, 'kk%3D(.*?)"')
 	end
 
-	--[[
 	if not isnan(vid) then
-		return string.format("http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0&kk=%s&o=v.pptv.com", vid, kk)
-		return string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', id)
+		--url = string.format("http://web-play.pptv.com/web-m3u8-%s.m3u8?type=ikan&playback=0&kk=%s&o=v.pptv.com", vid, kk)
+		url = string.format("http://web-play.pptv.com/web-m3u8-%s.m3u8?type=ipad&playback=0&kk=%s", vid, kk)
+		--url = string.format('http://web-play.pptv.com/web-m3u8-%s.m3u8?type=m3u8.web.pad&playback=0', id)
+		return url
 	end
-	]]--
-	local xml = curl_get("http://jump.synacast.com/live2/" .. vid)
+
+	url = "http://jump.synacast.com/live2/" .. vid
+	local xml = curl_get(url)
+	print(xml)
 	if xml then
 		local ip = rex.match(xml, '<server_host>(.*?)</server_host>')
 		local delay = rex.match(xml, '<delay_play_time>(.*?)</delay_play_time>')
@@ -368,7 +379,6 @@ function get_video_52itv(url)
 	end
 
 	local function letv_video2(url)
-		local url = string.gsub(url, '.letv', '')
 		url, _ = curl_get_location(url, false)
 		local url = string.gsub(url, 'format=%d+', 'format=1')
 
@@ -385,6 +395,7 @@ function get_video_52itv(url)
 	end
 
 	url = string.format('%s?k=%s', url, get_livekey())
+	print(url)
 	if string.find(url, '.sdtv') then
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''

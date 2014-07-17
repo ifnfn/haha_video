@@ -6,7 +6,7 @@ import tornado.escape
 from kola import LivetvMenu, json_get
 
 from .common import PRIOR_SOHU
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 # 搜狐直播电视
@@ -23,29 +23,18 @@ class ParserSohuLivetv(LivetvParser):
         self.cmd['regular'] = ['{var par=(.*?);']
 
     def CmdParser1(self, js):
-        db = LivetvDB()
-
         tvlist = tornado.escape.json_decode(js['data'])
         for v in tvlist['attachment']:
             pid = json_get(v, 'id', '')
 
-            alubmName = json_get(v, 'name', '')
-            album  = self.NewAlbum(alubmName)
-            if album == None:
-                continue
-
-            album.smallPicUrl = json_get(v, 'ico', '')
-
+            albumName = json_get(v, 'name', '')
             videoUrl = 'sohutv://%d' % pid
-            v = album.NewVideo(videoUrl)
-
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+            if album:
+                album.smallPicUrl = json_get(v, 'ico', '')
+                self.db.SaveAlbum(album)
 
     def CmdParser(self, js):
-        db = LivetvDB()
-
         tvlist = tornado.escape.json_decode(js['data'])
         for v in tvlist['STATIONS']:
             if json_get(v, 'IsSohuSource', 0) != 1:
@@ -53,19 +42,12 @@ class ParserSohuLivetv(LivetvParser):
 
             pid = json_get(v, 'STATION_ID', '')
 
-            alubmName = json_get(v, 'STATION_NAME', '')
-            album  = self.NewAlbum(alubmName)
-            if album == None:
-                continue
-
-            album.smallPicUrl = json_get(v, 'STATION_PIC', '')
-
+            albumName = json_get(v, 'STATION_NAME', '')
             videoUrl = 'sohutv://%d' % pid
-            v = album.NewVideo(videoUrl)
-
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+            if album:
+                album.smallPicUrl = json_get(v, 'STATION_PIC', '')
+                self.db.SaveAlbum(album)
 
 class SohuLiveTV(LivetvMenu):
     '''

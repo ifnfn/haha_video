@@ -4,7 +4,7 @@
 from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 class TextLivetvParser(LivetvParser):
@@ -31,14 +31,9 @@ class TextLivetvParser(LivetvParser):
         self.cmd['text'] = 'OK'
 
     def CmdParser(self, js):
-        db = LivetvDB()
-        for alubmName, videoUrl in self.tvs.items():
-            album = self.NewAlbum(alubmName)
-
-            v = album.NewVideo(videoUrl)
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+        for albumName, videoUrl in self.tvs.items():
+            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+            self.db.SaveAlbum(album)
 
 class TextLiveTV(LivetvMenu):
     '''

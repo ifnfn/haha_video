@@ -6,7 +6,7 @@ import re
 from kola import LivetvMenu
 
 from .common import PRIOR_WASU
-from .livetvdb import LivetvParser, LivetvDB
+from .livetvdb import LivetvParser
 
 
 # 华数直播电视
@@ -44,8 +44,6 @@ class ParserWasuLivetv(LivetvParser):
         self.cmd['regular'] = ['(<a class="ys" href=".*">.*</a>)']
 
     def CmdParser(self, js):
-        db = LivetvDB()
-
         playlist = js['data'].split("\n")
 
         for ch_text in playlist:
@@ -55,16 +53,9 @@ class ParserWasuLivetv(LivetvParser):
                 continue
 
             videoUrl = ch_list[0][0]
-            alubmName = ch_list[0][1]
-
-            album  = self.NewAlbum(alubmName)
-            if album == None:
-                continue
-
-            v = album.NewVideo(videoUrl)
-            if v:
-                album.videos.append(v)
-                db.SaveAlbum(album)
+            albumName = ch_list[0][1]
+            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+            self.db.SaveAlbum(album)
 
 class WasuLiveTV(LivetvMenu):
     '''

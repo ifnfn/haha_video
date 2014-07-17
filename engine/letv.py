@@ -74,25 +74,6 @@ class LetvAlias(KolaAlias):
             '经典' : '其他',
         }
 
-class LetvVideo(kola.VideoBase):
-    def SaveToJson(self):
-        ret = super().SaveToJson()
-
-        return ret
-
-    def LoadFromJson(self, json):
-        super().LoadFromJson(json)
-
-    def SetVideoScript(self, name, vid, func_name='kola_main'):
-        url = {
-            'script'     : 'letv',
-            'parameters' : [autostr(vid), autostr(self.cid)]
-        }
-        if func_name and func_name != 'kola_main':
-                url['function'] = func_name
-
-        self.SetVideoUrl(name, url)
-
 class LetvPrivate:
     def __init__(self):
         self.name =  '乐视'
@@ -120,8 +101,6 @@ class LetvAlbum(kola.AlbumBase):
         super().__init__()
 
         self.letv = LetvPrivate()
-
-        self.videoClass = LetvVideo
 
     def SaveToJson(self):
         if self.letv:

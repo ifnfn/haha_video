@@ -76,25 +76,6 @@ class FunshionAlias(KolaAlias):
 
 alias = FunshionAlias()
 
-class FunshionVideo(kola.VideoBase):
-    def SaveToJson(self):
-        ret = super().SaveToJson()
-
-        return ret
-
-    def LoadFromJson(self, json):
-        super().LoadFromJson(json)
-
-    def SetVideoScript(self, name, vid, func_name='kola_main'):
-        url = {
-            'script'     : 'pptv',
-            'parameters' : [kola.autostr(vid), kola.autostr(self.cid)]
-        }
-        if func_name and func_name != 'kola_main':
-                url['function'] = func_name
-
-        self.SetVideoUrl(name, url)
-
 class FunshionPrivate:
     def __init__(self):
         self.name =  'PPTV'
@@ -119,7 +100,6 @@ class FunshionAlbum(kola.AlbumBase):
         super().__init__()
 
         self.qq = FunshionPrivate()
-        self.videoClass = FunshionVideo
 
     def SaveToJson(self):
         if self.qq:

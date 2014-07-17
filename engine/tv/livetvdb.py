@@ -207,6 +207,10 @@ class LivetvParser(KolaParser):
         if album:
             video = album.NewVideo(videoUrl)
             if video:
+                for v in album.videos:
+                    if v.vid == video.vid:
+                        return None, None
+
                 if re.findall('HD|hd|高清', albumName):
                     video.isHigh = 1
                 album.videos.append(video)

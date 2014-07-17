@@ -474,14 +474,15 @@ class DB:
         cursor = self.album_table.find({'vid' : pid}, fields = {'videoList': True})
         if cursor:
             for x in cursor:
-                videoList = x['videoList']
-                count = len(videoList)
-                if size or allVideo:
-                    videoList = sorted(videoList, key=lambda d:d['order'])
-                else:
-                    videoList = []
+                if 'videoList' in x:
+                    videoList = x['videoList']
+                    count = len(videoList)
+                    if size or allVideo:
+                        videoList = sorted(videoList, key=lambda d:d['order'])
+                    else:
+                        videoList = []
 
-                return videoList, count
+                    return videoList, count
 
         return [], 0
 

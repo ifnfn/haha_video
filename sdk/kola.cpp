@@ -24,7 +24,8 @@
 #	define SERVER_HOST "127.0.0.1"
 #	define PORT 9991
 #else
-#	define SERVER_HOST "www.kolatv.com"
+//#	define SERVER_HOST "www.kolatv.com"
+#	define SERVER_HOST "114.215.174.227"
 #	define PORT 80
 #endif
 

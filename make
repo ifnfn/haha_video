@@ -48,18 +48,18 @@ build_py() {
     python3 -b -m compileall .         -lfb -d .
     python3 -b -m compileall kola      -lfb -d .
     python3 -b -m compileall barcode   -lfb -d .
-    #python3 -b -m compileall engine    -lfb -d .
-    #python3 -b -m compileall engine/tv -lfb -d .
+    python3 -b -m compileall engine    -lfb -d .
+    python3 -b -m compileall engine/tv -lfb -d .
     mkdir -p pyclib/kola pyclib/barcode pyclib/engine/tv
     mv *.pyc           pyclib/
     mv kola/*.pyc      pyclib/kola/
     mv barcode/*.pyc   pyclib/barcode/
-    #mv engine/*.pyc    pyclib/engine/
-    #mv engine/tv/*.pyc pyclib/engine/tv/
+    mv engine/*.pyc    pyclib/engine/
+    mv engine/tv/*.pyc pyclib/engine/tv/
 
     cp -af scripts templates static pyclib/
-    scp -r pyclib root@114.215.174.227:~/kolatv
-    scp all.sh super_client.py root@114.215.174.227:~/kolatv/
+    scp -r pyclib/* root@114.215.174.227:~/kolatv/
+    scp *.json all.sh super_client.py root@114.215.174.227:~/kolatv/
 }
 
 if [ $# -le 1 ]; then

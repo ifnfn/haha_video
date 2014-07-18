@@ -621,7 +621,7 @@ void test_video(const char *menuName)
 	//m->FilterAdd("类型", "爱情片");
 	//m->FilterAdd("产地", "香港,台湾");
 	//m->FilterAdd("年份", "2013");
-	//m->SetQuickFilter("推荐电影");
+	m->SetQuickFilter("推荐电影");
 	//m->SetQuickFilter("日韩电影");
 
 	//m->SetSort("日播放最多");

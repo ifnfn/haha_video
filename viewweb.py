@@ -125,26 +125,6 @@ class AlbumListHandler(BaseHandler):
 
         self.finish(tornado.escape.json_encode(args))
 
-class GetVideoPlayerUrlHandle(BaseHandler):
-    @tornado.web.authenticated
-    def get(self):
-        ret = []
-        vid = self.get_argument('vid', '')
-        res = self.get_argument('resolution', '')
-        try:
-            video = kolas.GetVideoByVid(vid)
-            if video:
-                for k,v in list(video['videos'].items()):
-                    if (res == '' and k == 'default') or res == 'all' or v['name'] in res:
-                        ret.append(v)
-                if len(ret) == 0: # 如果没有找到，就使用第一个
-                    for _,v in list(video['videos'].items()):
-                        ret.append(v)
-                        break
-
-        finally:
-            self.finish(tornado.escape.json_encode(ret))
-
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=0'
 class GetVideoHandler(BaseHandler):
@@ -166,14 +146,10 @@ class GetVideoHandler(BaseHandler):
 
     def Finish(self, args, pid, full):
         videos, count = kolas.GetVideoListByPid(pid, args)
-        #if full != '1':
-        #    for v in videos:
-        #        del v['videos']
 
         args['count'] = count
         args['videos'] = videos
         self.finish(tornado.escape.json_encode(args))
-        #self.finish(json.dumps(args, indent=4, ensure_ascii=False))
 
     def post(self):
         args,pid,full = self.argument()
@@ -673,7 +649,6 @@ class ViewApplication(tornado.web.Application):
             (r'/video/getmenu',    GetMenuHandler),         #
             (r'/video/getinfo',    GetKolaInfoHandler),     #
 
-            (r'/video/geturl',     GetVideoPlayerUrlHandle),
             (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
             (r'/ad',               ADHandler),              # 广告

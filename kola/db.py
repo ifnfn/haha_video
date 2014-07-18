@@ -51,7 +51,6 @@ class AlbumBase:
 
         self.epgInfo         = {}
         self.sources         = {}  # 直接节目    [*]
-        self.videos          = []
         self.private         = {}
         self.engineList      = []
         self.videoList       = []
@@ -64,7 +63,6 @@ class AlbumBase:
         if self.engineName and self.engineName not in self.engineList:
             self.engineList.append(self.engineName)
         if self.engineList      : ret['engineList']      = self.engineList
-
         if self.cid             : ret['cid']             = self.cid
 
         if self.albumName:
@@ -234,24 +232,19 @@ class DB:
     con = pymongo.Connection('localhost', 27017)
     kola = con.kola
     album_table  = kola.album
-    videos_table = kola.videos
     map_table    = kola.urlmap
     menu_table   = kola.menu
     user_table   = kola.users
-    videos_table.drop_indexes()
-    videos_table.create_index([('pid', pymongo.ASCENDING)])
-    videos_table.create_index([('vid', pymongo.ASCENDING)])
-    videos_table.create_index([('pid', pymongo.ASCENDING), ('vid', pymongo.ASCENDING)])
 
     album_table.drop_indexes()
-    album_table.create_index([('engineList'  , pymongo.ASCENDING)])
-    album_table.create_index([('albumName'   , pymongo.ASCENDING)])
-    album_table.create_index([('vid'         , pymongo.ASCENDING)])
-    album_table.create_index([('cid'         , pymongo.ASCENDING)])
+    album_table.create_index([('engineList', pymongo.ASCENDING)])
+    album_table.create_index([('albumName' , pymongo.ASCENDING)])
+    album_table.create_index([('vid'       , pymongo.ASCENDING)])
+    album_table.create_index([('cid'       , pymongo.ASCENDING)])
 
     user_table.drop_indexes()
-    user_table.create_index([('serial'       , pymongo.ASCENDING)])
-    user_table.create_index([('client_id'    , pymongo.ASCENDING)])
+    user_table.create_index([('serial'     , pymongo.ASCENDING)])
+    user_table.create_index([('client_id'  , pymongo.ASCENDING)])
 
     fieldMapping = {
             '类型' : 'categories',
@@ -292,20 +285,6 @@ class DB:
     def GetVideoCache(self, key):
         return self.video_cachedb.get(key)
 
-    def SaveVideo(self, video):
-        if video.vid:
-            js = video.SaveToJson()
-            upert = {}
-
-            upert['vid'] = video.vid
-            if video.pid:
-                upert['pid'] = video.pid
-
-            self.videos_table.update(
-                       upert,
-                       {'$set' : js},
-                       upsert=True, multi=True)
-
     def _GetKeyAndJson(self, album, key):
         album.vid = autostr(album.vid)
         key = ''
@@ -326,9 +305,6 @@ class DB:
 
         if key:
             self.album_table.update(key, {"$set" : js}, upsert=upsert, multi=True)
-
-            for v in album.videos:
-                self.SaveVideo(v)
 
     def FindAlbumJson(self, albumName='', vid=''):
         vid = autostr(vid)
@@ -448,20 +424,7 @@ class DB:
 
         return ret, count
 
-    def FindVideoJson(self, pid='', vid=''):
-        pid        = autostr(pid)
-        vid        = autostr(vid)
-        if pid == '' and vid == '':
-            return None
-
-        f = []
-        if pid: f.append({'pid' : pid})
-        if vid: f.append({'vid' : vid})
-
-        return self.videos_table.find_one({"$or" : f})
-
     def GetVideoListJson(self, pid='', arg={}):
-        ret = []
         pid        = autostr(pid)
         allVideo = False
         if 'page' in arg and 'size' in arg:
@@ -482,58 +445,9 @@ class DB:
                     else:
                         videoList = []
 
-                    return videoList, count
+                    return videoList[page*size:(page+1)*size], count
 
         return [], 0
-
-        #################### 以下不要啦！###############################
-        count = 0
-        try:
-            _filter = {}
-            if pid:
-                _filter['pid'] = pid
-
-            if 'filter' in arg:
-                _filter.update(arg['filter'])
-
-            if 'fields' in arg:
-                fields = arg['fields']
-            else:
-                fields = None
-
-            if not _filter:
-                return ret, 0
-
-            cursor = self.videos_table.find(_filter, fields = fields)
-
-            if 'sort' in arg:
-                cursor = cursor.sort(arg['sort'])
-            else:
-                cursor = cursor.sort([('order', 1)])
-
-            count = cursor.count()
-
-            allVideo = False
-            if 'page' in arg and 'size' in arg:
-                page = autoint(arg['page'])
-                size = autoint(arg['size'])
-            else:
-                allVideo = True
-                size = 0
-
-            if size or allVideo:
-                if size:
-                    cursor = cursor.skip(page * size).limit(size)
-                for x in cursor:
-                    del x['_id']
-                    ret.append(x)
-            elif size == 0 and page == 0:
-                pass
-        except:
-            t, v, tb = sys.exc_info()
-            log.error("SohuVideoMenu.CmdParserHotInfoByIapi  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
-
-        return ret, count
 
     def GetMenuAlbumCount(self, cid):
         return self.album_table.find({'cid': cid}).count()

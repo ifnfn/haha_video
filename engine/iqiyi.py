@@ -8,7 +8,7 @@ import traceback
 from bs4 import BeautifulSoup as bs
 import tornado.escape
 
-from kola import DB, autostr, autoint, autofloat, Singleton, utils
+from kola import DB, autoint, autofloat, Singleton, utils
 import kola
 
 from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu

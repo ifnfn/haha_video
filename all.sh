@@ -27,11 +27,11 @@ Score() {
 }
 
 UpdateTV() {
-#    mongo kola --eval 'db.album.remove({"cid":200}); db.videos.remove({"cid":200})'
+    mongo kola --eval 'db.album.remove({"cid":200})'
     UpdateAlbum Livetv
     UpdateAlbum Livetv2
 }
 
 UpdateTV
-#Update
+Update
 #Score

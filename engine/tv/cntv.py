@@ -33,7 +33,7 @@ class ParserCntvLivetv(LivetvParser):
                 albumName = ch[1]
                 videoUrl = "pa://cctv_p2p_hd" + ch[0]
 
-                album, v = self.NewAlbumAndVideo(albumName, videoUrl)
+                album,_ = self.NewAlbumAndVideo(albumName, videoUrl)
                 if album:
                     album.area = self.city.GetCity(ch[3])
 

@@ -5,9 +5,9 @@ import re
 import sys
 import time
 import traceback
-from urllib.parse import quote
+#from urllib.parse import quote
 
-from bs4 import BeautifulSoup as bs, Tag
+#from bs4 import BeautifulSoup as bs, Tag
 import tornado.escape
 
 import kola

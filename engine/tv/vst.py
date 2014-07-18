@@ -60,8 +60,8 @@ class ParserVstLivetv(LivetvParser):
         self.vtv_order = 0
 
     def GetChannel(self, name):
-        channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
-        channels = ['山东', '济南']
+        #channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
+        #channels = ['山东', '济南']
         channels = ['.*']
         for p in list(channels):
             if re.findall(p, name):
@@ -102,24 +102,15 @@ class ParserVstLivetv(LivetvParser):
                 continue
 
             hrefs = ch_list[1]
-            iamge = ch_list[2]
-
-            if albumName.find('HD') >= 0 or albumName.find('高清') > 0:
-                pass
-            album = self.NewAlbum(albumName)
-            if album == None:
-                continue
 
             self.vtv_order = 0
-            album.largePicUrl = iamge
-            for videoUrl in hrefs.split('#'):
-                v = album.NewVideo(videoUrl, album.isHigh)
+            album,videos = self.NewAlbumAndVideo(albumName, hrefs.split('#'))
+            if album:
+                album.largePicUrl = ch_list[2]
+                for v in videos:
+                    v.order, v.name = self.GetTVOrder(v.videoUrl)
 
-                if v:
-                    v.order, v.name = self.GetTVOrder(videoUrl)
-                    album.videos.append(v)
-
-            self.db.SaveAlbum(album)
+                self.db.SaveAlbum(album)
 
 class VstLiveTV(LivetvMenu):
     def __init__(self, name):

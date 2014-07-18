@@ -94,6 +94,7 @@ class LivetvVideo:
         self.vid = ''
         self.order = -1
         self.isHigh = -1
+        self.videoUrl = ''
 
         self.resolution = {}
 
@@ -142,24 +143,26 @@ class LivetvAlbum(AlbumBase):
         self.engineName = 'LivetvEngine'
         super().__init__()
         self.cid =  200
-        self.albumPageUrl = ''
+        self.videos = []
         self.livetv = LivetvPrivate()
 
     def NewVideo(self, videoUrl=None, isHigh=0):
-        v = LivetvVideo()
-        v.pid = self.vid
-        v.cid = self.cid
-        v.order = self.order
-        v.name  = self.tvName
-        v.isHigh = isHigh
-        if isHigh:
-            self.isHigh = 1
+        video = LivetvVideo()
+        video.order = self.order
+        video.name  = self.tvName
+        video.isHigh = isHigh
+        video.videoUrl = videoUrl
 
         if videoUrl:
-            v.vid = utils.getVidoId(videoUrl)
-            v.SetUrl(videoUrl, self)
+            video.vid = utils.getVidoId(videoUrl)
+            video.SetUrl(videoUrl, self)
 
-        return v
+            for v in self.videos:
+                if v.vid == video.vid:
+                    return None
+
+        self.videos.append(video)
+        return video
 
     def SaveToJson(self):
         self.videoList = []
@@ -202,20 +205,19 @@ class LivetvParser(KolaParser):
         self.db = LivetvDB()
 
     def NewAlbumAndVideo(self, albumName, videoUrl):
+        videos = []
         album = self.NewAlbum(albumName)
-        video = None
         if album:
-            video = album.NewVideo(videoUrl)
-            if video:
-                for v in album.videos:
-                    if v.vid == video.vid:
-                        return None, None
+            if type(videoUrl) == str:
+                v = album.NewVideo(videoUrl, album.isHigh)
+                videos.append(v)
+            elif type(videoUrl) == list:
+                for url in videoUrl:
+                    v = album.NewVideo(url, album.isHigh)
+                    if v:
+                        videos.append(v)
 
-                if re.findall('HD|hd|高清', albumName):
-                    video.isHigh = 1
-                album.videos.append(video)
-
-        return album, video
+        return album, videos
 
     def NewAlbum(self, name, epgInfo=None):
         album = None

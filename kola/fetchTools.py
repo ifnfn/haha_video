@@ -17,7 +17,7 @@ MAX_TRY = 3
 socket_timeout = 30
 
 headers = {
-    'User-Agent'     : 'Kolatv',
+    'User-Agent'     : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36',
     'Accept'         : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-us,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate',

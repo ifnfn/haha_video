@@ -455,7 +455,6 @@ class LoginHandler(BaseHandler):
 
     def check_user_id(self):
         key = kolas.Login(self.chipid, self.serial, self.request.remote_ip, self.area)
-        
         if key:
             return key
         else:
@@ -511,8 +510,8 @@ class LoginHandler(BaseHandler):
         if key:
             nextTime = kolas.ActiveTime
         else:
-            nextTime = 3600 
-             
+            nextTime = 3600
+
         ret = {
             'key'   : key,
             'server': self.request.protocol + '://' + self.request.host,

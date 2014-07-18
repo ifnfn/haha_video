@@ -35,6 +35,7 @@ static int    ThreadNum = 10;
 
 string GetSerial(void)
 {
+	return "";
 	return Serial;
 }
 

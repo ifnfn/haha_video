@@ -84,6 +84,17 @@ function get_videolist(url, qvid, pageNo, pageSize)
 end
 
 function get_video_url(qvid, url_prefix, segments, stream_id)
+	local function get_default_url(qvid, url_prefix)
+		local url = string.format('http://vv.video.qq.com/getinfo?vids=%s&otype=json&defaultfmt=mp4', qvid)
+		local js = GetData(url)
+		fn    = js.vl.vi[1].fn
+		vkey  = js.vl.vi[1].fvkey
+		level = js.vl.vi[1].level
+		br    = js.vl.vi[1].br
+
+		return string.format('%s%s?vkey=%s&br=%s&platform=2&fmt=mp4&level=%s&sdtfrom=v4010', url_prefix, fn, vkey, br, level)
+	end
+
 	-- 获取所有视频段的 key
 	segments = cjson.decode(segments)
 	local name_prefix = 'p' .. string.sub(tostring(stream_id), 3)
@@ -99,7 +110,12 @@ function get_video_url(qvid, url_prefix, segments, stream_id)
 	for k,v in pairs(keys) do
 		local text = rex.match(v, "QZOutput.*=({[\\s\\S]*});")
 
-		if text == nil then keys[k] = ''else keys[k] = cjson.decode(text).key end
+		if string.find(text, 'key') then
+			keys[k] = '?vkey=' .. cjson.decode(text).key
+		else
+			keys[k] = ''
+			return get_default_url(qvid, url_prefix)
+		end
 	end
 
 	-- 生成视频段
@@ -107,7 +123,7 @@ function get_video_url(qvid, url_prefix, segments, stream_id)
 	for i=1,seg_num do
 		urls_list[i] = {}
 		urls_list[i].time = segments[i].duration
-		urls_list[i].url  = string.format("%s%s.%s.%d.mp4?vkey=%s", url_prefix, qvid, name_prefix, i, keys[i])
+		urls_list[i].url  = string.format("%s%s.%s.%d.mp4%s", url_prefix, qvid, name_prefix, i, keys[i])
 	end
 
 	--print(cjson.encode(urls_list))

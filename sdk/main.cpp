@@ -330,7 +330,7 @@ void test_livetv()
 		}
 		sleep(4);
 #endif
-#if 1
+#if 0
 		bool found = false;
 		while (1) {
 			KolaEpg *epg = album->NewEPG();

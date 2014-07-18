@@ -503,16 +503,22 @@ class LoginHandler(BaseHandler):
             if 'area'    in js: self.area    = js['area']
             if 'version' in js: self.version = js['version']
 
-        print("POST: [%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
-        user_id = self.check_user_id()
+        if self.serial and self.chipid:
+            key = self.check_user_id()
+        else:
+            key = ''
+
+        if key:
+            nextTime = kolas.ActiveTime
+        else:
+            nextTime = 3600 
+             
         ret = {
-            'key'    : user_id,
-            'server' : self.request.protocol + '://' + self.request.host,
-            'next'   : 60,   # 下次登录时间
-            'image'  : {
-                'wallpaper' : '',
-            }
+            'key'   : key,
+            'server': self.request.protocol + '://' + self.request.host,
+            'next'  : nextTime,   # 下次登录时间
         }
+
         #if self.cmd == '1':
         #    timeout = 0.3
         #    cmd = tv.command.GetCommand(timeout, 1)
@@ -523,7 +529,7 @@ class LoginHandler(BaseHandler):
         #            ret['next'] = 0
         #        ret['script'] = utils.GetScript('command', 'test', [json.dumps(cmd), ''])
 
-        self.set_secure_cookie("user_id", user_id, 1)
+        self.set_secure_cookie("user_id", key, 1)
 
         self.finish(json.dumps(ret))
 

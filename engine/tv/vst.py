@@ -55,7 +55,6 @@ class ParserVstLivetv(LivetvParser):
         self.ExcludeName = ['电影片花', '法国1', '高尔夫.网球', '高尔夫', '周星驰专区', 'CCTV-4 中文国际(欧洲)', 'CCTV-4 中文国际(美洲)', 'CCTV ',
                             '经典电影', 'CCTV4 中文国际(美洲)', 'CCTV4 中文国际(欧洲)',
                             '安庆'
-
                             ]
         self.vtv_order = 0
 

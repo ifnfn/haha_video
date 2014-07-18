@@ -453,46 +453,6 @@ class LoginHandler(BaseHandler):
         self.cmd     = self.get_argument('cmd', '0')
         self.version = self.get_argument('version', '')
 
-    def check_user_id(self):
-        key = kolas.Login(self.chipid, self.serial, self.request.remote_ip, self.area)
-        if key:
-            return key
-        else:
-            raise tornado.web.HTTPError(401, 'LoginHandler: Missing key %s' % self.chipid)
-
-    def get(self):
-        print("GET: [%s] [%s]: serial=%s, chipid=%s" % (self.request.remote_ip, self.area, self.serial, self.chipid))
-        ret = {
-            'key'    : self.check_user_id(),
-            'server' : self.request.protocol + '://' + self.request.host,
-            'next'   : kolas.self.ActiveTime,   # 下次登录时间
-        }
-
-#        if self.cmd == '1':
-#            ret['script'] = utils.GetScript('command', 'test', ['aaaaa', 'asdfasdfasd'])
-#===============================================================================
-#         if self.cmd == '1':
-#             if self.user_id == '000001':
-#                 timeout = 0
-#             else:
-#                 timeout = 0.3
-#             count = self.get_argument('count', 1)
-#
-#             if self.user_id == '000001':
-#                 cmd = tv.command.GetCommand(timeout, count)
-#             else:
-#                 cmd = None
-#             if cmd:
-#                 ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
-#                 ret['command'] = cmd
-#                 if self.user_id == '000001':
-#                     ret['next'] = 0
-#             else:
-#                 tv.CommandEmptyMessage()
-#===============================================================================
-
-        self.finish(json.dumps(ret))
-
     def post(self):
         js = tornado.escape.json_decode(self.request.body)
         if js:
@@ -503,13 +463,14 @@ class LoginHandler(BaseHandler):
             if 'version' in js: self.version = js['version']
 
         if self.serial and self.chipid:
-            key = self.check_user_id()
+            key = kolas.Login(self.chipid, self.serial, self.request.remote_ip, self.area)
         else:
             key = ''
 
         if key:
             nextTime = kolas.ActiveTime
         else:
+            print('(%s) Missing serial: %s, chipid: %s' % (self.request.remote_ip, self.serial, self.chipid))
             nextTime = 3600
 
         ret = {

@@ -408,7 +408,7 @@ void test_livetv_videolist()
 	//m->FilterAdd("类型", "高清台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "zj");
+	m->FilterAdd("PinYin", "zjws");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
@@ -621,7 +621,7 @@ void test_video(const char *menuName)
 	//m->FilterAdd("类型", "爱情片");
 	//m->FilterAdd("产地", "香港,台湾");
 	//m->FilterAdd("年份", "2013");
-	m->SetQuickFilter("推荐电影");
+	//m->SetQuickFilter("推荐电影");
 	//m->SetQuickFilter("日韩电影");
 
 	//m->SetSort("日播放最多");
@@ -629,7 +629,7 @@ void test_video(const char *menuName)
 	//m->SetSort("评分最高");
 	//m->SetSort("最新发布");
 	//m->SetSort("名称");
-	//m->FilterAdd("PinYin", "dsn");
+	m->FilterAdd("PinYin", "sqqb");
 
 	printf("%ld album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
@@ -671,7 +671,7 @@ void test_video(const char *menuName)
 			}
 		}
 #endif
-#if 0
+#if 1
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 			KolaVideo *video = album->GetVideo(j);
@@ -828,23 +828,23 @@ int main(int argc, char **argv)
 	KolaClient &kola = KolaClient::Instance("000002");
 
 	kola.InternetReady();
-#if 0
+#if 1
 	test_info(kola);
 	test_area(kola);
-	test_weather(kola);
-	test_update(kola);
+//	test_weather(kola);
+//	test_update(kola);
 #endif
 //	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
 //	printf("Test LiveTV(No EPG)\n"); test_livetv_noepg(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_epglist(); return 0;
-//	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); return 0;
+	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;
-	//printf("Test Video\n"); test_video("动漫"); return 0;
-	printf("Test Video\n"); test_video("电影"); return 0;
+//	//printf("Test Video\n"); test_video("动漫"); return 0;
+//	printf("Test Video\n"); test_video("电影"); return 0;
 //	printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");

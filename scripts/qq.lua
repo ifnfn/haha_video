@@ -84,6 +84,7 @@ function get_videolist(url, qvid, pageNo, pageSize)
 end
 
 function get_video_url(qvid, url_prefix, segments, stream_id)
+	-- 当取 vkey 失败时，通过该方法获取播放地址
 	local function get_default_url(qvid, url_prefix)
 		local url = string.format('http://vv.video.qq.com/getinfo?vids=%s&otype=json&defaultfmt=mp4', qvid)
 		local js = GetData(url)

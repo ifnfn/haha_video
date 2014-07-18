@@ -655,8 +655,10 @@ void test_video(const char *menuName)
 
 #if 1
 		size_t video_count = album->GetVideoCount();
-		printf("[%d]: albumName: %s[%s], PlayNum:%d, VideoCount: %ld, TotalCount: %ld\n",
-		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet());
+		printf("[%d]: albumName: %s[%s], PlayNum:%d, VideoCount: %ld, TotalCount: %ld, %d, %d, %3.2f\n",
+		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet(),
+		       album->dailyPlayNum, album->totalPlayNum, album->Score
+		       );
 #endif
 #if 0
 		if (album->GetPictureFile(picture, PIC_LARGE) == true) {
@@ -669,7 +671,7 @@ void test_video(const char *menuName)
 			}
 		}
 #endif
-#if 1
+#if 0
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 			KolaVideo *video = album->GetVideo(j);
@@ -838,7 +840,7 @@ int main(int argc, char **argv)
 //	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_epglist(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); return 0;
-	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
+//	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;
 	//printf("Test Video\n"); test_video("动漫"); return 0;

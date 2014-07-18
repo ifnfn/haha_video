@@ -36,7 +36,7 @@ setTimeout('myrefresh()',3000); //指定1秒刷新一次
 		<table border="1" class="list">
 			<tr>
 				<th> ID </th>
-				<th> ChipID </th>
+				<th> 芯片号 </th>
 				<th> 序列号 </th>
 				<th> 地区 </th>
 				<th> 最新在线时间 </th>
@@ -55,5 +55,25 @@ setTimeout('myrefresh()',3000); //指定1秒刷新一次
 				</tr>
 			{% end %}
 		</table>
+		<h1>注册用户列表：</h1>
+		<table border="1" class="list">
+			<tr>
+				<th> ID </th>
+				<th> 序列号 </th>
+				<th> 芯片号 </th>
+				<th> 客户号 </th>
+				<th> 最后在线时间 </th>
+			</tr>
+			{% for v in allusers %}
+				<tr>
+					<td class="id">     {{v['number']}}        </td>
+					<td class="ip">     {{v['client_id']}}     </td>
+					<td class="chipid"> {{v['chipid']}}        </td>
+					<td class="serial"> {{v['serial']}}        </td>
+					<td class="time">   {{v['updateTimeStr']}} </td>
+				</tr>
+			{% end %}
+		</table>
+
 	</body>
 </html>

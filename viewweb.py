@@ -443,7 +443,8 @@ class SerialHandler(BaseHandler):
 class OnlineUserHandler(tornado.web.RequestHandler):
     def get(self):
         onlines = kolas.GetOnline()
-        self.render("online.html", onlines=onlines)
+        allusers = kolas.GetAllUser()
+        self.render("online.html", onlines=onlines, allusers=allusers)
 
 class LoginHandler(BaseHandler):
     def initialize(self):
@@ -462,13 +463,11 @@ class LoginHandler(BaseHandler):
             if 'area'    in js: self.area    = js['area']
             if 'version' in js: self.version = js['version']
 
-        if self.serial and self.chipid:
-            key = kolas.Login(self.chipid, self.serial, self.request.remote_ip, self.area)
-        else:
-            key = ''
+        key = kolas.Login(self.chipid, self.serial, self.request.remote_ip, self.area)
 
         if key:
             nextTime = kolas.ActiveTime
+            self.set_secure_cookie("user_id", key, 1)
         else:
             print('(%s) Missing serial: %s, chipid: %s' % (self.request.remote_ip, self.serial, self.chipid))
             nextTime = 3600
@@ -478,6 +477,9 @@ class LoginHandler(BaseHandler):
             'server': self.request.protocol + '://' + self.request.host,
             'next'  : nextTime,   # 下次登录时间
         }
+
+        if not key:
+            ret['message'] = '序列号错误，请与供应商联系.'
 
         #if self.cmd == '1':
         #    timeout = 0.3
@@ -489,7 +491,6 @@ class LoginHandler(BaseHandler):
         #            ret['next'] = 0
         #        ret['script'] = utils.GetScript('command', 'test', [json.dumps(cmd), ''])
 
-        self.set_secure_cookie("user_id", key, 1)
 
         self.finish(json.dumps(ret))
 

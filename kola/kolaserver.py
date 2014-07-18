@@ -40,10 +40,23 @@ class KolatvServer:
         for key in self.kdb.keys('????????????????'):
             js = tornado.escape.json_decode(self.kdb.get(key))
             js['id'] = i
-            js['updateTimeStr'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(js['updateTime'])) 
+            js['updateTimeStr'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(js['updateTime']))
             ret.append(js)
             i += 1
 
+        return ret
+
+    def GetAllUser(self):
+        ret = []
+        _filter = {'chipid' : {'$ne' : '', "$exists": True}, 'number': {"$exists": True}}
+        cursor = self.db.user_table.find(_filter).sort([('number', 1)])
+        for x in cursor:
+            del x['_id']
+            if 'updateTime' in x:
+                x['updateTimeStr'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(x['updateTime']))
+            else:
+                x['updateTimeStr'] = ''
+            ret.append(x)
         return ret
 
     def Login(self, chipid, serial, remote_ip, area=None):
@@ -58,17 +71,17 @@ class KolatvServer:
                 if json['chipid'] == '':
                     self.db.user_table.update({'serial' : serial}, {'$set' : {'chipid': chipid}})
 
+        userinfo = {
+                    'chipid': chipid,
+                    'serial' : serial,
+                    'remote_ip' : remote_ip,
+                    'updateTime': time.time(),
+                    'area': area
+                    }
+
+        key = ''
         if status == 'YES':
             # 登录检查，生成随机 KEY
-            userinfo = {
-                        'chipid': chipid,
-                        'serial' : serial,
-                        'remote_ip' : remote_ip,
-                        'updateTime': time.time(),
-                        'area': area
-                        }
-
-            key = None
             if self.kdb.exists(chipid):
                 js = self.kdb.get(chipid)
                 key = tornado.escape.json_decode(js)['key']
@@ -76,18 +89,16 @@ class KolatvServer:
                 key = (chipid + uuid.uuid4().__str__() + remote_ip).encode()
                 key = hashlib.md5(key).hexdigest().upper()
 
-            userinfo['key'] = key
+        userinfo['key'] = key
 
-            userinfo = tornado.escape.json_encode(userinfo)
-            self.kdb.set(chipid, userinfo)
-            self.kdb.set(key, userinfo)
+        userinfo = tornado.escape.json_encode(userinfo)
+        self.kdb.set(chipid, userinfo)
+        self.kdb.set(key, userinfo)
 
-            self.kdb.expire(chipid, self.ActiveTime + 30) # 一分钟过期
-            self.kdb.expire(key, self.ActiveTime + 30)    # 一分钟过期
+        self.kdb.expire(chipid, self.ActiveTime + 30) # 一分钟过期
+        self.kdb.expire(key, self.ActiveTime + 30)    # 一分钟过期
 
-            return key
-        else:
-            return ''
+        return key
 
     def CheckUser(self, key, remote_ip, chipid=None, serial=None):
         if not self.kdb.exists(key):

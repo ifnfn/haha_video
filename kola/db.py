@@ -244,6 +244,7 @@ class DB:
 
     user_table.drop_indexes()
     user_table.create_index([('serial'     , pymongo.ASCENDING)])
+    user_table.create_index([('number'     , pymongo.ASCENDING)])
     user_table.create_index([('client_id'  , pymongo.ASCENDING)])
 
     fieldMapping = {
@@ -486,6 +487,8 @@ class DB:
                         ret[newkey] = {'$gte' : 1980, '$lte' : 1989}
                     elif value == '更早':
                         ret[newkey] = {'$lt' : 1980}
+                elif newkey.lower() == 'score':
+                    ret[newkey] = {"$gt": 0, "$lt": 10}
                 else:
                     ret[newkey] = { "$in" : f[key].split(',')}
         return ret

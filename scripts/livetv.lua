@@ -12,6 +12,7 @@ function get_video_url(url, albumName, vid)
 		['^jlntv://']    = get_video_jlntv,
 		['^jxtv://']     = get_video_jxtv,
 		['^smgbbtv://']  = get_video_smgbbtv,
+		['^iqilu://']    = get_video_iqilu,
 		['^wztv://']     = get_video_wztv,
 		['wolidou.com']  = get_video_wolidou
 	}
@@ -74,10 +75,10 @@ local function curl_init(url, user_agent, referer)
 	c:setopt_url(url)
 
 	if url:find('myvst.net') or url:find('52itv.cn') or url:find('91vst.com') then
-		headers = {
-			'Connection: Keep-Alive'
-		}
-		c:setopt_httpheader(headers)
+		--headers = {
+		--	'Connection: Keep-Alive'
+		--}
+		--c:setopt_httpheader(headers)
 	end
 
 	return c
@@ -89,7 +90,7 @@ local function curl_get( url, user_agent, referer )
 	end
 
 	local text = ''
-	if kola.wget2 then
+	if kola.wget2xxx then --  wget2 有问题，暂时不采用
 		if user_agent == nil then
 			user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6"
 		end
@@ -560,4 +561,18 @@ end
 function get_video_wztv(url)
 	local pid = string.gsub(url, "wztv://", "")
 	return curl_match('http://www.dhtv.cn/static/js/tv.js?acm', "file: '(.*)'")
+end
+
+
+function get_video_iqilu(url)
+	local live, m3u8 = rex.match(url, 'iqilu://(.*?)/(.*)')
+
+	local key_url = 'http://huodong.iqilu.com/active/video/clientnew/public_s/?c=' .. live
+	local user_agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X)'
+	local referer = 'http://v.iqilu.com/live/' .. live .. '/'
+	local text = curl_get( key_url, user_agent, referer )
+
+	--print(text)
+	time, st = rex.match(text, '\\|href\\|.*?\\|(.*?)\\|else\\|.*?\\|(.*?)\\|test\\|')
+	return string.format('http://m3u8.iqilu.com/live/%s.m3u8?st=%s&e=%s', m3u8, st, time)
 end

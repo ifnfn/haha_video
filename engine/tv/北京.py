@@ -7,7 +7,7 @@ from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser
 
 
-# 陕西卫视
+# 北京电视台
 class ParserBTV(LivetvParser):
     def __init__(self):
         super().__init__()

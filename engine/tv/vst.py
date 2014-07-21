@@ -16,39 +16,11 @@ class ParserVstLivetv(LivetvParser):
         self.tvName = ''
         self.order = PRIOR_VST
         self.Alias = {
-            '珠海2台' : '珠海-生活服务',
-            '珠海1台' : '珠海-新闻综合',
-            '浙江钱江' : '浙江-钱江频道',
-            '钱江都市' : '浙江-钱江频道',
-            '浙江6' : '浙江-6频道',
-            '杭州明珠' : '杭州-西湖明珠',
-            '吉林公共' : '吉林-公共新闻',
-            '第一财经' : '上海-第一财经',
-            '江西经视' : '江西-经济生活',
-            '江苏体育休闲' : '江苏-休闲',
-            '凤凰卫视香港台' : '凤凰卫视-香港台',
-            '凤凰卫视中文台' : '凤凰卫视-中文台',
-            '凤凰卫视资讯台' : '凤凰卫视-资讯台',
-            'CCTV1 综合频道' : 'CCTV-1 综合',
-            'CCTV2 财经频道' : 'CCTV-2 财经',
-            'CCTV3 综艺频道' : 'CCTV-3 综艺',
-            'CCTV4 中文国际' : 'CCTV-4 中文国际',
-            'CCTV5 体育频道' : 'CCTV-5 体育',
-            'CCTV6 电影频道' : 'CCTV-6 电影',
-            'CCTV7 军事农业' : 'CCTV-7 军事农业',
-            'CCTV8 电视剧'   : 'CCTV-8 电视剧',
-            'CCTV9 中文记录' : 'CCTV-9 纪录',
-            'CCTV10 科教频道' : 'CCTV-10 科教',
-            'CCTV11 戏曲频道' : 'CCTV-11 戏曲',
-            'CCTV12 社会与法' : 'CCTV-12 社会与法',
-            'CCTV13 新闻频道' : 'CCTV-13 新闻',
-            'CCTV14 少儿频道' : 'CCTV-14 少儿',
-            'CCTV15 音乐频道' : 'CCTV-15 音乐',
-            'CCTV5+体育赛事' : 'CCTV5+ 体育赛事',
             'CCTV9 海外记录' : 'CCTV-9 海外纪录',
             'CCTV4 中文国际(美洲)' : 'CCTV-4 中文国际(美洲)',
             'CCTV4 中文国际(欧洲)' : 'CCTV-4 中文国际(欧洲)',
-            'HD' : '-高清'
+            'HD' : '-高清',
+            '湖南卫视': '湖南卫视-高清'
         }
         self.cmd['cache'] = True
         self.cmd['source'] = 'http://ott.52itv.cn/vst_tvlist?app=egreat&name=mygica%20TV%20MX%20box&ver=4.1.2&uuid=00000000-71b9-5e32-0033-c5870033c587&mac=000102030406'
@@ -58,11 +30,8 @@ class ParserVstLivetv(LivetvParser):
                             ]
         self.vtv_order = 0
 
-    def GetChannel(self, name):
-        #channels = ['浙江', '杭州', '宁波', '绍兴', '温州', '义乌']
-        #channels = ['山东', '济南']
-        channels = ['.*']
-        for p in list(channels):
+    def GetChannel(self, channels, name):
+        for p in channels:
             if re.findall(p, name):
                 return name
 
@@ -96,19 +65,31 @@ class ParserVstLivetv(LivetvParser):
             ch_list = ch_text.split(',')
 
             albumName = ch_list[0]
-
-            if self.GetChannel(albumName) == None:
-                continue
-
-            hrefs = ch_list[1]
-
+            #if albumName.find('山东') < 0:
+            #    continue
             self.vtv_order = 0
 
             tvUrl = []
+            hrefs = ch_list[1]
             for u in hrefs.split('#'):
-                if hrefs.find('imgotv') >= 0:
+                if u.find('imgotv') >= 0:
                     continue
-                tvUrl.append(u)
+
+                # 将 YY直播去掉
+                need = True
+                vid = re.findall('http://url.52itv.cn/live/(.*).m3u8', u)
+                if vid:
+                    channels = ['卫视', 'CCTV', '南方', '广东', '广州', '英语辅导', '炫动卡通', '优漫卡通', '珠江频道', '嘉佳卡通', '山东']
+                    if self.GetChannel(channels, albumName):
+                        need = False
+                        if vid[0] in ['6F736C5054333768614E597A704E42512AB587', 
+                                 '6E4E314D5379376861325951627936517B6A9F',
+                                 '6F736C5054333768614E304A704E4251BF66E9'
+                                 ] :
+                            need = True
+                    #need = not need
+                if need:
+                    tvUrl.append(u)
 
             album,videos = self.NewAlbumAndVideo(albumName, tvUrl)
             if album:

@@ -39,10 +39,10 @@ local function get_ip_taobao()
 	local ret = {}
 	local js = curl_json('http://ip.taobao.com/service/getIpInfo.php?ip=myip')
 	if js then
-		ret.ip = js.data.ip
+		ret.ip       = js.data.ip
 		ret.country  = js.data.country
-		ret.province = string.gsub(js.data.region, '省', '')
-		ret.city     = string.gsub(js.data.city, '市', '')
+		ret.province = js.data.region
+		ret.city     = js.data.city
 		ret.isp      = js.data.isp
 	end
 	return ret
@@ -63,14 +63,14 @@ local function get_ip_letv()
 	if js then
 		ret.ip = js.host
 		local desc = string.gsub(js.desc, '-', ',')
-		parts = string.split(js.desc, "[^,%s]+")
+		parts = string.split(desc, "[^,%s]+")
 		for i,j in ipairs(parts) do
 			if string.find(j, "中国") then
 				ret.country = "中国大陆"
 			elseif string.find(j, "省") then
-				ret.province = string.gsub(j, "省", "")
+				ret.province = j
 			elseif string.find(j, "市") then
-				ret.city = string.gsub(j, "市", "")
+				ret.city = j
 			elseif string.find(j, "电信") or string.find(j, "联通") then
 				ret.isp = "中国" .. j
 			end
@@ -84,14 +84,30 @@ function getip_detail()
 		get_ip_taobao,
 		get_ip_letv,
 		getip_qiyi,
-		get_ip_sina
+		get_ip_sina,
 	}
 
 	local ret = {}
+
 	for k,func in pairs(func_maps) do
 		ret = func()
 		if _G.next(ret) ~= nil then
-			return cjson.encode(ret)
+			if ret.country and ret.province then
+				if string.find(ret.country, "中国") then
+					ret.country = "中国大陆"
+				end
+				ret.province = string.gsub(ret.province, '省', '')
+				ret.province = string.gsub(ret.province, '自治区', '')
+				ret.province = string.gsub(ret.province, '维吾尔', '')
+				ret.province = string.gsub(ret.province, '壮族', '')
+				ret.province = string.gsub(ret.province, '回族', '')
+
+				if ret.city then
+					ret.city = string.gsub(ret.city, '市', '')
+				end
+
+				return cjson.encode(ret)
+			end
 		end
 	end
 	return ''

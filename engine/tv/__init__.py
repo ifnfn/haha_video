@@ -4,6 +4,7 @@
 from engine import VideoEngine
 
 from .cntv import CntvLiveTV
+from .iqilu import IQiluLiveTV
 from .livetvdb import *
 from .m2oplayer import M2OLiveTV
 from .pptv import PPtvLiveTV
@@ -16,6 +17,7 @@ from .wasu import WasuLiveTV
 from .wolidou import WolidouTV
 from .yy import YYLiveTV
 
+
 from .上海 import SmgbbLivetv
 from .北京 import BtvLiveTV
 from .吉林 import JilingLiveTV
@@ -23,7 +25,6 @@ from .广西 import GuangXiLiveTV
 from .江西 import JianXiLiveTV
 from .浙江 import ZheJianLiveTV
 from .辽宁 import LiaoNingLiveTV
-from .iqilu import IQiluLiveTV
 
 # LiveTV 搜索引擎
 class LiveEngine(VideoEngine):
@@ -44,8 +45,8 @@ class LiveEngine(VideoEngine):
             'TVIE' : TvieLiveTV,
             'M2O'  : M2OLiveTV,
             '文本'  : TextLiveTV,
-            'YY': YYLiveTV,
-            'Qilu': IQiluLiveTV
+            'YY'    : YYLiveTV,
+            'Qilu'  : IQiluLiveTV
             #===================================================================
             # '吉林'  : JilingLiveTV,  # VST 中已有
             # 'CNTV'  : CntvLiveTV,  # VST 中已有

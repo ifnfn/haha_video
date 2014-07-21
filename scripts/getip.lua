@@ -41,8 +41,8 @@ local function get_ip_taobao()
 	if js then
 		ret.ip = js.data.ip
 		ret.country  = js.data.country
-		ret.province = js.data.region
-		ret.city     = js.data.city
+		ret.province = string.gsub(js.data.region, '省', '')
+		ret.city     = string.gsub(js.data.city, '市', '')
 		ret.isp      = js.data.isp
 	end
 	return ret
@@ -82,8 +82,8 @@ end
 function getip_detail()
 	local func_maps = {
 		get_ip_taobao,
-		getip_qiyi,
 		get_ip_letv,
+		getip_qiyi,
 		get_ip_sina
 	}
 

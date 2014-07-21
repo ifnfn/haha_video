@@ -103,7 +103,14 @@ class ParserVstLivetv(LivetvParser):
             hrefs = ch_list[1]
 
             self.vtv_order = 0
-            album,videos = self.NewAlbumAndVideo(albumName, hrefs.split('#'))
+
+            tvUrl = []
+            for u in hrefs.split('#'):
+                if hrefs.find('imgotv') >= 0:
+                    continue
+                tvUrl.append(u)
+
+            album,videos = self.NewAlbumAndVideo(albumName, tvUrl)
             if album:
                 album.largePicUrl = ch_list[2]
                 for v in videos:

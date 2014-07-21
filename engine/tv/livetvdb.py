@@ -147,6 +147,8 @@ class LivetvAlbum(AlbumBase):
         self.livetv = LivetvPrivate()
 
     def NewVideo(self, videoUrl=None, isHigh=0):
+        if len(self.videos) >= 10:
+            return None
         video = LivetvVideo()
         video.order = self.order
         video.name  = self.tvName

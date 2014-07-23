@@ -186,13 +186,9 @@ class KolatvServer:
             if menu.cid == cid:
                 return menu
 
-        return None
-
     def FindMenu(self, name):
         if name in self.MenuList:
             return self.MenuList[name]
-        else:
-            return None
 
     def CommandEmptyMessage(self):
         if self.UpdateAlbumFlag == True:

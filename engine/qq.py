@@ -209,14 +209,13 @@ class ParserPlayCount(KolaParser):
 
 # 节目列表
 class ParserAlbumList(KolaParser):
-    def __init__(self, url=None, cid=None, album_regular_key=None):
+    def __init__(self, url=None, cid=None):
         super().__init__()
-        if url and cid and album_regular_key:
-            regular = '(<a href=.*_hot="%s[\s\S]*?</a>|<a href=.*class="next".*</a>|<strong class="c_txt3">.*</strong>)' % album_regular_key
+        if url and cid:
+            regular = '(<h6 class="scores">[\s\S]*?</h6>|<a href=.*class="next".*</a>)'
             self.cmd['source']    = url
             self.cmd['regular']   = [regular]
             self.cmd['cid']       = cid
-            self.cmd['album_key'] = album_regular_key
             self.cmd['cache']     = False
 
     def CmdParser(self, js):
@@ -262,7 +261,7 @@ class ParserAlbumList(KolaParser):
         if nextTag and needNextPage:
             nexturl = nextTag[0].get('href', '')
             if nexturl:
-                ParserAlbumList(nexturl, js['cid'], js['album_key']).Execute()
+                ParserAlbumList(nexturl, js['cid']).Execute()
 
 class ParserAlbumPage2(KolaParser):
     #http://s.video.qq.com/search?comment=1&plat=2&otype=json&query=%E6%84%8F%E5%A4%96%E7%9A%84%E6%81%8B%E7%88%B1%E6%97%B6%E5%85%89
@@ -335,12 +334,15 @@ class ParserAlbumPage2(KolaParser):
                     album.updateTime  = updateTime
                     album.publishTime = album.updateTime
 
-                if 'src_list' in a and 'vsrcarray' in a['src_list']:
-                    vsrcarray = a['src_list']['vsrcarray'][0]
-                    if 'total_episode' in vsrcarray:
-                        album.totalSet = kola.autoint(vsrcarray['total_episode'])       # 总集数
-                    if 'cnt' in vsrcarray:
-                        if 'nowEpisodes' in a: album.updateSet = kola.autoint(a['nowEpisodes'])    # 当前更新集
+                try:
+                    if 'src_list' in a and a['src_list'] and 'vsrcarray' in a['src_list']:
+                        vsrcarray = a['src_list']['vsrcarray'][0]
+                        if 'total_episode' in vsrcarray:
+                            album.totalSet = kola.autoint(vsrcarray['total_episode'])       # 总集数
+                        if 'cnt' in vsrcarray:
+                            if 'nowEpisodes' in a: album.updateSet = kola.autoint(a['nowEpisodes'])    # 当前更新集
+                except:
+                    pass
 
                 if 'ID' in a:
                     album.qq.qvid     = a['ID']
@@ -412,14 +414,13 @@ class QQVideoMenu(EngineVideoMenu):
     # 更新该菜单下所有节目列表
     def UpdateAlbumList(self):
         for url in self.HomeUrlList:
-            ParserAlbumList(url, self.cid, self.album_regular_key).Execute()
+            ParserAlbumList(url, self.cid).Execute()
 
 # 电影
 class QQMovie(QQVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 1
-        self.album_regular_key = 'movielist.title.link'
         self.HomeUrlList = ['http://v.qq.com/movielist/10001/0/10004-100001/0/0/100/0/0.html']
 
 # 电视
@@ -427,7 +428,6 @@ class QQTV(QQVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 2
-        self.album_regular_key = 'tv.image.link'
         self.HomeUrlList = ['http://v.qq.com/list/2_-1_-1_-1_0_0_0_100_-1_-1_0.html']
 
 # 动漫
@@ -435,7 +435,7 @@ class QQComic(QQVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 3
-        self.HomeUrlList = []
+        self.HomeUrlList = ['http://v.qq.com/cartlist/0/3_-1_-1_-1_-1_1_0_0_20.html']
 
 # 记录片
 class QQDocumentary(QQVideoMenu):
@@ -463,7 +463,7 @@ class QQEngine(VideoEngine):
         self.menu = [
             QQMovie('电影'),
             QQTV('电视剧'),
-            #QQComic('动漫'),
+            QQComic('动漫'),
             #QQDocumentary('记录片'),
             #QQShow('综艺')
         ]

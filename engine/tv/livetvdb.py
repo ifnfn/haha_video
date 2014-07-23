@@ -50,7 +50,7 @@ class TVAlias:
                 elif albumName == n:
                     return k
 
-        print('"%s" : "%s",' % (albumName, albumName))
+        #print('"%s" : "%s",' % (albumName, albumName))
         return albumName
 
     def Show(self):

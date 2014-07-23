@@ -194,13 +194,13 @@ function get_video_cntv( url )
 			video_url = string.gsub(video_url, ":8000:8000", ":8000")
 
 			video_url = kola.strtrim(video_url)
-			if string.find(video_url, "AUTH=ip") == nil then
-				auth = get_cctv1_auth()
+			--if string.find(video_url, "AUTH=ip") == nil then
+			--	auth = get_cctv1_auth()
 
-				if auth then
-					video_url =  string.format("%s?%s", video_url, auth)
-				end
-			end
+			--	if auth then
+			--		video_url =  string.format("%s?%s", video_url, auth)
+			--	end
+			--end
 
 			return video_url
 		end
@@ -210,7 +210,12 @@ function get_video_cntv( url )
 end
 
 function get_video_m2otv(url)
-	url = string.gsub(url, "m2otv://", "http://")
+	local function drm( url )
+		local url = 'http://www.ahtv.cn//m2o/player/drm.php?url=' .. kola.urlencode('http://stream2.ahtv.cn/ahgg/hd/live.m3u8')
+		return curl_get(url)
+	end
+
+	local url = string.gsub(url, "m2otv://", "http://")
 
 	local text = curl_match(url, '(<\\?xml[\\s\\S]*)')
 
@@ -240,13 +245,13 @@ function get_video_m2otv(url)
 	end
 
 	if videoUrl['hd/'] then
-		return videoUrl['hd/']
+		return drm(videoUrl['hd/'])
 	elseif videoUrl['sd/'] then
-		return videoUrl['sd/']
+		return drm(videoUrl['sd/'])
 	elseif videoUrl['cd/'] then
-		return videoUrl['cd/']
+		return drm(videoUrl['cd/'])
 	elseif videoUrl['ld/'] then
-		return videoUrl['ld/']
+		return drm(videoUrl['ld/'])
 	end
 
 	return ''
@@ -280,7 +285,6 @@ function get_video_pptv(url)
 
 	url = "http://jump.synacast.com/live2/" .. vid
 	local xml = curl_get(url)
-	print(xml)
 	if xml then
 		local ip = rex.match(xml, '<server_host>(.*?)</server_host>')
 		local delay = rex.match(xml, '<delay_play_time>(.*?)</delay_play_time>')
@@ -396,7 +400,7 @@ function get_video_52itv(url)
 	end
 
 	url = string.format('%s?k=%s', url, get_livekey())
-	print(url)
+	--print(url)
 	if string.find(url, '.sdtv') then
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''
@@ -423,9 +427,7 @@ function get_video_lntv(url)
 	--print(url)
 
 	url = curl_match(url, "var playM3U8 = '(.*?)';")
-	print(url)
 	url = curl_match(url, "(http://.*)")
-	print(url)
 	return url
 end
 

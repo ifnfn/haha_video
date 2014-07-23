@@ -1,13 +1,11 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import re
-
 import tornado.escape
 
 from kola import LivetvMenu
 
-from .common import PRIOR_VST, PRIOR_LETV, PRIOR_IMGO, PRIOR_CNTV
+from .common import PRIOR_YYTV
 from .livetvdb import LivetvParser
 
 
@@ -15,10 +13,11 @@ class ParserYYLivetv(LivetvParser):
     def __init__(self):
         super().__init__()
         self.tvName = 'YY'
-        self.order = PRIOR_VST
+        self.order = PRIOR_YYTV
         self.Alias = {
             '海南卫视(旅游卫视)' : '旅游卫视'
         }
+
         self.cmd['cache'] = True
         self.cmd['source'] = 'http://live.yy.com/t'
         self.cmd['regular'] = ['var liveData = (.*?]);']

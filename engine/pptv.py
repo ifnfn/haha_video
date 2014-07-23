@@ -5,9 +5,7 @@ import re
 import sys
 import time
 import traceback
-#from urllib.parse import quote
 
-#from bs4 import BeautifulSoup as bs, Tag
 import tornado.escape
 
 import kola
@@ -15,7 +13,6 @@ import kola
 from .engines import VideoEngine, KolaParser, KolaAlias, EngineVideoMenu
 
 
-#================================= 以下是搜狐视频的搜索引擎 =======================================
 global Debug
 Debug = True
 

@@ -59,28 +59,46 @@ class KolatvServer:
             ret.append(x)
         return ret
 
+    def LoginFromCache(self, chipid, serial):
+        js = self.kdb.get(chipid)
+        if js:
+            js = tornado.escape.json_decode(js)
+
+            if js['serial'] == serial:
+                return js['key']
+
     def Login(self, chipid, serial, remote_ip, area=None):
         status = 'NO'
+        key = ''
 
         if serial in ['000001', '000002', '000003', '000004']:
             status = 'YES'
         elif chipid and serial and chipid not in ['0000000000000000']: # 默认的测试号
-            json = self.db.user_table.find_one({'serial' : serial})
-            if json and (json['chipid'] == '' or json['chipid'] == chipid):
+            key = self.LoginFromCache(chipid, serial)
+            if key:
                 status = 'YES'
-                if json['chipid'] == '':
-                    self.db.user_table.update({'serial' : serial}, {'$set' : {'chipid': chipid}})
+            else:
+                while status == 'NO':
+                    json = self.db.user_table.find_one({'chipid' : chipid})
+                    if json:
+                        if json['serial'] == serial:
+                            status = 'YES'
+                            break
+                        elif json['serial'] != '': # 已经注册过的话，源序列号失效
+                            self.db.user_table.update({'serial' : json['serial']}, {'$set' : {'chipid': ''}})
+                        else:
+                            break
+                    self.db.user_table.update({'serial' : serial}, {'$set' : {'chipid': chipid, 'registerTime': time.time()}})
 
         userinfo = {
-                    'chipid': chipid,
-                    'serial' : serial,
+                    'chipid'    : chipid,
+                    'serial'    : serial,
                     'remote_ip' : remote_ip,
                     'updateTime': time.time(),
-                    'area': area
+                    'area'      : area
                     }
 
-        key = ''
-        if status == 'YES':
+        if status == 'YES' and not key:
             # 登录检查，生成随机 KEY
             if self.kdb.exists(chipid):
                 js = self.kdb.get(chipid)

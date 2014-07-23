@@ -6,7 +6,7 @@ import re
 
 from kola import LivetvMenu
 
-from .common import PRIOR_VST, PRIOR_LETV, PRIOR_IMGO, PRIOR_CNTV
+from .common import PRIOR_VST, PRIOR_LETV, PRIOR_IMGO, PRIOR_CNTV, PRIOR_DEFTV
 from .livetvdb import LivetvParser
 
 
@@ -42,6 +42,8 @@ class ParserVstLivetv(LivetvParser):
             return PRIOR_IMGO, 'VITV'
         elif url.find('pa://', 0) >= 0:
             return PRIOR_CNTV, 'VCNTV'
+        elif re.findall('http://url.52itv.cn/live/(.*).m3u8', url):
+            return PRIOR_DEFTV, 'M3U8'
 
         self.vtv_order += 1
         return self.order + self.vtv_order, 'VTV'
@@ -82,7 +84,9 @@ class ParserVstLivetv(LivetvParser):
                 need = True
                 vid = re.findall('http://url.52itv.cn/live/(.*).m3u8', u)
                 if vid:
-                    channels = ['卫视', 'CCTV', '南方', '广东', '广州', '英语辅导', '炫动卡通', '优漫卡通', '珠江频道', '嘉佳卡通', '山东']
+                    #print(albumName, u)
+                    channels = ['安徽公共', '安徽综艺', '安徽影视', '安徽科教', '安徽经济', '安徽国际', '安徽人物',
+                                'CCTV', '南方', '广东', '广州', '英语辅导', '炫动卡通', '优漫卡通', '珠江频道', '嘉佳卡通', '山东']
                     if self.GetChannel(channels, albumName):
                         need = False
                         if vid[0] in ['6F736C5054333768614E597A704E42512AB587', 

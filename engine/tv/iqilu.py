@@ -1,12 +1,14 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from kola import utils, LivetvMenu
+import re
+
+import tornado.escape
+
+from kola import LivetvMenu
 
 from .common import PRIOR_DEFTV
 from .livetvdb import LivetvParser
-import tornado.escape
-import re
 
 
 # 齐鲁电视台

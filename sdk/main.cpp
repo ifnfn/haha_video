@@ -401,7 +401,7 @@ void test_livetv_videolist()
 		foreach(i->second, j)
 			cout << "\t:" << *j << endl;
 	}
-	m->FilterAdd("类型", "本省台");
+	//m->FilterAdd("类型", "本省台");
 	//m->FilterAdd("类型", "央视台");
 	//m->FilterAdd("类型", "卫视台");
 	//m->FilterAdd("类型", "地方台");
@@ -838,17 +838,19 @@ int main(int argc, char **argv)
 //	test_picture1("电影"); return 0;
 //	test_custommenu(); return 0;
 //	printf("Test LiveTV(No EPG)\n"); test_livetv_noepg(); return 0;
-//	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_epglist(); return 0;
-//	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); return 0;
+	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
+//	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); //return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺"); return 0;
 //	printf("Test Video\n"); test_video("动漫"); return 0;
-	printf("Test Video\n"); test_video("电影"); return 0;
+//	printf("Test Video\n"); test_video("电影"); return 0;
 //	printf("Test TV\n");    test_video("电视剧"); return 0;
 
 	printf("end\n");
+	while(1)
+		sleep(1);
 	//test_task();
 
 	return 0;

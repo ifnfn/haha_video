@@ -385,7 +385,8 @@ void KolaClient::Login()
 		LoginOne();
 		pthread_testcancel();
 
-		sleep(nextLoginSec);
+		if (nextLoginSec > 0)
+			sleep(nextLoginSec);
 	}
 	pthread_cleanup_pop(0);
 

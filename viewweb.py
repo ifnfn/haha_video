@@ -481,16 +481,19 @@ class LoginHandler(BaseHandler):
         if not key:
             ret['message'] = '序列号错误，请与供应商联系.'
 
-        #if self.cmd == '1':
-        #    timeout = 0.3
-        #    cmd = tv.command.GetCommand(timeout, 1)
-        #    if cmd:
-        #        ret['dest'] =  self.request.protocol + '://' + self.request.host + '/video/upload'
-        #        ret['command'] = cmd
-        #        if self.serial == '000001':
-        #            ret['next'] = 0
-        #        ret['script'] = utils.GetScript('command', 'test', [json.dumps(cmd), ''])
-
+        #=======================================================================
+        # if self.cmd == '1':
+        #     timeout = 0.3
+        #     cmd = kolas.command.GetCommand(timeout, 1)
+        #     if cmd:
+        #         ret['next'] = 0 # 登录加快
+        #         host = '127.0.0.1:9992'
+        #         ret['dest'] = self.request.protocol + '://' + host + '/video/upload'
+        #         ret['command'] = cmd
+        #         if self.serial == '000001':
+        #             ret['next'] = 0
+        #         ret['script'] = utils.GetScript('command', 'update_command', [json.dumps(ret)])
+        #=======================================================================
 
         self.finish(json.dumps(ret))
 

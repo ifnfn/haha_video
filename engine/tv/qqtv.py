@@ -29,11 +29,12 @@ class ParserQQLivetv(LivetvParser):
             for k,v in ch_list:
                 ch[k] = v
 
-            albumName = ch['data-cname']
-            videoUrl = 'qqtv://' + ch['data-playid']
+            if ch:
+                albumName = ch['data-cname']
+                videoUrl = 'qqtv://' + ch['data-playid']
 
-            album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
-            self.db.SaveAlbum(album)
+                album, _ = self.NewAlbumAndVideo(albumName, videoUrl)
+                self.db.SaveAlbum(album)
 
 class QQLiveTV(LivetvMenu):
     '''

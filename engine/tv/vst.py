@@ -40,7 +40,7 @@ class ParserVstLivetv(LivetvParser):
             return PRIOR_LETV, 'VLTV'
         elif url.find('imgotv', 0) >= 0:
             return PRIOR_IMGO, 'VITV'
-        elif url.find('pa://', 0) >= 0:
+        elif url.find('pa://', 0) >= 0 or url.find('cntv.') > 0:
             return PRIOR_CNTV, 'VCNTV'
         elif re.findall('http://url.52itv.cn/live/(.*).m3u8', url):
             return PRIOR_DEFTV, 'M3U8'

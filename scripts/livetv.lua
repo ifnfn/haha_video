@@ -2,6 +2,7 @@ function get_video_url(url, albumName, vid)
 	local func_maps = {
 		['url.52itv.cn'] = get_video_52itv,
 		['^pa://']       = get_video_cntv,
+		['cntv.']        = get_video_auth_cntv,
 		['^pptv://']     = get_video_pptv,
 		['^qqtv://']     = get_video_qqtv,
 		['^sohutv://']   = get_video_sohutv,
@@ -162,6 +163,20 @@ local function curl_json(url, regular)
 	end
 end
 
+function get_video_auth_cntv( url )
+	local function get_cctv1_auth()
+		local text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
+		return rex.match(text, '(AUTH=ip.*?)"')
+	end
+	auth = get_cctv1_auth()
+
+	if auth then
+		url = url .. "?" .. auth -- string.format("%s?%s", video_url, auth)
+	end
+
+	return url
+end
+
 -- pa://cctv_p2p_hdcctv1
 function get_video_cntv( url )
 	local function check_m3u8(url)
@@ -172,10 +187,6 @@ function get_video_cntv( url )
 		return url
 	end
 
-	local function get_cctv1_auth()
-		local text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
-		return rex.match(text, '(AUTH=ip.*?)"')
-	end
 
 	local url = string.format("http://vdn.live.cntv.cn/api2/live.do?client=iosapp&channel=%s", url)
 
@@ -194,13 +205,6 @@ function get_video_cntv( url )
 			video_url = string.gsub(video_url, ":8000:8000", ":8000")
 
 			video_url = kola.strtrim(video_url)
-			--if string.find(video_url, "AUTH=ip") == nil then
-			--	auth = get_cctv1_auth()
-
-			--	if auth then
-			--		video_url =  string.format("%s?%s", video_url, auth)
-			--	end
-			--end
 
 			return video_url
 		end

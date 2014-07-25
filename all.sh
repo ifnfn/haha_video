@@ -14,8 +14,8 @@ UpdateScore() {
 Update() {
 #    mongo kola --eval 'db.album.remove({"cid": {"$in":[1,2,3]}})'
     UpdateAlbum Qiyi
-    UpdateAlbum QQ
-    UpdateAlbum Sohu
+    #UpdateAlbum QQ
+    #UpdateAlbum Sohu
     #UpdateAlbum PPtv
     #UpdateAlbum Letv
 }
@@ -32,6 +32,6 @@ UpdateTV() {
     UpdateAlbum Livetv2
 }
 
-UpdateTV
-#Update
+#UpdateTV
+Update
 #Score

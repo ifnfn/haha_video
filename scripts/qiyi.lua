@@ -1,3 +1,56 @@
+local function curl_json(url, regular)
+	local text = kola.wget(url)
+	if text then
+		if regular and regular ~= '' then
+			text = rex.match(text, regular)
+		end
+		if text and text ~= '' then
+			return cjson.decode(text)
+		end
+	end
+end
+
+function get_videolist2( pid, vid, pageNo, pageSize )
+	local url = string.format('http://cache.video.qiyi.com/sdvlst/6/%s/?cb=scDtVdListC', vid)
+	local js = curl_json(url, 'var scDtVdListC=({.*})')
+
+	local size = tonumber(pageSize)
+	local pos  = tonumber(pageNo) * size
+	local videos = {}
+	for k,v in ipairs(js.data) do
+		print(k,v)
+		if k >= pos and ret.size < size then
+			local video = {}
+			video.pid         = v.aId
+			video.vid         = v.vid
+			video.name        = v.tvSbtitle
+			video.showName    = v.tvSbtitle
+			if v.timeLength ~= nil then
+				video.playLength  = tonumber(v.timeLength)
+			end
+			video.order       = k
+			video.smallPicUrl = v.tvPicUrl
+			video.resolution = {}
+			video.resolution.script = 'qiyi'
+			video.resolution['function'] = 'get_resolution'
+			video.resolution.parameters = {}
+			video.resolution.parameters[1] = v.tvId
+			video.resolution.parameters[2] = v.vid
+
+			video.info = {}
+			ret.size = ret.size + 1
+			videos[ret.size] = video
+			if ret.size >= size then
+				break
+			end
+		end
+	end
+	if #videos > 0 then
+		ret.videos = videos
+	end
+	return cjson.encode(ret)
+end
+
 local function get_videolist_tv(tvid, vid, cid, name)
 	local ret = {}
 	ret.videos = {}

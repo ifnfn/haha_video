@@ -207,6 +207,7 @@ class LivetvParser(KolaParser):
         self.db = LivetvDB()
 
     def NewAlbumAndVideo(self, albumName, videoUrl):
+        albumName = albumName.strip()
         videos = []
         album = self.NewAlbum(albumName)
         if album:

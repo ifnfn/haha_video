@@ -390,7 +390,8 @@ function get_video_52itv(url)
 	local function letv_video2(url)
 		url, _ = curl_get_location(url, false)
 		local url = string.gsub(url, 'format=%d+', 'format=1')
-
+		url = string.gsub(url, 'playid=%d+', 'playid=3')
+		print(url)
 		local js = curl_json(url)
 		if js and js.nodelist then
 			for k,v in pairs(js.nodelist) do

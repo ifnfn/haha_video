@@ -56,6 +56,10 @@ class KolatvServer:
                 x['updateTimeStr'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(x['updateTime']))
             else:
                 x['updateTimeStr'] = ''
+            if 'registerTime' in x:
+                x['registerTimeStr'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(x['registerTime']))
+            else:
+                x['registerTimeStr'] = ''
             ret.append(x)
         return ret
 

@@ -65,11 +65,11 @@ setTimeout('myrefresh()',5000); //指定5秒刷新一次
 			</tr>
 			{% for v in allusers %}
 				<tr>
-					<td class="id">     {{v['number']}}       </td>
-					<td class="ip">     {{v['client_id']}}    </td>
-					<td class="chipid"> {{v['chipid']}}       </td>
-					<td class="serial"> {{v['serial']}}       </td>
-					<td class="time">   {{v['registerTime']}} </td>
+					<td class="id">     {{v['number']}}          </td>
+					<td class="ip">     {{v['client_id']}}       </td>
+					<td class="chipid"> {{v['chipid']}}          </td>
+					<td class="serial"> {{v['serial']}}          </td>
+					<td class="time">   {{v['registerTimeStr']}} </td>
 				</tr>
 			{% end %}
 		</table>

@@ -61,15 +61,15 @@ setTimeout('myrefresh()',5000); //指定5秒刷新一次
 				<th> 序列号 </th>
 				<th> 芯片号 </th>
 				<th> 客户号 </th>
-				<th> 最后在线时间 </th>
+				<th> 注册时间 </th>
 			</tr>
 			{% for v in allusers %}
 				<tr>
-					<td class="id">     {{v['number']}}        </td>
-					<td class="ip">     {{v['client_id']}}     </td>
-					<td class="chipid"> {{v['chipid']}}        </td>
-					<td class="serial"> {{v['serial']}}        </td>
-					<td class="time">   {{v['updateTimeStr']}} </td>
+					<td class="id">     {{v['number']}}       </td>
+					<td class="ip">     {{v['client_id']}}    </td>
+					<td class="chipid"> {{v['chipid']}}       </td>
+					<td class="serial"> {{v['serial']}}       </td>
+					<td class="time">   {{v['registerTime']}} </td>
 				</tr>
 			{% end %}
 		</table>

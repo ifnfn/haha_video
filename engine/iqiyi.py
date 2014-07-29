@@ -389,8 +389,8 @@ class ParserAlbumPage(KolaParser):
                     videoid = u[1]
                 elif u[0] == 'tvid':
                     tvid = u[1]
-            #if videoid and tvid:
-            #    ParserAlbumJson(tvid, videoid, js['cid']).Execute()
+            if videoid and tvid:
+                ParserAlbumJson(tvid, videoid, js['cid']).Execute()
         else:
             vlist = re.findall('var albumInfo=({.*)', js['data'])
             if vlist:

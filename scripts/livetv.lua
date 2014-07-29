@@ -411,7 +411,7 @@ function get_video_52itv(url)
 	end
 
 	url = string.format('%s?k=%s', url, get_livekey())
-	--print(url)
+	print(url)
 	if string.find(url, '.sdtv') then
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''

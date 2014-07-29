@@ -32,6 +32,6 @@ UpdateTV() {
     UpdateAlbum Livetv2
 }
 
-#UpdateTV
-Update
+UpdateTV
+#Update
 #Score

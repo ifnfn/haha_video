@@ -284,11 +284,11 @@ void test_livetv()
 			cout << "\t:" << *j << endl;
 	}
 	//m->FilterAdd("类型", "本省台");
-	//m->FilterAdd("类型", "央视台");
+	m->FilterAdd("类型", "央视台");
 	//m->FilterAdd("类型", "卫视台");
 	//m->FilterAdd("类型", "地方台");
 	//m->FilterAdd("类型", "高清台");
-	m->FilterAdd("类型", "网络台");
+	//m->FilterAdd("类型", "网络台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
 	//m->FilterAdd("PinYin", "fj");

@@ -1,5 +1,5 @@
 local function curl_json(url, regular)
-	local text = kola.wget(url)
+	local text = kola.wget(url, true)
 	if text then
 		if regular and regular ~= '' then
 			text = rex.match(text, regular)
@@ -10,15 +10,19 @@ local function curl_json(url, regular)
 	end
 end
 
-function get_videolist2( pid, vid, pageNo, pageSize )
+local function get_videolist_zongyi(vid, pageNo, pageSize)
 	local url = string.format('http://cache.video.qiyi.com/sdvlst/6/%s/?cb=scDtVdListC', vid)
 	local js = curl_json(url, 'var scDtVdListC=({.*})')
 
 	local size = tonumber(pageSize)
 	local pos  = tonumber(pageNo) * size
 	local videos = {}
+	local ret = {}
+	ret.size      = 0
+	ret.totalSet  = #js.data
+	ret.updateSet = #js.data
+
 	for k,v in ipairs(js.data) do
-		print(k,v)
 		if k >= pos and ret.size < size then
 			local video = {}
 			video.pid         = v.aId
@@ -45,6 +49,7 @@ function get_videolist2( pid, vid, pageNo, pageSize )
 			end
 		end
 	end
+
 	if #videos > 0 then
 		ret.videos = videos
 	end
@@ -69,15 +74,21 @@ end
 
 --  获取节目集列表
 function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
+	if aid == '0' then
+		return get_videolist_zongyi(vid, pageNo, pageSize)
+	end
+
 	if cid == '1' then
 		return get_videolist_tv(tvid, vid, cid, name)
 	end
 	local page=1
 	local quit=0
-	local ret = {}
 	local videos = {}
 	local offset = 0
+
+	local ret = {}
 	ret.size = 0
+
 	repeat
 		local url = string.format('http://cache.video.qiyi.com/avlist/%s/%d/', aid, page)
 
@@ -96,8 +107,6 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 			return cjson.encode(ret)
 		end
 
-
-		print(js.data.pm)
 		ret.totalSet   = js.data.pm
 		ret.updateSet  = js.data.pt
 		if tonumber(pageSize) == 0 and tonumber(pageNo) then

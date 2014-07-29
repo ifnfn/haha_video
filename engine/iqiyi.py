@@ -419,7 +419,7 @@ class ParserAlbumPage(KolaParser):
                 album.qiyi.albumid = 0
                 album.qiyi.tvid    = tvid
 
-                album.qiyi.videoListUrl = utils.GetScript('qiyi', 'get_videolist2',
+                album.qiyi.videoListUrl = utils.GetScript('qiyi', 'get_videolist',
                             [album.qiyi.albumid, album.qiyi.vid, album.qiyi.tvid, album.cid, album.albumName])
 
                 QiyiDB().SaveAlbum(album)
@@ -537,9 +537,9 @@ class QiyiEngine(VideoEngine):
 
         # 引擎主菜单
         self.menu = [
-            #QiyiMovie('电影'),
-            #QiyiTV('电视剧'),
-            #QiyiComic('动漫'),
+            QiyiMovie('电影'),
+            QiyiTV('电视剧'),
+            QiyiComic('动漫'),
             #QiyiDocumentary('记录片'),
             QiyiShow('综艺'),
         ]

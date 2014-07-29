@@ -110,7 +110,8 @@ function getip_detail()
 			end
 		end
 	end
-	return ''
+
+	return '{"province": "未知", "city": "未知"}'
 end
 
 function gettime()

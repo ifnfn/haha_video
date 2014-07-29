@@ -392,12 +392,12 @@ function get_video_52itv(url)
 		url = string.gsub(url, 'format=%d+', 'format=1')
 		url = string.gsub(url, 'playid=%d+', 'playid=3')
 
-		local t = kola.gettime()
-		local x = rex.match(url, 'stream_id=(.*?)&')
-		print(t, x)
-		key = string.format("%s,%d,%s", x, t, '1ca1fc9546da2b196ce9edfa5decd787')
-		key = string.lower(kola.md5(letv_str))
-		print("tm=%d&key=%s", t, key)
+		--local t = kola.gettime()
+		--local x = rex.match(url, 'stream_id=(.*?)&')
+		--print(t, x)
+		--key = string.format("%s,%d,%s", x, t, '1ca1fc9546da2b196ce9edfa5decd787')
+		--key = string.lower(kola.md5(letv_str))
+		--print("tm=%d&key=%s", t, key)
 		local js = curl_json(url)
 		if js and js.nodelist then
 			for k,v in pairs(js.nodelist) do

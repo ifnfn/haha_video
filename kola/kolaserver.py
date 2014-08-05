@@ -19,6 +19,8 @@ from .cached import RedisCached, MemcachedCached
 
 class KolatvServer:
     def __init__(self):
+        self.hit_count = 0     # 页面缓冲命中次数
+        self.misses_count = 0  # 页面未缓冲命中次数
         self.db = DB()
         self.kdb = redis.Redis(host='127.0.0.1', port=6379, db=1)
         self.command = KolaCommand()
@@ -147,6 +149,7 @@ class KolatvServer:
         value = self.urlCached.Get(key)
 
         if not value:
+            self.misses_count += 1
             if 'cid' in args:
                 albumlist, args['total'] = self.GetMenuAlbumListByCid(args['cid'], args)
             elif 'menu' in args:
@@ -159,7 +162,10 @@ class KolatvServer:
 
             value = tornado.escape.json_encode(args)
             self.urlCached.Set(key, value)
+        else:
+            self.hit_count += 1
 
+        print("albume page hit: %2.2f%%, %d, %d" % (self.hit_count * 100.0 / (self.hit_count + self.misses_count), self.hit_count, self.misses_count))
         return value
 
     def GetMenuJsonInfoById(self, cid_list):

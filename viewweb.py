@@ -16,7 +16,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 
-#from barcode import get_barcode
+from barcode import get_barcode
 from kola import log, utils, DB, City, KolatvServer
 
 

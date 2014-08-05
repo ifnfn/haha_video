@@ -4,6 +4,7 @@
 import redis
 import memcache
 import hashlib
+import bmemcached
 
 class CachedBase:
     def __init__(self):
@@ -39,11 +40,27 @@ class RedisCached(CachedBase):
         self.url_cachedb.set(key, value)
         self.url_cachedb.expire(key, self.expireTime) # 一分钟过期
 
+class BCached(CachedBase):
+    def __init__(self):
+        super().__init__()
+        self.url_cachedb = bmemcached.Client(('927af6ee1c6411e4.m.cnqdalicm9pub001.ocs.aliyuncs.com:11211'), '927af6ee1c6411e4', '780227CNSCZDabc')
+
+    def Clean(self):
+        self.url_cachedb.flush_all()
+
+    def Get(self, key):
+        return self.url_cachedb.get(key)
+
+    def Set(self, key, value):
+        self.url_cachedb.set(key, value, time=self.expireTime)
+
 class MemcachedCached(CachedBase):
     def __init__(self):
         super().__init__()
         self.url_cachedb = memcache.Client(['127.0.0.1:12000'],debug=0)
 
+    def Clean(self):
+        pass
     def Get(self, key):
         return self.url_cachedb.get(key)
 

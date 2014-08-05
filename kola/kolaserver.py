@@ -14,12 +14,15 @@ from .element import LivetvMenu, MovieMenu, TVMenu, ComicMenu, DocumentaryMenu, 
     ShowMenu
 from .utils import autoint
 
+from .cached import RedisCached, MemcachedCached
+
 
 class KolatvServer:
     def __init__(self):
         self.db = DB()
         self.kdb = redis.Redis(host='127.0.0.1', port=6379, db=1)
         self.command = KolaCommand()
+        self.urlCached = RedisCached()
         self.MenuList = {}
         self.ActiveTime = 60 # 客户端重新登录时长
         self.UpdateAlbumFlag = False
@@ -137,6 +140,27 @@ class KolatvServer:
             'source' : ['腾讯', '搜狐', '爱奇艺'],
             'resolution' : ['1080P', '原画质', '720P', '超清', '高清', '标清', '默认']
         }
+
+    def GeJsontData(self, args):
+        key = tornado.escape.json_encode(args)
+
+        value = self.urlCached.Get(key)
+
+        if not value:
+            if 'cid' in args:
+                albumlist, args['total'] = self.GetMenuAlbumListByCid(args['cid'], args)
+            elif 'menu' in args:
+                albumlist, args['total'] = self.GetMenuAlbumListByName(args['menu'], args)
+            elif 'vid' in args:
+                albumlist, args['total'] = self.GetMenuAlbumListByVidList(args['vid'], args)
+
+            if albumlist:
+                args['result'] = albumlist
+
+            value = tornado.escape.json_encode(args)
+            self.urlCached.Set(key, value)
+
+        return value
 
     def GetMenuJsonInfoById(self, cid_list):
         ret = []

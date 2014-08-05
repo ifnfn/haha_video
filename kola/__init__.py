@@ -11,3 +11,4 @@ from .kolaserver import KolatvServer
 from .pytable import *
 from .singleton import Singleton
 from .utils import *
+from .cached import *

@@ -16,14 +16,8 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 
-from barcode import get_barcode
+#from barcode import get_barcode
 from kola import log, utils, DB, City, KolatvServer
-
-
-try:
-    from barcode.writer import ImageWriter
-except ImportError:
-    ImageWriter = None
 
 
 kolas = KolatvServer()
@@ -46,7 +40,6 @@ class BaseHandler(tornado.web.RequestHandler):
             else:
                 self.request.body = body
 
-
 class AlbumVidCheckHandler(BaseHandler):
     def get(self):
         vids = self.get_argument('vid', '')
@@ -61,15 +54,28 @@ class AlbumVidCheckHandler(BaseHandler):
 
             self.finish(tornado.escape.json_encode(ret))
 
+class CachedCleanHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        kolas.urlCached.Clean()
+        self.finish("OK\n")
+
 class AlbumListHandler(BaseHandler):
     def argument(self):
         args = {}
-        cid = self.get_argument('cid', '')
+        cid  = self.get_argument('cid', '')
+        menu = self.get_argument('menu', '')
+        vid  = self.get_argument('vid', '')
+
         args['page']  = int(self.get_argument('page', 0))
         args['size']  = int(self.get_argument('size', 20))
         args['full']  = int(self.get_argument('full', 0))
-        if cid:
-            args['cid'] = cid
+
+        if cid:  args['cid']  = cid
+        if menu: args['menu'] = menu
+        if vid:  args['vid']  = vid
 
         engine = self.get_argument('engine', '')
         if engine:
@@ -80,50 +86,35 @@ class AlbumListHandler(BaseHandler):
             args['key'] = key
 
         value = self.get_argument('value', '')
-        if value: args['value'] = value
+        if value:
+            args['value'] = value
 
-        return args, self.get_argument('menu', ''), cid, self.get_argument('vid', '')
+        return args
 
     @tornado.web.authenticated
     def get(self):
-        args, menu, cid, vid = self.argument()
+        args = self.argument()
 
-        if cid:
-            albumlist, args['total'] = kolas.GetMenuAlbumListByCid(cid, args)
-        elif menu:
-            albumlist, args['total'] = kolas.GetMenuAlbumListByName(menu, args)
-        elif vid:
-            albumlist, args['total'] = kolas.GetMenuAlbumListByVidList(vid, args)
-
-        if albumlist: args['result'] = albumlist
-
-        self.finish(tornado.escape.json_encode(args))
+        self.finish(kolas.GeJsontData(args))
 
     @tornado.web.authenticated
     def post(self):
-        args, menu, cid, vid = self.argument()
+        args = self.argument()
 
         if self.request.body:
             try:
                 umap = tornado.escape.json_decode(self.request.body)
                 if 'vid' in umap:
                     vid = umap['vid']
+                    if vid:
+                        args['vid'] = vid
                 args.update(umap)
             except:
                 t, v, tb = sys.exc_info()
                 log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
-        if cid:
-            albumlist, args['total'] = kolas.GetMenuAlbumListByCid(cid, args)
-        elif menu:
-            albumlist, args['total'] = kolas.GetMenuAlbumListByName(menu, args)
-        elif vid:
-            albumlist, args['total'] = kolas.GetMenuAlbumListByVidList(vid, args)
-
-        if albumlist: args['result'] = albumlist
-
-        self.finish(tornado.escape.json_encode(args))
+        self.finish(kolas.GeJsontData(args))
 
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=1'
 # 'http://127.0.0.1:9991/video/getvideo?pid=1330988&full=0'
@@ -628,6 +619,7 @@ class ViewApplication(tornado.web.Application):
             (r'/admin/serial',     SerialHandler),          # 生成序列号
             (r'/admin/update',     UploadFileHandler),
             (r'/admin/online',     OnlineUserHandler),
+            (r'/admin/cleancache', CachedCleanHandler),
 
             (r"/files/(.*)",       DownloadFileHandler, {"path": "files"}),
             (r"/static/(.*)",      tornado.web.StaticFileHandler, {"path": "static"}),

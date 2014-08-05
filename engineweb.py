@@ -12,6 +12,7 @@ import tornado.options
 import tornado.web
 
 import engine
+import kola
 
 
 tv = engine.KolaEngine()
@@ -45,6 +46,14 @@ class UploadHandler(BaseHandler):
                 #tv.AddTask(body)
         except:
             pass
+
+class CachedCleanHandler(BaseHandler):
+    def initialize(self):
+        pass
+
+    def get(self):
+        kola.RedisCached().Clean()
+        self.finish("CACHED cleanup ok!\n")
 
 class UpdateCommandHandle(BaseHandler):
     def initialize(self):
@@ -137,6 +146,7 @@ class EngineApplication(tornado.web.Application):
             (r'/login',            LoginHandler),           # 登录认证
             (r'/upload',           UploadFileHandler),
             (r'/manage/update',    UpdateCommandHandle),
+            (r'/manage/cleancache',CachedCleanHandler),
         ]
 
         tornado.web.Application.__init__(self, handlers, **settings)

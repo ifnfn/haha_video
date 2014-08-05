@@ -23,9 +23,9 @@ class KolatvServer:
         self.misses_count = 0  # 页面未缓冲命中次数
         self.db = DB()
         self.kdb = redis.Redis(host='127.0.0.1', port=6379, db=1)
-        #self.command = KolaCommand()
+        self.command = KolaCommand()
         self.urlCached = BCached()
-        self.urlCached = RedisCached()
+        #self.urlCached = RedisCached()
         self.MenuList = {}
         self.ActiveTime = 60 # 客户端重新登录时长
         self.UpdateAlbumFlag = False
@@ -166,7 +166,7 @@ class KolatvServer:
         else:
             self.hit_count += 1
 
-        print("albume page hit: %2.2f%%, %d, %d" % (self.hit_count * 100.0 / (self.hit_count + self.misses_count), self.hit_count, self.misses_count))
+        print("albume page hit: %2.2f%%, hit: %d, misses: %d" % (self.hit_count * 100.0 / (self.hit_count + self.misses_count), self.hit_count, self.misses_count))
         return value
 
     def GetMenuJsonInfoById(self, cid_list):

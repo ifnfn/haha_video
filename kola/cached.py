@@ -49,9 +49,15 @@ class BCached(CachedBase):
         self.url_cachedb.flush_all()
 
     def Get(self, key):
+        key = hashlib.sha1(key.encode()).hexdigest()
+        key = 'album_' + key
+        print("Get:", key)
         return self.url_cachedb.get(key)
 
     def Set(self, key, value):
+        key = hashlib.sha1(key.encode()).hexdigest()
+        key = 'album_' + key
+        print("Set:", key)
         self.url_cachedb.set(key, value, time=self.expireTime)
 
 class MemcachedCached(CachedBase):

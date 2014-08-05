@@ -292,22 +292,22 @@ class Protocol(threading.local):
         """
         flags = 0
         if isinstance(value, str):
-            pass
+            value = value.encode()
         elif isinstance(value, int) and isinstance(value, bool) is False:
             flags |= self.FLAGS['integer']
-            value = str(value)
+            value = str(value).encode()
         elif isinstance(value, int):
             flags |= self.FLAGS['long']
-            value = str(value)
+            value = str(value).encode()
         else:
             flags |= self.FLAGS['pickle']
-            value = dumps(value)
+            value = dumps(value).encode()
 
         if len(value) > self.COMPRESSION_THRESHOLD:
             value = self.compression.compress(value)
             flags |= self.FLAGS['compressed']
 
-        return flags, value.encode()
+        return flags, value
 
     def deserialize(self, value, flags):
         """

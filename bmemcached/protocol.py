@@ -1,7 +1,4 @@
-try:
-    from pickle import dumps, loads
-except ImportError:
-    from pickle import dumps, loads
+from pickle import dumps, loads
 
 from datetime import datetime, timedelta
 import logging
@@ -369,6 +366,7 @@ class Protocol(threading.local):
             raise MemcachedException('Code: %d Message: %s' % (status, extra_content))
 
         flags, value = struct.unpack('!L%ds' % (bodylen - 4, ), extra_content)
+
         return self.deserialize(value, flags).decode(), cas
 
     def get_multi(self, keys):
@@ -436,17 +434,14 @@ class Protocol(threading.local):
         key = key.encode()
         logger.info('Value bytes %d.' % len(value))
 
-        #print(self.HEADER_STRUCT + self.COMMANDS[command]['struct'] % (len(key), len(value)))
-        S = struct.pack(self.HEADER_STRUCT +
+        self._send(struct.pack(self.HEADER_STRUCT +
                                          self.COMMANDS[command]['struct'] % (len(key), len(value)),
                                          self.MAGIC['request'],
                                          self.COMMANDS[command]['command'],
                                          len(key),
-                                         8, 0, 0, len(key) + len(value) + 8, 0, 
-                                         cas, flags,
-                                         time, key, value)
+                                         8, 0, 0, len(key) + len(value) + 8, 0, cas, flags,
+                                         time, key, value))
 
-        self._send(S)
         (magic, opcode, keylen, extlen, datatype, status, bodylen, opaque,
          cas, extra_content) = self._get_response()
 

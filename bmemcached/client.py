@@ -1,10 +1,7 @@
 import logging
 from .protocol import Protocol
 
-try:
-    from pickle import loads, dumps
-except ImportError:
-    from pickle import loads, dumps
+from pickle import loads, dumps
 
 
 class Client(object):

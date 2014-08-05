@@ -14,7 +14,7 @@ from .element import LivetvMenu, MovieMenu, TVMenu, ComicMenu, DocumentaryMenu, 
     ShowMenu
 from .utils import autoint
 
-from .cached import RedisCached, MemcachedCached
+from .cached import RedisCached, MemcachedCached, BCached
 
 
 class KolatvServer:
@@ -23,7 +23,8 @@ class KolatvServer:
         self.misses_count = 0  # 页面未缓冲命中次数
         self.db = DB()
         self.kdb = redis.Redis(host='127.0.0.1', port=6379, db=1)
-        self.command = KolaCommand()
+        #self.command = KolaCommand()
+        self.urlCached = BCached()
         self.urlCached = RedisCached()
         self.MenuList = {}
         self.ActiveTime = 60 # 客户端重新登录时长

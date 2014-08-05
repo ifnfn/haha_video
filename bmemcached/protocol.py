@@ -1,5 +1,5 @@
 try:
-    from cPickle import dumps, loads
+    from pickle import dumps, loads
 except ImportError:
     from pickle import dumps, loads
 
@@ -153,7 +153,7 @@ class Protocol(threading.local):
         :return: Data from socket
         :rtype: basestring
         """
-        value = ''
+        value = b''
         while len(value) < size:
             data = self.connection.recv(size - len(value))
             if not data:
@@ -253,7 +253,7 @@ class Protocol(threading.local):
 
         methods = extra_content
 
-        if not 'PLAIN' in methods:
+        if not 'PLAIN' in methods.decode():
             raise AuthenticationNotSupported('This module only supports '
                                              'PLAIN auth for now.')
 
@@ -262,7 +262,7 @@ class Protocol(threading.local):
         self._send(struct.pack(self.HEADER_STRUCT +
                                          self.COMMANDS['auth_request']['struct'] % (len(method), len(auth)),
                                          self.MAGIC['request'], self.COMMANDS['auth_request']['command'],
-                                         len(method), 0, 0, 0, len(method) + len(auth), 0, 0, method, auth))
+                                         len(method), 0, 0, 0, len(method) + len(auth), 0, 0, method.encode(), auth.encode()))
 
         (magic, opcode, keylen, extlen, datatype, status, bodylen, opaque,
          cas, extra_content) = self._get_response()
@@ -307,7 +307,7 @@ class Protocol(threading.local):
             value = self.compression.compress(value)
             flags |= self.FLAGS['compressed']
 
-        return flags, value
+        return flags, value.encode()
 
     def deserialize(self, value, flags):
         """
@@ -343,6 +343,7 @@ class Protocol(threading.local):
         :rtype: object
         """
         logger.info('Getting key %s' % key)
+        key = key.encode()
         data = struct.pack(self.HEADER_STRUCT +
                                          self.COMMANDS['get']['struct'] % (len(key)),
                                          self.MAGIC['request'],
@@ -368,8 +369,7 @@ class Protocol(threading.local):
             raise MemcachedException('Code: %d Message: %s' % (status, extra_content))
 
         flags, value = struct.unpack('!L%ds' % (bodylen - 4, ), extra_content)
-
-        return self.deserialize(value, flags), cas
+        return self.deserialize(value, flags).decode(), cas
 
     def get_multi(self, keys):
         """
@@ -433,16 +433,20 @@ class Protocol(threading.local):
         """
         logger.info('Setting/adding/replacing key %s.' % key)
         flags, value = self.serialize(value)
+        key = key.encode()
         logger.info('Value bytes %d.' % len(value))
 
-        self._send(struct.pack(self.HEADER_STRUCT +
+        #print(self.HEADER_STRUCT + self.COMMANDS[command]['struct'] % (len(key), len(value)))
+        S = struct.pack(self.HEADER_STRUCT +
                                          self.COMMANDS[command]['struct'] % (len(key), len(value)),
                                          self.MAGIC['request'],
                                          self.COMMANDS[command]['command'],
                                          len(key),
-                                         8, 0, 0, len(key) + len(value) + 8, 0, cas, flags,
-                                         time, key, value))
+                                         8, 0, 0, len(key) + len(value) + 8, 0, 
+                                         cas, flags,
+                                         time, key, value)
 
+        self._send(S)
         (magic, opcode, keylen, extlen, datatype, status, bodylen, opaque,
          cas, extra_content) = self._get_response()
 
@@ -541,7 +545,7 @@ class Protocol(threading.local):
         :return: True
         :rtype: bool
         """
-        mappings = mappings.items()
+        mappings = list(mappings.items())
         msg = []
 
         for key, value in mappings:

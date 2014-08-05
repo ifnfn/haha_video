@@ -2,7 +2,7 @@ import logging
 from .protocol import Protocol
 
 try:
-    from cPickle import loads, dumps
+    from pickle import loads, dumps
 except ImportError:
     from pickle import loads, dumps
 
@@ -119,7 +119,7 @@ class Client(object):
             for server in self.servers:
                 results = server.get_multi(keys)
                 if not get_cas:
-                    for key, (value, cas) in results.items():
+                    for key, (value, cas) in list(results.items()):
                         results[key] = value
                 d.update(results)
                 keys = [_ for _ in keys if not _ in d]

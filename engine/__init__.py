@@ -43,8 +43,6 @@ class KolaEngine:
 
     def ParserJson(self, js):
         if (js == None) or ('data' not in js):
-            db = redis.Redis(host='127.0.0.1', port=6379, db=2) # 出错页
-            db.rpush('urls', js['source'])
             print("Error:", js['source'])
             return False
 

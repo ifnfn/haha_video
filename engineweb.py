@@ -77,7 +77,6 @@ class UpdateCommandHandle(BaseHandler):
         pass
 
 class LoginHandler(BaseHandler):
-    redis_db = redis.Redis(host='127.0.0.1', port=6379, db=1)
     def initialize(self):
         pass
 
@@ -152,9 +151,6 @@ class EngineApplication(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 def main():
-    db = redis.Redis(host='127.0.0.1', port=6379, db=4)
-    db.flushdb()
-
     tornado.options.parse_command_line()
     EngineApplication().listen(9992, xheaders = True)
     tornado.ioloop.IOLoop.instance().start()

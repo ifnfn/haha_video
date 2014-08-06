@@ -228,7 +228,6 @@ class VideoMenuBase:
         return ret
 
 class DB:
-    video_cachedb = redis.Redis(host='127.0.0.1', port=6379, db=3)
     con = pymongo.Connection('localhost', 27017)
     kola = con.kola
     album_table  = kola.album
@@ -278,13 +277,6 @@ class DB:
         if name in self.blackAlbumName:
             return ''
         return name
-
-    def SetVideoCache(self, key, value):
-        self.video_cachedb.set(key, value)
-        self.video_cachedb.expire(key, 600) # 10 分钟有效
-
-    def GetVideoCache(self, key):
-        return self.video_cachedb.get(key)
 
     def _GetKeyAndJson(self, album, key):
         album.vid = autostr(album.vid)

@@ -27,7 +27,8 @@ class BaseHandler(tornado.web.RequestHandler):
         chipid  = self.get_argument('chipid', None)
         serial  = self.get_argument('serial', None)
         key = self.get_secure_cookie('user_id', None, 1)
-        return kolas.CheckUser(key, self.request.remote_ip, chipid, serial)
+        if key:
+            return kolas.CheckUser(key.decode(), self.request.remote_ip, chipid, serial)
 
     def prepare(self):
         if self.request.method == "POST" and self.request.body:
@@ -59,7 +60,7 @@ class CachedCleanHandler(BaseHandler):
         pass
 
     def get(self):
-        kolas.urlCached.Clean()
+        kolas.CleanUrlCache()
         self.finish("OK\n")
 
 class AlbumListHandler(BaseHandler):
@@ -184,7 +185,7 @@ class GetPlayerHandler(BaseHandler):
 
             m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
             name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
-            kolas.db.SetVideoCache(name, m3u8)
+            kolas.SetCache(name, m3u8, 600)
 
             return url + name
         except:
@@ -229,7 +230,7 @@ class GetPlayerHandler(BaseHandler):
                 m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
 
                 name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
-                kolas.db.SetVideoCache(name, m3u8)
+                kolas.SetCache(name, m3u8, 600)
 
                 return url + name
         except:
@@ -307,7 +308,7 @@ class RandomVideoUrlHandle(BaseHandler):
         pass
 
     def get(self, name):
-        self.finish(kolas.db.GetVideoCache(name))
+        self.finish(kolas.GetCache(name))
 
     def post(self, name):
         if name == '':
@@ -630,9 +631,6 @@ class ViewApplication(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 def main():
-    db = redis.Redis(host='127.0.0.1', port=6379, db=4)
-    db.flushdb()
-
     # debug|info|warning|error|none
     tornado.options.options.logging = "none"
     tornado.options.parse_command_line()

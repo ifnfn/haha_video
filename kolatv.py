@@ -9,9 +9,6 @@ from viewweb import ViewApplication
 
 
 def main():
-    db = redis.Redis(host='127.0.0.1', port=6379, db=4)
-    db.flushdb()
-
     tornado.options.parse_command_line()
     EngineApplication().listen(9992, xheaders = True)
     ViewApplication().listen(9991, xheaders = True)

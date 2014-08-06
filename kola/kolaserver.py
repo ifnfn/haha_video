@@ -5,7 +5,6 @@ import hashlib
 import time
 import uuid
 
-import redis
 import tornado.escape
 
 from .commands import KolaCommand
@@ -14,7 +13,7 @@ from .element import LivetvMenu, MovieMenu, TVMenu, ComicMenu, DocumentaryMenu, 
     ShowMenu
 from .utils import autoint
 
-from .cached import RedisCached, MemcachedCached, BCached
+from .cached import RedisCached, MemcachedCached, AliyunCached
 
 
 class KolatvServer:
@@ -22,10 +21,13 @@ class KolatvServer:
         self.hit_count = 0     # 页面缓冲命中次数
         self.misses_count = 0  # 页面未缓冲命中次数
         self.db = DB()
-        self.kdb = redis.Redis(host='127.0.0.1', port=6379, db=1)
         self.command = KolaCommand()
-        self.urlCached = BCached()
-        #self.urlCached = RedisCached()
+        self.UserCache = RedisCached()
+
+        #self.cached = MemcachedCached()
+        self.cached = AliyunCached()
+        #self.cached = RedisCached()
+
         self.MenuList = {}
         self.ActiveTime = 60 # 客户端重新登录时长
         self.UpdateAlbumFlag = False
@@ -43,8 +45,8 @@ class KolatvServer:
         ret = []
 
         i = 1
-        for key in self.kdb.keys('????????????????'):
-            js = tornado.escape.json_decode(self.kdb.get(key))
+        for key in self.UserCache.Keys('????????????????'):
+            js = tornado.escape.json_decode(self.UserCache.Get(key))
             js['id'] = i
             js['updateTimeStr'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(js['updateTime']))
             ret.append(js)
@@ -70,7 +72,7 @@ class KolatvServer:
         return ret
 
     def LoginFromCache(self, chipid, serial):
-        js = self.kdb.get(chipid)
+        js = self.UserCache.Get(chipid)
         if js:
             js = tornado.escape.json_decode(js)
 
@@ -98,6 +100,11 @@ class KolatvServer:
                             self.db.user_table.update({'serial' : json['serial']}, {'$set' : {'chipid': ''}})
                         else:
                             break
+                    else:
+                        json = self.db.user_table.find_one({'serial' : serial})
+                        if not json:
+                            break
+
                     self.db.user_table.update({'serial' : serial}, {'$set' : {'chipid': chipid, 'registerTime': time.time()}})
 
         userinfo = {
@@ -109,34 +116,32 @@ class KolatvServer:
                     }
 
         if status == 'YES' and not key:
-            # 登录检查，生成随机 KEY
-            if self.kdb.exists(chipid):
-                js = self.kdb.get(chipid)
+            js = self.UserCache.Get(chipid)
+
+            if js:
                 key = tornado.escape.json_decode(js)['key']
             if not key:
                 key = (chipid + uuid.uuid4().__str__() + remote_ip).encode()
                 key = hashlib.md5(key).hexdigest().upper()
 
-        userinfo['key'] = key
+        if key:
+            userinfo['key'] = key
 
-        userinfo = tornado.escape.json_encode(userinfo)
-        self.kdb.set(chipid, userinfo)
-        self.kdb.set(key, userinfo)
+            userinfo = tornado.escape.json_encode(userinfo)
+            self.UserCache.Set(chipid, userinfo, self.ActiveTime + 30)
+            self.UserCache.Set(key, userinfo, self.ActiveTime + 30)
 
-        self.kdb.expire(chipid, self.ActiveTime + 30) # 一分钟过期
-        self.kdb.expire(key, self.ActiveTime + 30)    # 一分钟过期
-
-        return key
+            return key
 
     def CheckUser(self, key, remote_ip, chipid=None, serial=None):
-        if not self.kdb.exists(key):
+        js = self.UserCache.Get(key)
+        if js:
+            userinfo = tornado.escape.json_decode(js)
+            if userinfo['key'] == key and userinfo['remote_ip'] == remote_ip:
+                return key
+        else:
             if chipid and serial:
                 return self.Login(chipid, serial, remote_ip)
-        else:
-            js = self.kdb.get(key)
-            userinfo = tornado.escape.json_decode(js)
-            if userinfo['key'] == key.decode() and userinfo['remote_ip'] == remote_ip:
-                return key
 
     def GetVideoSource(self):
         return {
@@ -144,10 +149,25 @@ class KolatvServer:
             'resolution' : ['1080P', '原画质', '720P', '超清', '高清', '标清', '默认']
         }
 
-    def GeJsontData(self, args):
-        key = tornado.escape.json_encode(args)
+    def SetCache(self, key, value, timeout=None):
+        self.cached.Set(key, value, timeout)
 
-        value = self.urlCached.Get(key)
+    def GetCache(self, key):
+        return self.cached.Get(key)
+
+    def CleanUrlCache(self):
+        self.cached.Clean('album_*')
+
+    def GeJsontData(self, args):
+        if 'cid' in args and args['cid'] != '200':
+            key_js = args.copy()
+            del key_js['area']
+            key = tornado.escape.json_encode(key_js)
+        else:
+            key = tornado.escape.json_encode(args)
+        key = 'album_' + hashlib.sha1(key.encode()).hexdigest()
+
+        value = self.cached.Get(key)
 
         if not value:
             self.misses_count += 1
@@ -162,7 +182,7 @@ class KolatvServer:
                 args['result'] = albumlist
 
             value = tornado.escape.json_encode(args)
-            self.urlCached.Set(key, value)
+            self.cached.Set(key, value)
         else:
             self.hit_count += 1
 

@@ -457,7 +457,10 @@ class SerialHandler(BaseHandler):
 class OnlineUserHandler(tornado.web.RequestHandler):
     def get(self):
         onlines = kolas.GetOnline()
-        allusers = kolas.GetAllUser()
+        if self.get_argument('all', '0') == '1':
+            allusers = kolas.GetAllUser()
+        else:
+            allusers = []
         self.render("online.html", onlines=onlines, allusers=allusers)
 
 class LoginHandler(BaseHandler):

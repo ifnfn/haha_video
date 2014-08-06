@@ -6,14 +6,14 @@ import time
 import uuid
 
 import tornado.escape
+from tornado.log import access_log, app_log, gen_log
 
+from .cached import RedisCached, MemcachedCached, AliyunCached
 from .commands import KolaCommand
 from .db import DB
 from .element import LivetvMenu, MovieMenu, TVMenu, ComicMenu, DocumentaryMenu, \
     ShowMenu
 from .utils import autoint
-
-from .cached import RedisCached, MemcachedCached, AliyunCached
 
 
 class KolatvServer:
@@ -134,7 +134,10 @@ class KolatvServer:
             return key
 
     def CheckUser(self, key, remote_ip, chipid=None, serial=None):
-        js = self.UserCache.Get(key)
+        if key:
+            js = self.UserCache.Get(key)
+        else:
+            js = None
         if js:
             userinfo = tornado.escape.json_decode(js)
             if userinfo['key'] == key and userinfo['remote_ip'] == remote_ip:
@@ -157,17 +160,21 @@ class KolatvServer:
 
     def CleanUrlCache(self):
         self.cached.Clean('album_*')
+        self.cached.Clean('video_*')
+        self.cached.Clean('allmenu')
 
     def GeJsontData(self, args):
-        if 'cid' in args and args['cid'] != '200':
-            key_js = args.copy()
-            del key_js['area']
-            key = tornado.escape.json_encode(key_js)
-        else:
-            key = tornado.escape.json_encode(args)
-        key = 'album_' + hashlib.sha1(key.encode()).hexdigest()
+        value = None
+        if args['cache'] != 0:
+            if 'cid' in args and args['cid'] != '200':
+                key_js = args.copy()
+                del key_js['area']
+                key = tornado.escape.json_encode(key_js)
+            else:
+                key = tornado.escape.json_encode(args)
+            key = 'album_' + hashlib.sha1(key.encode()).hexdigest()
 
-        value = self.cached.Get(key)
+            value = self.cached.Get(key)
 
         if not value:
             self.misses_count += 1
@@ -182,11 +189,12 @@ class KolatvServer:
                 args['result'] = albumlist
 
             value = tornado.escape.json_encode(args)
-            self.cached.Set(key, value)
+            if args['cache'] != 0:
+                self.cached.Set(key, value)
         else:
             self.hit_count += 1
 
-        print("albume page hit: %2.2f%%, hit: %d, misses: %d" % (self.hit_count * 100.0 / (self.hit_count + self.misses_count), self.hit_count, self.misses_count))
+        app_log.info("albume page hit: %2.2f%%, hit: %d, misses: %d" % (self.hit_count * 100.0 / (self.hit_count + self.misses_count), self.hit_count, self.misses_count))
         return value
 
     def GetMenuJsonInfoById(self, cid_list):
@@ -233,8 +241,8 @@ class KolatvServer:
         menu = self.FindMenuById(cid)
         return self._GetMenuAlbumList(menu, argument)
 
-    def GetVideoListByPid(self, pid, argument):
-        return self.db.GetVideoListJson(pid=pid, arg=argument)
+    def GetVideoList(self, argument):
+        return self.db.GetVideoListJson(argument)
 
     def FindMenuById(self, cid):
         for _, menu in list(self.MenuList.items()):

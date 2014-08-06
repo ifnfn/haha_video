@@ -417,8 +417,11 @@ class DB:
 
         return ret, count
 
-    def GetVideoListJson(self, pid='', arg={}):
-        pid        = autostr(pid)
+    def GetVideoListJson(self, arg={}):
+        if 'pid' in arg:
+            pid = arg['pid']
+        else:
+            pid = ''
         allVideo = False
         if 'page' in arg and 'size' in arg:
             page = autoint(arg['page'])

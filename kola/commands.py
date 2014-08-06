@@ -13,7 +13,6 @@ from .singleton import Singleton
 # 命令管理器
 class KolaCommand(Singleton):
     db = redis.Redis(host='127.0.0.1', port=6379, db=1)
-    db.flushdb()
     mutex = threading.Lock()
     def __init__(self):
         self.time = time.time()

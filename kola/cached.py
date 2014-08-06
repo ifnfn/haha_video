@@ -27,7 +27,7 @@ class CachedBase:
 class RedisCached(CachedBase):
     def __init__(self):
         super().__init__()
-        self.url_cachedb = redis.Redis(host='127.0.0.1', port=6379, db=1)
+        self.url_cachedb = redis.Redis(host='127.0.0.1', port=6379, db=2)
 
     def Clean(self, regular='*'):
         pipe = self.url_cachedb.pipeline()
@@ -37,7 +37,11 @@ class RedisCached(CachedBase):
 
     def Get(self, key):
         key = self.GetKey(key)
-        return self.url_cachedb.get(key)
+        value = self.url_cachedb.get(key)
+        if type(value) == bytes:
+            value = value.decode()
+
+        return value
 
     def Set(self, key, value, timeout=None):
         key = self.GetKey(key)

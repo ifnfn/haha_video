@@ -151,6 +151,8 @@ class EngineApplication(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 def main():
+    # debug|info|warning|error|none
+    tornado.options.options.logging = "none"
     tornado.options.parse_command_line()
     EngineApplication().listen(9992, xheaders = True)
     tornado.ioloop.IOLoop.instance().start()

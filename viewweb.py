@@ -28,7 +28,8 @@ class BaseHandler(tornado.web.RequestHandler):
         serial  = self.get_argument('serial', None)
         key = self.get_secure_cookie('user_id', None, 1)
         if key:
-            return kolas.CheckUser(key.decode(), self.request.remote_ip, chipid, serial)
+            key = key.decode()
+        return kolas.CheckUser(key, self.request.remote_ip, chipid, serial)
 
     def prepare(self):
         if self.request.method == "POST" and self.request.body:
@@ -70,9 +71,10 @@ class AlbumListHandler(BaseHandler):
         menu = self.get_argument('menu', '')
         vid  = self.get_argument('vid', '')
 
-        args['page']  = int(self.get_argument('page', 0))
+        args['page']  = int(self.get_argument('page',  0))
         args['size']  = int(self.get_argument('size', 20))
-        args['full']  = int(self.get_argument('full', 0))
+        args['full']  = int(self.get_argument('full',  0))
+        args['cache'] = int(self.get_argument('cache', 1))
 
         if cid:  args['cid']  = cid
         if menu: args['menu'] = menu
@@ -122,29 +124,39 @@ class AlbumListHandler(BaseHandler):
 class GetVideoHandler(BaseHandler):
     def argument(self):
         args = {}
-        page = self.get_argument('page', 0)
-        if page:
-            args['page'] = page
-        size = self.get_argument('size', 0)
-        if size:
-            args['size'] = size
+        args['cache'] = int(self.get_argument('cache', 1))
+        args['page']  = int(self.get_argument('page', 0))
+        args['size']  = int(self.get_argument('size', 0))
+        args['pid']   = self.get_argument('pid', '')
 
-        return args, self.get_argument('pid', ''), self.get_argument('full', '')
+        return args
 
     def get(self):
-        args,pid,full = self.argument()
+        args = self.argument()
 
-        self.Finish(args, pid, full)
+        self.Finish(args)
 
-    def Finish(self, args, pid, full):
-        videos, count = kolas.GetVideoListByPid(pid, args)
+    def Finish(self, args):
+        js = ''
 
-        args['count'] = count
-        args['videos'] = videos
-        self.finish(tornado.escape.json_encode(args))
+        if args['cache'] == 1:
+            key = tornado.escape.json_encode(args)
+            key = 'video_' + hashlib.sha1(key.encode()).hexdigest()
+            js = kolas.GetCache(key)
+
+        if not js:
+            videos, count = kolas.GetVideoList(args)
+
+            args['count'] = count
+            args['videos'] = videos
+            js = tornado.escape.json_encode(args)
+            if args['cache'] == 1:
+                kolas.SetCache(key, js)
+
+        self.finish(js)
 
     def post(self):
-        args,pid,full = self.argument()
+        args = self.argument()
 
         if self.request.body:
             try:
@@ -155,7 +167,7 @@ class GetVideoHandler(BaseHandler):
                 log.error("SohuVideoMenu.CmdParserTVAll:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
                 raise tornado.web.HTTPError(400)
 
-        self.Finish(args, pid, full)
+        self.Finish(args)
 
 class GetPlayerHandler(BaseHandler):
     def post(self):
@@ -250,8 +262,8 @@ class GetMenuHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         ret = []
-        cid = self.get_argument('cid', '')
-        name  = self.get_argument('name', '')
+        cid  = self.get_argument('cid', '')
+        name = self.get_argument('name', '')
         if cid:
             cid = cid.split(',')
             ret = kolas.GetMenuJsonInfoById(cid)
@@ -259,9 +271,19 @@ class GetMenuHandler(BaseHandler):
             name = name.split(',')
             ret =  kolas.GetMenuJsonInfoByName(name)
         else:
-            ret =  kolas.GetMenuJsonInfoByName([])
+            cache = self.get_argument('cache', '1')
+            if cache == '1':
+                ret = kolas.GetCache('allmenu')
 
-        self.finish(tornado.escape.json_encode(ret))
+            if not ret:
+                ret = kolas.GetMenuJsonInfoByName([])
+                if ret:
+                    ret = tornado.escape.json_encode(ret)
+                    kolas.SetCache('allmenu', ret, 60 * 3600)
+
+        if type(ret) == list:
+            ret = tornado.escape.json_encode(ret)
+        self.finish(ret)
 
 class GetKolaInfoHandler(BaseHandler):
     def get(self):

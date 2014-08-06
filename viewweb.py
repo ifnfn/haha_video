@@ -630,12 +630,16 @@ class ViewApplication(tornado.web.Application):
 
         tornado.web.Application.__init__(self, handlers, **settings)
 
-def main():
+def main(port):
     # debug|info|warning|error|none
     tornado.options.options.logging = "none"
     tornado.options.parse_command_line()
-    ViewApplication().listen(9991, xheaders = True)
+    ViewApplication().listen(port, xheaders = True)
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) <= 1:
+        port = 9991
+    else:
+        port = int(sys.argv[1])
+    main(port)

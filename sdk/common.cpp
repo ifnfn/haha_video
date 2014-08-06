@@ -106,7 +106,7 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 
 string GetChipKey(void)
 {
-	return "4781D5154E920432";
+	//return "4781D5154E920432";
 	static string CPUID;
 	if (CPUID.empty()) {
 		if (GetCPUID(CPUID, 8) == false)

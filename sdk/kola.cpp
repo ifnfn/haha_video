@@ -36,7 +36,7 @@ static int    ThreadNum = 10;
 string GetSerial(void)
 {
 	//return "5BA178E5C709E0B3";
-	return "2FD4289F154F96DF";
+	//return "2FD4289F154F96DF";
 	return Serial;
 }
 

@@ -57,7 +57,7 @@ function get_videolist(cid, channel_id, pageNo, pageSize)
 		ret.totalSet = 1
 		ret.updateSet = 1
 	end
-	if tonumber(pageSize) == 0 and tonumber(pageNo) then
+	if tonumber(pageSize) == 0 then
 		return cjson.encode(ret)
 	end
 
@@ -185,7 +185,7 @@ function get_video_url(cid, ft, rid)
 
 		return kola.wpost(url, cjson.encode(segments))
 	elseif #segments == 1 then
-			return string.format('http://%s/%s?k=%s&type=web.fpp', sh, segments[0].url, k)
+		return string.format('http://%s/%s?k=%s&type=web.fpp', sh, segments[0].url, k)
 	end
 
 	return ''

@@ -10,7 +10,6 @@ import traceback
 from urllib.parse import unquote
 import zlib
 
-import redis
 import tornado.escape
 import tornado.ioloop
 import tornado.options
@@ -172,7 +171,7 @@ class GetVideoHandler(BaseHandler):
 class GetPlayerHandler(BaseHandler):
     def post(self):
         body = self.request.body.decode()
-        url = self.request.protocol + '://' + self.request.host  + '/video/urls'
+        url = self.request.protocol + '://' + self.request.host  + '/video/cache_'
         if body and len(body) > 0:
             text = self.sohuVideoUrl(body, url)
             if text == '':
@@ -196,7 +195,7 @@ class GetPlayerHandler(BaseHandler):
                     max_duration = duration
 
             m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
-            name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
+            name = 'list_' + hashlib.md5(m3u8.encode()).hexdigest()
             kolas.SetCache(name, m3u8, 600)
 
             return url + name
@@ -241,7 +240,7 @@ class GetPlayerHandler(BaseHandler):
 
                 m3u8 = '#EXTM3U\n#EXT-X-TARGETDURATION:%.0f\n%s#EXT-X-ENDLIST\n' % (max_duration, m3u8)
 
-                name = hashlib.md5(m3u8.encode()).hexdigest()[16:]
+                name = 'list_' + hashlib.md5(m3u8.encode()).hexdigest()
                 kolas.SetCache(name, m3u8, 600)
 
                 return url + name
@@ -325,20 +324,18 @@ class ADHandler(BaseHandler):
 
         self.redirect(self.GetUrl(ret))
 
-class RandomVideoUrlHandle(BaseHandler):
-    def initialize(self):
-        pass
-
+class MemCachedHandle(BaseHandler):
     def get(self, name):
-        self.finish(kolas.GetCache(name))
+        if name:
+            self.finish(kolas.GetCache(name))
 
     def post(self, name):
-        if name == '':
+        if name:
+            timeout = self.get_argument('time', 0)
             body = self.request.body
-            name = hashlib.md5(body).hexdigest().upper()
-            self.db.set(name, body.decode())
-            self.db.expire(name, 60) # 1 分钟有效
-            self.finish(name)
+            kolas.SetCache(name, body.decode(), timeout)
+            url = self.request.protocol + '://' + self.request.host  + '/video/cache_' + name
+            self.finish(url)
 
 # / userinfo?client_id=100&number=10&serial=sssssss
 class UserInfoHandler(BaseHandler):
@@ -635,8 +632,8 @@ class ViewApplication(tornado.web.Application):
             (r'/video/getplayer',  GetPlayerHandler),       # 得到下载地位
             (r'/video/getmenu',    GetMenuHandler),         #
             (r'/video/getinfo',    GetKolaInfoHandler),     #
+            (r'/video/cache_(.*)', MemCachedHandle),        #
 
-            (r'/video/urls(.*)',   RandomVideoUrlHandle),
             (r'/login',            LoginHandler),           # 登录认证
             (r'/ad',               ADHandler),              # 广告
             (r'/city',             CityHandler),            # 城市编码

@@ -5,7 +5,6 @@ import sys
 import traceback
 
 import pymongo
-import redis
 
 from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin
 

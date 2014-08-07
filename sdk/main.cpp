@@ -656,7 +656,7 @@ void test_video(const char *menuName)
 		album->SetSource("爱奇艺");
 #endif
 
-#if 0
+#if 1
 		size_t video_count = album->GetVideoCount();
 		printf("[%d]: albumName: %s[%s], PlayNum:%d, VideoCount: %ld, TotalCount: %ld, %d, %d, %3.2f\n",
 		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet(),
@@ -674,7 +674,7 @@ void test_video(const char *menuName)
 			}
 		}
 #endif
-#if 0
+#if 1
 		for (size_t j = 0; j < video_count; j++) {
 			string player_url;
 			KolaVideo *video = album->GetVideo(j);
@@ -844,12 +844,12 @@ int main(int argc, char **argv)
 //	printf("Test LiveTV(No EPG)\n"); test_livetv_noepg(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_epglist(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
-	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); //return 0;
+//	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); //return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
 
-	printf("Test Video\n"); test_video("综艺"); //return 0;
-	printf("Test Video\n"); test_video("动漫"); //return 0;
-	//printf("Test Video\n"); test_video("电影"); return 0;
+//	printf("Test Video\n"); test_video("综艺"); //return 0;
+//	printf("Test Video\n"); test_video("动漫"); //return 0;
+	printf("Test Video\n"); test_video("电影"); return 0;
 	printf("Test TV\n");    test_video("电视剧"); //return 0;
 
 	printf("end\n");

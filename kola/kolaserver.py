@@ -162,6 +162,7 @@ class KolatvServer:
         self.cached.Clean('album_*')
         self.cached.Clean('video_*')
         self.cached.Clean('allmenu')
+        self.cached.Clean('list_*')
 
     def GeJsontData(self, args):
         value = None

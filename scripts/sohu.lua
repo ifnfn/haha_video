@@ -178,11 +178,25 @@ function get_videolist(vid, playlistid, sohu_vid, pageNo, pageSize)
 		ret.size = ret.size + 1
 	end
 
-
 	if #videos > 0 then
 		ret.videos = videos
 	end
 
 	--print(cjson.encode(ret))
 	return cjson.encode(ret)
+end
+
+function get_videolist_bak(vid, playlistid, sohu_vid, pageNo, pageSize)
+	local cache_url = string.format('/video/cache_list_%s-%s-%s-%s-%s?time=600', vid, playlistid, sohu_vid, pageNo, pageSize)
+	cache_url = kola.geturl(cache_url)
+
+	local value = kola.wget(cache_url)
+	if not value then
+		value = get_videolist2(vid, playlistid, sohu_vid, pageNo, pageSize)
+		kola.wpost(cache_url, ret)
+	else
+		print("in cached.", cache_url)
+	end
+
+	return value
 end

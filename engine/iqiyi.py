@@ -380,14 +380,14 @@ class ParserAlbumPage(KolaParser):
     def CmdParser(self, js):
         if not js['data']: return
 
-        vlist = re.findall('(videoid|tvid|albumid)="(.*?)"', js['data'])
+        vlist = re.findall('(data-player-videoid|data-player-tvid|data-player-albumid)="(.*?)"', js['data'])
         if vlist:
             videoid = ''
             tvid = ''
             for u in vlist:
-                if u[0] == 'videoid':
+                if u[0] == 'data-player-videoid':
                     videoid = u[1]
-                elif u[0] == 'tvid':
+                elif u[0] == 'data-player-tvid':
                     tvid = u[1]
             if videoid and tvid:
                 ParserAlbumJson(tvid, videoid, js['cid']).Execute()
@@ -397,7 +397,7 @@ class ParserAlbumPage(KolaParser):
                 tvlist = tornado.escape.json_decode(vlist[0])
                 albumName = tvlist['data']['name']
                 tvid = tvlist['data']['id']
-                print(albumName, tvid)
+                #print(albumName, tvid)
                 album = QiyiAlbum()
                 album_js = DB().FindAlbumJson(albumName=albumName)
                 if album_js:

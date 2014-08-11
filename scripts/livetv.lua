@@ -1,5 +1,3 @@
-
-
 local function isnan(x) return x ~= x end
 
 local function find(var, tag, key, value)
@@ -62,6 +60,9 @@ local function curl_get(url, user_agent, referer)
 		return nil
 	end
 
+	if string.find(url, "http://") == nil then
+		url = kola.geturl(url)
+	end
 	local text = ''
 	if kola.wget2xxx then --  wget2 有问题，暂时不采用
 		if user_agent == nil then
@@ -564,7 +565,6 @@ end
 function get_video_url(url, albumName, vid)
 	local key = kola.md5(kola.chipid() .. url)
 	local cache_url = string.format('/video/cache_list_%s?time=60', key)
-	cache_url = kola.geturl(cache_url, false)
 
 	local value = curl_get(cache_url)
 	if value == nil or value == '' then

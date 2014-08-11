@@ -1,3 +1,22 @@
+local function curl_match(url, regular)
+	local text = kola.wget(url)
+	if text then
+		return rex.match(text, regular)
+	end
+end
+
+local function curl_json(url, regular)
+	local text = kola.wget(url)
+	if text then
+		if regular and regular ~= '' then
+			text = rex.match(text, regular)
+		end
+		if text and text ~= '' then
+			return cjson.decode(text)
+		end
+	end
+end
+
 -- 获取播放地址
 function get_video_url(vid, cid)
 	--vid = '1623625'
@@ -6,13 +25,12 @@ function get_video_url(vid, cid)
 		url = string.format('http://hot.vrs.sohu.com/vrs_flash.action?vid=%s', vid)
 	end
 
-	local text = kola.wget(url, false)
-	if text == nil then
+	local js = curl_json(url)
+	if not js then
 		return ""
 	end
 
 	local ret = {}
-	local js = cjson.decode(text)
 	local data     = js.data
 	local host     = js['allot']
 	local prot     = js['prot']
@@ -75,11 +93,10 @@ function get_resolution(vid, cid)
 		url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid=' .. vid
 	end
 
-	local text = kola.wget(url, false)
-	if text == nil then
-		return '{}'
+	local js = curl_json(url)
+	if not js then
+		return "{}"
 	end
-	local js = cjson.decode(text).data
 
 	local ret = {}
 	ret['默认'] = get(vid, cid)
@@ -107,16 +124,12 @@ end
 local function get_album_set(playlistid)
 	local url = 'http://hot.vrs.sohu.com/pl/isover_playlist?playlistid=' .. playlistid
 
-	local text = kola.wget(url, false)
-
-	if text == nil then
-		return ""
-	end
-
 	local ret = {}
-	local js = cjson.decode(text)
-	ret.totalSet   = js.totalSets
-	ret.updateSet  = js.updateSets
+	local js = curl_json(url)
+	if js then
+		ret.totalSet   = js.totalSets
+		ret.updateSet  = js.updateSets
+	end
 
 	return ret
 end
@@ -136,13 +149,10 @@ function get_videolist(vid, playlistid, sohu_vid, pageNo, pageSize)
 			tonumber(pageNo) + 1, pageSize, playlistid)
 	end
 
-	local text = kola.wget(url, false)
-
-	if text == nil then
+	local js = curl_json(url)
+	if not js then
 		return ""
 	end
-
-	local js = cjson.decode(text)
 
 	ret.full       = 0
 	ret.playlistid = js.playlistid

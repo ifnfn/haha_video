@@ -85,7 +85,7 @@ class KolaParser:
 
         self.cmd = {}
         self.cmd['engine'] = self.name
-        self.cmd['cache']  = False or Debug
+        self.cmd['cache']  = True
 
     def AddCommand(self):
         if self.cmd:

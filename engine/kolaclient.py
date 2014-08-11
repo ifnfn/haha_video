@@ -19,21 +19,22 @@ HOST = 'http://127.0.0.1:9992'
 MAX_TRY = 3
 
 class KolaClient:
-    def __init__(self):
+    def __init__(self, Debug=False):
         self.menuList = []
         self.key = ''
+        self.Debug = Debug
 
-    def GetUrl(self, url):
-        return GetUrl(url)
-
-    def GetCacheUrl(self, url):
-        return GetCacheUrl(url)
+    def GetUrl(self, url, cached=False):
+        if cached:
+            return GetCacheUrl(url)
+        else:
+            return GetUrl(url)
 
     def PostUrl(self, url, body):
         return PostUrl(url, body, self.key)
 
     def RegularMatchUrl(self, url, regular):
-        response = self.GetCacheUrl(url)
+        response,_,_ = self.GetUrl(url, True)
         return self.RegularMatch([regular], response)
 
     def RegularMatch(self, regular, text):
@@ -54,6 +55,8 @@ class KolaClient:
     def ProcessCommand(self, cmd, dest, times = 0):
         ret = False
         cached = True
+        cache_file = ''
+        found = False
 
         if times > MAX_TRY or type(cmd) != dict:
             return False
@@ -63,11 +66,8 @@ class KolaClient:
             else:
                 if 'source' in cmd:
                     if 'cache' in cmd:
-                        cached = cmd['cache']
-                        if cached:
-                            response = self.GetCacheUrl(cmd['source'])
-                        else:
-                            response = self.GetUrl(cmd['source'])
+                        cached = cmd['cache'] or self.Debug
+                        response, cache_file, found = self.GetUrl(cmd['source'], cached)
 
             coding = 'utf8'
             try:
@@ -114,7 +114,7 @@ class KolaClient:
             return self.ProcessCommand(cmd, dest, times + 1)
 
         if 'source' in cmd:
-            print((ret == True and "OK:" or "ERROR:"), (cached and "[CACHE]" or ''), cmd['source'],  '-->', dest)
+            print((ret == True and "OK:" or "ERROR:"), (found and "[IN CACHE]" or ''), cache_file, cmd['source'])
 
         return ret
 
@@ -124,7 +124,7 @@ class KolaClient:
         playurl = HOST + '/login?user_id=000001'
 
         try:
-            data = self.GetUrl(playurl)
+            data, _,_ = self.GetUrl(playurl, False)
             if data:
                 data = tornado.escape.json_decode(data)
                 self.key = data['key']

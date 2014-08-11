@@ -4,8 +4,8 @@ URL="http://127.0.0.1:9992"
 
 UpdateAlbum() {
     curl "$URL/manage/update?cmd=list&engine=$1Engine"
-    python3 ./super_client.py
-    curl "$URL/manage/cleancache"
+#    python3 ./super_client.py
+#    curl "$URL/manage/cleancache"
 }
 
 UpdateScore() {

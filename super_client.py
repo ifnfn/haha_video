@@ -1,6 +1,7 @@
 #!env python3
 # -*- coding: utf-8 -*-
 
+import sys
 import time
 
 from engine.kolaclient import KolaClient
@@ -8,17 +9,17 @@ from kola.ThreadPool import ThreadPool
 
 
 def main_one():
-    haha = KolaClient()
+    haha = KolaClient(len(sys.argv) > 1)
     haha.Login()
 
 def main():
-    haha = KolaClient()
+    haha = KolaClient(len(sys.argv) > 1)
     while True:
         if haha.Login() == False:
             break
 
 def main_loop():
-    haha = KolaClient()
+    haha = KolaClient(len(sys.argv) > 1)
     while True:
         while True:
             if haha.Login() == False:

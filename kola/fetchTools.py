@@ -59,14 +59,16 @@ def fetch_httplib2(url, method='GET', data=None, header=headers, cookies=None, r
     return response['status'], content_type, location, responses
 
 def GetUrl(url, times = 0):
+    key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
+    filename = './cache/' + key
     if times > MAX_TRY:
-        return ''
+        return '', '', False
     try:
         status, _, _, response = fetch_httplib2(url)
         if status != '200' and status != '304':
             print('status %s, try %d ...' % (status, times + 1))
             return GetUrl(url, times + 1)
-        return response
+        return response, filename, False
     except:
         t, v, tb = sys.exc_info()
         print("KolaClient.GetUrl: %s %s, %s, %s" % (url, t, v, traceback.format_tb(tb)))
@@ -76,14 +78,14 @@ def GetCacheUrl(url):
     response = ''
 
     key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
-
     filename = './cache/' + key
-    if os.path.exists(filename):
+    exists = os.path.exists(filename)
+    if exists:
         f = open(filename, 'rb')
         response = f.read()
         f.close()
     else:
-        response = GetUrl(url)
+        response,_,_ = GetUrl(url)
         if response:
             try:
                 f = open(filename, 'wb')
@@ -92,7 +94,7 @@ def GetCacheUrl(url):
             except:
                 pass
 
-    return response
+    return response, filename, exists
 
 def PostUrl(url, body, key=""):
     try:

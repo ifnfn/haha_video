@@ -25,8 +25,8 @@ class KolatvServer:
         self.UserCache = RedisCached()
 
         #self.cached = MemcachedCached()
-        self.cached = AliyunCached()
-        #self.cached = RedisCached()
+        #self.cached = AliyunCached()
+        self.cached = RedisCached()
 
         self.MenuList = {}
         self.ActiveTime = 60 # 客户端重新登录时长

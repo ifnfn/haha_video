@@ -193,7 +193,7 @@ function get_videolist_bak(vid, playlistid, sohu_vid, pageNo, pageSize)
 	local value = kola.wget(cache_url)
 	if not value then
 		value = get_videolist2(vid, playlistid, sohu_vid, pageNo, pageSize)
-		kola.wpost(cache_url, ret)
+		kola.wpost(cache_url, value)
 	else
 		print("in cached.", cache_url)
 	end

@@ -212,55 +212,53 @@ class ParserAlbumList(KolaParser):
     def __init__(self, url=None, cid=None):
         super().__init__()
         if url and cid:
-            regular = '(<h6 class="scores">[\s\S]*?</h6>|<a href=.*class="next".*</a>)'
+            regular = '(<h6.*?>[\s\S]*?</h6>|<a href=.*class="next".*</a>)'
             self.cmd['source']    = url
             self.cmd['regular']   = [regular]
             self.cmd['cid']       = cid
             self.cmd['cache']     = False
 
     def CmdParser(self, js):
-        #print(js['data'])
-        albumlist = []
-        soup = bs(js['data'])  # , from_encoding = 'GBK')
-        albumTag = soup.findAll('a', { "target" : '_blank' })
-        for a in albumTag:
-            href = a.get('href')
-            albumName = a.get('title')
-
-            if type(a) == Tag:
-                clips = False
-                for sup in a.contents:
-                    if sup.name == 'sup' and sup.text == '片花':
-                        clips = True
-                albumlist.append({'href': href, 'name': albumName, 'clips': clips})
-
-        scoreTag = soup.findAll('strong')
-        idx = 0
         db = QQDB()
         needNextPage = False
-        for a in scoreTag:
-            if albumlist[idx]['clips']:
-                idx += 1
-                continue
-            href = albumlist[idx]['href']
-            name = albumlist[idx]['name']
-            #print(albumName, href, a.text)
 
-            href_md5 = hashlib.md5(href.encode()).hexdigest()
+        soup = bs(js['data'])  # , from_encoding = 'GBK')
+        albumTag = soup.find_all('h6')
+        for album in albumTag:
+            if isinstance(album, Tag):
+                clips = True
+                href = ''
+                albumName = ''
+                score = 0.0
 
-            Found = db.FindAlbumJson(href=href_md5)
-            if not Found:
-                if not needNextPage:
-                    needNextPage = True
-                ParserAlbumPage2(href, name, js['cid'], a.text).Execute()
-            else:
-                pass
-            idx += 1
+                try:
+                    a = album.find('a', { "target" : '_blank' })
+                    href = a.get('href')
+                    albumName = a.get('title')
+
+                    if isinstance(a, Tag):
+                        for sup in a.contents:
+                            if sup.name == 'sup' and sup.text == '片花':
+                                clips = False
+                    score = album.find('strong').text
+                except:
+                    pass
+
+                if clips and href and albumName:
+                    href_md5 = hashlib.md5(href.encode()).hexdigest()
+
+                    Found = db.FindAlbumJson(href=href_md5)
+                    if not Found:
+                        if not needNextPage:
+                            needNextPage = True
+                        ParserAlbumPage2(href, albumName, js['cid'], score).Execute()
 
         nextTag = soup.findAll('a', { "class" : 'next' })
         if nextTag and needNextPage:
             nexturl = nextTag[0].get('href', '')
             if nexturl:
+                if nexturl.find('http://') < 0:
+                    nexturl = 'http://v.qq.com' + nexturl
                 ParserAlbumList(nexturl, js['cid']).Execute()
 
 class ParserAlbumPage2(KolaParser):
@@ -269,7 +267,7 @@ class ParserAlbumPage2(KolaParser):
     def __init__(self, url=None, name=None, cid=0, score=None):
         super().__init__()
 
-        if url and name and cid and score:
+        if url and name and cid:
             self.cmd['source'] = 'http://s.video.qq.com/search?comment=1&plat=2&otype=json&num=10000&query=%s' % quote(name)
             self.cmd['cid']     = cid
             self.cmd['name']    = name
@@ -282,13 +280,20 @@ class ParserAlbumPage2(KolaParser):
         if not text:
             return
 
+        start = js['href'].rfind('/')
+        end = js['href'].rfind('.')
+        qid = js['href'][start + 1:end]
+
         json = tornado.escape.json_decode(text[0])
 
         if 'list' not in json:
             return
 
         for a in json['list']:
-            if a['AW'] == js['href']:
+            if a['PLNAME'] != 'qq':
+                continue
+            a_text = tornado.escape.json_encode(a)
+            if a['AW'] == js['href'] or re.findall(qid, a_text):
                 #print(a['AC'], a['AT'], a['AU'], a['TX'])
                 album = QQAlbum()
                 album_js = kola.DB().FindAlbumJson(albumName=a['title'])
@@ -449,7 +454,7 @@ class QQShow(QQVideoMenu):
     def __init__(self, name):
         super().__init__(name)
         self.cid = 5
-        self.HomeUrlList = []
+        self.HomeUrlList = ['http://v.qq.com/variety/type/list_-1_0_0.html']
 
 # QQ 搜索引擎
 class QQEngine(VideoEngine):
@@ -465,7 +470,7 @@ class QQEngine(VideoEngine):
             QQTV('电视剧'),
             QQComic('动漫'),
             #QQDocumentary('记录片'),
-            #QQShow('综艺')
+            QQShow('综艺')
         ]
 
         self.parserList = [

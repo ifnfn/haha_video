@@ -326,8 +326,10 @@ class ADHandler(BaseHandler):
 
 class MemCachedHandle(BaseHandler):
     def get(self, name):
+        text = ''
         if name:
-            self.finish(kolas.GetCache(name))
+            text = kolas.GetCache(name)
+        self.finish(text)
 
     def post(self, name):
         if name:

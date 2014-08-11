@@ -1,32 +1,4 @@
-function get_video_url(url, albumName, vid)
-	local func_maps = {
-		['url.52itv.cn'] = get_video_52itv,
-		['^pa://']       = get_video_cntv,
-		['cntv.']        = get_video_auth_cntv,
-		['^pptv://']     = get_video_pptv,
-		['^qqtv://']     = get_video_qqtv,
-		['^sohutv://']   = get_video_sohutv,
-		['^imgotv://']   = get_video_imgotv,
-		['^lntv://']     = get_video_lntv,
-		['^m2otv://']    = get_video_m2otv,
-		['^tvie://']     = get_video_tvie,
-		['^jlntv://']    = get_video_jlntv,
-		['^jxtv://']     = get_video_jxtv,
-		['^smgbbtv://']  = get_video_smgbbtv,
-		['^iqilu://']    = get_video_iqilu,
-		['^wztv://']     = get_video_wztv,
-		['wolidou.com']  = get_video_wolidou
-	}
 
-	print(albumName, vid, url)
-	for k,func in pairs(func_maps) do
-		if string.find(url, k) then
-			url = func(url)
-			break
-		end
-	end
-	return url
-end
 
 local function isnan(x) return x ~= x end
 
@@ -85,7 +57,7 @@ local function curl_init(url, user_agent, referer)
 	return c
 end
 
-local function curl_get( url, user_agent, referer )
+local function curl_get(url, user_agent, referer)
 	if url == nil then
 		return nil
 	end
@@ -163,7 +135,7 @@ local function curl_json(url, regular)
 	end
 end
 
-function get_video_auth_cntv( url )
+local function get_video_auth_cntv(url)
 	local function get_cctv1_auth()
 		local text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
 		return rex.match(text, '(AUTH=ip.*?)"')
@@ -178,7 +150,7 @@ function get_video_auth_cntv( url )
 end
 
 -- pa://cctv_p2p_hdcctv1
-function get_video_cntv( url )
+local function get_video_cntv(url)
 	local function check_m3u8(url)
 		if string.find(url, "m3u8") == nil or string.len(url) < 15 or string.find(url, 'cntv.cloudcdn.net') or string.find(url, 'dianpian.mp4') then
 			return nil
@@ -213,7 +185,7 @@ function get_video_cntv( url )
 	return ''
 end
 
-function get_video_m2otv(url)
+local function get_video_m2otv(url)
 	local function drm( url )
 		local url = 'http://www.ahtv.cn//m2o/player/drm.php?url=' .. kola.urlencode('http://stream2.ahtv.cn/ahgg/hd/live.m3u8')
 		return curl_get(url)
@@ -261,7 +233,7 @@ function get_video_m2otv(url)
 	return ''
 end
 
-function get_video_pptv(url)
+local function get_video_pptv(url)
 	vid = string.gsub(url, "pptv://", "")
 	local kk = "";
 	local user_agent = "Mozilla/5.0 (iPad; CPU OS 7_1_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D201 Safari/9537.53"
@@ -299,7 +271,7 @@ function get_video_pptv(url)
 	return ""
 end
 
-function get_video_qqtv( url )
+local function get_video_qqtv(url)
 	local function get_video_url1(playid)
 		local url = playid
 		if string.find(playid, "http://") == nil then
@@ -343,7 +315,7 @@ function get_video_qqtv( url )
 	return get_video_url1(playid)
 end
 
-function get_video_sohutv(url)
+local function get_video_sohutv(url)
 	pid = string.gsub(url, "sohutv://", "")
     local url = string.format('http://live.tv.sohu.com/live/player_json.jhtml?encoding=utf-8&lid=%s&type=1', pid)
 
@@ -360,7 +332,7 @@ function get_video_sohutv(url)
 	return ''
 end
 
-function get_video_52itv(url)
+local function get_video_52itv(url)
 	local function get_livekey()
 		local d = kola.gettime()
 		local key = string.format('st=QQ243944493&tm=%d', d)
@@ -424,7 +396,7 @@ function get_video_52itv(url)
 	return curl_get_location(url)
 end
 
-function get_video_imgotv(url)
+local function get_video_imgotv(url)
 	local pid = string.gsub(url, "imgotv://", "")
 	local pid = string.gsub(pid, "/", "")
 	local url = string.format("http://interface.hifuntv.com/mgtv/BasicIndex/ApplyPlayVideo?Tag=26&BussId=1000000&VideoType=1&MediaAssetsId=channel&CategoryId=1000&VideoIndex=0&Version=3.0.11.1.2.MG00_Release&VideoId=%s", pid);
@@ -432,7 +404,7 @@ function get_video_imgotv(url)
 	return curl_match(url, 'url="(.*?)"')
 end
 
-function get_video_lntv(url)
+local function get_video_lntv(url)
 	pid = string.gsub(url, "lntv://", "")
 	local url = 'http://zd.lntv.cn/lnradiotvnetwork/live_liveDetail.do?flag=1&id=' .. pid
 	--print(url)
@@ -442,7 +414,7 @@ function get_video_lntv(url)
 	return url
 end
 
-function get_video_tvie(url)
+local function get_video_tvie(url)
 	url = string.gsub(url, "tvie://", "http://")
 
 	local referer = rex.match(url, "referer=(.*)")
@@ -512,7 +484,7 @@ function get_video_tvie(url)
 	return ""
 end
 
-function get_video_wolidou(url)
+local function get_video_wolidou(url)
 	local function curl_s_key(s)
 		local key_url = string.format("http://www.wolidou.com/x/key.php?f=k&t=%d", kola.gettime() * 1000)
 		c1 = curl_init(key_url)
@@ -554,30 +526,29 @@ function get_video_wolidou(url)
 	return url
 end
 
-function get_video_jlntv(url)
+local function get_video_jlntv(url)
 	local url = string.gsub(url, 'jlntv://', 'http://live.jlntv.cn/')
 	return curl_match(url, "var playurl = '(.*)';")
 end
 
-function get_video_jxtv(url)
+local function get_video_jxtv(url)
 	local url = string.gsub(url, 'jxtv://', 'http://')
 	return curl_match(url, 'html5file:"(.*)"')
 end
 
-function get_video_smgbbtv(url)
+local function get_video_smgbbtv(url)
 	local pid = string.gsub(url, 'smgbbtv://', '')
 	local url = string.format('http://l.smgbb.cn/channelurl.ashx?starttime=0&endtime=0&channelcode=%s', pid)
 
 	return curl_match(url, '\\[CDATA\\[(.*)\\]\\]></channel>')
 end
 
-function get_video_wztv(url)
+local function get_video_wztv(url)
 	local pid = string.gsub(url, "wztv://", "")
 	return curl_match('http://www.dhtv.cn/static/js/tv.js?acm', "file: '(.*)'")
 end
 
-
-function get_video_iqilu(url)
+local function get_video_iqilu(url)
 	local live, m3u8 = rex.match(url, 'iqilu://(.*?)/(.*)')
 
 	local key_url = 'http://huodong.iqilu.com/active/video/clientnew/public_s/?c=' .. live
@@ -588,4 +559,50 @@ function get_video_iqilu(url)
 	--print(text)
 	time, st = rex.match(text, '\\|href\\|.*?\\|(.*?)\\|else\\|.*?\\|(.*?)\\|test\\|')
 	return string.format('http://m3u8.iqilu.com/live/%s.m3u8?st=%s&e=%s', m3u8, st, time)
+end
+
+function get_video_url(url, albumName, vid)
+	local key = kola.md5(kola.chipid() .. url)
+	local cache_url = string.format('/video/cache_list_%s?time=60', key)
+	cache_url = kola.geturl(cache_url, false)
+
+	local value = curl_get(cache_url)
+	if value == nil or value == '' then
+		value = get_video_url_direct(url, albumName, vid)
+		kola.wpost(cache_url, value)
+	else
+		print("in cached.", cache_url)
+	end
+
+	return value
+end
+
+function get_video_url_direct(url, albumName, vid)
+	local func_maps = {
+		['url.52itv.cn'] = get_video_52itv,
+		['^pa://']       = get_video_cntv,
+		['cntv.']        = get_video_auth_cntv,
+		['^pptv://']     = get_video_pptv,
+		['^qqtv://']     = get_video_qqtv,
+		['^sohutv://']   = get_video_sohutv,
+		['^imgotv://']   = get_video_imgotv,
+		['^lntv://']     = get_video_lntv,
+		['^m2otv://']    = get_video_m2otv,
+		['^tvie://']     = get_video_tvie,
+		['^jlntv://']    = get_video_jlntv,
+		['^jxtv://']     = get_video_jxtv,
+		['^smgbbtv://']  = get_video_smgbbtv,
+		['^iqilu://']    = get_video_iqilu,
+		['^wztv://']     = get_video_wztv,
+		['wolidou.com']  = get_video_wolidou
+	}
+
+	print(albumName, vid, url)
+	for k,func in pairs(func_maps) do
+		if string.find(url, k) then
+			url = func(url)
+			break
+		end
+	end
+	return url
 end

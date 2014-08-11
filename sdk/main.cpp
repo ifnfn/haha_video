@@ -847,10 +847,10 @@ int main(int argc, char **argv)
 //	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); //return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
 
-//	printf("Test Video\n"); test_video("综艺"); //return 0;
+	printf("Test Video\n"); test_video("综艺"); //return 0;
 //	printf("Test Video\n"); test_video("动漫"); //return 0;
-	printf("Test Video\n"); test_video("电影"); return 0;
-	printf("Test TV\n");    test_video("电视剧"); //return 0;
+//	printf("Test Video\n"); test_video("电影"); return 0;
+//	printf("Test TV\n");    test_video("电视剧"); //return 0;
 
 	printf("end\n");
 	while(1)

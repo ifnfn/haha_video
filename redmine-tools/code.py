@@ -235,13 +235,11 @@ class Change(Resource):
         self.project = project
         self.resource = res
         self.revisions = []
-        if self._number == 11556:
-            pass
-            #print(res)
 
+    def Update(self):
         rev_js = {}
         set_total = 0
-        for (k, v) in res['revisions'].items():
+        for (k, v) in self.resource['revisions'].items():
             v['name'] = k
             rev_js[v['_number']] = v
             set_total += 1
@@ -272,14 +270,12 @@ class Changes(Resource):
 
         url = '/changes/?q=status:merged+project:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&S=%d' % (self.project.name, self.limit, self.offset)
         self.resource = gerrit.arrayGet(url)
-        print(len(self.resource))
         for i in self.resource:
             c = Change(self.project, i)
             if c.created >= self.project.create_time or self.project.create_time == 0:
+                c.Update()
                 self.children.append(c)
                 self.offset += 1
-            else:
-                pass
 
     def Show(self):
         for c in self.children:
@@ -385,7 +381,7 @@ class Gerrit(object):
 
 if __name__ == '__main__':
     host = 'http://git.nationalchip.com/gerrit/a'
-    #host = 'http://192.168.110.254/gerrit/a'
+    host = 'http://192.168.110.254/gerrit/a'
     gerrit=Gerrit(host)
     projects = gerrit.GetProjects(name='goxceed/gxavdev', created='2014-06-01')
     projects.Sync()

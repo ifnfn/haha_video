@@ -359,7 +359,7 @@ class Gerrit(object):
 
 if __name__ == '__main__':
     host = 'http://git.nationalchip.com/gerrit/a'
-    host = 'http://192.168.110.254/gerrit/a'
+    #host = 'http://192.168.110.254/gerrit/a'
     gerrit=Gerrit(host)
     projects = gerrit.GetProjects(name='goxceed/gxavdev', created='2014-06-01')
     projects.Sync()

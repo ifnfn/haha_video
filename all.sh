@@ -4,8 +4,8 @@ URL="http://127.0.0.1:9992"
 
 UpdateAlbum() {
     curl "$URL/manage/update?cmd=list&engine=$1Engine"
-#    python3 ./super_client.py
-#    curl "$URL/manage/cleancache"
+    python3 ./super_client.py debug
+    curl "$URL/manage/cleancache"
 }
 
 UpdateScore() {
@@ -19,7 +19,7 @@ Update() {
     #mongo kola --eval 'db.album.remove({"cid": {"$in":[1,2,3,5]}})'
     UpdateAlbum Qiyi
     UpdateAlbum QQ
-    #UpdateAlbum Sohu
+    UpdateAlbum Sohu
     #UpdateAlbum PPtv
     #UpdateAlbum Letv
 }
@@ -37,6 +37,6 @@ UpdateTV() {
 }
 
 redis-cli FLUSHALL
-#UpdateTV
-Update
+UpdateTV
+#Update
 #Score

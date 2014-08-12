@@ -148,6 +148,12 @@ class Revision(Resource):
         self.files = []
         self.lines_inserted = 0
         self.lines_deleted = 0
+        self.ExtensName = ['.*?\.[ch]|.*?.\.[ch]pp|.*?\.[ch]xx|.*?\.mk|Makefile|build|config|env.sh'] # 文件扩展名
+        self.ExcludeName = [ # 排除文件
+                'firmware',
+                '(.*?)\.bin',
+        ]
+
         self.GetChangeLine()
 
         auther_js = None
@@ -163,6 +169,25 @@ class Revision(Resource):
             auther.lines_deleted += self.lines_deleted
             auther.changes.append(self.change)
 
+    def NewFile(self, name, res):
+        for p in list(self.ExcludeName):
+            if re.findall(p, name):
+                print('Exclude file:', name)
+                return None
+
+        if name in self.ExcludeName:
+            print('Exclude file:', name)
+            return None
+
+        for p in list(self.ExtensName):
+            if re.findall(p, name):
+                return File(name, res)
+
+        if name in self.ExtensName:
+            return File(name, res)
+
+        print(name, res)
+
     def GetChangeLine(self):
         url = '/changes/%s/revisions/%s/files' % (self.change._number, self.name)
 
@@ -171,10 +196,11 @@ class Revision(Resource):
         file_js = gerrit.arrayGet(url)
         for (k, v) in file_js.items():
             if k != '/COMMIT_MSG':
-                f = File(k,v)
-                self.lines_inserted += autoint(f.lines_inserted)
-                self.lines_deleted += autoint(f.lines_deleted)
-                self.files.append(f)
+                f = self.NewFile(k,v)
+                if f:
+                    self.lines_inserted += autoint(f.lines_inserted)
+                    self.lines_deleted += autoint(f.lines_deleted)
+                    self.files.append(f)
 
     def __str__(self):
         return self.name

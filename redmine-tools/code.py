@@ -8,7 +8,8 @@ import sys
 import time
 import traceback
 import urllib.request
-
+import hashlib
+import os
 import httplib2
 
 
@@ -17,6 +18,7 @@ password = 'uagvPAs4csIZ'
 gerrit = None
 socket_timeout = 3000
 MAX_TRY = 3
+MAX_CODE = 5000
 
 def wget(url, times = 0):
     if times > MAX_TRY:
@@ -37,6 +39,28 @@ def wget(url, times = 0):
         t, v, tb = sys.exc_info()
         print("KolaClient.GetUrl: %s %s, %s, %s" % (url, t, v, traceback.format_tb(tb)))
         return wget(url, times + 1)
+
+def GetCacheUrl(url):
+    response = ''
+    key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
+    filename = './cache/' + key
+    exists = os.path.exists(filename)
+    if exists:
+        f = open(filename, 'rb')
+        response = f.read()
+        f.close()
+        response = response.decode()
+    else:
+        response = wget(url)
+        if response:
+            try:
+                f = open(filename, 'wb')
+                f.write(response.encode())
+                f.close()
+            except:
+                pass
+
+    return response
 
 def autostr(i):
     if i == None:
@@ -61,7 +85,7 @@ class Resource:
         self.params = {}
         self.children = []
         self.offset = 0
-        self.limit = 400
+        self.limit = 50
 
     def __getattr__(self, key):
         if self.resource and key in self.resource:
@@ -140,6 +164,7 @@ class Revision(Resource):
     '''
     def __init__(self, change, name, res, base):
         super().__init__()
+        self.valid = False
         self.change = change
         self.project = change.project
         self.name = name
@@ -148,35 +173,44 @@ class Revision(Resource):
         self.files = []
         self.lines_inserted = 0
         self.lines_deleted = 0
-        self.ExtensName = ['.*?\.[ch]|.*?.\.[ch]pp|.*?\.[ch]xx|.*?\.mk|Makefile|build|config|env.sh'] # 文件扩展名
+        self.ExtensName = ['.*?\.[ch]|.*?\.[ch]pp|.*?\.[ch]xx|.*?\.mk|Makefile|build|config|env.sh'
+            '.*?\.mak',
+        ] # 文件扩展名
         self.ExcludeName = [ # 排除文件
                 'firmware',
-                '(.*?)\.bin',
+                'serialboot/gx3201-.*?_boot.c',
+                'Bit_Mach\.h',
+                'txtlib\.c',
+                '.*?\.bin|.*?\.ecc|.*?\.so|.*?.a',
         ]
 
-        self.GetChangeLine()
-
         auther_js = None
-        if 'commit' in res:
-            if 'author' in res['commit']:
-                auther_js = res['commit']['author']
-            elif 'committer' in res['commit']:
-                auther_js = res['commit']['committer']
+        if self.GetChangeLine():
+            if 'commit' in res:
+                if 'author' in res['commit']:
+                    auther_js = res['commit']['author']
+                elif 'committer' in res['commit']:
+                    auther_js = res['commit']['committer']
 
-        if auther_js:
-            auther = gerrit.GetAuther(auther_js['name'], auther_js['email'])
-            auther.lines_inserted += self.lines_inserted
-            auther.lines_deleted += self.lines_deleted
-            auther.changes.append(self.change)
+        #if auther_js:
+        #    auther = gerrit.GetAuther(auther_js['name'], auther_js['email'])
+        #    auther.lines_inserted += self.lines_inserted
+        #    auther.lines_deleted += self.lines_deleted
+        #    found = False
+        #    for ac in auther.changes:
+        #        if ac._number == self.change._number:
+        #            found = True
+        #    if not found:
+        #        auther.changes.append(self.change)
 
     def NewFile(self, name, res):
         for p in list(self.ExcludeName):
             if re.findall(p, name):
-                print('Exclude file:', name)
+                #print('Exclude file:', name)
                 return None
 
         if name in self.ExcludeName:
-            print('Exclude file:', name)
+            #print('Exclude file:', name)
             return None
 
         for p in list(self.ExtensName):
@@ -186,7 +220,8 @@ class Revision(Resource):
         if name in self.ExtensName:
             return File(name, res)
 
-        print(name, res)
+        #print(name, res)
+        return File(name, res)
 
     def GetChangeLine(self):
         url = '/changes/%s/revisions/%s/files' % (self.change._number, self.name)
@@ -195,12 +230,17 @@ class Revision(Resource):
             url += '?base=' + self.base
         file_js = gerrit.arrayGet(url)
         for (k, v) in file_js.items():
-            if k != '/COMMIT_MSG':
+            if k != '/COMMIT_MSG' and 'binary' not in v:
                 f = self.NewFile(k,v)
                 if f:
                     self.lines_inserted += autoint(f.lines_inserted)
                     self.lines_deleted += autoint(f.lines_deleted)
                     self.files.append(f)
+        self.valid = self.lines_inserted < MAX_CODE and self.lines_deleted < MAX_CODE
+        if not self.valid:
+            self.change.Show()
+            self.Show()
+        return self.valid
 
     def __str__(self):
         return self.name
@@ -249,19 +289,26 @@ class Change(Resource):
             r = rev_js[i + 1]
             k = r['name']
             rev = Revision(self, k, v, base)
-            self.revisions.append(rev)
+            if rev.valid:
+                self.revisions.append(rev)
             base = k
 
     def Show(self):
         print('\t%d %s %s' % (self._number, time.strftime('%Y-%m-%d %X', time.gmtime(self.created)), self.subject[:80]))
         for rev in self.revisions:
             rev.Show()
-        print()
 
 class Changes(Resource):
     def __init__(self, project):
         super().__init__()
         self.project = project
+        self.blacklist = [
+            12159,
+            11913,
+            12181,
+            11903,
+            11704
+        ]
 
     def Query(self, **params):
         self.params.update(**params)
@@ -270,12 +317,14 @@ class Changes(Resource):
 
         url = '/changes/?q=status:merged+project:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&S=%d' % (self.project.name, self.limit, self.offset)
         self.resource = gerrit.arrayGet(url)
+        self.offset += len(self.resource)
         for i in self.resource:
             c = Change(self.project, i)
+            if c._number in self.blacklist:
+                continue
             if c.created >= self.project.create_time or self.project.create_time == 0:
                 c.Update()
                 self.children.append(c)
-                self.offset += 1
 
     def Show(self):
         for c in self.children:
@@ -308,8 +357,15 @@ class Project(Resource):
     def Show(self):
         print(self.description)
         for c in self.changes:
-            print(c._number, time.strftime('%Y-%m-%d %X', time.gmtime(c.created)), c.subject[:80])
             c.Show()
+            print()
+
+    def Calc(self):
+        self.avg_lines_deleted = 0
+        self.avg_lines_inserted = 0
+        for c in self.changes:
+          self.avg_lines_deleted += c.lines_deleted
+          self.avg_lines_inserted += c.lines_inserted
 
 class Projects(Resource):
     def __init__(self):
@@ -335,7 +391,7 @@ class Projects(Resource):
 
     def Sync(self):
         for p in self.projects:
-            p.Sync()
+            p.Show()
 
     def Show(self):
         for (k,v) in gerrit.authers.items():
@@ -365,7 +421,7 @@ class Gerrit(object):
         if url.find('http://') < 0:
             url = self.baseUrl + url
 
-        result = wget(url)
+        result = GetCacheUrl(url)
         if result[:4] == ")]}'":
             return result[5:]
 
@@ -383,6 +439,6 @@ if __name__ == '__main__':
     host = 'http://git.nationalchip.com/gerrit/a'
     host = 'http://192.168.110.254/gerrit/a'
     gerrit=Gerrit(host)
-    projects = gerrit.GetProjects(name='goxceed/gxavdev', created='2014-06-01')
+    projects = gerrit.GetProjects(name='goxceed', created='2014-06-01')
     projects.Sync()
     projects.Show()

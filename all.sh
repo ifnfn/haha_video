@@ -17,9 +17,9 @@ UpdateScore() {
 
 Update() {
     #mongo kola --eval 'db.album.remove({"cid": {"$in":[1,2,3,5]}})'
-    UpdateAlbum Qiyi
+    #UpdateAlbum Qiyi
     UpdateAlbum QQ
-    UpdateAlbum Sohu
+    #UpdateAlbum Sohu
     #UpdateAlbum PPtv
     #UpdateAlbum Letv
 }
@@ -37,6 +37,6 @@ UpdateTV() {
 }
 
 redis-cli FLUSHALL
-UpdateTV
-#Update
+#UpdateTV
+Update
 #Score

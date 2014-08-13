@@ -2,6 +2,7 @@
 #encoding=utf8
 #coding=utf8
 
+
 import json
 import re
 import sys
@@ -11,16 +12,75 @@ import urllib.request
 import hashlib
 import os
 import httplib2
+import random
+import math
 
 
-username = 'zhuzhg'
-password = 'uagvPAs4csIZ'
+######################################################################################
+# 规则：
+#   1. 二进制文件以及二进制转化成的代码，不记入代码统计
+#   2. 一次性提交新增代码超过5000行的，不记入代码统计
+#   3. 由程序生成的文件，不记入代码统计
+#   4. 代码评审小组认定为不良提交，不记入代码统计
+#
+# 提倡：
+#   1. 对各种产生实际意义、实际工作输出的行为都是提倡的，所有工作输入都可以被纳入原始统计数据
+#   2. 提倡高频度的提交代码，可以增加更代代码行总数，但可能会造成有效代码率的下降
+#   3. 提倡低频度的提交代码，可以提交有效代码率，但影响变更代码行总数
+#   4. 提倡代码可追溯性
+######################################################################################
+
+# 进入标准差统计的变更行数
+MAX_LINE = 2000
+
+# 有效代码文件的扩展名，代码提交者可以提出异意，由评审小组确定
+ExtensName = [
+    '.*?\.[ch]|.*?\.[ch]pp|.*?\.[ch]xx|.*?\.mk|Makefile|build|config|env\.sh|.*?\.mak',
+]
+
+# 全局排除文件，代码提交者可以提出异意，由评审小组确定
+GlobalExcludeName = [
+    'firmware',
+    'serialboot/gx3201-.*?_boot\.c',
+    'Bit_Mach\.h',
+    'txtlib\.c',
+    '.*?\.bin|.*?\.ecc|.*?\.so$|.*?\.a',
+]
+
+# Change 需要部分文件剔除，由提交者提出申请，由评审小组确定
+CustomChanges = {
+    11944: ['vodsystem'],
+    12058: ['tlsf']
+}
+
+# 黑名单的 change 直接剔除，由评审小组提出，评审后确定，代码提交者可以提出审议
+Blacklist = [
+    12159,
+    11913,
+    12181,
+    11903,
+    11704
+]
+
+# 白名单中 chage 当经过筛选后仍不达标，可直接加入， 由提交者提出申请，需要评审小组确定
+WhiteList = [
+    11890
+]
+
+class Statistics():
+    def __init__(self, data):
+        self.count = len(data)
+        self.data = data
+        self.avg = sum(data) / float(self.count)
+        self.std = math.sqrt(sum(map(lambda x: (x - self.avg)**2, data)) / self.count)
+        
 gerrit = None
-socket_timeout = 3000
-MAX_TRY = 3
-MAX_CODE = 5000
 
 def wget(url, times = 0):
+    username = 'zhuzhg'
+    password = 'uagvPAs4csIZ'
+    socket_timeout = 3000
+    MAX_TRY = 3
     if times > MAX_TRY:
         return ''
 
@@ -104,9 +164,8 @@ class Resource:
         raise StopIteration()
 
 class Auther:
-    def __init__(self, name, email):
+    def __init__(self, name):
         self.name = name
-        self.email = email
         self.lines_deleted = 0
         self.lines_inserted = 0
         self.changes = []
@@ -164,60 +223,44 @@ class Revision(Resource):
     '''
     def __init__(self, change, name, res, base):
         super().__init__()
-        self.valid = False
+
         self.change = change
-        self.project = change.project
         self.name = name
         self.resource = res
         self.base = base           # 跟哪个版本比较文件
         self.files = []
         self.lines_inserted = 0
         self.lines_deleted = 0
-        self.ExtensName = ['.*?\.[ch]|.*?\.[ch]pp|.*?\.[ch]xx|.*?\.mk|Makefile|build|config|env.sh'
-            '.*?\.mak',
-        ] # 文件扩展名
-        self.ExcludeName = [ # 排除文件
-                'firmware',
-                'serialboot/gx3201-.*?_boot.c',
-                'Bit_Mach\.h',
-                'txtlib\.c',
-                '.*?\.bin|.*?\.ecc|.*?\.so|.*?.a',
-        ]
+        self.invalid = False
+        self.Sigma = 0.0
+        self.GetChangeLine()
 
-        auther_js = None
-        if self.GetChangeLine():
-            if 'commit' in res:
-                if 'author' in res['commit']:
-                    auther_js = res['commit']['author']
-                elif 'committer' in res['commit']:
-                    auther_js = res['commit']['committer']
+    def __lt__(self, other):
+        if isinstance(other, Revision):
+            return self.lines_inserted + self.lines_deleted > other.lines_inserted + self.lines_deleted
 
-        #if auther_js:
-        #    auther = gerrit.GetAuther(auther_js['name'], auther_js['email'])
-        #    auther.lines_inserted += self.lines_inserted
-        #    auther.lines_deleted += self.lines_deleted
-        #    found = False
-        #    for ac in auther.changes:
-        #        if ac._number == self.change._number:
-        #            found = True
-        #    if not found:
-        #        auther.changes.append(self.change)
+        return NotImplemented
 
     def NewFile(self, name, res):
-        for p in list(self.ExcludeName):
+        # 全局匹配
+        for p in list(GlobalExcludeName):
             if re.findall(p, name):
                 #print('Exclude file:', name)
                 return None
 
-        if name in self.ExcludeName:
-            #print('Exclude file:', name)
-            return None
+        # 具体 Change 匹配
+        if self.change._number in CustomChanges.keys():
+            exclude = CustomChanges[self.change._number]
+            for p in list(exclude):
+                if re.findall(p, name):
+                    #print('Exclude file:', name)
+                    return None
 
-        for p in list(self.ExtensName):
+        for p in list(ExtensName):
             if re.findall(p, name):
                 return File(name, res)
 
-        if name in self.ExtensName:
+        if name in ExtensName:
             return File(name, res)
 
         #print(name, res)
@@ -236,17 +279,12 @@ class Revision(Resource):
                     self.lines_inserted += autoint(f.lines_inserted)
                     self.lines_deleted += autoint(f.lines_deleted)
                     self.files.append(f)
-        self.valid = self.lines_inserted < MAX_CODE and self.lines_deleted < MAX_CODE
-        if not self.valid:
-            self.change.Show()
-            self.Show()
-        return self.valid
 
     def __str__(self):
-        return self.name
+        return '[%s] %7.3f %s  +%d\t-%d' % (self.invalid and 'X' or ' ', self.Sigma, self.name, self.lines_inserted, self.lines_deleted)
 
     def Show(self):
-        print('\t\t%s  %6d%6d' % (self.name, self.lines_inserted, self.lines_deleted))
+        print('\t%s' % self)
 
 class Change(Resource):
     '''
@@ -270,11 +308,18 @@ class Change(Resource):
       },
     },
     '''
-    def __init__(self, project, res):
+    def __init__(self, res):
         super().__init__()
-        self.project = project
         self.resource = res
         self.revisions = []
+        self.lines_inserted = 0
+        self.lines_deleted = 0
+
+    def __lt__(self, other):
+        if isinstance(other, Change):
+            return self.lines_inserted + self.lines_deleted > other.lines_inserted + self.lines_deleted
+
+        return NotImplemented
 
     def Update(self):
         rev_js = {}
@@ -289,109 +334,100 @@ class Change(Resource):
             r = rev_js[i + 1]
             k = r['name']
             rev = Revision(self, k, v, base)
-            if rev.valid:
-                self.revisions.append(rev)
+            self.revisions.append(rev)
+            self.lines_inserted += rev.lines_inserted
+            self.lines_deleted += rev.lines_deleted
             base = k
 
     def Show(self):
-        print('\t%d %s %s' % (self._number, time.strftime('%Y-%m-%d %X', time.gmtime(self.created)), self.subject[:80]))
+        print('%d [+%d,-%d] %s %s' % (self._number, self.lines_inserted, self.lines_deleted,
+                              time.strftime('%Y-%m-%d %X', time.gmtime(self.created)), self.subject[:80]))
         for rev in self.revisions:
             rev.Show()
+        print()
 
 class Changes(Resource):
-    def __init__(self, project):
+    def __init__(self, projectName, created=0):
         super().__init__()
-        self.project = project
-        self.blacklist = [
-            12159,
-            11913,
-            12181,
-            11903,
-            11704
-        ]
+        self.created = created
+        self.projectName = projectName
 
     def Query(self, **params):
         self.params.update(**params)
         name = self.params.get('name', '.*')
         status = self.params.get('status', 'ACTIVE')
 
-        url = '/changes/?q=status:merged+project:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&S=%d' % (self.project.name, self.limit, self.offset)
+        url = '/changes/?q=status:merged+project:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&S=%d' % (self.projectName, self.limit, self.offset)
         self.resource = gerrit.arrayGet(url)
         self.offset += len(self.resource)
-        for i in self.resource:
-            c = Change(self.project, i)
-            if c._number in self.blacklist:
+        for res in self.resource:
+            c = Change(res)
+            if c._number in Blacklist:
                 continue
-            if c.created >= self.project.create_time or self.project.create_time == 0:
+            if c.created >= self.created or self.created == 0:
                 c.Update()
                 self.children.append(c)
-
-    def Show(self):
-        for c in self.children:
-            c.Show()
-
-class Project(Resource):
-    def __init__(self, name, v, created=0):
-        '''
-          "androidtv/3601_bootloader": {
-            "kind": "gerritcodereview#project",
-            "id": "androidtv%2F3601_bootloader",
-            "state": "ACTIVE"
-          },
-        '''
-        super().__init__()
-        self.number = 0
-        self.reviews = []
-        self.name = name
-        self.resource = v
-        self.create_time = created
-        self.changes = Changes(self)
-
-    def __str__(self):
-        return self.name
-
-    def Sync(self):
-        for _ in self.changes:
-            pass
-
-    def Show(self):
-        print(self.description)
-        for c in self.changes:
-            c.Show()
-            print()
-
-    def Calc(self):
-        self.avg_lines_deleted = 0
-        self.avg_lines_inserted = 0
-        for c in self.changes:
-          self.avg_lines_deleted += c.lines_deleted
-          self.avg_lines_inserted += c.lines_inserted
 
 class Projects(Resource):
     def __init__(self):
         super().__init__()
-        self.projects = []
-        self.create_time = 0
+        self.created = 0
+        self.ChangeList = []
+        self.RevisionList = []
 
     def Query(self, **params): #name, status):
         self.params.update(**params)
         name = self.params.get('name', '.*')
         status = self.params.get('status', 'ACTIVE')
-        self.create_time = self.params.get('created', 0)
+        self.created = self.params.get('created', 0)
 
-        if self.create_time:
-            self.create_time = time.mktime(time.strptime(self.create_time,'%Y-%m-%d'))
+        if self.created:
+            self.created = time.mktime(time.strptime(self.created,'%Y-%m-%d'))
 
         url = '/projects/?format=JSON&d'
         self.resource = gerrit.arrayGet(url)
         for (k, v) in self.resource.items():
             if re.findall(name, k) and v['state'] == status:
-                p = Project(k, v, self.create_time)
-                self.projects.append(p)
+                changes = Changes(k, self.created)
+                for c in changes:
+                    self.ChangeList.append(c)
+                    self.RevisionList += c.revisions
+
+        self.RevisionList = sorted(self.RevisionList)
+        self.ChangeList = sorted(self.ChangeList)
+
+
+    # 对变更提交进行正态分析， 3q 以上的不记入
+    def NormalAnalysis(self):
+        # 代码行超过2000行变更的提交直接不记入
+        vlines = []
+        print('超过 %s 行的变更:' % MAX_LINE)
+        for r in self.RevisionList:
+            if abs(r.lines_inserted - r.lines_deleted) > MAX_LINE:
+                r.Show()
+            else:
+                vlines.append(r.lines_inserted + r.lines_deleted)
+
+        st = Statistics(vlines)
+        print('总数: %d, 平均: %7.3f, 标准差: %8.3f' % (st.count, st.avg, st.std))
+
+        for r in self.RevisionList:
+            lines = r.lines_inserted + r.lines_deleted
+            r.Sigma = abs((lines - st.avg) / st.std)
+            if r.Sigma > 3:
+                r.invalid = True
+                r.Show()
+
+        print('--------------------------------------------------------------------------------------------------------------------')
+        for c in self.ChangeList:
+            for r in c.revisions:
+                if r.invalid:
+                    c.Show()
+                    break
 
     def Sync(self):
-        for p in self.projects:
-            p.Show()
+        self.NormalAnalysis()
+
 
     def Show(self):
         for (k,v) in gerrit.authers.items():
@@ -403,16 +439,11 @@ class Gerrit(object):
         self.baseUrl = baseUrl
         self.authers = {}
 
-        self.mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-
-        self.opener = urllib.request.build_opener(urllib.request.HTTPDigestAuthHandler(self.mgr))
-        urllib.request.install_opener(self.opener)
-
-    def GetAuther(self, name, email):
+    def GetAuther(self, name):
         if name in self.authers:
             auther = self.authers[name]
         else:
-            auther = Auther(name, email)
+            auther = Auther(name)
             self.authers[name] = auther
 
         return auther
@@ -437,7 +468,7 @@ class Gerrit(object):
 
 if __name__ == '__main__':
     host = 'http://git.nationalchip.com/gerrit/a'
-    host = 'http://192.168.110.254/gerrit/a'
+    #host = 'http://192.168.110.254/gerrit/a'
     gerrit=Gerrit(host)
     projects = gerrit.GetProjects(name='goxceed', created='2014-06-01')
     projects.Sync()

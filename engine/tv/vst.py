@@ -77,8 +77,8 @@ class ParserVstLivetv(LivetvParser):
                 if u.find('imgotv') >= 0:
                     continue
 
-                if re.findall('http://url.52itv.cn/live/(.*).sdtv', u):
-                    continue
+                #if re.findall('http://url.52itv.cn/live/(.*).sdtv', u):
+                #    continue
 
                 # 将 YY直播去掉
                 need = True
@@ -89,7 +89,7 @@ class ParserVstLivetv(LivetvParser):
                                 'CCTV', '南方', '广东', '广州', '英语辅导', '炫动卡通', '优漫卡通', '珠江频道', '嘉佳卡通', '山东']
                     if self.GetChannel(channels, albumName):
                         need = False
-                        if vid[0] in ['6F736C5054333768614E597A704E42512AB587', 
+                        if vid[0] in ['6F736C5054333768614E597A704E42512AB587',
                                  '6E4E314D5379376861325951627936517B6A9F',
                                  '6F736C5054333768614E304A704E4251BF66E9'
                                  ] :

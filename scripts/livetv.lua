@@ -137,17 +137,19 @@ local function curl_json(url, regular)
 end
 
 local function get_video_auth_cntv(url)
-	local function get_cctv1_auth()
-		local text = curl_get("http://vdn.live.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv1", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
-		return rex.match(text, '(AUTH=ip.*?)"')
-	end
-	auth = get_cctv1_auth()
+	local hlsurl = url
 
-	if auth then
-		url = url .. "?" .. auth -- string.format("%s?%s", video_url, auth)
+	local header = curl_get("http://vdn.apps.cntv.cn/api2/live.do?channel=pa://cctv_p2p_hdcctv2&type=ipad", "cbox/5.0.0 CFNetwork/609.1.4 Darwin/13.0.0")
+
+	if string.find(url, 'cntv.cloudcdn.net:800') or string.find(url, 'cntv.wscdns.com:800') then
+		local auth1 = rex.match(header, 'AUTH=(.*?)"')
+		hlsurl = url .. '?AUTH=' .. auth1
+	elseif string.find(url, 'live.cntv.cn') or string.find(url, 'cntv.wscdns.com') then
+		local auth2 = rex.match(header, 'AUTH=(ip.*?)"')
+		hlsurl = url .. '?AUTH=' .. auth2
 	end
 
-	return url
+	return hlsurl
 end
 
 -- pa://cctv_p2p_hdcctv1
@@ -543,7 +545,9 @@ local function get_video_vlive(url)
 	local time = kola.gettime()  + 18000
 	local text = string.format('%d,VST代理专用,hehe,xixi,aaaa,xxxx,dddd,4444,dssss,sadasd,52itv,myvst', time)
 
-	return string.format('%s?tm*=%d&key*=%s&', url, time, string.lower(kola.md5(text)))
+	url = string.format('%s?tm*=%d&key*=%s&', url, time, string.lower(kola.md5(text)))
+
+	return curl_match(url, '(http://.*)')
 end
 
 function get_video_url_direct(url, albumName, vid)
@@ -551,11 +555,10 @@ function get_video_url_direct(url, albumName, vid)
 		['^http://url.52itv.cn/vlive'] = get_video_vlive,
 		['^http://url.52itv.cn/gslb']  = get_video_52itvkey,
 		['^http://url.52itv.cn/live']  = get_video_52itvkey,
-		--['cntv.cloudcdn.net']          = get_video_cntv,
-		--['cntv.wscdns.com']            = get_video_cntv,
-		--['live.cntv.cn']   = get_video_cntv,
+		['cntv.cloudcdn.net']          = get_video_auth_cntv,
+		['cntv.wscdns.com']            = get_video_auth_cntv,
+		['live.cntv.cn']   = get_video_auth_cntv,
 		['^pa://']         = get_video_cntv,
-		['cntv.']          = get_video_auth_cntv,
 		['^pptv://']       = get_video_pptv,
 		['^qqtv://']       = get_video_qqtv,
 		['^sohutv://']     = get_video_sohutv,
@@ -569,7 +572,7 @@ function get_video_url_direct(url, albumName, vid)
 		['^iqilu://']      = get_video_iqilu,
 		['^wztv://']       = get_video_wztv,
 		['wolidou.com']    = get_video_wolidou,
-		['.letv']          = get_video_52itv,
+		--['.letv']          = get_video_52itv,
 		['ext=letv']       = get_video_52itv,
 	}
 
@@ -584,16 +587,17 @@ function get_video_url_direct(url, albumName, vid)
 end
 
 function get_video_url(url, albumName, vid)
-	local key = kola.md5(kola.chipid() .. url)
-	local cache_url = string.format('/video/cache_list_%s?time=180', key)
-	local value = curl_get(cache_url)
-	if value == nil or value == '' then
-		value = get_video_url_direct(url, albumName, vid)
-		kola.wpost(cache_url, value)
-	else
-		print("in cached.", cache_url)
-	end
+	return get_video_url_direct(url, albumName, vid)
+	--local key = kola.md5(kola.chipid() .. url)
+	--local cache_url = string.format('/video/cache_list_%s?time=180', key)
+	--local value = curl_get(cache_url)
+	--if value == nil or value == '' then
+	--	value = get_video_url_direct(url, albumName, vid)
+	--	kola.wpost(cache_url, value)
+	--else
+	--	print("in cached.", cache_url)
+	--end
 
-	return value
+	--return value
 end
 

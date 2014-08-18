@@ -373,7 +373,7 @@ class TvieLiveTV(LivetvMenu):
                                 #ParserNBLivetv,
                                 ParserYiwuLivetv,
                                 ParserShaoxinLivetv,
-                                ParserNanJinLivetv,
+                                #ParserNanJinLivetv,
                                 ParserSuilinLivetv,
                                 ParserHeFeiLivetv,
                                 ParserSJZLivetv,

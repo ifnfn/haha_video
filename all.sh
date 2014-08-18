@@ -37,6 +37,6 @@ UpdateTV() {
 }
 
 redis-cli FLUSHALL
-#UpdateTV
-Update
+UpdateTV
+#Update
 #Score

@@ -333,44 +333,20 @@ local function get_video_sohutv(url)
 	return ''
 end
 
+local function get_video_52itvkey(url)
+	local d = kola.gettime()
+	local key = string.format('st=QQ243944493&tm=%d', d)
+
+	return string.format('%s?k=%s-%d', url, string.lower(kola.md5(key)), d)
+end
+
+
 local function get_video_52itv(url)
-	local function get_livekey()
-		local d = kola.gettime()
-		local key = string.format('st=QQ243944493&tm=%d', d)
-
-		return string.format('%s-%d', string.lower(kola.md5(key)), d)
-	end
-
-	local function letv_video(url)
-		local url = string.gsub(url, '.letv', '')
-		url, _ = curl_get_location(url, true)
-
-		local js = curl_json('http://g3.letv.cn/recommend')
-		if js and js.nodelist then
-			for k,v in pairs(js.nodelist) do
-				_, _, u1 = string.find(v.location, '(http://.-)/')
-				_, _, u2 = string.find(url, 'http://.-(/.*)')
-
-				if u1 and u2 then
-					return u1 .. u2
-				end
-			end
-		end
-
-		return url
-	end
-
 	local function letv_video2(url)
 		url, _ = curl_get_location(url, false)
 		url = string.gsub(url, 'format=%d+', 'format=1')
 		url = string.gsub(url, 'playid=%d+', 'playid=3')
 
-		--local t = kola.gettime()
-		--local x = rex.match(url, 'stream_id=(.*?)&')
-		--print(t, x)
-		--key = string.format("%s,%d,%s", x, t, '1ca1fc9546da2b196ce9edfa5decd787')
-		--key = string.lower(kola.md5(letv_str))
-		--print("tm=%d&key=%s", t, key)
 		local js = curl_json(url)
 		if js and js.nodelist then
 			for k,v in pairs(js.nodelist) do
@@ -383,8 +359,9 @@ local function get_video_52itv(url)
 		return url
 	end
 
-	url = string.format('%s?k=%s', url, get_livekey())
-	print(url)
+
+	url = get_video_52itvkey(url)
+
 	if string.find(url, '.sdtv') then
 		local xml = curl_get(url, 'GGwlPlayer/QQ243944493', url)
 		return ''
@@ -562,39 +539,38 @@ local function get_video_iqilu(url)
 	return string.format('http://m3u8.iqilu.com/live/%s.m3u8?st=%s&e=%s', m3u8, st, time)
 end
 
-function get_video_url(url, albumName, vid)
-	local key = kola.md5(kola.chipid() .. url)
-	local cache_url = string.format('/video/cache_list_%s?time=60', key)
+local function get_video_vlive(url)
+	local time = kola.gettime()  + 18000
+	local text = string.format('%d,VST代理专用,hehe,xixi,aaaa,xxxx,dddd,4444,dssss,sadasd,52itv,myvst', time)
 
-	local value = curl_get(cache_url)
-	if value == nil or value == '' then
-		value = get_video_url_direct(url, albumName, vid)
-		kola.wpost(cache_url, value)
-	else
-		print("in cached.", cache_url)
-	end
-
-	return value
+	return string.format('%s?tm*=%d&key*=%s&', url, time, string.lower(kola.md5(text)))
 end
 
 function get_video_url_direct(url, albumName, vid)
 	local func_maps = {
-		['url.52itv.cn'] = get_video_52itv,
-		['^pa://']       = get_video_cntv,
-		['cntv.']        = get_video_auth_cntv,
-		['^pptv://']     = get_video_pptv,
-		['^qqtv://']     = get_video_qqtv,
-		['^sohutv://']   = get_video_sohutv,
-		['^imgotv://']   = get_video_imgotv,
-		['^lntv://']     = get_video_lntv,
-		['^m2otv://']    = get_video_m2otv,
-		['^tvie://']     = get_video_tvie,
-		['^jlntv://']    = get_video_jlntv,
-		['^jxtv://']     = get_video_jxtv,
-		['^smgbbtv://']  = get_video_smgbbtv,
-		['^iqilu://']    = get_video_iqilu,
-		['^wztv://']     = get_video_wztv,
-		['wolidou.com']  = get_video_wolidou
+		['^http://url.52itv.cn/vlive'] = get_video_vlive,
+		['^http://url.52itv.cn/gslb']  = get_video_52itvkey,
+		['^http://url.52itv.cn/live']  = get_video_52itvkey,
+		--['cntv.cloudcdn.net']          = get_video_cntv,
+		--['cntv.wscdns.com']            = get_video_cntv,
+		--['live.cntv.cn']   = get_video_cntv,
+		['^pa://']         = get_video_cntv,
+		['cntv.']          = get_video_auth_cntv,
+		['^pptv://']       = get_video_pptv,
+		['^qqtv://']       = get_video_qqtv,
+		['^sohutv://']     = get_video_sohutv,
+		['^imgotv://']     = get_video_imgotv,
+		['^lntv://']       = get_video_lntv,
+		['^m2otv://']      = get_video_m2otv,
+		['^tvie://']       = get_video_tvie,
+		['^jlntv://']      = get_video_jlntv,
+		['^jxtv://']       = get_video_jxtv,
+		['^smgbbtv://']    = get_video_smgbbtv,
+		['^iqilu://']      = get_video_iqilu,
+		['^wztv://']       = get_video_wztv,
+		['wolidou.com']    = get_video_wolidou,
+		['.letv']          = get_video_52itv,
+		['ext=letv']       = get_video_52itv,
 	}
 
 	print(albumName, vid, url)
@@ -606,3 +582,18 @@ function get_video_url_direct(url, albumName, vid)
 	end
 	return url
 end
+
+function get_video_url(url, albumName, vid)
+	local key = kola.md5(kola.chipid() .. url)
+	local cache_url = string.format('/video/cache_list_%s?time=180', key)
+	local value = curl_get(cache_url)
+	if value == nil or value == '' then
+		value = get_video_url_direct(url, albumName, vid)
+		kola.wpost(cache_url, value)
+	else
+		print("in cached.", cache_url)
+	end
+
+	return value
+end
+

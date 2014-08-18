@@ -3,23 +3,24 @@
 #coding=utf8
 
 
+import hashlib
 import json
+import math
+import os
+import random
 import re
 import sys
 import time
 import traceback
 import urllib.request
-import hashlib
-import os
+
 import httplib2
-import random
-import math
 
 
 ######################################################################################
 # 规则：
 #   1. 二进制文件以及二进制转化成的代码，不记入代码统计
-#   2. 一次性提交新增代码超过5000行的，不记入代码统计
+#   2. 一次性提交新增代码超过3000行的，不记入代码统计 ?
 #   3. 由程序生成的文件，不记入代码统计
 #   4. 代码评审小组认定为不良提交，不记入代码统计
 #
@@ -31,11 +32,11 @@ import math
 ######################################################################################
 
 # 进入标准差统计的变更行数
-MAX_LINE = 2000
+MAX_LINE = 5000
 
 # 有效代码文件的扩展名，代码提交者可以提出异意，由评审小组确定
 ExtensName = [
-    '.*?\.[ch]|.*?\.[ch]pp|.*?\.[ch]xx|.*?\.mk|Makefile|build|config|env\.sh|.*?\.mak',
+    '.*?\.ld|.*?\.[sS]|.*?\.[ch]|.*?\.[ch]pp|.*?\.[ch]xx|.*?\.mk|Makefile|build|config|env\.sh|.*?\.mak',
 ]
 
 # 全局排除文件，代码提交者可以提出异意，由评审小组确定
@@ -44,27 +45,38 @@ GlobalExcludeName = [
     'serialboot/gx3201-.*?_boot\.c',
     'Bit_Mach\.h',
     'txtlib\.c',
-    '.*?\.bin|.*?\.ecc|.*?\.so$|.*?\.a',
+    '.*?\.bin|.*?\.ecc|.*?\.so$|.*?\.a|.*?\.elf',
 ]
 
 # Change 需要部分文件剔除，由提交者提出申请，由评审小组确定
 CustomChanges = {
     11944: ['vodsystem'],
-    12058: ['tlsf']
+    12058: ['tlsf'],
+    12163: ['httpd', 'upnp'],
+    '9f899da0840bcd29425a3d7e2fcdc523796fe72b': ['gx_vq_malloc'],                 # 12057
+    '37bb3ffad5d5b091ae7971310ebe90bebb877168': ['nand_rootfs', 'rootfs_src_di'], # 12145
+    '4f4f15d84d4c3eb77fda1a2c464ed41f983baf96': ['gx_vq_malloc'],                 # 11995
+    'fc9763dcbc7a50a7e4efa2fa52be99a6b7ac9d35': ['gx_vq_malloc'],                 # 12016
 }
 
 # 黑名单的 change 直接剔除，由评审小组提出，评审后确定，代码提交者可以提出审议
 Blacklist = [
-    12159,
     11913,
-    12181,
     11903,
-    11704
+    11704,
+    9, 13,     # 记录不全了
+
 ]
 
 # 白名单中 chage 当经过筛选后仍不达标，可直接加入， 由提交者提出申请，需要评审小组确定
 WhiteList = [
-    11890
+    'a70b25e7a3f1cba87653ffc20fab94c577b4dfea',  # 12195
+    '948a879050c325f276e3cb298f8b8ee2fa5db620',  # 11891
+    '59807d04f7203af58b19e7144cbc558eb44451e2',  # 12151
+    #'1a8e15d41352317cb5745b1a3d7aafc9259de536',  # 11210
+    #'49593ea7fc2043564844a578f3b45d9d54066344',  # 10633
+    #'f76247574b9ab0652205a9541c914102b575ab76',  # 11668
+    #'b74071c1e27e21a5060eca4a5dec79a491bb54c6',  # 11032
 ]
 
 class Statistics():
@@ -73,7 +85,7 @@ class Statistics():
         self.data = data
         self.avg = sum(data) / float(self.count)
         self.std = math.sqrt(sum(map(lambda x: (x - self.avg)**2, data)) / self.count)
-        
+
 gerrit = None
 
 def wget(url, times = 0):
@@ -104,6 +116,7 @@ def GetCacheUrl(url):
     response = ''
     key = hashlib.md5(url.encode('utf8')).hexdigest().upper()
     filename = './cache/' + key
+    # print(filename, url)
     exists = os.path.exists(filename)
     if exists:
         f = open(filename, 'rb')
@@ -154,6 +167,11 @@ class Resource:
                 t = re.sub('\.\d*', '', t)
                 return time.mktime(time.strptime(t,'%Y-%m-%d %H:%M:%S'))
             return self.resource[key]
+        elif key == 'lines':
+            #return self.lines_inserted + self.lines_deleted
+            return self.lines_inserted - self.lines_deleted
+            #return max(self.lines_inserted, self.lines_deleted)
+            #return int((self.lines_inserted + self.lines_deleted) / 2)
 
     def __getitem__(self, item):
         if len(self.children) <= item:
@@ -163,17 +181,40 @@ class Resource:
 
         raise StopIteration()
 
-class Auther:
+class Author(Resource):
     def __init__(self, name):
+        super().__init__()
         self.name = name
         self.lines_deleted = 0
         self.lines_inserted = 0
+        self.percent = 0.0
         self.changes = []
 
-    def Show(self):
-        print('%-20s %-40s %6d %6d' %( self.name, self.email, self.lines_deleted, self.lines_inserted))
+    def __lt__(self, other):
+        if isinstance(other, Author):
+            return self.lines > other.lines
+
+        return NotImplemented
+
+    def AddChange(self, change):
+        found = False
         for c in self.changes:
-            c.Show()
+            if c._number == change._number:
+                found = True
+                break
+        if not found:
+            self.lines_inserted += change.lines_inserted
+            self.lines_deleted +=  change.lines_deleted
+            self.changes.append(change)
+
+    def Show(self):
+        all = self.lines_inserted + self.lines_deleted
+        if all != 0:
+            all =  (self.lines_inserted - self.lines_deleted) / all
+        #print('%-20s %6d %6d %7.3f, %6.3f%%' %(self.name, self.lines_inserted, self.lines_deleted, all, self.percent * 100.0))
+        print('%-20s %6d %6d %7.3f, %6.3f%%' %('', self.lines_inserted, self.lines_deleted, all, self.percent * 100.0))
+        #for c in self.changes:
+        #    c.Show()
 
 class File(Resource):
     '''
@@ -233,13 +274,20 @@ class Revision(Resource):
         self.lines_deleted = 0
         self.invalid = False
         self.Sigma = 0.0
+        self.authorName = res['commit']['author']['name']
         self.GetChangeLine()
 
     def __lt__(self, other):
         if isinstance(other, Revision):
-            return self.lines_inserted + self.lines_deleted > other.lines_inserted + self.lines_deleted
+            return self.lines > other.lines
 
         return NotImplemented
+
+    def SetInvalid(self):
+        if self.name == 'be4de46f871911ea7e9cf36762c03c6d47d7abf7':
+            pass
+        if self.name not in WhiteList:
+            self.invalid = True
 
     def NewFile(self, name, res):
         # 全局匹配
@@ -251,6 +299,14 @@ class Revision(Resource):
         # 具体 Change 匹配
         if self.change._number in CustomChanges.keys():
             exclude = CustomChanges[self.change._number]
+            for p in list(exclude):
+                if re.findall(p, name):
+                    #print('Exclude file:', name)
+                    return None
+
+        # 具体 Revision 匹配
+        if self.name in CustomChanges.keys():
+            exclude = CustomChanges[self.name]
             for p in list(exclude):
                 if re.findall(p, name):
                     #print('Exclude file:', name)
@@ -281,7 +337,7 @@ class Revision(Resource):
                     self.files.append(f)
 
     def __str__(self):
-        return '[%s] %7.3f %s  +%d\t-%d' % (self.invalid and 'X' or ' ', self.Sigma, self.name, self.lines_inserted, self.lines_deleted)
+        return '[%s] %8.3f %s  +%d\t-%d' % (self.invalid and 'X' or ' ', self.Sigma, self.name, self.lines_inserted, self.lines_deleted)
 
     def Show(self):
         print('\t%s' % self)
@@ -317,7 +373,7 @@ class Change(Resource):
 
     def __lt__(self, other):
         if isinstance(other, Change):
-            return self.lines_inserted + self.lines_deleted > other.lines_inserted + self.lines_deleted
+            return self.lines > other.lines
 
         return NotImplemented
 
@@ -339,6 +395,14 @@ class Change(Resource):
             self.lines_deleted += rev.lines_deleted
             base = k
 
+    def LinesCalc(self, st):
+        self.lines_inserted = 0
+        self.lines_deleted = 0
+        for rev in self.revisions:
+            if not rev.invalid:
+                self.lines_inserted += rev.lines_inserted
+                self.lines_deleted += rev.lines_deleted
+
     def Show(self):
         print('%d [+%d,-%d] %s %s' % (self._number, self.lines_inserted, self.lines_deleted,
                               time.strftime('%Y-%m-%d %X', time.gmtime(self.created)), self.subject[:80]))
@@ -347,8 +411,9 @@ class Change(Resource):
         print()
 
 class Changes(Resource):
-    def __init__(self, projectName, created=0):
+    def __init__(self, projectName, status='merged', created=0):
         super().__init__()
+        self.status = status
         self.created = created
         self.projectName = projectName
 
@@ -357,7 +422,7 @@ class Changes(Resource):
         name = self.params.get('name', '.*')
         status = self.params.get('status', 'ACTIVE')
 
-        url = '/changes/?q=status:merged+project:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&S=%d' % (self.projectName, self.limit, self.offset)
+        url = '/changes/?q=status:%s+project:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&S=%d' % (self.status, self.projectName, self.limit, self.offset)
         self.resource = gerrit.arrayGet(url)
         self.offset += len(self.resource)
         for res in self.resource:
@@ -371,9 +436,25 @@ class Changes(Resource):
 class Projects(Resource):
     def __init__(self):
         super().__init__()
+        self.invalidRevisionCount = 0
         self.created = 0
         self.ChangeList = []
         self.RevisionList = []
+        self.authors = []
+        self.status = [
+            'merged',
+            'abandoned',
+            'open'
+        ]
+
+    def GetAuthor(self, name):
+        for author in self.authors:
+            if author.name == name:
+                return author
+        author = Author(name)
+        self.authors.append(author)
+
+        return author
 
     def Query(self, **params): #name, status):
         self.params.update(**params)
@@ -388,36 +469,42 @@ class Projects(Resource):
         self.resource = gerrit.arrayGet(url)
         for (k, v) in self.resource.items():
             if re.findall(name, k) and v['state'] == status:
-                changes = Changes(k, self.created)
-                for c in changes:
-                    self.ChangeList.append(c)
-                    self.RevisionList += c.revisions
+                for st in self.status:
+                    changes = Changes(k, status=st, created=self.created)
+                    for c in changes:
+                        self.ChangeList.append(c)
+                        self.RevisionList += c.revisions
 
-        self.RevisionList = sorted(self.RevisionList)
-        self.ChangeList = sorted(self.ChangeList)
-
+        self.RevisionList = sorted(self.RevisionList, reverse=True)
+        self.ChangeList = sorted(self.ChangeList, reverse=True)
 
     # 对变更提交进行正态分析， 3q 以上的不记入
     def NormalAnalysis(self):
         # 代码行超过2000行变更的提交直接不记入
+        self.invalidRevisionCount = 0
         vlines = []
-        print('超过 %s 行的变更:' % MAX_LINE)
+        print('超过 %s 行的变更，或者无代码变更:' % MAX_LINE)
         for r in self.RevisionList:
-            if abs(r.lines_inserted - r.lines_deleted) > MAX_LINE:
-                r.Show()
+            if r.lines > 0 and max(r.lines_inserted, r.lines_deleted) < MAX_LINE:
+                vlines.append(r.lines)
             else:
-                vlines.append(r.lines_inserted + r.lines_deleted)
+                r.Show()
 
         st = Statistics(vlines)
         print('总数: %d, 平均: %7.3f, 标准差: %8.3f' % (st.count, st.avg, st.std))
 
         for r in self.RevisionList:
-            lines = r.lines_inserted + r.lines_deleted
+            lines = r.lines
             r.Sigma = abs((lines - st.avg) / st.std)
-            if r.Sigma > 3:
-                r.invalid = True
+            if r.Sigma > 1:
+                self.invalidRevisionCount += 1
+                r.SetInvalid()
                 r.Show()
 
+        for c in self.ChangeList:
+            c.LinesCalc(st)
+
+        #return
         print('--------------------------------------------------------------------------------------------------------------------')
         for c in self.ChangeList:
             for r in c.revisions:
@@ -425,28 +512,51 @@ class Projects(Resource):
                     c.Show()
                     break
 
+    def AuthorCalc(self):
+        author_alias = {
+            '黄俊斌': 'huangjb',
+            '朱治国': 'zhuzhg',
+            '刘非': 'liufei'
+        }
+        for r in self.RevisionList:
+            name = r.authorName
+            if name in author_alias:
+                name = author_alias[name]
+            author = self.GetAuthor(name)
+            author.AddChange(r.change)
+        total_inserted = 0
+        total_deleted = 0
+        for au in self.authors:
+            total_inserted += au.lines_inserted
+            total_deleted += au.lines_deleted
+
+        for au in self.authors:
+            au.percent = (au.lines_inserted + au.lines_deleted) / (total_inserted + total_deleted)
+
+        self.authors = sorted(self.authors, key=lambda d:d.percent, reverse=True)
+
     def Sync(self):
         self.NormalAnalysis()
-
+        self.AuthorCalc()
 
     def Show(self):
-        for (k,v) in gerrit.authers.items():
-            v.Show()
+        total = len(self.RevisionList)
+        print('总变更 %d 次, 有效变更 %d 次, 无效变更 %d 次，有效率：%4.1f%%' % (
+                                               total,
+                                               total - self.invalidRevisionCount,
+                                               self.invalidRevisionCount,
+                                               (total - self.invalidRevisionCount) / total * 100.0
+                                               )
+              )
+
+        for au in self.authors:
+            au.Show()
 
 class Gerrit(object):
     def __init__(self, baseUrl):
         self.project = []
         self.baseUrl = baseUrl
-        self.authers = {}
-
-    def GetAuther(self, name):
-        if name in self.authers:
-            auther = self.authers[name]
-        else:
-            auther = Auther(name)
-            self.authers[name] = auther
-
-        return auther
+        self.authors = {}
 
     def rawGet(self, url):
         if url.find('http://') < 0:

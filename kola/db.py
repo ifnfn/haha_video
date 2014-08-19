@@ -3,10 +3,30 @@
 
 import sys
 import traceback
+import re
 
 import pymongo
 
 from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin
+
+def AlbumNameFix(name):
+    AliasList = [
+        ('第一季', '第1季'),
+        ('第二季', '第2季'),
+        ('第三季', '第3季'),
+        ('第四季', '第4季'),
+        ('第五季', '第5季'),
+        ('第六季', '第6季'),
+        ('第七季', '第7季'),
+        ('第八季', '第8季'),
+        ('第九季', '第9季'),
+        ('第十季', '第10季'),
+    ]
+    for a,b in AliasList:
+        if name.find(a) >= 0:
+            name,_ = re.subn(a, b, name)
+
+    return name
 
 
 class AlbumBase:
@@ -275,7 +295,8 @@ class DB:
 
         if name in self.blackAlbumName:
             return ''
-        return name
+
+        return AlbumNameFix(name)
 
     def _GetKeyAndJson(self, album, key):
         album.vid = autostr(album.vid)

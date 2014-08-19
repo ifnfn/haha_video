@@ -78,6 +78,8 @@ TVOrder = [
     '农林卫视',
     '健康卫视',
     'CCTV ',
+    '星空卫视',
+    '阳光卫视',
 ]
 
 con = pymongo.Connection('localhost', 27017)

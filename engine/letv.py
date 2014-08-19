@@ -220,15 +220,16 @@ class ParserAlbumList(KolaParser):
 
         json = tornado.escape.json_decode(js['data'])
         for a in json['data_list']:
+            albumName = db.GetAlbumName(a['name'])
+            if not albumName:
+                continue
+
             album = LetvAlbum()
-            album_js = DB().FindAlbumJson(albumName=a['name'])
+            album_js = db.FindAlbumJson(albumName=albumName)
             if album_js:
                     album.LoadFromJson(album_js)
 
             try:
-                album.albumName = db.GetAlbumName(a['name'])
-                if not album.albumName:
-                    continue
                 album.vid = utils.genAlbumId(album.albumName)
                 album.cid = js['cid']
 
@@ -314,6 +315,7 @@ class ParserShowList(KolaParser):
             albumName = db.GetAlbumName(a['name'])
             if not albumName:
                 continue
+
             album = LetvAlbum()
             album_js = DB().FindAlbumJson(albumName=albumName)
             if album_js:

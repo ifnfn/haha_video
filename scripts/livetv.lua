@@ -573,7 +573,7 @@ function get_video_url_direct(url, albumName, vid)
 		['^wztv://']       = get_video_wztv,
 		['wolidou.com']    = get_video_wolidou,
 		--['.letv']          = get_video_52itv,
-		['ext=letv']       = get_video_52itv,
+		--['ext=letv']       = get_video_52itv,
 	}
 
 	print(albumName, vid, url)

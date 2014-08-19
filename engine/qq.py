@@ -4,6 +4,8 @@
 import hashlib
 import re
 import time
+import traceback
+import sys
 from urllib.parse import quote
 
 from bs4 import BeautifulSoup as bs, Tag
@@ -178,12 +180,45 @@ class QQDB(kola.DB, kola.Singleton):
         if album.albumName and album.qq.qvid:
             self._save_update_append(None, album, key={'private.QQEngine.qvid' : album.qq.qvid}, upsert=upsert)
 
-class ParserPlayCount(KolaParser):
+class ParserPlayCount2(KolaParser):
     def __init__(self, album=None):
         super().__init__()
         if album:
             self.cmd['name'] = album.albumName
-            self.cmd['source'] = 'http://sns.video.qq.com/tvideo/fcgi-bin/batchgetplaymount?id=%s&otype=json' % album.qq.qvid
+            self.cmd['source'] = album.private['QQEngine']['videoListUrl']['parameters'][0]
+            self.cmd['qvid'] = album.qq.qvid
+            self.cmd['cache'] = False
+
+    def CmdParser(self, js):
+        db = QQDB()
+        text = re.findall('QZOutputJson=({[\s\S]*});', js['data'])
+        if not text:
+            return
+
+        json = tornado.escape.json_decode(text[0])
+
+        if 'list' not in json:
+            return
+
+        for a in json['list']:
+            if a['PLNAME'] != 'qq':
+                continue
+            if a['ID'] == js['qvid']:
+                album = db.GetAlbumFormDB(qvid=js['qvid'])
+                if album == None:
+                    break
+                for rec in a['Z1']['recennt']:
+                    ParserPlayCount(album, rec['id']).Execute()
+
+class ParserPlayCount(KolaParser):
+    def __init__(self, album=None, qvid=None):
+        super().__init__()
+        if album:
+            self.cmd['name'] = album.albumName
+            if qvid == None: # 有视频的VID
+                qvid = album.qq.qvid
+            self.cmd['vid'] = qvid
+            self.cmd['source'] = 'http://sns.video.qq.com/tvideo/fcgi-bin/batchgetplaymount?id=%s&otype=json' % qvid
             self.cmd['qvid'] = album.qq.qvid
             self.cmd['cache'] = False
 
@@ -202,10 +237,13 @@ class ParserPlayCount(KolaParser):
             return
 
         for v in json['node']:
-            if v['id'] == js['qvid']:
+            if v['id'] == js['vid']:
                 if 'all' in v: album.totalPlayNum = v['all']
                 if 'yest' in v: album.dailyPlayNum = v['yest']
-                db.SaveAlbum(album)
+                if album.totalPlayNum > 0 and album.dailyPlayNum > 0:
+                    db.SaveAlbum(album)
+                else:
+                    ParserPlayCount2(album).Execute()
 
 # 节目列表
 class ParserAlbumList(KolaParser):
@@ -233,8 +271,11 @@ class ParserAlbumList(KolaParser):
 
                 try:
                     a = album.find('a', { "target" : '_blank' })
-                    href = a.get('href')
                     albumName = a.get('title')
+                    albumName = db.GetAlbumName(albumName)
+                    if not albumName:
+                        continue
+                    href = a.get('href')
 
                     if isinstance(a, Tag):
                         for sup in a.contents:
@@ -243,6 +284,8 @@ class ParserAlbumList(KolaParser):
                     score = album.find('strong').text
                 except:
                     pass
+                    #t, v, tb = sys.exc_info()
+                    #print("VideoEngine.ParserHtml:  %s,%s, %s" % (t, v, traceback.format_tb(tb)))
 
                 if clips and href and albumName:
                     href_md5 = hashlib.md5(href.encode()).hexdigest()
@@ -295,14 +338,14 @@ class ParserAlbumPage2(KolaParser):
             a_text = tornado.escape.json_encode(a)
             if a['AW'] == js['href'] or re.findall(qid, a_text):
                 #print(a['AC'], a['AT'], a['AU'], a['TX'])
+                albumName = db.albumNameAlias(a['title'])
+                if not albumName:
+                    continue
+
                 album = QQAlbum()
-                album_js = kola.DB().FindAlbumJson(albumName=a['title'])
+                album_js = db.FindAlbumJson(albumName=albumName)
                 if album_js:
                         album.LoadFromJson(album_js)
-
-                album.albumName = db.GetAlbumName(a['title'])
-                if not album.albumName:
-                    continue
 
                 album.vid   = kola.genAlbumId(album.albumName)
                 album.cid   = js['cid']
@@ -476,6 +519,7 @@ class QQEngine(VideoEngine):
         self.parserList = [
             ParserAlbumList(),
             ParserPlayCount(),
+            ParserPlayCount2(),
             ParserAlbumPage(),
             ParserAlbumPage2(),
         ]

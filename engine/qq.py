@@ -338,7 +338,7 @@ class ParserAlbumPage2(KolaParser):
             a_text = tornado.escape.json_encode(a)
             if a['AW'] == js['href'] or re.findall(qid, a_text):
                 #print(a['AC'], a['AT'], a['AU'], a['TX'])
-                albumName = db.albumNameAlias(a['title'])
+                albumName = db.GetAlbumName(a['title'])
                 if not albumName:
                     continue
 

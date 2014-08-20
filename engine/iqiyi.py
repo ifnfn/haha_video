@@ -179,7 +179,8 @@ class QiyiDB(DB, Singleton):
         elif auto:
             album = QiyiAlbum()
             if tvid   : album.qiyi.tvid = tvid
-            if albumName    : album.mName = albumName
+            if albumName:
+                album.SetNameAndVid(albumName)
 
         return album
 
@@ -299,13 +300,10 @@ class ParserAlbumJsonA(KolaParser):
             if not albumName:
                 return
 
-            album = QiyiAlbum()
-            album_js = DB().FindAlbumJson(albumName=albumName)
-            if album_js:
-                    album.LoadFromJson(album_js)
+            album = db.GetAlbumFormDB(albumName=albumName, auto=True)
+            if not album:
+                return
 
-            album.albumName = albumName
-            album.vid = utils.genAlbumId(album.albumName)
             album.cid = js['cid']
 
             if album.cid == 3:
@@ -379,6 +377,7 @@ class ParserAlbumPage(KolaParser):
 
     def CmdParser(self, js):
         if not js['data']: return
+        db = QiyiDB()
 
         vlist = re.findall('(data-player-videoid|data-player-tvid|data-player-albumid)="(.*?)"', js['data'])
         if vlist:
@@ -398,13 +397,11 @@ class ParserAlbumPage(KolaParser):
                 albumName = tvlist['data']['name']
                 tvid = tvlist['data']['id']
                 #print(albumName, tvid)
-                album = QiyiAlbum()
-                album_js = DB().FindAlbumJson(albumName=albumName)
-                if album_js:
-                        album.LoadFromJson(album_js)
 
-                album.albumName = albumName
-                album.vid = utils.genAlbumId(album.albumName)
+                album = db.GetAlbumFormDB(albumName=albumName, auto=True)
+                if not album:
+                    return
+
                 album.cid = js['cid']
 
                 if 'image' in js and js['image']:

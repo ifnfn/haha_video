@@ -165,7 +165,7 @@ class PPtvDB(kola.DB, kola.Singleton):
             if channel_id:
                 album.pptv.channel_id = channel_id
             if albumName:
-                album.mName = albumName
+                album.SetNameAndVid(albumName)
 
         return album
 
@@ -229,16 +229,12 @@ class ParserAlbumList(KolaParser):
             if basic['isPay'] != '0':
                 continue
 
-            album = PPtvAlbum()
-            album_js = kola.DB().FindAlbumJson(albumName=basic['title'])
-            if album_js:
-                    album.LoadFromJson(album_js)
 
             try:
-                album.albumName = db.GetAlbumName(basic['title'])
-                if not album.albumName:
-                    continue
-                album.vid = kola.genAlbumId(album.albumName)
+                album = db.GetAlbumFormDB(albumName=basic['title'], auto=True)
+                if not album:
+                    return
+
                 album.cid = js['cid']
 
                 if 'basic' in a:

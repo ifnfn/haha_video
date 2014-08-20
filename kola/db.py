@@ -7,7 +7,7 @@ import re
 
 import pymongo
 
-from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin
+from .utils import autostr, autoint, log, GetQuickFilter, GetPinYin, genAlbumId
 
 def AlbumNameFix(name):
     AliasList = [
@@ -76,6 +76,10 @@ class AlbumBase:
 
         if self.engineName:
             self.engineList.append(self.engineName)
+
+    def SetNameAndVid(self, name):
+        self.albumName = name
+        self.vid       = genAlbumId(name)
 
     def SaveToJson(self):
         ret = {}

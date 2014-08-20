@@ -168,7 +168,7 @@ class LetvDB(DB, Singleton):
             if playlistid:
                 album.letv.playlistid = playlistid
             if albumName:
-                album.mName = albumName
+                album.SetNameAndVid(albumName)
 
         return album
 
@@ -220,17 +220,11 @@ class ParserAlbumList(KolaParser):
 
         json = tornado.escape.json_decode(js['data'])
         for a in json['data_list']:
-            albumName = db.GetAlbumName(a['name'])
-            if not albumName:
-                continue
-
-            album = LetvAlbum()
-            album_js = db.FindAlbumJson(albumName=albumName)
-            if album_js:
-                    album.LoadFromJson(album_js)
-
             try:
-                album.vid = utils.genAlbumId(album.albumName)
+                album = db.GetAlbumFormDB(albumName=a['name'], auto=True)
+                if not album:
+                    continue
+
                 album.cid = js['cid']
 
                 album.enAlbumName      = ''  # 英文名称
@@ -312,17 +306,11 @@ class ParserShowList(KolaParser):
 
         json = tornado.escape.json_decode(js['data'])
         for a in json['data_list']:
-            albumName = db.GetAlbumName(a['name'])
-            if not albumName:
-                continue
-
-            album = LetvAlbum()
-            album_js = DB().FindAlbumJson(albumName=albumName)
-            if album_js:
-                    album.LoadFromJson(album_js)
             try:
-                album.albumName = albumName
-                album.vid = utils.genAlbumId(album.albumName)
+                album = db.GetAlbumFormDB(albumName=a['name'], auto=True)
+                if not album:
+                    continue
+
                 album.cid = js['cid']
 
                 album.enAlbumName = ''  # 英文名称

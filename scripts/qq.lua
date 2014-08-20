@@ -156,6 +156,16 @@ end
 
 function get_resolution(qvid, video_url)
 	local function get_url_prefix(ui)
+		local level_maps = {
+			['^http://videocdn.qq.com']           = 9,
+			['video.qq.com']                      = 8,
+			['tc.qq.com']                         = 7,
+			['vkp.tc.qq.com']                     = 6,
+			['vkpws.video.qq.com']                = 5,
+			['^http://vkp.dnion.videocdn.qq.com'] = 4,
+			['^http://video.dispatch.tc.qq.com']  = 3,
+		}
+
 		if #ui == 0 then
 			return ''
 		end
@@ -163,14 +173,11 @@ function get_resolution(qvid, video_url)
 		local level = 0
 		for k,v in pairs(ui) do
 			local tmp_level = 0
-			if string.find(v.url, 'videocdn.qq.com') then
-				if level < 9 then tmp_level = 9 end
-			elseif string.find(v.url, 'video.qq.com') then
-				if level < 8 then tmp_level = 8 end
-			elseif string.find(v.url, 'tc.qq.com') then
-				if level < 7 then tmp_level = 7 end
-			else
-				tmp_level = 1
+			for a,b in pairs(level_maps) do
+				if string.find(url, a) then
+					tmp_level = b
+					break
+				end
 			end
 
 			if tmp_level > level then

@@ -134,7 +134,8 @@ class SohuDB(DB, Singleton):
             album = SohuAlbum()
             if playlistid   : album.sohu.playlistid = playlistid
             if vid          : album.sohu.vid        = vid
-            if albumName    : album.mName = albumName
+            if albumName:
+                album.SetNameAndVid(albumName)
 
         return album
 
@@ -218,15 +219,9 @@ class ParserAlbumFullInfo(KolaParser):
         if not albumName:
             return
 
-        album = db.GetAlbumFormDB(playlistid=playlistid, vid=vid)
+        album = db.GetAlbumFormDB(playlistid=playlistid, albumName=albumName, vid=vid, auto=True)
         if album == None:
-            album = SohuAlbum()
-            album_js = DB().FindAlbumJson(albumName=albumName)
-            if album_js:
-                    album.LoadFromJson(album_js)
-
-        album.albumName       = albumName
-        album.vid             = utils.genAlbumId(album.albumName)
+            return
 
         if 'cid' in json            : album.cid             = cid
         if 'playlistid' in json     : album.sohu.playlistid = playlistid

@@ -36,8 +36,8 @@ class ParserVstLivetv(LivetvParser):
                 return name
 
     def GetTVOrder(self, url):
-        if url.find('letv', 0) >= 0:
-            return PRIOR_LETV, 'VLTV'
+        if url.find('vlive', 0) >= 0:
+            return PRIOR_DEFTV, 'VLIVE'
         elif url.find('imgotv', 0) >= 0:
             return PRIOR_IMGO, 'VITV'
         elif url.find('pa://', 0) >= 0 or url.find('cntv.') > 0:

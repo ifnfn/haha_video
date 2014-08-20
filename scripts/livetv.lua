@@ -243,14 +243,6 @@ local function get_video_pptv(url)
 	local pphtml = curl_get("http://v.pptv.com/show/h1G4Np4EdLIVkics.html",
 					user_agent, "http://live.pptv.com/")
 
-
-	--v = curl_json("http://v.pptv.com/show/h1G4Np4EdLIVkics.html", '"player":(.*?),"plugin"')
-	--print(v.ctx)
-	--kk = rex.match(v.ctx, 'kk%3D(.*)')
-	--print(v.playList[1].ipadurl)
-	--u = string.format('%s?type=m3u8.web.pad&playback=0&kk=%s&o=v.pptv.com' , v.playList[1].ipadurl, kk)
-	--print(u)
-
 	if pphtml and string.find(pphtml, "kk%%3D") then
 		kk = rex.match(pphtml, 'kk%3D(.*?)"')
 	end
@@ -336,12 +328,20 @@ local function get_video_sohutv(url)
 end
 
 local function get_video_52itvkey(url)
-	local d = kola.gettime()
-	local key = string.format('st=QQ243944493&tm=%d', d)
+	local time = kola.gettime() + 300
+	local text = string.format('%d,3360a490fb76d9b648fe14019a8aaab8', time)
 
-	return string.format('%s?k=%s-%d', url, string.lower(kola.md5(key)), d)
+	return string.format('%s?tm=%d&key=%s&', url, time, string.lower(kola.md5(text)))
 end
 
+local function get_video_vlive(url)
+	local time = kola.gettime()  + 18000
+	local text = string.format('%d,VST代理专用,hehe,xixi,aaaa,xxxx,dddd,4444,dssss,sadasd,52itv,myvst', time)
+
+	url = string.format('%s?tm*=%d&key*=%s&', url, time, string.lower(kola.md5(text)))
+
+	return curl_match(url, '(http://.*)')
+end
 
 local function get_video_52itv(url)
 	local function letv_video2(url)
@@ -541,15 +541,6 @@ local function get_video_iqilu(url)
 	return string.format('http://m3u8.iqilu.com/live/%s.m3u8?st=%s&e=%s', m3u8, st, time)
 end
 
-local function get_video_vlive(url)
-	local time = kola.gettime()  + 18000
-	local text = string.format('%d,VST代理专用,hehe,xixi,aaaa,xxxx,dddd,4444,dssss,sadasd,52itv,myvst', time)
-
-	url = string.format('%s?tm*=%d&key*=%s&', url, time, string.lower(kola.md5(text)))
-
-	return curl_match(url, '(http://.*)')
-end
-
 function get_video_url_direct(url, albumName, vid)
 	local func_maps = {
 		['^http://url.52itv.cn/vlive'] = get_video_vlive,
@@ -557,7 +548,8 @@ function get_video_url_direct(url, albumName, vid)
 		['^http://url.52itv.cn/live']  = get_video_52itvkey,
 		['cntv.cloudcdn.net']          = get_video_auth_cntv,
 		['cntv.wscdns.com']            = get_video_auth_cntv,
-		['live.cntv.cn']   = get_video_auth_cntv,
+		['live.cntv.cn']               = get_video_auth_cntv,
+
 		['^pa://']         = get_video_cntv,
 		['^pptv://']       = get_video_pptv,
 		['^qqtv://']       = get_video_qqtv,

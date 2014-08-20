@@ -4,8 +4,6 @@
 import hashlib
 import re
 import time
-import traceback
-import sys
 from urllib.parse import quote
 
 from bs4 import BeautifulSoup as bs, Tag
@@ -172,7 +170,7 @@ class QQDB(kola.DB, kola.Singleton):
             if qvid:
                 album.qq.qvid = qvid
             if albumName:
-                album.mName = albumName
+                album.SetNameAndVid(albumName)
 
         return album
 
@@ -342,12 +340,10 @@ class ParserAlbumPage2(KolaParser):
                 if not albumName:
                     continue
 
-                album = QQAlbum()
-                album_js = db.FindAlbumJson(albumName=albumName)
-                if album_js:
-                        album.LoadFromJson(album_js)
+                album = db.GetAlbumFormDB(albumName=albumName, auto=True)
+                if not album:
+                    return
 
-                album.vid   = kola.genAlbumId(album.albumName)
                 album.cid   = js['cid']
                 album.Score = kola.autofloat(js['score'])
 

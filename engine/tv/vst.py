@@ -6,7 +6,7 @@ import re
 
 from kola import LivetvMenu
 
-from .common import PRIOR_VST, PRIOR_LETV, PRIOR_IMGO, PRIOR_CNTV, PRIOR_DEFTV
+from .common import PRIOR_VST, PRIOR_IMGO, PRIOR_CNTV, PRIOR_DEFTV
 from .livetvdb import LivetvParser
 
 

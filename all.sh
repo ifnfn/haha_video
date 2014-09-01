@@ -36,7 +36,7 @@ UpdateTV() {
     UpdateAlbum Livetv2
 }
 
-redis-cli FLUSHALL
+redis-cli -n 1 FLUSHDB
 UpdateTV
 #Update
 #Score

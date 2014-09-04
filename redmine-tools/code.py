@@ -29,6 +29,7 @@ import httplib2
 #   2. 提倡高频度的提交代码，可以增加更代代码行总数，但可能会造成有效代码率的下降
 #   3. 提倡低频度的提交代码，可以提交有效代码率，但影响变更代码行总数
 #   4. 提倡代码可追溯性
+#   5. 鼓励多提交
 ######################################################################################
 
 # 进入标准差统计的变更行数
@@ -53,6 +54,18 @@ CustomChanges = {
     11944: ['vodsystem'],
     12058: ['tlsf'],
     12163: ['httpd', 'upnp'],
+    10669: ['cm15'],
+    10929: ['gx3201_video_out_hal.c'],
+    10931: ['3201.h', '3201.c', 'gx3201_vpu_reg.h', 'gxav_bitops.h'],
+    11196: ['spinand_bbt.c'],
+    10560: ['h_vd.c'],
+    11406: ['avformat', 'avutil'],
+    10873: ['jpeg', 'vout'],
+    10438: ['cm_vd.c', 'h_vd.c'],
+    10669: ['cm15'],
+    11210: ['sflash-gx.c'],
+    11221: ['asf', 'avpacket.c', 'http', 'network', 'options', 'rdt', 'rtp', 'rtsp', 'utils.c', 'avutil'],
+    '78b2c1e521dd071c63e13da079215e915eeaf322': ['h_vd.c'],                       # 10664
     '9f899da0840bcd29425a3d7e2fcdc523796fe72b': ['gx_vq_malloc'],                 # 12057
     '37bb3ffad5d5b091ae7971310ebe90bebb877168': ['nand_rootfs', 'rootfs_src_di'], # 12145
     '4f4f15d84d4c3eb77fda1a2c464ed41f983baf96': ['gx_vq_malloc'],                 # 11995
@@ -61,22 +74,23 @@ CustomChanges = {
 
 # 黑名单的 change 直接剔除，由评审小组提出，评审后确定，代码提交者可以提出审议
 Blacklist = [
-    11913,
-    11903,
-    11704,
+#    11913,
+#    11903,
+#    11704,
+#    10873,
     9, 13,     # 记录不全了
-
 ]
 
 # 白名单中 chage 当经过筛选后仍不达标，可直接加入， 由提交者提出申请，需要评审小组确定
 WhiteList = [
+    '6f38858b430028b4d8bf2fd02a6522ba0ca613a9',  # 11681
+    '2a250c21d7d5f068970fbe0523492dc7adbffe48',  # 11192
+    'a3a8c92c1df5fc3f23a4b65a738a31a39841d2a1',  # 11433
+    '41661b68bb5a8e9aad945694caaa65ce42b0398c',  # 11210
+    'a2c76a07cb47586503b470ad74774a80f5c3a9b1',  # 11026
     'a70b25e7a3f1cba87653ffc20fab94c577b4dfea',  # 12195
     '948a879050c325f276e3cb298f8b8ee2fa5db620',  # 11891
     '59807d04f7203af58b19e7144cbc558eb44451e2',  # 12151
-    #'1a8e15d41352317cb5745b1a3d7aafc9259de536',  # 11210
-    #'49593ea7fc2043564844a578f3b45d9d54066344',  # 10633
-    #'f76247574b9ab0652205a9541c914102b575ab76',  # 11668
-    #'b74071c1e27e21a5060eca4a5dec79a491bb54c6',  # 11032
 ]
 
 class Statistics():
@@ -169,9 +183,9 @@ class Resource:
             return self.resource[key]
         elif key == 'lines':
             #return self.lines_inserted + self.lines_deleted
-            return self.lines_inserted - self.lines_deleted
+            #return self.lines_inserted - self.lines_deleted
             #return max(self.lines_inserted, self.lines_deleted)
-            #return int((self.lines_inserted + self.lines_deleted) / 2)
+            return int((self.lines_inserted + self.lines_deleted) / 2)
 
     def __getitem__(self, item):
         if len(self.children) <= item:
@@ -207,12 +221,19 @@ class Author(Resource):
             self.lines_deleted +=  change.lines_deleted
             self.changes.append(change)
 
+    def ChnageCount(self):
+        return len(self.changes)
+
+    def value(self):
+        return (self.lines_inserted + self.lines_deleted) / 2
+
     def Show(self):
         all = self.lines_inserted + self.lines_deleted
         if all != 0:
-            all =  (self.lines_inserted - self.lines_deleted) / all
-        #print('%-20s %6d %6d %7.3f, %6.3f%%' %(self.name, self.lines_inserted, self.lines_deleted, all, self.percent * 100.0))
-        print('%-20s %6d %6d %7.3f, %6.3f%%' %('', self.lines_inserted, self.lines_deleted, all, self.percent * 100.0))
+            all =  (self.lines_inserted - self.lines_deleted) / all * 100
+        name = self.name
+        #name = ''
+        print('%-20s %5d %6d %6d %7.1f%% %6.1f%%' % (name, len(self.changes), self.lines_inserted, self.lines_deleted, all, self.percent * 100.0))
         #for c in self.changes:
         #    c.Show()
 
@@ -394,6 +415,11 @@ class Change(Resource):
             self.lines_inserted += rev.lines_inserted
             self.lines_deleted += rev.lines_deleted
             base = k
+        #print(self)
+
+    def __str__(self):
+        return '%d %s %-10s %s' % (self._number, time.strftime('%Y-%m-%d %X', time.gmtime(self.created)),
+                               self.resource['owner']['name'], self.subject[:80])
 
     def LinesCalc(self, st):
         self.lines_inserted = 0
@@ -401,7 +427,9 @@ class Change(Resource):
         for rev in self.revisions:
             if not rev.invalid:
                 self.lines_inserted += rev.lines_inserted
-                self.lines_deleted += rev.lines_deleted
+                self.lines_deleted +=  rev.lines_deleted
+        #self.lines_inserted += math.sqrt(self.lines_inserted * st.avg)
+        #self.lines_deleted +=  math.sqrt(self.lines_deleted * st.avg)
 
     def Show(self):
         print('%d [+%d,-%d] %s %s' % (self._number, self.lines_inserted, self.lines_deleted,
@@ -411,10 +439,9 @@ class Change(Resource):
         print()
 
 class Changes(Resource):
-    def __init__(self, projectName, status='merged', created=0):
+    def __init__(self, projectName, status='merged', created_start=0, created_end=0):
         super().__init__()
         self.status = status
-        self.created = created
         self.projectName = projectName
 
     def Query(self, **params):
@@ -429,22 +456,22 @@ class Changes(Resource):
             c = Change(res)
             if c._number in Blacklist:
                 continue
-            if c.created >= self.created or self.created == 0:
-                c.Update()
-                self.children.append(c)
+
+            self.children.append(c)
 
 class Projects(Resource):
     def __init__(self):
         super().__init__()
         self.invalidRevisionCount = 0
-        self.created = 0
+        self.created_start = 0
+        self.created_end = 0
         self.ChangeList = []
         self.RevisionList = []
         self.authors = []
         self.status = [
             'merged',
-            'abandoned',
-            'open'
+            #'abandoned',
+            #'open'
         ]
 
     def GetAuthor(self, name):
@@ -460,20 +487,38 @@ class Projects(Resource):
         self.params.update(**params)
         name = self.params.get('name', '.*')
         status = self.params.get('status', 'ACTIVE')
-        self.created = self.params.get('created', 0)
+        self.created_start = self.params.get('start', 0)
+        self.created_end = self.params.get('end', 0)
 
-        if self.created:
-            self.created = time.mktime(time.strptime(self.created,'%Y-%m-%d'))
+        if self.created_start:
+            self.created_start = time.mktime(time.strptime(self.created_start,'%Y-%m-%d'))
+
+        if self.created_end:
+            self.created_end = time.mktime(time.strptime(self.created_end,'%Y-%m-%d'))
 
         url = '/projects/?format=JSON&d'
         self.resource = gerrit.arrayGet(url)
+
+        self.ChangeList = []
         for (k, v) in self.resource.items():
             if re.findall(name, k) and v['state'] == status:
+                if k in ['goxceed/api_porting']:
+                    continue
                 for st in self.status:
-                    changes = Changes(k, status=st, created=self.created)
+                    changes = Changes(k, status=st)
                     for c in changes:
-                        self.ChangeList.append(c)
-                        self.RevisionList += c.revisions
+                        ok_start = False
+                        ok_end = False
+                        if c.created >= self.created_start or self.created_start == 0:
+                            ok_start = True
+
+                        if c.created <= self.created_end or self.created_end == 0:
+                            ok_end = True
+
+                        if ok_end and ok_start:
+                            c.Update()
+                            self.ChangeList.append(c)
+                            self.RevisionList += c.revisions
 
         self.RevisionList = sorted(self.RevisionList, reverse=True)
         self.ChangeList = sorted(self.ChangeList, reverse=True)
@@ -496,7 +541,7 @@ class Projects(Resource):
         for r in self.RevisionList:
             lines = r.lines
             r.Sigma = abs((lines - st.avg) / st.std)
-            if r.Sigma > 1:
+            if r.Sigma > 3:
                 self.invalidRevisionCount += 1
                 r.SetInvalid()
                 r.Show()
@@ -516,22 +561,32 @@ class Projects(Resource):
         author_alias = {
             '黄俊斌': 'huangjb',
             '朱治国': 'zhuzhg',
-            '刘非': 'liufei'
+            '刘非': 'liufei',
+            '赵广富': 'zhaogf',
+            '刘怡雄': 'liuyx',
+            '尹桂才': 'yingc',
+            '吴卫军': 'wuwj',
+            '张伟': 'zhangwei',
         }
         for r in self.RevisionList:
             name = r.authorName
             if name in author_alias:
                 name = author_alias[name]
+
+            #if name in ['liufei', 'zhangling', 'huangjb', 'zhuzhg']:
+            #    continue
+
+            #if name in ['zhoujm', 'wuwj', 'shenbin', 'zhouzhr', 'jiangzq']:
+            #    continue
+
             author = self.GetAuthor(name)
             author.AddChange(r.change)
-        total_inserted = 0
-        total_deleted = 0
+        total_value = 0
         for au in self.authors:
-            total_inserted += au.lines_inserted
-            total_deleted += au.lines_deleted
+            total_value += au.value()
 
         for au in self.authors:
-            au.percent = (au.lines_inserted + au.lines_deleted) / (total_inserted + total_deleted)
+            au.percent = au.value() / total_value
 
         self.authors = sorted(self.authors, key=lambda d:d.percent, reverse=True)
 
@@ -580,6 +635,6 @@ if __name__ == '__main__':
     host = 'http://git.nationalchip.com/gerrit/a'
     #host = 'http://192.168.110.254/gerrit/a'
     gerrit=Gerrit(host)
-    projects = gerrit.GetProjects(name='goxceed', created='2014-06-01')
+    projects = gerrit.GetProjects(name='goxceed', start='2014-01-01', end='2014-8-31')
     projects.Sync()
     projects.Show()

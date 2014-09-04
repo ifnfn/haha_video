@@ -6,7 +6,6 @@ import os
 from urllib.parse import unquote
 import zlib
 
-import redis
 import tornado.ioloop
 import tornado.options
 import tornado.web

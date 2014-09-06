@@ -145,7 +145,7 @@ function get_videolist(vid, playlistid, sohu_vid, pageNo, pageSize)
 
 	local url = vid
 	if string.find(vid, "http://") == nil then
-		url = string.format('http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagenum=%d&pagesize=%s&playlistid=%s',
+		url = string.format('http://pl.hd.vrs.sohu.com/videolist?encoding=utf-8&pagenum=%d&pagesize=%s&playlistid=%s',
 			tonumber(pageNo) + 1, pageSize, playlistid)
 	end
 

@@ -201,7 +201,8 @@ class ParserAlbumFullInfo(KolaParser):
     def __init__(self, playlistid=None, vid=None, cid=None):
         super().__init__()
         if playlistid and vid and cid:
-            self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (playlistid, vid)
+            #self.cmd['source'] = 'http://hot.vrs.sohu.com/pl/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (playlistid, vid)
+            self.cmd['source'] = 'http://pl.hd.sohu.com/videolist?encoding=utf-8&pagesize=1&playlistid=%s&vid=%s' % (playlistid, vid)
             self.cmd['cid'] = cid
 
     # 解析节目的完全信息

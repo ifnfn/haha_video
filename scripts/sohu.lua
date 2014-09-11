@@ -122,7 +122,7 @@ function get_resolution(vid, cid)
 end
 
 local function get_album_set(playlistid)
-	local url = 'http://hot.vrs.sohu.com/pl/isover_playlist?playlistid=' .. playlistid
+	local url = string.format('http://pl.hd.sohu.com/videolist?playlistid=%s&pagesize=1', playlistid)
 
 	local ret = {}
 	local js = curl_json(url)

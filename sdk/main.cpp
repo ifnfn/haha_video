@@ -11,7 +11,7 @@ void test_custommenu()
 	CustomMenu *menu = new CustomMenu("/tmp/abc");
 	menu->SetMaxCount(2);
 	count = menu->GetAlbumCount();
-	printf("count=%ld\n", count);
+	printf("count=%u\n", count);
 
 	menu->AlbumAdd("9gtvc9e467f9c6");
 	menu->AlbumAdd("00244963dc8049");
@@ -48,7 +48,7 @@ void test_custommenu()
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
-		printf("[%d] [%s] %s: Video Count %ld\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
+		printf("[%d] [%s] %s: Video Count %u\n", i, album->vid.c_str(), album->albumName.c_str(), video_count);
 		string player_url;
 		for (int j = 0; j < video_count; j++) {
 			KolaVideo *video = album->GetVideo(j);
@@ -230,7 +230,7 @@ void test_livetv_epglist()
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
-		printf("[%ld] %s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
+		printf("[%u] %s [%s]: Video Count %u\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
 		while (1) {
 			KolaEpg *epg = album->NewEPG();
 
@@ -304,7 +304,7 @@ void test_livetv()
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
-		printf("[%ld] %s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
+		printf("[%u] %s [%s]: Video Count %u\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
 #if 0
 		player.AddAlbum(*album);
 		while (1) {
@@ -424,7 +424,7 @@ void test_livetv_videolist()
 		if (album == NULL)
 			continue;
 		size_t video_count = album->GetVideoCount();
-		printf("[%ld] %s [%s]: Video Count %ld\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
+		printf("[%u] %s [%s]: Video Count %u\n", i, album->albumName.c_str(), album->vid.c_str(), video_count);
 #if 1
 
 		for (size_t j = 0; j < video_count; j++) {
@@ -461,7 +461,7 @@ void test_picture(const char *menuName)
 	m->PictureCacheType = PIC_LARGE_VER;
 	m->SetPageSize(nPerPageCount);
 	size_t count = m->GetAlbumCount();
-	printf("%ld album in menu!\n", m->GetAlbumCount());
+	printf("%u album in menu!\n", m->GetAlbumCount());
 	int i=0;
 	vector<KolaAlbum*> vAlbum;
 	KolaAlbum *album=NULL;
@@ -481,13 +481,13 @@ void test_picture(const char *menuName)
 				vAlbum.push_back(album);
 				if(vAlbum.size()==nPerPageCount)
 				{
-					int nSleepCount=30;//1s=50*20 
+					int nSleepCount=30;//1s=50*20
 					while(nSleepCount--){
 						for(int j=0;j<vAlbum.size();j++)
 						{
 							if (vAlbum[j]->GetPictureFile(picture, PIC_LARGE_VER) == true) {
 								if (picture.isCached()) {
-									printf("[%ld] %s: size=%ld\n", i*nPerPageCount-vAlbum.size()+j,
+									printf("[%u] %s: size=%u\n", i*nPerPageCount-vAlbum.size()+j,
 											picture.GetName().c_str(),
 											picture.GetSize());
 								}
@@ -535,7 +535,7 @@ void test_picture1(const char *menuName)
 			if (album->GetPictureFile(pic, PIC_LARGE) == true) {
 				pic.Wait();
 				if (pic.isCached()) {
-					printf("[%d] %s: size=%ld\n", i,
+					printf("[%d] %s: size=%u\n", i,
 					       pic.GetName().c_str(),
 					       pic.GetSize());
 				}
@@ -634,7 +634,7 @@ void test_video(const char *menuName)
 	//m->SetSort("名称");
 	//m->FilterAdd("PinYin", "lhls");
 
-	printf("%ld album in menu!\n", m->GetAlbumCount());
+	printf("%u album in menu!\n", m->GetAlbumCount());
 	m->SetPageSize(40);
 #if 1
 	Player player;
@@ -658,7 +658,7 @@ void test_video(const char *menuName)
 
 #if 1
 		size_t video_count = album->GetVideoCount();
-		printf("[%d]: albumName: %s[%s], PlayNum:%d, VideoCount: %ld, TotalCount: %ld, %d, %d, %3.2f\n",
+		printf("[%d]: albumName: %s[%s], PlayNum:%u, VideoCount: %u, TotalCount: %u, %d, %d, %3.2f\n",
 		       i, album->albumName.c_str(), album->vid.c_str(), album->dailyPlayNum, video_count, album->GetTotalSet(),
 		       album->dailyPlayNum, album->totalPlayNum, album->Score
 		       );
@@ -849,7 +849,7 @@ int main(int argc, char **argv)
 
 //	printf("Test Video\n"); test_video("综艺");   // return 0;
 //	printf("Test Video\n"); test_video("动漫");   // return 0;
-	printf("Test Video\n"); test_video("电影");   // return 0;
+//	printf("Test Video\n"); test_video("电影");   // return 0;
 	printf("Test TV\n");    test_video("电视剧"); // return 0;
 
 	printf("end\n");

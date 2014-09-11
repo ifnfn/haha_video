@@ -85,7 +85,7 @@ bool KolaAlbum::LowVideoGetPage(size_t pageNo, size_t pageSize)
 	if (js == NULL) {
 		char url_buffer[256];
 
-		sprintf(url_buffer, "/video/getvideo?full=0&pid=%s&page=%ld&size=%ld", vid.c_str(), pageNo, pageSize);
+		sprintf(url_buffer, "/video/getvideo?full=0&pid=%s&page=%u&size=%u", vid.c_str(), pageNo, pageSize);
 
 		js = json_loadurl(url_buffer);
 	}

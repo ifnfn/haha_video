@@ -111,7 +111,7 @@ bool KolaEpg::Get(EPG &e, time_t t)
 	return ret;
 }
 
-bool epg_compr(EPG &e1, EPG &e2)
+bool epg_compr(const EPG &e1, const EPG &e2)
 {
 	return e1.startTime < e2.startTime;
 }

@@ -34,6 +34,7 @@ import httplib2
 
 # 进入标准差统计的变更行数
 MAX_LINE = 5000
+SIGMA    = 2
 
 # 有效代码文件的扩展名，代码提交者可以提出异意，由评审小组确定
 ExtensName = [
@@ -51,25 +52,22 @@ GlobalExcludeName = [
 
 # Change 需要部分文件剔除，由提交者提出申请，由评审小组确定
 CustomChanges = {
-    11944: ['vodsystem'],
-    12058: ['tlsf'],
-    12163: ['httpd', 'upnp'],
-    10669: ['cm15'],
-    10929: ['gx3201_video_out_hal.c'],
-    10931: ['3201.h', '3201.c', 'gx3201_vpu_reg.h', 'gxav_bitops.h'],
-    11196: ['spinand_bbt.c'],
-    10560: ['h_vd.c'],
+    # huangjb
+    11676: ['gx3201_memhole.c', 'gx3200_video.c', 'Bit_Mach.h'],
     11406: ['avformat', 'avutil'],
-    10873: ['jpeg', 'vout'],
-    10438: ['cm_vd.c', 'h_vd.c'],
-    10669: ['cm15'],
-    11210: ['sflash-gx.c'],
-    11221: ['asf', 'avpacket.c', 'http', 'network', 'options', 'rdt', 'rtp', 'rtsp', 'utils.c', 'avutil'],
-    '78b2c1e521dd071c63e13da079215e915eeaf322': ['h_vd.c'],                       # 10664
-    '9f899da0840bcd29425a3d7e2fcdc523796fe72b': ['gx_vq_malloc'],                 # 12057
-    '37bb3ffad5d5b091ae7971310ebe90bebb877168': ['nand_rootfs', 'rootfs_src_di'], # 12145
-    '4f4f15d84d4c3eb77fda1a2c464ed41f983baf96': ['gx_vq_malloc'],                 # 11995
-    'fc9763dcbc7a50a7e4efa2fa52be99a6b7ac9d35': ['gx_vq_malloc'],                 # 12016
+    10664: ['h_vd.c'],
+    10438: ['h_vd.c', 'cm_vd.c'],
+    11221: ['avformat', 'avutil'],
+
+    # liufei
+    11676: ['gx3201_memhole.c', 'gx3200_video.c', 'Bit_Mach.h'],
+    11406: ['avformat', 'avutil'],
+    10664: ['h_vd.c'],
+    10438: ['h_vd.c', 'cm_vd.c'],
+    11221: ['avformat', 'avutil'],
+
+    # zhangling
+    '151fe08c6e06aa9be644dd0604574b19434c7b16': ['si_parse_lib_cvct.c'], # 11182
 }
 
 # 黑名单的 change 直接剔除，由评审小组提出，评审后确定，代码提交者可以提出审议
@@ -83,14 +81,25 @@ Blacklist = [
 
 # 白名单中 chage 当经过筛选后仍不达标，可直接加入， 由提交者提出申请，需要评审小组确定
 WhiteList = [
-    '6f38858b430028b4d8bf2fd02a6522ba0ca613a9',  # 11681
-    '2a250c21d7d5f068970fbe0523492dc7adbffe48',  # 11192
-    'a3a8c92c1df5fc3f23a4b65a738a31a39841d2a1',  # 11433
-    '41661b68bb5a8e9aad945694caaa65ce42b0398c',  # 11210
-    'a2c76a07cb47586503b470ad74774a80f5c3a9b1',  # 11026
-    'a70b25e7a3f1cba87653ffc20fab94c577b4dfea',  # 12195
-    '948a879050c325f276e3cb298f8b8ee2fa5db620',  # 11891
-    '59807d04f7203af58b19e7144cbc558eb44451e2',  # 12151
+    # huangjb
+    '85ab4f6453a1aa2ca317fe3333f1775fee38d9f9',  # 11676
+    '5bcb323896bf11c3a7b50629216e3758f80ada36',  # 11406
+    '78b2c1e521dd071c63e13da079215e915eeaf322',  # 10664
+    'e69ddcbf5e040dca36bbfd7abe8ec7ebd6c1d6c0',  # 10438
+    '1e42359369cf28ab1d0e3ee0206cd7b90b2ac58c',  # 11221
+
+    # liufei
+    '85ab4f6453a1aa2ca317fe3333f1775fee38d9f9',  # 11676
+    '5bcb323896bf11c3a7b50629216e3758f80ada36',  # 11406
+    '78b2c1e521dd071c63e13da079215e915eeaf322',  # 10664
+    'e69ddcbf5e040dca36bbfd7abe8ec7ebd6c1d6c0',  # 10438
+    '1e42359369cf28ab1d0e3ee0206cd7b90b2ac58c',  # 11221
+
+
+    # zhangling
+    '843047452f474b34241c82c7c63c52a7703d26c9', #11445
+    'a3a8c92c1df5fc3f23a4b65a738a31a39841d2a1', #11433
+    '151fe08c6e06aa9be644dd0604574b19434c7b16', #11182
 ]
 
 class Statistics():
@@ -234,8 +243,8 @@ class Author(Resource):
         name = self.name
         #name = ''
         print('%-20s %5d %6d %6d %7.1f%% %6.1f%%' % (name, len(self.changes), self.lines_inserted, self.lines_deleted, all, self.percent * 100.0))
-        #for c in self.changes:
-        #    c.Show()
+        for c in self.changes:
+            c.Show()
 
 class File(Resource):
     '''
@@ -305,8 +314,6 @@ class Revision(Resource):
         return NotImplemented
 
     def SetInvalid(self):
-        if self.name == 'be4de46f871911ea7e9cf36762c03c6d47d7abf7':
-            pass
         if self.name not in WhiteList:
             self.invalid = True
 
@@ -328,6 +335,8 @@ class Revision(Resource):
         # 具体 Revision 匹配
         if self.name in CustomChanges.keys():
             exclude = CustomChanges[self.name]
+            if self.name == 'fc9763dcbc7a50a7e4efa2fa52be99a6b7ac9d35':
+                print(self.name, exclude)
             for p in list(exclude):
                 if re.findall(p, name):
                     #print('Exclude file:', name)
@@ -428,8 +437,10 @@ class Change(Resource):
             if not rev.invalid:
                 self.lines_inserted += rev.lines_inserted
                 self.lines_deleted +=  rev.lines_deleted
-        #self.lines_inserted += math.sqrt(self.lines_inserted * st.avg)
-        #self.lines_deleted +=  math.sqrt(self.lines_deleted * st.avg)
+        if st.avg > self.lines_inserted:
+            self.lines_inserted += math.sqrt(self.lines_inserted * st.avg)
+        if st.avg > self.lines_deleted:
+            self.lines_deleted +=  math.sqrt(self.lines_deleted * st.avg)
 
     def Show(self):
         print('%d [+%d,-%d] %s %s' % (self._number, self.lines_inserted, self.lines_deleted,
@@ -541,7 +552,7 @@ class Projects(Resource):
         for r in self.RevisionList:
             lines = r.lines
             r.Sigma = abs((lines - st.avg) / st.std)
-            if r.Sigma > 3:
+            if r.Sigma > SIGMA:
                 self.invalidRevisionCount += 1
                 r.SetInvalid()
                 r.Show()
@@ -573,12 +584,14 @@ class Projects(Resource):
             if name in author_alias:
                 name = author_alias[name]
 
-            #if name in ['liufei', 'zhangling', 'huangjb', 'zhuzhg']:
-            #    continue
+            if name in ['liufei', 'zhangling', 'huangjb', 'zhuzhg']:
+                continue
 
-            #if name in ['zhoujm', 'wuwj', 'shenbin', 'zhouzhr', 'jiangzq']:
-            #    continue
+            if name in ['zhoujm', 'wuwj', 'shenbin', 'zhouzhr', 'jiangzq']:
+                continue
 
+            if name not in ['shencz']:
+                continue
             author = self.GetAuthor(name)
             author.AddChange(r.change)
         total_value = 0
@@ -632,9 +645,9 @@ class Gerrit(object):
         return projects
 
 if __name__ == '__main__':
-    host = 'http://git.nationalchip.com/gerrit/a'
-    #host = 'http://192.168.110.254/gerrit/a'
+    #host = 'http://git.nationalchip.com/gerrit/a'
+    host = 'http://192.168.110.254/gerrit/a'
     gerrit=Gerrit(host)
-    projects = gerrit.GetProjects(name='goxceed', start='2014-01-01', end='2014-8-31')
+    projects = gerrit.GetProjects(name='goxceed', start='2014-01-01', end='2014-6-30')
     projects.Sync()
     projects.Show()

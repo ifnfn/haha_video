@@ -28,7 +28,6 @@ class BaseHandler(tornado.web.RequestHandler):
             else:
                 self.request.body = body
 
-
 class UploadHandler(BaseHandler):
     def get(self):
         print('Upload get')

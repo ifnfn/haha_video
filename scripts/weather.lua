@@ -4,7 +4,6 @@ function kola_main(city)
 	if city == '' then
 		c = kola.getarea()
 
-
 		if c then
 			city = string.format("%s-%s-%s", c.province, c.city, c.city)
 		end

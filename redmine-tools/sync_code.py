@@ -95,7 +95,6 @@ WhiteList = [
     'e69ddcbf5e040dca36bbfd7abe8ec7ebd6c1d6c0',  # 10438
     '1e42359369cf28ab1d0e3ee0206cd7b90b2ac58c',  # 11221
 
-
     # zhangling
     '843047452f474b34241c82c7c63c52a7703d26c9', #11445
     'a3a8c92c1df5fc3f23a4b65a738a31a39841d2a1', #11433
@@ -106,10 +105,11 @@ class Statistics():
     def __init__(self, data):
         self.count = len(data)
         self.data = data
-        self.avg = sum(data) / float(self.count)
-        self.std = math.sqrt(sum(map(lambda x: (x - self.avg)**2, data)) / self.count)
-
-gerrit = None
+        self.avg = 0
+        self.std = 0
+        if self.count > 0:
+            self.avg = sum(data) / float(self.count)
+            self.std = math.sqrt(sum(map(lambda x: (x - self.avg)**2, data)) / self.count)
 
 def wget(url, times = 0):
     username = 'zhuzhg'
@@ -176,12 +176,13 @@ def autoint(i):
         return i
 
 class Resource:
-    def __init__(self, js=None):
+    def __init__(self, gerrit, js=None):
         self.resource = js
         self.params = {}
         self.children = []
         self.offset = 0
         self.limit = 50
+        self.gerrit = gerrit
 
     def __getattr__(self, key):
         if self.resource and key in self.resource:
@@ -205,8 +206,8 @@ class Resource:
         raise StopIteration()
 
 class Author(Resource):
-    def __init__(self, name):
-        super().__init__()
+    def __init__(self, gerrit, name):
+        super().__init__(gerrit)
         self.name = name
         self.lines_deleted = 0
         self.lines_inserted = 0
@@ -243,8 +244,8 @@ class Author(Resource):
         name = self.name
         #name = ''
         print('%-20s %5d %6d %6d %7.1f%% %6.1f%%' % (name, len(self.changes), self.lines_inserted, self.lines_deleted, all, self.percent * 100.0))
-        for c in self.changes:
-            c.Show()
+        #for c in self.changes:
+        #    c.Show()
 
 class File(Resource):
     '''
@@ -258,6 +259,7 @@ class File(Resource):
     }
     '''
     def __init__(self, name, res):
+        super().__init__(None)
         self.name = name
         self.resource = res
 
@@ -293,7 +295,7 @@ class Revision(Resource):
     }
     '''
     def __init__(self, change, name, res, base):
-        super().__init__()
+        super().__init__(change.gerrit)
 
         self.change = change
         self.name = name
@@ -335,8 +337,6 @@ class Revision(Resource):
         # 具体 Revision 匹配
         if self.name in CustomChanges.keys():
             exclude = CustomChanges[self.name]
-            if self.name == 'fc9763dcbc7a50a7e4efa2fa52be99a6b7ac9d35':
-                print(self.name, exclude)
             for p in list(exclude):
                 if re.findall(p, name):
                     #print('Exclude file:', name)
@@ -357,7 +357,7 @@ class Revision(Resource):
 
         if self.base:
             url += '?base=' + self.base
-        file_js = gerrit.arrayGet(url)
+        file_js = self.gerrit.arrayGet(url)
         for (k, v) in file_js.items():
             if k != '/COMMIT_MSG' and 'binary' not in v:
                 f = self.NewFile(k,v)
@@ -394,8 +394,8 @@ class Change(Resource):
       },
     },
     '''
-    def __init__(self, res):
-        super().__init__()
+    def __init__(self, gerrit, res):
+        super().__init__(gerrit)
         self.resource = res
         self.revisions = []
         self.lines_inserted = 0
@@ -403,7 +403,8 @@ class Change(Resource):
 
     def __lt__(self, other):
         if isinstance(other, Change):
-            return self.lines > other.lines
+            return self.created > other.created
+            #return self.lines > other.lines
 
         return NotImplemented
 
@@ -450,29 +451,42 @@ class Change(Resource):
         print()
 
 class Changes(Resource):
-    def __init__(self, projectName, status='merged', created_start=0, created_end=0):
-        super().__init__()
+    def __init__(self, gerrit, projectName, status='merged', created_start=0, created_end=0):
+        super().__init__(gerrit)
         self.status = status
         self.projectName = projectName
+        self.created_start = created_start
+        self.created_end = created_end
 
     def Query(self, **params):
         self.params.update(**params)
         name = self.params.get('name', '.*')
         status = self.params.get('status', 'ACTIVE')
 
-        url = '/changes/?q=status:%s+project:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&S=%d' % (self.status, self.projectName, self.limit, self.offset)
-        self.resource = gerrit.arrayGet(url)
+        url = '/changes/?q=status:%s+project:%s+after:%s+before:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&O=1&S=%d' % (
+                        self.status, self.projectName,
+                        self.created_start, self.created_end,
+                        self.limit, self.offset)
+
+        #url = '/changes/?q=status:%s+project:%s&o=ALL_REVISIONS&o=ALL_COMMITS&n=%d&S=%d' % (
+        #                self.status, self.projectName,
+        #                self.limit, self.offset)
+
+        self.resource = self.gerrit.arrayGet(url)
+        #print(len(self.resource), url)
+
         self.offset += len(self.resource)
         for res in self.resource:
-            c = Change(res)
+            c = Change(self.gerrit, res)
+            #print("\t", c)
             if c._number in Blacklist:
                 continue
 
             self.children.append(c)
 
 class Projects(Resource):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, gerrit):
+        super().__init__(gerrit)
         self.invalidRevisionCount = 0
         self.created_start = 0
         self.created_end = 0
@@ -482,14 +496,14 @@ class Projects(Resource):
         self.status = [
             'merged',
             #'abandoned',
-            #'open'
+            'open'
         ]
 
     def GetAuthor(self, name):
         for author in self.authors:
             if author.name == name:
                 return author
-        author = Author(name)
+        author = Author(self.gerrit, name)
         self.authors.append(author)
 
         return author
@@ -498,6 +512,9 @@ class Projects(Resource):
         self.params.update(**params)
         name = self.params.get('name', '.*')
         status = self.params.get('status', 'ACTIVE')
+        start  = self.params.get('start', '')
+        end    = self.params.get('end', '')
+
         self.created_start = self.params.get('start', 0)
         self.created_end = self.params.get('end', 0)
 
@@ -508,7 +525,7 @@ class Projects(Resource):
             self.created_end = time.mktime(time.strptime(self.created_end,'%Y-%m-%d'))
 
         url = '/projects/?format=JSON&d'
-        self.resource = gerrit.arrayGet(url)
+        self.resource = self.gerrit.arrayGet(url)
 
         self.ChangeList = []
         for (k, v) in self.resource.items():
@@ -516,7 +533,7 @@ class Projects(Resource):
                 if k in ['goxceed/api_porting']:
                     continue
                 for st in self.status:
-                    changes = Changes(k, status=st)
+                    changes = Changes(self.gerrit, k, st, start, end)
                     for c in changes:
                         ok_start = False
                         ok_end = False
@@ -590,8 +607,8 @@ class Projects(Resource):
             if name in ['zhoujm', 'wuwj', 'shenbin', 'zhouzhr', 'jiangzq']:
                 continue
 
-            if name not in ['shencz']:
-                continue
+            #if name not in ['shencz']:
+            #    continue
             author = self.GetAuthor(name)
             author.AddChange(r.change)
         total_value = 0
@@ -607,6 +624,10 @@ class Projects(Resource):
         self.NormalAnalysis()
         self.AuthorCalc()
 
+    def ShowChange(self):
+        self.ChangeList = sorted(self.ChangeList, reverse=True)
+        for ch in self.ChangeList:
+            print(ch)
     def Show(self):
         total = len(self.RevisionList)
         print('总变更 %d 次, 有效变更 %d 次, 无效变更 %d 次，有效率：%4.1f%%' % (
@@ -639,15 +660,18 @@ class Gerrit(object):
         return json.loads(result)
 
     def GetProjects(self, **param):
-        projects = Projects()
+        projects = Projects(self)
         projects.Query(**param)
 
         return projects
 
-if __name__ == '__main__':
-    #host = 'http://git.nationalchip.com/gerrit/a'
-    host = 'http://192.168.110.254/gerrit/a'
+def main():
+    host = 'http://git.nationalchip.com/gerrit/a'
+    #host = 'http://192.168.110.254/gerrit/a'
     gerrit=Gerrit(host)
-    projects = gerrit.GetProjects(name='goxceed', start='2014-01-01', end='2014-6-30')
+    projects = gerrit.GetProjects(name='goxceed', start='2014-06-25', end='2014-6-30')
     projects.Sync()
-    projects.Show()
+    projects.ShowChange()
+
+if __name__ == '__main__':
+    main()

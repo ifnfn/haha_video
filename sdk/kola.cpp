@@ -30,7 +30,7 @@
 #endif
 
 static string Serial;
-static size_t CacheSize = 1024 * 512;
+static size_t CacheSize = 1024 * 512 * 2;
 static int    ThreadNum = 10;
 
 string GetSerial(void)
@@ -519,7 +519,8 @@ bool KolaArea::Empty() {
 	return ip.empty() && province.empty() && city.empty();
 }
 
-string KolaArea::toJson() {
+string KolaArea::toJson()
+{
 	string ret = "\"area\" : {";
 
 	ret += stringlink("country" , country , "", ",");

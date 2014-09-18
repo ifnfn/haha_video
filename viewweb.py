@@ -636,9 +636,9 @@ class ViewApplication(tornado.web.Application):
             (r'/video/getinfo',    GetKolaInfoHandler),     #
             (r'/video/cache_(.*)', MemCachedHandle),        #
 
-            (r'/login', LoginHandler),           # 登录认证
-            (r'/ad', ADHandler),              # 广告
-            (r'/city', CityHandler),            # 城市编码
+            (r'/login',            LoginHandler),           # 登录认证
+            (r'/ad',               ADHandler),              # 广告
+            (r'/city',             CityHandler),            # 城市编码
 
             (r'/admin/userinfo',   UserInfoHandler),        # 用户信息
             (r'/admin/serial',     SerialHandler),          # 生成序列号

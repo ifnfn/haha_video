@@ -280,7 +280,7 @@ bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
 		Resource *res = *it;
 
-		if (res->GetRefCount() == 1 && res->GetStatus() == Task::StatusFinish) {// 无人使用
+		if (res->GetRefCount() == 1 && res->GetStatus() == Task::StatusFinish) { // 无人使用
 			mResources.erase(it++);
 			res->DecRefCount();
 		}

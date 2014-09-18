@@ -42,7 +42,7 @@ void KolaPlayer::Run()
 			Epg.Set(album.EpgInfo);
 
 			size_t video_count = album.GetVideoCount();
-			printf("[%s] %s: Video Count %u\n", album.vid.c_str(), album.albumName.c_str(), video_count);
+			printf("[%s] %s: Video Count %lu\n", album.vid.c_str(), album.albumName.c_str(), video_count);
 
 			KolaVideo *video = NULL;
 			int index = album.GetPlayIndex();

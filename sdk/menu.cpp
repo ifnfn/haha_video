@@ -252,7 +252,7 @@ int KolaMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(buf, "/video/list?full=0&page=%u&size=%u&cid=%u", pageId, pageSize, cid);
+	sprintf(buf, "/video/list?full=0&page=%lu&size=%lu&cid=%lu", pageId, pageSize, cid);
 	url = buf;
 
 	return ParserFromUrl(page, url);
@@ -266,7 +266,7 @@ int KolaMenu::SeekGetPage(AlbumPage *page, string key, string value, size_t page
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(buf, "/video/list?&full=0&size=%u&cid=%u&key=%s&value=%s",
+	sprintf(buf, "/video/list?&full=0&size=%lu&cid=%lu&key=%s&value=%s",
 		pageSize,
 		cid,
 		key.c_str(),
@@ -448,7 +448,7 @@ int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 		char buf[128];
 		string url;
 
-		sprintf(buf, "/video/list?full=0&page=%u&size=%u", pageId, pageSize);
+		sprintf(buf, "/video/list?full=0&page=%lu&size=%lu", pageId, pageSize);
 		url = buf;
 
 		basePosData = "\"vid\" : \"" + text + "\"";
@@ -467,7 +467,7 @@ int CustomMenu::SeekGetPage(AlbumPage *page, string key, string value, size_t pa
 		char buf[256];
 		string url;
 
-		sprintf(buf, "/video/list?&full=0&size=%ud&key=%s&value=%s",
+		sprintf(buf, "/video/list?&full=0&size=%lud&key=%s&value=%s",
 				pageSize,
 				key.c_str(),
 				value.c_str()

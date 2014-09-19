@@ -178,7 +178,6 @@ def SendEmail(msg, receiver):
     smtp.quit()
 
 def main():
-    # 接受者
     receiver = ['zhuzhg <zhuzhg@nationalchip.com>', 'zzgmtv <zzgmtv@163.com>', '294966 <294966@qq.com>']
 
     weekid = int(time.strftime("%W"))

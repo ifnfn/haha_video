@@ -17,6 +17,7 @@ import threading
 import redminedb
 import sync_code
 
+RedmineUrl = 'http://git.nationalchip.com/redmine'
 
 class ProjectInfo:
     def __init__(self, db, name, start_date=None, end_date=None):
@@ -39,52 +40,32 @@ class ProjectInfo:
             start_day = today - datetime.timedelta(days=weekday + 5)
             self.start_date = start_day.strftime("%Y-%m-%d")
 
-    '''
-        <ul>
-          <li>DVB ×ÓÏµÍ³
-            <ul>
-              <li><a href="http://git.nationalchip.com/redmine/issues/13158">#13158</a>:
-                busÀïÃæÇ°¶ËÄ£¿éÔö¼ÓÒ»×é¿ØÖÆ¼à¿ØÊÇ·ñ¶ÁÈ¡ÐÅºÅÖÊÁ¿£¬ÐÅºÅÇ¿¶ÈµÄ½Ó¿Ú</li>
-              <li><a href="http://git.nationalchip.com/redmine/issues/13039">#13039</a>:
-                ºÏ²¢siÊµ¼Ê²âÊÔ¹ý³ÌÖÐ±©Â¶³öÀ´µÄ´íÎó</li>
-              <li><a href="http://git.nationalchip.com/redmine/issues/14452">#14452</a>:
-                GX3113C+GX1503C DVBCÐÅµÀ´íÎó</li>
-              <li><a href="http://git.nationalchip.com/redmine/issues/13813">#13813</a>:
-                demuxÄ£¿é´æÔÚ¹ýÂË²»µ½Êý¾Ý»òÑÓºó¹ýÂËµ½Êý¾ÝµÄÇé¿ö</li>
-              <li><a href="http://git.nationalchip.com/redmine/issues/13970">#13970</a>:
-                ÔÚÄ³Ð©ÂëÁ÷ÖÐÎÞ·¨Õý³£ÏÔÊ¾½ÚÄ¿Ãû£¬Ö»ÏÔÊ¾ÎªÈçCH64µÈ½ÚÄ¿Ãû</li>
-            </ul>
-          </li>
-        </ul>
-    '''
     def execute(self):
         created_on = '><%s|%s' % (self.start_date, self.end_date)
-        issues_new = self.db.issue.filter(project_id=self.name, created_on=created_on,
-                                               status_id=1)
-        issues_close = self.db.issue.filter(project_id=self.name, created_on=created_on,
-                                               status_id=2)
+        issues_new    = self.db.issue.filter(project_id=self.name, created_on=created_on, status_id=1)
+        issues_close  = self.db.issue.filter(project_id=self.name, created_on=created_on, status_id=2)
         issues_change = self.db.issue.filter(project_id=self.name, updated_on=created_on)
 
         def GetText(issues, subject):
             count = 0
-            desc = '<ul><li><br>' + subject + '</br><ul>\n'
+            desc = '<ul><li><b>' + subject + '</b><ul>\n'
             if issues:
                 for i in issues:
                     if self.IssueActive(i):
                         count += 1
-                        li = '<li><a href="http://git.nationalchip.com/redmine/issues/%d">#%-5d</a>: %s</li>\n' % (i.id, i.id, i.subject)
+                        li = '<li><a href="%s/issues/%d">#%-5d</a>: %s</li>\n' % (RedmineUrl, i.id, i.id, i.subject)
                         desc += li
 
             desc += '</ul></li></ul>\n'
             return count, desc
 
-        count_new, description_new       = GetText(issues_new   , '新建问题列表')
+        count_new, description_new       = GetText(issues_new   , '新增问题列表')
         count_close, description_close   = GetText(issues_close , '关闭问题列表')
         count_change, description_change = GetText(issues_change, '更新问题列表')
 
         if count_new or count_close or count_change:
-            subject = '新建问题 %d 条, 已解决问题 %d 条， 已更新问题 %d 条.' % (count_new, count_close, count_change)
-            description = '%s(%s / %s): %s\n' % (self.project_name, self.start_date, self.end_date, subject)
+            subject = '新增问题 %d 条, 已解决问题 %d 条， 已更新问题 %d 条.' % (count_new, count_close, count_change)
+            description = '<a href="%s/projects/%s/issues"><B>%s</B></a> (%s / %s): %s\n' % (RedmineUrl, self.name, self.project_name, self.start_date, self.end_date, subject)
 
             if count_new:
                 description += description_new
@@ -96,19 +77,6 @@ class ProjectInfo:
                 description += description_change
 
             self.log = description
-            #print(description)
-
-            #self.NewOvertime(subject, description, self.uid)
-
-    def NewOvertime(self, subject, description, user_id):
-        issue = self.db.issue.new()
-        issue.project_id = 'overtime'
-        issue.tracker = 3
-        issue.subject = subject
-        issue.description = description
-        issue.assigned_to_id = user_id
-
-        issue.save()
 
     def IssueActive(self, issue):
         ret = True
@@ -158,6 +126,7 @@ class RedmineDB(redminedb.RedmineBase):
 def GerritUpdate(start, end):
     host = 'http://git.nationalchip.com/gerrit/a'
     #host = 'http://192.168.110.254/gerrit/a'
+    sync_code.SIGMA = 4
     gerrit = sync_code.Gerrit(host)
     projects = gerrit.GetProjects(name='goxceed', start=start, end=end)
     projects.Sync()
@@ -170,8 +139,8 @@ def GerritUpdate(start, end):
         lines_inserted += au.lines_inserted
         lines_deleted  += au.lines_deleted
 
-    text = '共提交 %s 次，增加代码 %d 行，删除代码 %d 行，新建代码 %d 行. ' % (
-                len(projects.RevisionList), lines_inserted, lines_deleted, lines_inserted - lines_deleted)
+    text = '<B>Gerrit 代码统计：</B>本周共提交 %s 次，增加代码 %d 行，删除代码 %d 行，新建代码 %d 行. ' % (
+                                        len(projects.RevisionList), lines_inserted, lines_deleted, lines_inserted - lines_deleted)
 
     return text
 
@@ -219,16 +188,16 @@ def main():
     text2 = RedmineUpdate(start_date, end_date)
     print("\n---------------------------------------------------------------------")
 
-    subject    = '第 %d 周工作日志 (%s 至 %s)' % (weekid, start_date, end_date)
     html_start = '<html><head><meta http-equiv="content-type" content="text/html; charset=GB2312"></head><body bgcolor="#FFFFFF" text="#000000">'
     html_end   = '</body></html>'
+    subject    = 'SPD 第 %d 周工作日志 (%s 至 %s)' % (weekid, start_date, end_date)
 
     msg = MIMEMultipart('alternative')
     msg['Subject'] = Header(subject, 'utf-8')
     msg['To']      = COMMASPACE.join(receiver)
     msg['From']    = 'zhuzhg <zhuzhg@nationalchip.com>'
 
-    html = html_start + '<br>' + text1 + '</br>' + text2 + html_end
+    html = html_start + text1 + '<br>' + text2 + html_end
     part1 = MIMEText(html, 'html')
     msg.attach(part1)
 

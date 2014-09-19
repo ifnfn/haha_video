@@ -101,17 +101,7 @@ WhiteList = [
     '151fe08c6e06aa9be644dd0604574b19434c7b16', #11182
 ]
 
-class Statistics():
-    def __init__(self, data):
-        self.count = len(data)
-        self.data = data
-        self.avg = 0
-        self.std = 0
-        if self.count > 0:
-            self.avg = sum(data) / float(self.count)
-            self.std = math.sqrt(sum(map(lambda x: (x - self.avg)**2, data)) / self.count)
-
-def wget(url, times = 0):
+def wget(url, times=0):
     username = 'zhuzhg'
     password = 'uagvPAs4csIZ'
     socket_timeout = 3000
@@ -174,6 +164,16 @@ def autoint(i):
         return i and int(i) or 0
     else:
         return i
+
+class Statistics:
+    def __init__(self, data):
+        self.count = len(data)
+        self.data = data
+        self.avg = 0
+        self.std = 0
+        if self.count > 0:
+            self.avg = sum(data) / float(self.count)
+            self.std = math.sqrt(sum(map(lambda x: (x - self.avg)**2, data)) / self.count)
 
 class Resource:
     def __init__(self, gerrit, js=None):

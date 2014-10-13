@@ -36,7 +36,7 @@ local function curl_init(url, user_agent, referer)
 	c:setopt_share(share)
 
 	if user_agent == nil then
-		user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6"
+		user_agent = "Mozilla/5.0; GGwlPlayer/QQ243944493; Gecko/20100115 Firefox/3.6"
 	end
 
 	--if referer == nil then referer = url end

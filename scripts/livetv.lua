@@ -39,18 +39,14 @@ local function curl_init(url, user_agent, referer)
 		user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6"
 	end
 
-	if referer == nil then referer = url end
+	--if referer == nil then referer = url end
 
+	--c:setopt_verbose(1)
 	c:setopt_useragent(user_agent)
-	c:setopt_referer(referer)
-	c:setopt_url(url)
-
-	if url:find('myvst.net') or url:find('52itv.cn') or url:find('91vst.com') then
-		--headers = {
-		--	'Connection: Keep-Alive'
-		--}
-		--c:setopt_httpheader(headers)
+	if referer then
+		c:setopt_referer(referer)
 	end
+	c:setopt_url(url)
 
 	return c
 end
@@ -64,13 +60,8 @@ local function curl_get(url, user_agent, referer)
 		url = kola.geturl(url)
 	end
 	local text = ''
+
 	if kola.wget2xxx then --  wget2 有问题，暂时不采用
-		if user_agent == nil then
-			user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2; GGwlPlayer/QQ243944493) Gecko/20100115 Firefox/3.6"
-		end
-
-		if referer == nil then referer = url end
-
 		return kola.wget2(url, {
 			'User-Agent: ' .. user_agent,
 			'Referer: ' .. referer,
@@ -79,7 +70,6 @@ local function curl_get(url, user_agent, referer)
 	else
 		c = curl_init(url, user_agent, referer)
 		c:setopt_followlocation(1)
-
 		c:perform({writefunction = function(str) text = text .. str end})
 		return text
 	end
@@ -161,7 +151,6 @@ local function get_video_cntv(url)
 
 		return url
 	end
-
 
 	local url = string.format("http://vdn.live.cntv.cn/api2/live.do?client=iosapp&channel=%s", url)
 
@@ -327,41 +316,55 @@ local function get_video_sohutv(url)
 	return ''
 end
 
+
+local function get_letv_video2(url)
+	url = string.gsub(url, 'format=%d+', 'format=1')
+	url = string.gsub(url, 'playid=%d+', 'playid=3')
+
+	local js = curl_json(url)
+	if js and js.nodelist then
+		for k,v in pairs(js.nodelist) do
+			if v.location then
+				return v.location
+			end
+		end
+	end
+
+	return url
+end
+
 local function get_video_52itvkey(url)
 	local time = kola.gettime() + 300
 	local text = string.format('%d,3360a490fb76d9b648fe14019a8aaab8', time)
-
 	return string.format('%s?tm=%d&key=%s&', url, time, string.lower(kola.md5(text)))
 end
 
+local function get_M3u8tmKey(url)
+	local time = kola.gettime() + 500
+	local text = string.format('%d,　###############', time)
+
+	return string.format('%s?tm*=%d&key*=%s&', url, time, string.lower(kola.md5(text)))
+end
+
+local function get_M3u8URL(url)
+	if string.find(url, "/pptv/") or string.find(url, "/letv/") then
+			url = curl_match(url, "(http://.*)");
+			if string.find(url, "live.gslb.letv.com/gslb") then
+				url = get_letv_video2(url)
+			end
+	end
+
+	return url
+end
+
 local function get_video_vlive(url)
-	local time = kola.gettime()  + 18000
-	local text = string.format('%d,VST代理专用,hehe,xixi,aaaa,xxxx,dddd,4444,dssss,sadasd,52itv,myvst', time)
+	url = get_M3u8tmKey(url)
+	url = get_M3u8URL(url)
 
-	url = string.format('%s?tm*=%d&key*=%s&', url, time, string.lower(kola.md5(text)))
-
-	return curl_match(url, '(http://.*)')
+	return url
 end
 
 local function get_video_52itv(url)
-	local function letv_video2(url)
-		url, _ = curl_get_location(url, false)
-		url = string.gsub(url, 'format=%d+', 'format=1')
-		url = string.gsub(url, 'playid=%d+', 'playid=3')
-
-		local js = curl_json(url)
-		if js and js.nodelist then
-			for k,v in pairs(js.nodelist) do
-				if v.location then
-					return v.location
-				end
-			end
-		end
-
-		return url
-	end
-
-
 	url = get_video_52itvkey(url)
 
 	if string.find(url, '.sdtv') then
@@ -370,7 +373,8 @@ local function get_video_52itv(url)
 	elseif string.find(url, '.m3u8') then
 		return curl_get_location(url, true)
 	elseif string.find(url, '.letv') then
-		return letv_video2(url)
+		url, _ = curl_get_location(url, false)
+		return get_letv_video2(url)
 	end
 
 	return curl_get_location(url)

@@ -291,7 +291,7 @@ void test_livetv()
 	//m->FilterAdd("类型", "网络台");
 	//m->SetPageSize(3);
 	//m->GetPage(page);
-	//m->FilterAdd("PinYin", "fj");
+	m->FilterAdd("PinYin", "CIBN");
 	//m->SetSort("Name", "1");
 	m->PictureCacheType = PIC_DISABLE;
 	size_t count = m->GetAlbumCount();
@@ -842,9 +842,9 @@ int main(int argc, char **argv)
 //	test_custommenu(); return 0;
 //	printf("Test LiveTV(No EPG)\n"); test_livetv_noepg(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_epglist(); return 0;
-	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
+//	printf("Test LiveTV(TV List)\n"); test_livetv_list(); return 0;
 //	printf("Test LiveTV(TV List)\n"); test_livetv_videolist(); //return 0;
-//	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
+	printf("Test LiveTV(TV List)\n"); test_livetv(); return 0;
 
 //	printf("Test Video\n"); test_video("综艺");   // return 0;
 //	printf("Test Video\n"); test_video("动漫");   // return 0;

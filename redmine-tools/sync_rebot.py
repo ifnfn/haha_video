@@ -16,6 +16,7 @@ import threading
 
 import redminedb
 import sync_code
+import os
 
 RedmineUrl = 'http://git.nationalchip.com/redmine'
 
@@ -178,7 +179,8 @@ def SendEmail(msg, receiver):
     smtp.quit()
 
 def main():
-    receiver = ['zhuzhg <zhuzhg@nationalchip.com>', 'zzgmtv <zzgmtv@163.com>', '294966 <294966@qq.com>']
+    receiver = ['zhuzhg <zhuzhg@nationalchip.com>', 'yefeng <yefeng@nationalchip.com>']
+    #receiver = ['zhuzhg <zhuzhg@nationalchip.com>']
 
     weekid = int(time.strftime("%W"))
     start_date, end_date = GetWeekDay(weekid)

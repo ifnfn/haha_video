@@ -316,7 +316,6 @@ local function get_video_sohutv(url)
 	return ''
 end
 
-
 local function get_letv_video2(url)
 	url = string.gsub(url, 'format=%d+', 'format=1')
 	url = string.gsub(url, 'playid=%d+', 'playid=3')
@@ -339,19 +338,32 @@ local function get_video_52itvkey(url)
 	return string.format('%s?tm=%d&key=%s&', url, time, string.lower(kola.md5(text)))
 end
 
+-- 	function get_M3u8tmKey(links) {
+--		var tvName = getFileName(links, 1).replace('.m3u8', '');
+--		var time = Number(myvst.time()) + 500;
+--		var tmkey = myvst.md5(tvName + "&" + time + "&087521f0ceb9cd7,Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)");
+--		return links + "?tm*="+ time +"&key*=" + tmkey + "&";
+--	}
+
 local function get_M3u8tmKey(url)
+	local tvName = string.match(url, ".+/([^/]*%.%w+)$")
+	tvName = string.gsub(tvName, '.m3u8', '')
 	local time = kola.gettime() + 500
-	local text = string.format('%d,　###############', time)
+
+	local text = string.format('%s&%d&087521f0ceb9cd7,Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)', tvName, time)
+	print(text)
 
 	return string.format('%s?tm*=%d&key*=%s&', url, time, string.lower(kola.md5(text)))
 end
 
 local function get_M3u8URL(url)
 	if string.find(url, "/pptv/") or string.find(url, "/letv/") then
-			url = curl_match(url, "(http://.*)");
-			if string.find(url, "live.gslb.letv.com/gslb") then
-				url = get_letv_video2(url)
-			end
+		print(url)
+		local text = curl_get(url)
+		url = curl_match(url, "(http://.*)");
+		if string.find(url, "live.gslb.letv.com/gslb") then
+			url = get_letv_video2(url)
+		end
 	end
 
 	return url

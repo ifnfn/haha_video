@@ -346,7 +346,7 @@ end
 --	}
 
 local function get_M3u8tmKey(url)
-	local tvName = string.match(url, ".+/([^/]*%.%w+)$")
+	local tvName = string.match(url, ".+/([^/]*%.%w+)?-")
 	tvName = string.gsub(tvName, '.m3u8', '')
 	local time = kola.gettime() + 500
 

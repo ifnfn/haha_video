@@ -77,8 +77,8 @@ class ParserVstLivetv(LivetvParser):
                 if u.find('imgotv') >= 0:
                     continue
 
-                #if re.findall('http://url.52itv.cn/live/(.*).sdtv', u):
-                #    continue
+                if re.findall('52itv.cn/vlive/', u):
+                    continue
 
                 # 将 YY直播去掉
                 need = True

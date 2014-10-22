@@ -384,9 +384,9 @@ class ParserAlbumPage(KolaParser):
             videoid = ''
             tvid = ''
             for u in vlist:
-                if u[0] == 'data-player-videoid':
+                if u[0] == 'data-player-videoid' and u[1] != '{{vid}}':
                     videoid = u[1]
-                elif u[0] == 'data-player-tvid':
+                elif u[0] == 'data-player-tvid' and u[1] != '{{tvid}}':
                     tvid = u[1]
             if videoid and tvid:
                 ParserAlbumJson(tvid, videoid, js['cid']).Execute()

@@ -158,7 +158,10 @@ function get_videolist(aid, vid, tvid, cid, name, pageNo, pageSize)
 	return cjson.encode(ret)
 end
 
-local function get_tmts(url)
+local function get_tmts(tvid, vid)
+	local url = string.format('/video/iqiyi/%s/%s', tvid, vid)
+	url = kola.geturl(url)
+	url = kola.wget(url, false) -- 从代理服务器上拿到地址
 	for i=1,10 do
 		local text = kola.wget(url, false)
 		if text then
@@ -170,8 +173,7 @@ local function get_tmts(url)
 end
 
 function get_video_url(tvid, vid)
-	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
-	local text = get_tmts(url)
+	local text = get_tmts(tvid, vid)
 
 	text = rex.match(text, "var tvInfo.*=([\\s\\S]*)")
 	if not text then
@@ -222,9 +224,7 @@ function get_resolution(tvid, vid)
 		end
 	end
 
-	local url = string.format('http://cache.video.qiyi.com/jp/tmts/%s/%s/', tvid, vid)
-
-	local text = get_tmts(url)
+	local text = get_tmts(tvid, vid)
 
 	text = rex.match(text, "var tvInfo.*=([\\s\\S]*)")
 

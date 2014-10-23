@@ -9,6 +9,7 @@ import sys
 import traceback
 from urllib.parse import unquote
 import zlib
+import subprocess
 
 import tornado.escape
 import tornado.ioloop
@@ -339,6 +340,15 @@ class MemCachedHandle(BaseHandler):
             url = self.request.protocol + '://' + self.request.host  + '/video/cache_' + name
             self.finish(url)
 
+class GetiQiyiHandle(BaseHandler):
+    def get(self, tvid, vid):
+        command_line = '/usr/bin/phantomjs %s/js/iqiyi.js %s %s' % (os.path.dirname(__file__), tvid, vid)
+        handle = subprocess.Popen(command_line, close_fds=True,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                  shell=True)
+        stdoutdata, _ = handle.communicate()
+        self.finish(stdoutdata)
+
 # / userinfo?client_id=100&number=10&serial=sssssss
 class UserInfoHandler(BaseHandler):
     user_table = DB().user_table
@@ -635,6 +645,7 @@ class ViewApplication(tornado.web.Application):
             (r'/video/getmenu',    GetMenuHandler),         #
             (r'/video/getinfo',    GetKolaInfoHandler),     #
             (r'/video/cache_(.*)', MemCachedHandle),        #
+            (r'/video/iqiyi/(.*)/(.*)',  GetiQiyiHandle),        #
 
             (r'/login',            LoginHandler),           # 登录认证
             (r'/ad',               ADHandler),              # 广告

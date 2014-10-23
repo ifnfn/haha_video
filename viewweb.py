@@ -347,6 +347,7 @@ class GetiQiyiHandle(BaseHandler):
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                   shell=True)
         stdoutdata, _ = handle.communicate()
+
         self.finish(stdoutdata)
 
 # / userinfo?client_id=100&number=10&serial=sssssss

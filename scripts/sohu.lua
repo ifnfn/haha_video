@@ -127,8 +127,8 @@ local function get_album_set(playlistid)
 	local ret = {}
 	local js = curl_json(url)
 	if js then
-		ret.totalSet   = js.totalSets
-		ret.updateSet  = js.updateSets
+		ret.totalSet   = js.totalSet
+		ret.updateSet  = js.updateSet
 	end
 
 	return ret

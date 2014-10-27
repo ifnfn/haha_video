@@ -37,6 +37,6 @@ UpdateTV() {
 }
 
 redis-cli -n 1 FLUSHDB
-#UpdateTV
-Update
+UpdateTV
+#Update
 #Score

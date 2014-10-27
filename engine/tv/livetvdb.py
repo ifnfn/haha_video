@@ -70,7 +70,7 @@ class TVCategory:
                 '少儿台' : '动画|卡通|动漫|少儿|宝贝',
                 '地方台' : '^(?!.*?(cctv|CCTV|卫视|测试|卡酷少儿|炫动卡通' + self.Outside + ')).*$',
                 '境外台' : self.Outside,
-                '高清台' : 'HD|hd|高清',
+                #'高清台' : 'HD|hd|高清',
                 '网络台' : '乐视|VST|vst|全纪实|股票老左|大智慧财经|彩民在线|网络|成龙专区|名侦探柯南|蓝光高清|CIBN'
             }
         }
@@ -234,7 +234,6 @@ class LivetvParser(KolaParser):
             isHigh = 0
             if re.findall('HD|hd|高清', albumName):
                 isHigh = 1
-                #DisplayAlbumName = re.sub('-高清', '', albumName)
 
             vid = GetOrder(DisplayAlbumName) + utils.genAlbumId(DisplayAlbumName)
 

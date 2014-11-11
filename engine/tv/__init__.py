@@ -45,7 +45,7 @@ class LiveEngine(VideoEngine):
             'TVIE' : TvieLiveTV,
             'M2O'  : M2OLiveTV,
             '文本'  : TextLiveTV,
-            'YY'    : YYLiveTV,
+            #'YY'    : YYLiveTV,
             'Qilu'  : IQiluLiveTV
             #===================================================================
             # '吉林'  : JilingLiveTV,  # VST 中已有

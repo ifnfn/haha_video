@@ -1,0 +1,18 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <title>KolaTV Serial system</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    </head>
+    <body>
+        <h1>KolaTV Serial system</h1>
+        {% for number,name,filename in barcodes %}
+            {% if image %}
+                <p><h2>{{name}}</h2><br />
+                <object data="{{filename}}" type="image/svg+xml"><param name="src" value="{{filename}}" /></object>
+            {% else %}
+                {{number}} {{name}}<br />
+            {% end %}
+        {% end %}
+    </body>
+</html>

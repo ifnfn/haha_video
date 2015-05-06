@@ -149,21 +149,24 @@ void KolaWeather::Update()
 Weather *KolaWeather::Today()
 {
 	Weather *w = NULL;
+
 	mutex.lock();
 	if (weatherList.size() > 0)
 		w = weatherList[0];
 	mutex.unlock();
+
 	return w;
 }
 
 Weather *KolaWeather::Tomorrow()
 {
 	Weather *w = NULL;
+
 	mutex.lock();
 	if (weatherList.size() > 1)
 		w = weatherList[1];
-	
 	mutex.unlock();
+
 	return w;
 }
 

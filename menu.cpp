@@ -27,6 +27,7 @@ KolaMenu::KolaMenu()
 
 KolaMenu::~KolaMenu(void)
 {
+
 }
 
 void KolaMenu::Parser(json_t *js)
@@ -84,8 +85,11 @@ bool KolaMenu::SetQuickFilter(string name)
 
 size_t KolaMenu::GetAlbumCount()
 {
-	AlbumPage page;
-	LowGetPage(&page, 0, 0);
+	if (albumCount == 0) {
+		AlbumPage page;
+		LowGetPage(&page, 0, 0);
+	}
+
 	return albumCount;
 }
 
@@ -98,7 +102,7 @@ int KolaMenu::SeekByAlbumId(string vid)
 	PageId = cur->pageId;
 
 	for (int i=0; i<count; i++) {
-		IAlbum *album = cur->GetAlbum(i);
+		KolaAlbum *album = cur->GetAlbum(i);
 		if (album && album->vid == vid)
 			return PageId * PageSize + i;
 	}
@@ -115,7 +119,7 @@ int KolaMenu::SeekByAlbumName(string name)
 	PageId = cur->pageId;
 
 	for (int i=0; i<count; i++) {
-		IAlbum *album = cur->GetAlbum(i);
+		KolaAlbum *album = cur->GetAlbum(i);
 		if (album && album->albumName == name)
 			return i;
 	}
@@ -132,7 +136,7 @@ int KolaMenu::SeekByAlbumNumber(string number)
 	PageId = cur->pageId;
 
 	for (int i=0; i<count; i++) {
-		IAlbum *album = cur->GetAlbum(i);
+		KolaAlbum *album = cur->GetAlbum(i);
 		if (album && album->Number == number)
 			return i;
 	}
@@ -157,9 +161,9 @@ int KolaMenu::ParserFromUrl(AlbumPage *page, string &url)
 			if (json_is_array(results)) {
 				json_t *value;
 				json_array_foreach(results, value) {
-					IAlbum *album = new KolaAlbum();
-					album->Parser(value);
-					album->SetSource(client->DefaultVideoSource);
+					KolaAlbum album;
+					album.Parser(value);
+					album.SetSource(client->DefaultVideoSource);
 					page->PutAlbum(album);
 					cnt++;
 				}
@@ -248,7 +252,7 @@ int KolaMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(buf, "/video/list?full=0&page=%ld&size=%ld&cid=%ld", pageId, pageSize, cid);
+	sprintf(buf, "/video/list?full=0&page=%lu&size=%lu&cid=%lu", pageId, pageSize, cid);
 	url = buf;
 
 	return ParserFromUrl(page, url);
@@ -262,7 +266,7 @@ int KolaMenu::SeekGetPage(AlbumPage *page, string key, string value, size_t page
 	if (name.empty() or cid == -1)
 		return 0;
 
-	sprintf(buf, "/video/list?&full=0&size=%ld&cid=%ld&key=%s&value=%s",
+	sprintf(buf, "/video/list?&full=0&size=%lu&cid=%lu&key=%s&value=%s",
 		pageSize,
 		cid,
 		key.c_str(),
@@ -321,7 +325,7 @@ AlbumPage &KolaMenu::GetPage(int pageNo)
 	return *updateCache(pageNo);
 }
 
-IAlbum* KolaMenu::GetAlbum(size_t position)
+KolaAlbum* KolaMenu::GetAlbum(size_t position)
 {
 	int pos = (int)position / PageSize;
 
@@ -335,6 +339,7 @@ void KolaMenu::CleanPage()
 		pageCache[i].Clear();
 	}
 	cur = NULL;
+	albumCount = 0;
 	PageId = -1;
 }
 
@@ -342,6 +347,7 @@ CustomMenu::CustomMenu(string fileName, bool CheckFailure)
 {
 	this->fileName = fileName;
 	this->cid = -1;
+	this->max_count = 0;
 	albumIdList.LoadFromFile(fileName);
 	if (CheckFailure)
 		RemoveFailure();
@@ -360,19 +366,22 @@ void CustomMenu::RemoveFailure() // 移除失效的节目
 		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 		if (js) {
 			json_t *v;
+
+			mutex.lock();
 			json_array_foreach(js, v) {
 				if (json_is_string(v)) {
 					const char *vid = json_string_value(v);
 					albumIdList.Remove(vid);
 				}
 			}
+			mutex.unlock();
 
 			json_decref(js);
 		}
 	}
 }
 
-void CustomMenu::AlbumAdd(IAlbum *album)
+void CustomMenu::AlbumAdd(KolaAlbum *album)
 {
 	if (album)
 		AlbumAdd(album->vid);
@@ -380,12 +389,20 @@ void CustomMenu::AlbumAdd(IAlbum *album)
 
 void CustomMenu::AlbumAdd(string vid)
 {
+	mutex.lock();
+
+	if (max_count > 0 && albumIdList.size() >= max_count) {
+		StringList::iterator iter = albumIdList.begin();
+		if (iter != albumIdList.end())
+			albumIdList.erase(iter);
+	}
 	CleanPage();
 	albumIdList.Add(vid);
 	albumCount = albumIdList.size();
+	mutex.unlock();
 }
 
-void CustomMenu::AlbumRemove(IAlbum *album, bool sync)
+void CustomMenu::AlbumRemove(KolaAlbum *album, bool sync)
 {
 	if (album)
 		AlbumRemove(album->vid, sync);
@@ -393,24 +410,35 @@ void CustomMenu::AlbumRemove(IAlbum *album, bool sync)
 
 void CustomMenu::AlbumRemove(string vid, bool sync)
 {
+	mutex.lock();
 	albumIdList.Remove(vid);
 	albumCount = albumIdList.size();
 	if (sync)
 		CleanPage();
+	mutex.unlock();
 }
 
 size_t CustomMenu::GetAlbumCount()
 {
+	mutex.lock();
 	albumCount = albumIdList.size();
+	mutex.unlock();
 	return albumCount;
 }
 
 bool CustomMenu::SaveToFile(string otherFile)
 {
+	bool ret;
+
+	mutex.lock();
 	if (not otherFile.empty())
-		return albumIdList.SaveToFile(otherFile);
+		ret = albumIdList.SaveToFile(otherFile);
 	else
-		return albumIdList.SaveToFile(fileName);
+		ret = albumIdList.SaveToFile(fileName);
+
+	mutex.unlock();
+
+	return ret;
 }
 
 int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
@@ -420,7 +448,7 @@ int CustomMenu::LowGetPage(AlbumPage *page, size_t pageId, size_t pageSize)
 		char buf[128];
 		string url;
 
-		sprintf(buf, "/video/list?full=0&page=%ld&size=%ld", pageId, pageSize);
+		sprintf(buf, "/video/list?full=0&page=%lu&size=%lu", pageId, pageSize);
 		url = buf;
 
 		basePosData = "\"vid\" : \"" + text + "\"";
@@ -439,7 +467,7 @@ int CustomMenu::SeekGetPage(AlbumPage *page, string key, string value, size_t pa
 		char buf[256];
 		string url;
 
-		sprintf(buf, "/video/list?&full=0&size=%ld&key=%s&value=%s",
+		sprintf(buf, "/video/list?&full=0&size=%lud&key=%s&value=%s",
 				pageSize,
 				key.c_str(),
 				value.c_str()

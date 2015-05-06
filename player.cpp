@@ -9,6 +9,7 @@
 
 KolaPlayer::KolaPlayer()
 {
+	curVideo = NULL;
 	_condvar = new ConditionVar();
 	thread = new Thread(this, &KolaPlayer::Run);
 	thread->start();
@@ -21,43 +22,83 @@ KolaPlayer::~KolaPlayer()
 	delete _condvar;
 }
 
-bool KolaPlayer::DoPlay(string &name)
-{
-	return Play(name, curUrl);
-}
-
 void KolaPlayer::Run()
 {
 	while (thread->_state == true) {
 		_condvar->lock();
-		if (videoList.empty()) {
+		if (albumList.empty()) {
 			_condvar->wait();
 			_condvar->unlock();
 		}
 		else {
-			VideoResolution resolution = this->videoList.front();
-			videoList.clear();
+			KolaAlbum album = this->albumList.front();
+			albumList.clear();
 			_condvar->unlock();
 
-//			KolaClient &kola = KolaClient::Instance();
-//			url = kola.GetFullUrl("/ad?vid=" + resolution.vid + "&chipid=");
-//			if (not url.empty())
-//				DoPlay(resolution.defaultKey, url);
+			Lock.lock();
+			curVideo = NULL;
+			Lock.unlock();
 
-			curUrl = resolution.GetVideoUrl();
+			Epg.Set(album.EpgInfo);
 
-			DoPlay(resolution.defaultKey);
+			size_t video_count = album.GetVideoCount();
+			printf("[%s] %s: Video Count %lu\n", album.vid.c_str(), album.albumName.c_str(), video_count);
+
+			KolaVideo *video = NULL;
+			int index = album.GetPlayIndex();
+
+			if (index < video_count)
+				video = album.GetVideo(index);
+
+			if (video) {
+				Lock.lock();
+				tmpCurrentVideo = *video;
+				curVideo = &tmpCurrentVideo;
+				if (Epg.scInfo.Empty())
+					Epg.Set(curVideo->EpgInfo);
+
+				Lock.unlock();
+			}
+
+			Play(curVideo);
 		}
 	}
 }
 
-void KolaPlayer::AddVideo(IVideo *video)
+void KolaPlayer::AddAlbum(KolaAlbum album)
 {
-	if (video) {
-		_condvar->lock();
-		videoList.clear();
-		videoList.push_back(video->Resolution);
-		_condvar->broadcast();
-		_condvar->unlock();
-	}
+	_condvar->lock();
+	Epg.Clear();
+	albumList.clear();
+	albumList.push_back(album);
+	_condvar->broadcast();
+	_condvar->unlock();
 }
+
+KolaEpg *KolaPlayer::GetEPG(bool sync)
+{
+	KolaEpg *tmp = &Epg;
+
+	Lock.lock();
+
+	Epg.Update();
+	if (sync)
+		Epg.Wait();
+	if (not Epg.UpdateFinish())
+		tmp = NULL;
+
+	Lock.unlock();
+
+	return tmp;
+}
+
+KolaVideo *KolaPlayer::GetCurrentVideo()
+{
+	KolaVideo *p;
+	Lock.lock();
+	p = curVideo;
+	Lock.unlock();
+
+	return p;
+}
+

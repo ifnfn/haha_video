@@ -8,30 +8,25 @@
 #include "threadpool.hpp"
 #include "kolabase.hpp"
 
-IVideo::IVideo() {
+KolaVideo::KolaVideo() {
 	width = height = fps = totalBytes = 0;
 	order = 0;
 	isHigh = 0;
 	videoPlayCount = 0;
 	videoScore = 0.0;
 	playLength = 0.0;
-	epg = NULL;
 }
 
-IVideo::~IVideo() {
-	if (epg)
-		delete epg;
+KolaVideo::~KolaVideo() {
 }
 
-KolaEpg *IVideo::GetEPG(bool sync) const
+KolaEpg *KolaVideo::NewEPG()
 {
-	if (epg) {
-		if (sync) {
-			epg->Update();
-			epg->Wait();
-		}
-		if (epg->UpdateFinish())
-			return epg;
+	if (not EpgInfo.Empty()) {
+		KolaEpg *epg = new KolaEpg(EpgInfo);
+		epg->SetPool(client->threadPool);
+
+		return epg;
 	}
 
 	return NULL;
@@ -62,11 +57,7 @@ void KolaVideo::Parser(json_t *js)
 	totalBytes     = (int)json_geti(js, "totalBytes", 0);
 	fps            = (int)json_geti(js, "fps"       , 0);
 
-	if (json_t *info = json_object_get(js, "info")) {
-		epg = new KolaEpg(info);
-		epg->SetPool(client->threadPool);
-	}
-
+	json_get_variant(js, "info", &EpgInfo);
 	json_get_variant(js, "resolution", &Resolution);
 	Resolution.vid = vid;
 }
@@ -88,7 +79,7 @@ string KolaVideo::GetVideoUrl()
 
 UrlCache::UrlCache()
 {
-	timeout = 60;
+	timeout = 20;
 }
 
 void UrlCache::SetTimeout(size_t sec)

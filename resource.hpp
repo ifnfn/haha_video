@@ -35,7 +35,7 @@ public:
 		(dynamic_cast<IDestructable*>(this))->Destroy();
 	}
 protected:
-	RefCountable(): miRefCount(1){}
+	RefCountable(): miRefCount(1) { }
 	virtual ~RefCountable() {assert(miRefCount == 0);}
 
 	int miRefCount;
@@ -80,12 +80,11 @@ public:
 	ResourceManager(int thread_num = 1, size_t memory = 1024 * 1024 * 2);
 	virtual ~ResourceManager();
 
-	bool GetFile(FileResource& picture, const string &url);
 	Resource* GetResource(const string &url);
 	bool RemoveResource(const string &url);
 
 	void Clear();
-	bool GC(size_t mem); // 收回指定大小的内存
+	bool GC(size_t mem);                // 收回指定大小的内存
 	void MemoryInc(size_t size);
 	void MemoryDec(size_t size);
 	void Lock();
@@ -94,8 +93,18 @@ public:
 		MaxMemory = size;
 	}
 protected:
-	Resource* AddResource(const string &url);
-	void RemoveResource(Resource* res);
+	void ResIncRef(Resource *res) {
+		Lock();
+		res->IncRefCount();
+		Unlock();
+	}
+
+	void ResDecRef(Resource *res) {
+		Lock();
+		res->DecRefCount();
+		Unlock();
+	}
+
 	Resource* FindResource(const string &url);
 	list<Resource*> mResources;
 	size_t MaxMemory;

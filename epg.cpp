@@ -3,10 +3,17 @@
 #include "kola.hpp"
 #include "json.hpp"
 
-KolaEpg::KolaEpg(json_t *js)
+KolaEpg::KolaEpg() {
+	finished = false;
+	pool = client->threadPool;
+}
+
+KolaEpg::KolaEpg(Variant epg)
 {
 	finished = false;
-	json_to_variant(js, &scInfo);
+	scInfo = epg;
+
+	pool = client->threadPool;
 }
 
 bool KolaEpg::LoadFromText(string text)
@@ -16,15 +23,17 @@ bool KolaEpg::LoadFromText(string text)
 	json_error_t error;
 	json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
-	if (js)
-		ret = LoadFromJson(js);
+	if (js) {
+		Parser(js);
+		ret = true;
+	}
 
 	json_delete(js);
 
 	return ret;
 }
 
-bool KolaEpg::LoadFromJson(json_t *js)
+void KolaEpg::Parser(json_t *js)
 {
 	json_t *v;
 
@@ -39,8 +48,16 @@ bool KolaEpg::LoadFromJson(json_t *js)
 		epgList.push_back(e);
 	}
 	mutex.unlock();
+}
 
-	return true;
+void KolaEpg::Set(Variant epg) {
+	scInfo = epg;
+	mutex.lock();
+	finished = false;
+	epgList.clear();
+	status = Task::StatusInit;
+	mutex.unlock();
+	Update();
 }
 
 bool KolaEpg::GetCurrent(EPG &e)
@@ -94,21 +111,39 @@ bool KolaEpg::Get(EPG &e, time_t t)
 	return ret;
 }
 
+bool epg_compr(const EPG &e1, const EPG &e2)
+{
+	return e1.startTime < e2.startTime;
+}
+
+void KolaEpg::Sort()
+{
+	sort(epgList.begin(), epgList.end(), epg_compr);
+}
+
 void KolaEpg::Run(void)
 {
 	string text = scInfo.GetString();
 
 	if (not text.empty()) {
+		mutex.lock();
+		epgList.clear();
+		mutex.unlock();
 		LoadFromText(text);
+		mutex.lock();
+		Sort();
+		mutex.unlock();
 	}
 	finished = true;
 }
 
 void KolaEpg::Update()
 {
-	if (finished == false && status == Task::StatusInit) {
+	mutex.lock();
+	if (finished == false && status == Task::StatusInit && not scInfo.Empty()) {
 		Start();
 	}
+	mutex.unlock();
 }
 
 bool KolaEpg::UpdateFinish()
@@ -123,7 +158,29 @@ void KolaEpg::Clear()
 	finished = false;
 	status = Task::StatusInit;
 	epgList.clear();
-	Update();
 	mutex.unlock();
 }
+
+size_t KolaEpg::Count()
+{
+	mutex.lock();
+	size_t size = epgList.size();
+	mutex.unlock();
+
+	return size;
+}
+
+bool KolaEpg::Get(int index, EPG &epg)
+{
+	bool ret = false;
+	mutex.lock();
+	if (index >= 0 && index < epgList.size()) {
+		epg = epgList.at(index);
+		ret = true;
+	}
+	mutex.unlock();
+
+	return ret;
+}
+
 

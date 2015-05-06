@@ -79,6 +79,7 @@ public:
 	const char *Get(const char *url=NULL);
 	const char *Post(const char *url, const char *postdata);
 
+	void SetOpt(CURLoption option, void *value);
 	void SetOpt(CURLoption option, const char *value);
 	void SetOpt(CURLoption option, int value);
 
@@ -89,6 +90,7 @@ public:
 	HttpBuffer& Data() { return buffer; }
 	HttpBuffer buffer;
 	void Cancel();
+
 	int        cancel;
 	CURLMSG    msg;
 	long       status;

@@ -26,7 +26,7 @@ extern "C" {
 
 static lua_State *globalL = NULL;
 
-static void lstop (lua_State *L, lua_Debug *ar)
+static void lstop(lua_State *L, lua_Debug *ar)
 {
 	(void)ar;  /* unused arg. */
 	lua_sethook(L, NULL, 0, 0);
@@ -49,6 +49,7 @@ static int traceback (lua_State *L)
 		if (!luaL_callmeta(L, 1, "__tostring"))  /* try its 'tostring' metamethod */
 			lua_pushliteral(L, "(no error message)");
 	}
+
 	return 1;
 }
 
@@ -56,6 +57,7 @@ static int docall (lua_State *L, int narg, int nres)
 {
 	int status;
 	int base = lua_gettop(L) - narg;  /* function index               */
+
 	lua_pushcfunction(L, traceback);  /* push traceback function      */
 	lua_insert(L, base);              /* put it under chunk and args  */
 	globalL = L;                      /* to be available to 'laction' */
@@ -63,6 +65,7 @@ static int docall (lua_State *L, int narg, int nres)
 	status = lua_pcall(L, narg, nres, base);
 	signal(SIGINT, SIG_DFL);
 	lua_remove(L, base);              /* remove traceback function    */
+
 	return status;
 }
 
@@ -78,6 +81,7 @@ static int report(lua_State *L, const char *filename, int status)
 		/* force a complete garbage collection in case of errors */
 		lua_gc(L, LUA_GCCOLLECT, 0);
 	}
+
 	return status;
 }
 
@@ -85,12 +89,12 @@ string LuaScript::lua_runscript(lua_State* L, const char *filename,
 				const char *fn, const char *func, vector<string> &args)
 {
 	int i, status;
-	int argc = (int)args.size();
-
 	string ret;
+	int argc = (int)args.size();
 
 	if (luaL_dostring(L, fn) != LUA_OK) {
 		printf("%s\n%s.\n", fn, lua_tostring(L, -1));
+
 		return ret;
 	}
 
@@ -146,13 +150,13 @@ static const luaL_Reg lualibs[] = {
 	{LUA_MATHLIBNAME, luaopen_math      },
 	{LUA_DBLIBNAME  , luaopen_debug     },
 	{LUA_COLIBNAME  , luaopen_coroutine },
+	{LUA_BITLIBNAME , luaopen_bit32     },
 	{"kola"         , luaopen_kola      },
 	{"cjson"        , luaopen_cjson     },
 	{"xml"          , luaopen_LuaXML_lib},
 	{"rex"          , luaopen_rex_pcre  },
 	{"cURL"         , luaopen_cURL      },
 	//{LUA_LOADLIBNAME, luaopen_package},
-	//{LUA_BITLIBNAME, luaopen_bit32},
 
 	{NULL, NULL}
 };
@@ -208,6 +212,7 @@ bool LuaScript::GetScript(const string &name, string &text)
 			scripts.erase(it);
 		else {
 			text = it->second.text;
+
 			return true;
 		}
 	}
@@ -222,6 +227,7 @@ bool LuaScript::GetScript(const string &name, string &text)
 	}
 
 	printf("Not found script %s\n", name.c_str());
+
 	return false;
 }
 
@@ -276,6 +282,7 @@ bool ScriptCommand::LoadFromJson(json_t *js)
 			json_dump_str(tx, text);
 
 		directText = true;
+
 		return true;
 	}
 
@@ -326,40 +333,6 @@ string ScriptCommand::Run()
 	return ret;
 }
 
-bool Variant::LoadFromJson(json_t *js)
-{
-	if (json_is_string(js)) {
-		directValue = SC_STRING;
-		valueStr = json_string_value(js);
-
-		return true;
-	}
-	else if (json_is_integer(js)) {
-		directValue = SC_INTEGER;
-		valueInt = json_integer_value(js);
-
-		return true;
-	}
-	else if (json_is_real(js)) {
-		directValue = SC_DOUBLE;
-		valueDouble = json_real_value(js);
-
-		return true;
-	}
-
-	else if (json_is_object(js)) {
-		if (ScriptCommand::LoadFromJson(js)) {
-			directValue = SC_SCRIPT;
-
-			return true;
-		}
-	}
-
-	directValue = SC_STRING;
-	json_dump_str(js, valueStr);
-
-	return false;
-}
 
 Variant::Variant(json_t *js) : ScriptCommand()
 {
@@ -367,55 +340,91 @@ Variant::Variant(json_t *js) : ScriptCommand()
 	LoadFromJson(js);
 }
 
+bool Variant::LoadFromJson(json_t *js)
+{
+	directValue = SC_NONE;
+
+	if (js == NULL)
+		return false;
+
+	switch (json_typeof(js)) {
+		case JSON_STRING:
+			directValue = SC_STRING;
+			valueStr = json_string_value(js);
+			break;
+		case JSON_INTEGER:
+			directValue = SC_INTEGER;
+			valueInt = json_integer_value(js);
+			break;
+		case JSON_REAL:
+			directValue = SC_DOUBLE;
+			valueDouble = json_real_value(js);
+			break;
+		case JSON_OBJECT:
+			if (ScriptCommand::LoadFromJson(js))
+				directValue = SC_SCRIPT;
+			else {
+				directValue = SC_STRING;
+				json_dump_str(js, valueStr);
+			}
+			break;
+		default:
+			return false;
+	}
+
+	return true;
+}
+
+void Variant::Clear() {
+	directValue = SC_NONE;
+}
+
+bool Variant::Empty() {
+	return directValue == SC_NONE;
+}
+
 string Variant::GetString()
 {
-	if (directValue == SC_DOUBLE) {
-		char buffer[128];
-		sprintf(buffer, "%f", valueDouble);
+	switch (directValue) {
+		case SC_DOUBLE: {
+			char buffer[128];
+			sprintf(buffer, "%f", valueDouble);
 
-		return buffer;
-	}
-	else if (directValue == SC_STRING) {
-		return valueStr;
-	}
-	else if (directValue == SC_INTEGER) {
-		char buffer[32];
-		sprintf(buffer, "%ld", valueInt);
+			return buffer;
+		}
+		case SC_STRING:
+				return valueStr;
+		case SC_INTEGER: {
+			char buffer[32];
+			sprintf(buffer, "%ld", valueInt);
 
-		return buffer;
+			return buffer;
+		}
+		case SC_SCRIPT:
+				return Run();
+		default:
+			return "";
 	}
-	else if (directValue == SC_SCRIPT) {
-		return Run();
-	}
-
-	return "";
 }
 
 long Variant::GetInteger()
 {
-	if (directValue == SC_DOUBLE) {
-		return int(valueDouble);
-	}
-	else if (directValue == SC_STRING) {
-		try {
-			return atoi(valueStr.c_str());
-		}
-		catch(exception &ex) {
+	switch (directValue) {
+		case SC_DOUBLE:
+			return int(valueDouble);
+		case SC_INTEGER:
+			return valueInt;
+		case SC_SCRIPT:
+			valueStr = Run();
+		case SC_STRING:
+			try {
+				return atoi(valueStr.c_str());
+			}
+			catch(exception &ex) {
+				return 0;
+			}
+		default:
 			return 0;
-		}
-	}
-	else if (directValue == SC_INTEGER) {
-		return valueInt;
-	}
-	else if (directValue == SC_SCRIPT) {
-		string text = Run();
-		try {
-			return atoi(text.c_str());
-		}
-		catch(exception &ex) {
-			return 0;
-		}
-
 	}
 
 	return 0;
@@ -423,30 +432,21 @@ long Variant::GetInteger()
 
 double Variant::GetDouble()
 {
-	if (directValue == SC_DOUBLE) {
-		return valueDouble;
-	}
-	else if (directValue == SC_INTEGER) {
-		return valueInt;
-	}
-	else if (directValue == SC_STRING) {
-		try {
-			return atof(valueStr.c_str());
-		}
-		catch(exception &ex) {
+	switch (directValue) {
+		case SC_DOUBLE:
+			return valueDouble;
+		case SC_INTEGER:
+			return valueInt;
+		case SC_SCRIPT:
+			valueStr = Run();
+		case SC_STRING:
+			try {
+				return atof(valueStr.c_str());
+			}
+			catch(exception &ex) {
+				return 0.0;
+			}
+		default:
 			return 0.0;
-		}
 	}
-	else if (directValue == SC_SCRIPT) {
-		string text = Run();
-		try {
-			return atof(text.c_str());
-		}
-		catch(exception &ex) {
-			return 0.0;
-		}
-
-	}
-
-	return 0.0;
 }

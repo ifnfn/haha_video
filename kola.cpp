@@ -25,15 +25,18 @@
 #	define PORT 9991
 #else
 #	define SERVER_HOST "www.kolatv.com"
+//#       define SERVER_HOST "114.215.174.227"
 #	define PORT 80
 #endif
 
 static string Serial;
-static size_t CacheSize = 1024 * 1024 * 1;
+static size_t CacheSize = 1024 * 512 * 2;
 static int    ThreadNum = 10;
 
 string GetSerial(void)
 {
+	//return "5BA178E5C709E0B3";
+	//return "2FD4289F154F96DF";
 	return Serial;
 }
 
@@ -124,9 +127,22 @@ KolaClient::KolaClient(void)
 	thread->start();
 }
 
+bool KolaClient::KolaReady()
+{
+	string ret;
+	if (this->UrlGet("/static/info", ret)) {
+
+		return ret.compare(0, 2, "OK") == 0;
+	}
+
+	return false;
+}
+
 bool KolaClient::InternetReady()
 {
-	return gethostbyname(SERVER_HOST) != NULL;
+	string ip = GetIP(SERVER_HOST);
+
+	return not ip.empty();
 }
 
 string KolaClient::GetServer()
@@ -167,15 +183,18 @@ KolaClient::~KolaClient(void)
 
 bool KolaClient::UrlGet(string url, string &ret)
 {
-	url = GetFullUrl(url);
-
 	Http http;
+
+	url = GetFullUrl(url);
 	http.Open(url.c_str());
 	if (http.Get() != NULL) {
 		ret.assign(http.Data().mem);
 
 		return true;
 	}
+
+	if (http.httpcode == 302)
+		printf("[Kolatv] Error unauthorized, error cdoe: %d\n", http.httpcode);
 
 	return false;
 }
@@ -202,78 +221,12 @@ bool KolaClient::UrlPost(string url, const char *body, string &ret)
 	return false;
 }
 
-bool KolaClient::ProcessCommand(json_t *cmd, const char *dest)
-{
-	string text;
-	KolaPcre pcre;
-	const char *source = json_gets(cmd, "source", NULL);
-
-	text = json_gets(cmd, "text", "");
-	if (source) {
-		if (UrlGet(source, text) == false)
-			return false;
-	}
-
-	if (text.size() == 0)
-		return false;
-
-	json_t *regular = json_geto(cmd, "regular");
-	if (regular && json_is_array(regular)) {
-		json_t *value;
-
-		json_array_foreach(regular, value) {
-			const char *r = json_string_value(value);
-			pcre.AddRule(r);
-			text = pcre.MatchAll(text.c_str());
-			pcre.ClearRules();
-		}
-
-		//text = pcre.MatchAll(text.c_str());
-	}
-
-	json_t *json_filter = json_geto(cmd, "json");
-	if (json_filter && json_is_array(json_filter)) {
-		json_error_t error;
-		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
-		json_t *newjs = json_object();
-		json_t *value;
-
-		json_array_foreach(json_filter, value) {
-			json_t *p_js = js;
-			string key;
-			vector<string> vlist;
-			string v = json_string_value(value);
-
-			Split(v, ".", vlist);
-			foreach(vlist, i) {
-				key = *i;
-				p_js = json_geto(p_js, key.c_str());
-				if (p_js == NULL)
-					break;
-			}
-			if (p_js)
-				json_seto(newjs, key.c_str(), p_js);
-		}
-		json_dump_str(newjs, text);
-		json_delete(newjs);
-		json_delete(js);
-	}
-
-	json_sets(cmd, "data", text.c_str());
-
-	char *body = json_dumps(cmd, 2);
-	UrlPost(dest, body, text);
-	free(body);
-
-	return 0;
-}
-
 bool KolaClient::Verify(const char *serial)
 {
 	if (serial) {
 		Serial = serial;
 		authorized = false;
-		return LoginOne();
+		LoginOne();
 	}
 
 	return authorized;
@@ -299,6 +252,7 @@ bool KolaClient::LoginOne()
 
 	if (UrlPost(url, params.c_str(), text) == false) {
 		authorized = false;
+		nextLoginSec = 1;
 
 		return false;
 	}
@@ -314,28 +268,15 @@ bool KolaClient::LoginOne()
 
 		string loginKey = json_gets(js, "key", "");
 
-		if (loginKey.empty()) {
-			json_delete(js);
+		authorized = not loginKey.empty();
 
-			return false;
+		if (authorized) {
+			ScriptCommand script;
+			if (json_get_variant(js, "script", &script))
+				script.Run();
 		}
-
-		json_t *cmd = json_geto(js, "command");
-		if (cmd) {
-			const char *dest = json_gets(js, "dest", NULL);
-			if (dest && json_is_array(cmd)) {
-				json_t *value;
-				json_array_foreach(cmd, value)
-				ProcessCommand(value, dest);
-			}
-		}
-
-		ScriptCommand script;
-		if (json_get_variant(js, "script", &script))
-			script.Run();
 
 		json_delete(js);
-		authorized = true;
 	}
 
 	return true;
@@ -343,8 +284,7 @@ bool KolaClient::LoginOne()
 
 void KolaClient::ClearMenu()
 {
-	map<string, IMenu*>::iterator it;
-	for (it = menuMap.begin(); it != menuMap.end(); it++)
+	for(map<string, KolaMenu*>::iterator it = menuMap.begin(); it != menuMap.end(); it++)
 		delete it->second;
 
 	menuMap.clear();
@@ -362,9 +302,9 @@ bool KolaClient::UpdateMenu(void)
 		ClearMenu();
 		json_array_foreach(js, value) {
 			const char *name = json_gets(value, "name", "");
-			KolaMenu* menu = new KolaMenu();
+			KolaMenu *menu = new KolaMenu();
 			menu->Parser(value);
-			menuMap.insert(pair<string, IMenu*>(name, menu));
+			menuMap.insert(pair<string, KolaMenu*>(name, menu));
 		}
 		json_delete(js);
 		return true;
@@ -373,14 +313,9 @@ bool KolaClient::UpdateMenu(void)
 	return false;
 }
 
-IMenu* KolaClient::operator[] (const char *name)
+KolaMenu* KolaClient::Index(int index)
 {
-	return GetMenuByName(name);
-}
-
-IMenu* KolaClient::operator[] (int index)
-{
-	map<string, IMenu*>::iterator it = menuMap.begin();
+	map<string, KolaMenu*>::iterator it = menuMap.begin();
 	for(; it != menuMap.end() && index; it++, index--);
 
 	if (index == 0 && it != menuMap.end())
@@ -389,7 +324,7 @@ IMenu* KolaClient::operator[] (int index)
 	return NULL;
 }
 
-IMenu* KolaClient::GetMenuByCid(int cid)
+KolaMenu* KolaClient::GetMenu(int cid)
 {
 	foreach(menuMap, i) {
 		if (i->second->cid == cid)
@@ -399,9 +334,9 @@ IMenu* KolaClient::GetMenuByCid(int cid)
 	return NULL;
 }
 
-IMenu* KolaClient::GetMenuByName(const char *menuName)
+KolaMenu* KolaClient::GetMenu(const char *menuName)
 {
-	map<string, IMenu*>::iterator it;
+	map<string, KolaMenu*>::iterator it;
 
 	if (menuName == NULL)
 		return NULL;
@@ -449,7 +384,9 @@ void KolaClient::Login()
 		pthread_testcancel();
 		LoginOne();
 		pthread_testcancel();
-		sleep(nextLoginSec);
+
+		if (nextLoginSec > 0)
+			sleep(nextLoginSec);
 	}
 	pthread_cleanup_pop(0);
 
@@ -541,10 +478,24 @@ time_t KolaClient::GetTime()
 
 string KolaClient::GetFullUrl(string url)
 {
+	string full_url;
+
 	if (url.compare(0, strlen("http://"), "http://") != 0)
-		return UrlLink(GetServer(), url);
+		full_url = UrlLink(GetServer(), url);
 	else
-		return url;
+		full_url = url;
+
+#if 1
+	if (full_url.find("?") == std::string::npos)
+		full_url = full_url + "?";
+	else
+		full_url = full_url + "&";
+
+	full_url = full_url + "chipid=" + GetChipKey() + "&serial=" + GetSerial();
+	//printf("FullUrl: %s\n", full_url.c_str());
+#endif
+
+	return full_url;
 }
 
 void KolaClient::CleanResource()
@@ -564,4 +515,21 @@ IObject::IObject()
 	client = &KolaClient::Instance();
 }
 
+bool KolaArea::Empty() {
+	return ip.empty() && province.empty() && city.empty();
+}
 
+string KolaArea::toJson()
+{
+	string ret = "\"area\" : {";
+
+	ret += stringlink("country" , country , "", ",");
+	ret += stringlink("province", province, "", ",");
+	ret += stringlink("city"    , city    , "", "}");
+
+	return ret;
+}
+
+string KolaArea::toString() {
+	return country + "," + province + "," + city + "," + isp;
+}

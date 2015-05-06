@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <resolv.h>
 
 #include <openssl/md5.h>
 #include <arpa/inet.h>
@@ -16,30 +17,30 @@
 
 typedef unsigned char BYTE;
 
-inline static unsigned char toHex(unsigned char x) {
+inline static BYTE toHex(const BYTE &x) {
 	return x > 9 ? x + 55 : x + 48;
 }
 
-inline BYTE fromHex(const BYTE &x)
+inline static BYTE fromHex(const BYTE &x)
 {
         return isdigit(x) ? x-'0' : x-'A'+10;
 }
 
-string UrlEncode(const string & sIn)
+string UrlEncode(const string &text)
 {
 	string sOut;
 
-	for(size_t i=0; i < sIn.size(); ++i) {
+	for(size_t i=0; i < text.size(); ++i) {
 		unsigned char buf[4];
 		memset(buf, 0, 4);
-		if(isalnum((unsigned char)sIn[i]))
-			buf[0] = sIn[i];
-		else if(isspace((unsigned char)sIn[i]))
+		if(isalnum((unsigned char)text[i]))
+			buf[0] = text[i];
+		else if(isspace((unsigned char)text[i]))
 			buf[0] = '+';
 		else {
 			buf[0] = '%';
-			buf[1] = toHex((unsigned char)sIn[i] >> 4);
-			buf[2] = toHex((unsigned char)sIn[i] % 16);
+			buf[1] = toHex((unsigned char)text[i] >> 4);
+			buf[2] = toHex((unsigned char)text[i] % 16);
 		}
 		sOut += (char *)buf;
 	}
@@ -47,21 +48,21 @@ string UrlEncode(const string & sIn)
 	return sOut;
 }
 
-string UrlDecode(const string &sIn)
+string UrlDecode(const string &text)
 {
 	string sOut;
 
-	for( size_t ix = 0; ix < sIn.size(); ix++ ) {
+	for( size_t ix = 0; ix < text.size(); ix++ ) {
 		BYTE ch = 0;
-		if(sIn[ix]=='%') {
-			ch = (fromHex(sIn[ix+1])<<4);
-			ch |= fromHex(sIn[ix+2]);
+		if(text[ix]=='%') {
+			ch = (fromHex(text[ix+1])<<4);
+			ch |= fromHex(text[ix+2]);
 			ix += 2;
 		}
-		else if(sIn[ix] == '+')
+		else if(text[ix] == '+')
 			ch = ' ';
 		else
-			ch = sIn[ix];
+			ch = text[ix];
 
 		sOut += (char)ch;
 	}
@@ -105,6 +106,7 @@ static bool GetCPUID(string &CPUID, ssize_t len)
 
 string GetChipKey(void)
 {
+	//return "4781D5154E920432";
 	static string CPUID;
 	if (CPUID.empty()) {
 		if (GetCPUID(CPUID, 8) == false)
@@ -134,7 +136,10 @@ string MD5(const char *data, size_t size)
 string GetIP(const char *hostp)
 {
 	string ip;
+
+	res_init();
 	struct hostent *host = gethostbyname(hostp);
+	res_close();
 
 	if (host) {
 		char str[64];

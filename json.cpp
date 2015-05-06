@@ -1,14 +1,19 @@
 #include "json.hpp"
 #include "kola.hpp"
 
+extern "C" void jsonp_free(void*);
+
 bool json_dump_str(json_t *js, string &ret)
 {
 	char *text = json_dumps(js, 2);
 
 	if (text) {
 		ret = text;
+#if defined(CSKY) && defined(LINUX_OS)
+		jsonp_free(text);
+#else
 		free(text);
-
+#endif
 		return true;
 	}
 
@@ -19,12 +24,10 @@ json_t* json_loadurl(const char *url)
 {
 	json_error_t error;
 	string text;
-	KolaClient& kola = KolaClient::Instance();
-	if (kola.UrlGet(url, text) == true) {
-		json_t *js = json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
-		return js;
-	}
+	KolaClient& kola = KolaClient::Instance();
+	if (kola.UrlGet(url, text) == true)
+		return json_loads(text.c_str(), JSON_DECODE_ANY, &error);
 
 	return NULL;
 }
@@ -40,8 +43,8 @@ bool json_get_variant(json_t *js, const char *key, ScriptCommand *script)
 
 	if (p)
 		return json_to_variant(p, script);
-	else
-		return false;
+
+	return false;
 }
 
 const bool json_gets(json_t *js, const char *key, string &ret)
@@ -63,6 +66,7 @@ const bool json_gets(json_t *js, const char *key, string &ret)
 		if (sc) {
 			ScriptCommand cmd(p);
 			ret = cmd.Run();
+
 			return true;
 		}
 	}
@@ -78,10 +82,8 @@ const char *json_gets(json_t *js, const char *key, const char *def)
 
 	if (json_is_string(p))
 		return json_string_value(p);
-	else if (json_is_object(p)) {
-		while(1)
-			printf("dddddddddddddd\n");
-	}
+	else if (json_is_object(p))
+		printf("Error!\n");
 
 	return def;
 }

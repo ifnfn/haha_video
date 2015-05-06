@@ -18,18 +18,19 @@ Resource::~Resource()
 	if (manager && miDataSize > 0)
 		manager->MemoryDec(miDataSize);
 
-	printf("Remove %s -> %s\n", md5Name.c_str(), resName.c_str());
+	printf("Remove (%p) %s -> %s\n", this, md5Name.c_str(), resName.c_str());
 	unlink(md5Name.c_str());
 }
 
 static string StringGetFileExt(string path)
 {
+	string ret;
+
 	if (path.rfind('/') != string::npos)
 		path = path.substr(path.rfind("/") + 1);
 
 	string::size_type start = path.rfind('.') == string::npos ? path.length() : path.rfind('.');
 
-	string ret;
 	while (start < path.size() && (isalpha(path[start]) || path[start] == '.'))
 		ret = ret + path[start++];
 
@@ -56,7 +57,9 @@ void Resource::Cancel()
 
 void Resource::Run(void)
 {
-	IncRefCount();
+#if 1
+	manager->ResIncRef(this);
+
 	if (http.Get(resName.c_str()) != NULL) {
 		miDataSize = http.buffer.size;
 		time(&this->updateTime);
@@ -72,7 +75,8 @@ void Resource::Run(void)
 		}
 	}
 
-	DecRefCount();
+	manager->ResDecRef(this);
+#endif
 }
 
 string Resource::ToString()
@@ -96,7 +100,6 @@ string Resource::ToString()
 	return ret;
 }
 
-
 FileResource::~FileResource()
 {
 	Clear();
@@ -105,7 +108,9 @@ FileResource::~FileResource()
 void FileResource::Clear()
 {
 	if (res) {
-		res->DecRefCount();
+		KolaClient &kola = KolaClient::Instance();
+
+		kola.resManager->RemoveResource(res->GetName());
 		res = NULL;
 	}
 }
@@ -154,14 +159,8 @@ ResourceManager::ResourceManager(int thread_num, size_t memory) : MaxMemory(memo
 
 ResourceManager::~ResourceManager()
 {
-	list<Resource*>::iterator it;
-	Lock();
-	for (it = mResources.begin(); it != mResources.end(); it++) {
-		Resource* pRes = *it;
-		pRes->DecRefCount();
-	}
-	mResources.clear();
-	Unlock();
+	Clear();
+
 	delete threadPool;
 	pthread_mutex_destroy(&lock);
 }
@@ -176,144 +175,121 @@ void ResourceManager::Unlock()
 	pthread_mutex_unlock(&lock);
 }
 
-bool ResourceManager::GetFile(FileResource& picture, const string &url)
-{
-	picture.Clear();
-	picture.GetResource(this, url);
-
-	return true;
-}
-
-Resource* ResourceManager::AddResource(const string &url)
-{
-	Resource* pResource = Resource::Create(this);
-	pResource->Load(url);
-	Lock();
-	mResources.insert(mResources.end(), pResource);
-	Unlock();
-	pResource->Start(false);
-
-	return pResource;
-}
-
 Resource* ResourceManager::GetResource(const string &url)
 {
-	Resource* pResource = dynamic_cast<Resource*>(FindResource(url));
-	if (pResource == NULL)
-		pResource = AddResource(url);
+	Resource *res = NULL;
 
-	if (pResource)
-		pResource->IncRefCount();
+	Lock();
+	res = dynamic_cast<Resource*>(FindResource(url));
+	if (res == NULL) {
+		res = Resource::Create(this);
+		res->Load(url);
 
-	return pResource;
+		mResources.insert(mResources.end(), res);
+
+		res->Start(false);
+	}
+
+	res->IncRefCount();
+
+	Unlock();
+
+	return res;
 }
 
 bool ResourceManager::RemoveResource(const string &url)
 {
-	Resource *res = FindResource(url);
-	if (res) {
-		if (threadPool->removeTask(res))
-			RemoveResource(res);
-		else
-			res->Cancel();
+	Resource *res = NULL;
+	bool ret = false;
 
+	Lock();
+	res = FindResource(url);
+	if (res) {
 		res->DecRefCount();
 
-		return true;
+		if (res->GetRefCount() == 1) {
+			threadPool->removeTask(res);
+			//mResources.remove(res);
+			//res->DecRefCount();
+		}
+
+		ret = true;
 	}
 
-	return false;
+	Unlock();
+
+	return ret;
 }
 
 Resource* ResourceManager::FindResource(const string &url)
 {
-	Resource* pRet = NULL;
+	Resource *res = NULL;
 	list<Resource*>::iterator it;
 
-	Lock();
 	for (it = mResources.begin(); (it != mResources.end()); it++) {
-		pRet = (*it);
+		res = *it;
 
-		if (pRet->GetName() == url) {
-			pRet->UpdateTime();
+		if (res->GetName() == url) {
+			res->UpdateTime();
 			break;
 		}
-
-		pRet = NULL;
+		res = NULL;
 	}
 
-	Unlock();
-
-	return pRet;
+	return res;
 }
 
-void ResourceManager::MemoryInc(size_t size) {
+void ResourceManager::MemoryInc(size_t size)
+{
 	UseMemory += size;
 }
 
-void ResourceManager::MemoryDec(size_t size) {
-	UseMemory -= size;
-}
-
-void ResourceManager::RemoveResource(Resource* res)
+void ResourceManager::MemoryDec(size_t size)
 {
-	Lock();
-	list<Resource*>::iterator it = mResources.begin();
-	for (; it != mResources.end(); it++) {
-		if (*it == res) {
-			mResources.erase(it++);
-			res->DecRefCount();
-			break;
-		}
-	}
-	Unlock();
+	UseMemory -= size;
 }
 
 void ResourceManager::Clear()
 {
-	list<Resource*>::iterator it;
 	Lock();
-	for (it = mResources.begin(); it != mResources.end();) {
-		Resource* pRet = (*it);
 
-		mResources.erase(it++);
-		pRet->DecRefCount();
-	}
+	for (list<Resource*>::iterator it = mResources.begin(); it != mResources.end(); it++)
+		(*it)->DecRefCount();
+
+	mResources.clear();
+
 	Unlock();
 }
 
-static bool compare_nocase(const Resource* first, const Resource* second)
+static bool compare_resource(const Resource* first, const Resource* second)
 {
 	return first->updateTime < second->updateTime;
 }
 
 bool ResourceManager::GC(size_t memsize) // 收回指定大小的内存
 {
-	Resource* pRet = NULL;
 	bool ret = true;
+	list<Resource*>::iterator it;
+
+	if (UseMemory + memsize <= MaxMemory)
+		return ret;
 
 	Lock();
+	mResources.sort(compare_resource);
 
-	if (UseMemory + memsize <= MaxMemory) {
-		Unlock();
-		return ret;
-	}
-
-	mResources.sort(compare_nocase);
-
-	list<Resource*>::iterator it;
 	for (it = mResources.begin(); it != mResources.end() && UseMemory + memsize > MaxMemory;) {
-		pRet = (*it);
+		Resource *res = *it;
 
-		if (pRet->GetRefCount() == 1 && pRet->GetStatus() == Task::StatusFinish) {// 无人使用
+		if (res->GetRefCount() == 1 && res->GetStatus() == Task::StatusFinish) { // 无人使用
 			mResources.erase(it++);
-			pRet->DecRefCount();
+			res->DecRefCount();
 		}
 		else
 			it++;
 	}
 
 	ret = UseMemory + memsize <= MaxMemory;
+
 	Unlock();
 
 	return ret;

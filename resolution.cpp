@@ -7,11 +7,6 @@
 #include "base64.hpp"
 #include "threadpool.hpp"
 
-bool VideoResolution::Empty()
-{
-	return urls.empty();
-}
-
 void VideoResolution::Clear()
 {
 	urls.clear();
@@ -47,12 +42,11 @@ void VideoResolution::Calc()
 
 void VideoResolution::GetResolution(StringList& res)
 {
-	if (Empty())
+	if (urls.empty())
 		Calc();
 
-	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++) {
+	for (map<string, Variant>::iterator it = urls.begin(); it != urls.end(); it++)
 		res.Add(it->first);
-	}
 }
 
 void VideoResolution::SetResolution(string &res)
@@ -64,9 +58,11 @@ bool VideoResolution::GetVariant(string &key, Variant &var)
 {
 	if (key.empty())
 		key = defaultKey;
+
 	map<string ,Variant>::iterator it = urls.find(key);
 	if (it != urls.end()) {
 		var = it->second;
+
 		return true;
 	}
 
@@ -77,26 +73,24 @@ string VideoResolution::GetVideoUrl()
 {
 	string url;
 	string key;
+	bool find;
 
-	if (Empty())
+	if (urls.empty())
 		Calc();
 
 	key = vid + defaultKey;
 
-	bool find = false;
 	UrlCache &cache = KolaClient::Instance().cache;
 
 	find = cache.FindByVid(key, url);
 
-	if (find) {
+	if (find)
 		return url;
-	}
 
-	if (not Empty()) {
+	if (not urls.empty()) {
 		map<string ,Variant>::iterator it = urls.find(defaultKey);
-		if (it != urls.end()) {
+		if (it != urls.end())
 			url = it->second.GetString();
-		}
 		else {
 			it = urls.begin();
 			url = it->second.GetString();

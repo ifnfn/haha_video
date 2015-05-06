@@ -95,6 +95,7 @@ size_t base64decode(const unsigned char *input, size_t input_length, unsigned ch
 		}
 		i += 4;
 	}
+
 	return j;
 }
 

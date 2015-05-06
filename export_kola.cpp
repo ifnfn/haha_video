@@ -57,11 +57,52 @@ static int lua_mwget(lua_State *L)
 	return 1;
 }
 
+static int lua_wget2(lua_State *L)
+{
+	Http http;
+	struct curl_slist *chunk = NULL;
+	const char *url = NULL;
+	int i = 1;
+
+	int argc = lua_gettop(L);
+	if (argc < 1)
+		return 0;
+
+	if (argc >= 1 && lua_type(L, 1) == LUA_TSTRING)
+		url = lua_tostring(L, 1);
+
+	if (lua_isstring(L, 2))
+		chunk = curl_slist_append(chunk, lua_tostring(L, 2));
+	else {
+		if (lua_type(L, 2) != LUA_TTABLE)
+			luaL_error(L, "wrong argument (%s): expected string or table", lua_typename(L, 2));
+
+		lua_rawgeti(L, 2, i++);
+		while (!lua_isnil(L, -1)) {
+			const char *value = lua_tostring(L, -1);
+			chunk = curl_slist_append(chunk, value);
+			lua_pop(L, 1);
+			lua_rawgeti(L, 2, i++);
+		}
+		lua_pop(L, 1);
+	}
+
+	http.SetOpt(CURLOPT_HTTPHEADER, chunk);
+	const char *text = http.Get(url);
+	if (text) {
+		lua_pushstring(L, text);
+		return 1;
+	}
+
+	return 0;
+}
+
 static int lua_wget(lua_State *L)
 {
 	int argc = lua_gettop(L);
 	const char *url = NULL;
 	bool cached = true;
+
 	if (argc < 1)
 		return 0;
 	if (argc >= 1 && lua_type(L, 1) == LUA_TSTRING)
@@ -77,7 +118,8 @@ static int lua_wget(lua_State *L)
 			Resource* res = kola.resManager->GetResource(url);
 			res->Wait();
 			string text = res->ToString();
-			res->DecRefCount();
+			kola.resManager->RemoveResource(res->GetName());
+
 			if (not text.empty()) {
 				lua_pushstring(L, text.c_str());
 				return 1;
@@ -160,13 +202,6 @@ static int lua_geturl(lua_State *L)
 	return 0;
 }
 
-static int lua_getserver(lua_State *L)
-{
-	lua_pushstring(L, KolaClient::Instance().GetServer().c_str());
-
-	return 1;
-}
-
 static int lua_gettime(lua_State *L)
 {
 	lua_pushnumber(L, KolaClient::Instance().GetTime());
@@ -246,43 +281,45 @@ static int StringToTime(const string &strDateStr,time_t &timeData)
 {
 	char *pBeginPos = (char*) strDateStr.c_str();
 	char *pPos = strstr(pBeginPos,"-");
-	if(pPos == NULL)
-	{
+
+	if(pPos == NULL) {
 		printf("strDateStr[%s] err \n", strDateStr.c_str());
 		return -1;
 	}
+
 	int iYear = atoi(pBeginPos);
 	int iMonth = atoi(pPos + 1);
 	pPos = strstr(pPos + 1,"-");
-	if(pPos == NULL)
-	{
+	if(pPos == NULL) {
 		printf("strDateStr[%s] err \n", strDateStr.c_str());
 		return -1;
 	}
+
 	int iDay = atoi(pPos + 1);
-	int iHour=0;
-	int iMin=0;
-	int iSec=0;
+	int iHour = 0;
+	int iMin  = 0;
+	int iSec  = 0;
+
 	pPos = strstr(pPos + 1," ");
 	//为了兼容有些没精确到时分秒的
 	if(pPos != NULL) {
-		iHour=atoi(pPos + 1);
+		iHour = atoi(pPos + 1);
 		pPos = strstr(pPos + 1,":");
 		if(pPos != NULL) {
-			iMin=atoi(pPos + 1);
+			iMin = atoi(pPos + 1);
 			pPos = strstr(pPos + 1,":");
 			if(pPos != NULL)
-				iSec=atoi(pPos + 1);
+				iSec = atoi(pPos + 1);
 		}
 	}
 
 	struct tm sourcedate;
 	bzero((void*)&sourcedate,sizeof(sourcedate));
-	sourcedate.tm_sec = iSec;
-	sourcedate.tm_min = iMin;
+	sourcedate.tm_sec  = iSec;
+	sourcedate.tm_min  = iMin;
 	sourcedate.tm_hour = iHour;
 	sourcedate.tm_mday = iDay;
-	sourcedate.tm_mon = iMonth - 1;
+	sourcedate.tm_mon  = iMonth - 1;
 	sourcedate.tm_year = iYear - 1900;
 	timeData = mktime(&sourcedate);
 
@@ -320,14 +357,16 @@ static int lua_md5(lua_State *L)
 static int lua_getchipid(lua_State *L)
 {
 	lua_pushstring(L, GetChipKey().c_str());
-	return 0;
+
+	return 1;
 }
 
 
 static int lua_getserial(lua_State *L)
 {
 	lua_pushstring(L, GetSerial().c_str());
-	return 0;
+
+	return 1;
 }
 
 static int lua_strtrim(lua_State *L)
@@ -343,6 +382,7 @@ static int lua_strtrim(lua_State *L)
 		--back;
 
 	lua_pushlstring(L, &str[front], back - front + 1);
+
 	return 1;
 }
 
@@ -353,6 +393,7 @@ static int lua_strsplit(lua_State *L)
 	const char *str = luaL_checkstring(L, 2);
 	int limit = luaL_optint(L, 3, 0);
 	int count = 0;
+
 	/* Set the stack to a predictable size */
 	lua_settop(L, 0);
 	/* Initialize the result count */
@@ -385,6 +426,7 @@ static int lua_strsplit(lua_State *L)
 	lua_pushstring(L, str);
 	++count;
 	/* Return with the number of values found */
+
 	return count;
 }
 
@@ -426,32 +468,68 @@ static int lua_strjoin(lua_State *L)
 	return 1;
 }
 
-static const struct luaL_Reg kola_lib[] = {
-	{"base64_encode" , lua_base64_encode},
-	{"base64_decode" , lua_base64_decode},
-	{"wget"          , lua_wget},
-	{"mwget"         , lua_mwget},
-	{"wpost"         , lua_wpost},
-	{"pcre"          , lua_pcre},
-	{"geturl"        , lua_geturl},
-	{"getserver"     , lua_getserver},
-	{"gettime"       , lua_gettime},
-	{"getdate"       , lua_getdate},
-	{"urlencode"     , lua_urlencode},
-	{"urldecode"     , lua_urldecode},
-	{"md5"           , lua_md5},
-	{"date"          , lua_date},
-	{"chipid"        , lua_getchipid},
-	{"serial"        , lua_getserial},
-	{"strtrim"       , lua_strtrim},
-	{"strsplit"      , lua_strsplit},
-	{"strjoin"       , lua_strjoin},
+static int lua_area(lua_State *L)
+{
+	KolaArea area;
 
-	{NULL            , NULL},
+	KolaClient &kola = KolaClient::Instance();
+	if (kola.GetArea(area)) {
+		lua_newtable(L);
+		lua_pushstring(L, "ip");
+		lua_pushstring(L, area.ip.c_str());
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "isp");
+		lua_pushstring(L, area.isp.c_str());
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "country");
+		lua_pushstring(L, area.country.c_str());
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "city");
+		lua_pushstring(L, area.city.c_str());
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "province");
+		lua_pushstring(L, area.province.c_str());
+		lua_settable(L, -3);
+
+		return 1;
+	}
+
+	return 0;
+}
+
+static const struct luaL_Reg kola_lib[] = {
+	{"base64_encode" , lua_base64_encode },
+	{"base64_decode" , lua_base64_decode },
+	{"wget"          , lua_wget          },
+	{"wget2"         , lua_wget2         },
+	{"mwget"         , lua_mwget         },
+	{"wpost"         , lua_wpost         },
+	{"pcre"          , lua_pcre          },
+	{"geturl"        , lua_geturl        },
+	{"gettime"       , lua_gettime       },
+	{"getdate"       , lua_getdate       },
+	{"urlencode"     , lua_urlencode     },
+	{"urldecode"     , lua_urldecode     },
+	{"md5"           , lua_md5           },
+	{"date"          , lua_date          },
+	{"chipid"        , lua_getchipid     },
+	{"serial"        , lua_getserial     },
+	{"strtrim"       , lua_strtrim       },
+	{"strsplit"      , lua_strsplit      },
+	{"strjoin"       , lua_strjoin       },
+	{"getarea"       , lua_area          },
+
+	{NULL            , NULL              },
 };
 
-LUALIB_API int luaopen_kola(lua_State *L) {
+LUALIB_API int luaopen_kola(lua_State *L)
+{
 	luaL_newlib(L, kola_lib);
+
 	return 1;
 }
 

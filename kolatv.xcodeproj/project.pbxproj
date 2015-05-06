@@ -231,39 +231,39 @@
 		4473FDBF186C5ACA00136610 = {
 			isa = PBXGroup;
 			children = (
-				4473FDE7186C5AF300136610 /* lua */,
 				4473FDD7186C5AF300136610 /* album.cpp */,
 				4473FDD8186C5AF300136610 /* base64.cpp */,
+				4473FDD9186C5AF300136610 /* base64.hpp */,
 				445400BD18E40DA9005F784E /* common.cpp */,
 				445400BE18E40DA9005F784E /* common.hpp */,
 				44D9391618E908DF00C44928 /* epg.cpp */,
 				4473FDDD186C5AF300136610 /* export_kola.cpp */,
 				4473FDDE186C5AF300136610 /* filter.cpp */,
 				4473FDDF186C5AF300136610 /* http.cpp */,
+				4473FDE0186C5AF300136610 /* http.hpp */,
 				4473FDE1186C5AF300136610 /* json.cpp */,
+				4473FDE2186C5AF300136610 /* json.hpp */,
 				4473FDE3186C5AF300136610 /* kola.cpp */,
+				4473FDE4186C5AF300136610 /* kola.hpp */,
+				44C557D418910E7300D3F5EC /* kolatv */,
+				4473FDE7186C5AF300136610 /* lua */,
 				4473FE7D186C5AF300136610 /* main.cpp */,
 				4473FE7F186C5AF300136610 /* menu.cpp */,
 				4473FE80186C5AF300136610 /* pcre.cpp */,
+				4473FE81186C5AF300136610 /* pcre.hpp */,
 				446A5EA8188D01600046E0E3 /* player.cpp */,
 				446A5EAA188D024F0046E0E3 /* resolution.cpp */,
 				44F2E439187A99E200B05FDB /* resource.cpp */,
+				44F2E43A187A99E200B05FDB /* resource.hpp */,
 				4473FE82186C5AF300136610 /* script.cpp */,
+				4473FE83186C5AF300136610 /* script.hpp */,
 				4473FE85186C5AF300136610 /* stringlist.cpp */,
 				4473FE86186C5AF300136610 /* task.cpp */,
 				4473FE87186C5AF300136610 /* threadpool.cpp */,
+				4473FE88186C5AF300136610 /* threadpool.hpp */,
+				4459C22818E175690022CC19 /* update.cpp */,
 				4473FE89186C5AF300136610 /* video.cpp */,
 				44E3229D188A5EBF00E9452E /* weather.cpp */,
-				4473FDD9186C5AF300136610 /* base64.hpp */,
-				4473FDE0186C5AF300136610 /* http.hpp */,
-				4473FDE2186C5AF300136610 /* json.hpp */,
-				4473FDE4186C5AF300136610 /* kola.hpp */,
-				4459C22818E175690022CC19 /* update.cpp */,
-				4473FE81186C5AF300136610 /* pcre.hpp */,
-				44F2E43A187A99E200B05FDB /* resource.hpp */,
-				4473FE83186C5AF300136610 /* script.hpp */,
-				4473FE88186C5AF300136610 /* threadpool.hpp */,
-				44C557D418910E7300D3F5EC /* kolatv */,
 			);
 			sourceTree = "<group>";
 		};
@@ -557,12 +557,13 @@
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
+					"-ljansson",
 					"-lcurl",
 					"-lpcre",
-					"-ljansson",
 					"-lz",
 					"-lcrypto",
 					"-lxml2",
+					"-lresolv",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -626,12 +627,13 @@
 					"-DLUA_USE_POSIX",
 				);
 				OTHER_LDFLAGS = (
+					"-ljansson",
 					"-lcurl",
 					"-lpcre",
-					"-ljansson",
 					"-lz",
 					"-lcrypto",
 					"-lxml2",
+					"-lresolv",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
